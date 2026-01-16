@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formation Cisco - Plateforme Interactive</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+                <span>Formation Cisco</span>
+            </div>
+            <button class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="#home" class="nav-link active">Accueil</a></li>
+                <li><a href="#modules" class="nav-link">Modules</a></li>
+                <li><a href="#about" class="nav-link">À propos</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- Page d'accueil -->
+        <section id="home" class="page active">
+            <div class="hero">
+                <div class="hero-content">
+                    <h1 class="hero-title">Formation Cisco Interactive</h1>
+                    <p class="hero-subtitle">Maîtrisez les concepts de réseaux Cisco à travers des modules interactifs et des exercices pratiques</p>
+                    <button class="cta-button" onclick="showModules()">Commencer la formation</button>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-card">
+                        <div class="stat-number">6</div>
+                        <div class="stat-label">Modules</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">18+</div>
+                        <div class="stat-label">Sections</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">50+</div>
+                        <div class="stat-label">Ressources</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modules-preview">
+                <h2 class="section-title">Modules de Formation</h2>
+                <div class="modules-grid" id="modulesGrid">
+                    <!-- Les modules seront générés dynamiquement par JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Page modules -->
+        <section id="modules" class="page">
+            <div class="page-header">
+                <button class="back-button" onclick="showHome()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Retour
+                </button>
+                <h1 class="page-title">Tous les Modules</h1>
+            </div>
+            <div class="modules-list" id="modulesList">
+                <!-- Les modules seront générés dynamiquement -->
+            </div>
+        </section>
+
+        <!-- Page module détaillé -->
+        <section id="module-detail" class="page">
+            <div class="page-header">
+                <button class="back-button" onclick="showModules()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Retour aux modules
+                </button>
+                <h1 class="page-title" id="moduleTitle">Module</h1>
+            </div>
+            <div class="module-content" id="moduleContent">
+                <!-- Le contenu du module sera généré dynamiquement -->
+            </div>
+        </section>
+
+        <!-- Page à propos -->
+        <section id="about" class="page">
+            <div class="page-header">
+                <button class="back-button" onclick="showHome()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Retour
+                </button>
+                <h1 class="page-title">À propos</h1>
+            </div>
+            <div class="about-content">
+                <div class="about-card">
+                    <h2>Plateforme de Formation Cisco</h2>
+                    <p>Cette plateforme interactive vous permet d'accéder à tous les cours et exercices pratiques sur les technologies Cisco. Naviguez facilement entre les différents modules et accédez aux ressources pédagogiques.</p>
+                </div>
+                <div class="about-card">
+                    <h3>Fonctionnalités</h3>
+                    <ul class="features-list">
+                        <li>📚 Accès à tous les cours théoriques</li>
+                        <li>🔧 Exercices pratiques (LABs)</li>
+                        <li>✅ Corrigés des exercices</li>
+                        <li>📱 Interface responsive</li>
+                        <li>🔍 Navigation intuitive</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024 Formation Cisco. Tous droits réservés.</p>
+    </footer>
+
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
