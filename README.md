@@ -81,5 +81,50 @@ Vous pouvez modifier :
 
 - Les PDFs doivent être accessibles depuis le navigateur (chemins relatifs)
 - Le serveur Node.js permet un affichage optimal des PDFs avec support CORS
-- Pour un déploiement en production, utilisez un serveur web (Apache, Nginx, etc.)
 - Nécessite Node.js et npm installés sur votre système
+
+## 🚀 Déploiement sur Vercel
+
+### Option 1 : Via l'interface Vercel (Recommandé)
+
+1. **Installer Vercel CLI** (optionnel) :
+```bash
+npm i -g vercel
+```
+
+2. **Connecter votre projet** :
+   - Allez sur [vercel.com](https://vercel.com)
+   - Connectez-vous avec GitHub
+   - Cliquez sur "New Project"
+   - Importez votre dépôt GitHub `tanguyors/CISCO`
+   - Vercel détectera automatiquement la configuration
+
+3. **Déployer** :
+   - Vercel déploiera automatiquement à chaque push sur GitHub
+   - Le site sera disponible sur une URL comme `https://cisco-*.vercel.app`
+
+### Option 2 : Via CLI
+
+```bash
+# Installer Vercel CLI
+npm i -g vercel
+
+# Déployer
+vercel
+
+# Déployer en production
+vercel --prod
+```
+
+### Configuration Vercel
+
+Le fichier `vercel.json` est déjà configuré pour :
+- ✅ Servir les fichiers statiques
+- ✅ Activer CORS pour les PDFs
+- ✅ Rediriger toutes les routes vers `index.html`
+
+### Après le déploiement
+
+- Votre site sera accessible via une URL Vercel
+- Les PDFs fonctionneront correctement grâce à la configuration CORS
+- Chaque push sur GitHub déclenchera un nouveau déploiement automatique

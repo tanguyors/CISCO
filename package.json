@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "serve": "npx http-server -p 8000 -o --cors"
+    "serve": "npx http-server -p 8000 -o --cors",
+    "build": "echo 'Build complet - site statique prêt pour Vercel'"
   },
   "keywords": [
     "cisco",
