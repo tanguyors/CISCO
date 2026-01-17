@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formation Cisco - Plateforme Interactive</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="games.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -130,7 +131,45 @@
         <p>&copy; 2024 Formation Cisco. Tous droits réservés.</p>
     </footer>
 
+    <!-- Modals pour les jeux -->
+    <div id="quizModal" class="game-modal">
+        <div class="game-modal-content">
+            <div class="game-modal-header">
+                <h2 id="quizTitle">Quiz</h2>
+                <button class="game-modal-close" onclick="closeQuiz()">&times;</button>
+            </div>
+            <div class="game-modal-body">
+                <div id="quizProgress" class="quiz-progress">
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill"></div>
+                    </div>
+                    <span id="progressText">Question 1 sur 3</span>
+                </div>
+                <div id="quizContainer"></div>
+                <div id="quizResults" class="quiz-results" style="display: none;">
+                    <h3>Résultats</h3>
+                    <div id="scoreDisplay" class="score-display"></div>
+                    <button class="btn btn-primary" onclick="closeQuiz()">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="configModal" class="game-modal">
+        <div class="game-modal-content">
+            <div class="game-modal-header">
+                <h2 id="configTitle">Exercice de configuration</h2>
+                <button class="game-modal-close" onclick="closeConfig()">&times;</button>
+            </div>
+            <div class="game-modal-body">
+                <div id="configContainer"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="data.js"></script>
+    <script src="games.js"></script>
+    <script src="games-script.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

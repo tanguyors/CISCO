@@ -362,6 +362,7 @@ function renderModuleDetail(moduleId) {
                             ${resourcesHtml}
                         </div>
                     </div>
+                    ${renderGamesForSection(module.id, section.title)}
                 </div>
             `;
         }).join('');
