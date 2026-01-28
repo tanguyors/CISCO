@@ -347,6 +347,454 @@ const FlashCards = ({ cards, mode = 'question_to_answer' }) => {
   );
 };
 
+// --- COMPOSANTS INTERACTIFS ---
+
+// Simulateur de configuration SSH étape par étape
+const SSHConfigurator = () => {
+  const [step, setStep] = useState(0);
+  const [config, setConfig] = useState({
+    hostname: '',
+    domain: '',
+    username: '',
+    privilege: '15',
+    password: '',
+    rsaGenerated: false,
+    sshEnabled: false
+  });
+  const [feedback, setFeedback] = useState('');
+
+  const steps = [
+    { title: "Nom d'hôte", cmd: "hostname", field: "hostname", placeholder: "SW-SSH", example: "SW-SSH" },
+    { title: "Nom de domaine", cmd: "ip domain-name", field: "domain", placeholder: "novatech.local", example: "novatech.local" },
+    { title: "Utilisateur", cmd: "username", field: "username", placeholder: "admin", example: "admin" },
+    { title: "Privilège", cmd: "privilege", field: "privilege", placeholder: "15", example: "15" },
+    { title: "Mot de passe", cmd: "secret", field: "password", placeholder: "admin123", example: "admin123" },
+    { title: "Générer clé RSA", cmd: "crypto key generate rsa", field: "rsaGenerated", placeholder: "", example: "" },
+    { title: "Activer SSH", cmd: "transport input ssh", field: "sshEnabled", placeholder: "", example: "" }
+  ];
+
+  const handleInput = (field, value) => {
+    setConfig({ ...config, [field]: value });
+    setFeedback('');
+  };
+
+  const handleNext = () => {
+    const currentStep = steps[step];
+    if (currentStep.field === 'rsaGenerated' || currentStep.field === 'sshEnabled') {
+      setConfig({ ...config, [currentStep.field]: true });
+      setFeedback(`✅ ${currentStep.cmd} exécuté avec succès !`);
+    } else if (config[currentStep.field]) {
+      setFeedback(`✅ ${currentStep.cmd} ${config[currentStep.field]} configuré !`);
+    } else {
+      setFeedback('⚠️ Veuillez remplir ce champ avant de continuer.');
+      return;
+    }
+    setTimeout(() => {
+      if (step < steps.length - 1) {
+        setStep(step + 1);
+        setFeedback('');
+      }
+    }, 1000);
+  };
+
+  const generateCommand = () => {
+    if (step === 0) return `hostname ${config.hostname || 'SW-SSH'}`;
+    if (step === 1) return `ip domain-name ${config.domain || 'novatech.local'}`;
+    if (step === 2) return `username ${config.username || 'admin'} privilege ${config.privilege || '15'} secret ${config.password || 'admin123'}`;
+    if (step === 3) return `username ${config.username || 'admin'} privilege ${config.privilege || '15'} secret ${config.password || 'admin123'}`;
+    if (step === 4) return `username ${config.username || 'admin'} privilege ${config.privilege || '15'} secret ${config.password || 'admin123'}`;
+    if (step === 5) return `crypto key generate rsa`;
+    if (step === 6) return `line vty 0 4\nlogin local\ntransport input ssh`;
+    return '';
+  };
+
+  return (
+    <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-bold text-white">Simulateur de Configuration SSH</h3>
+        <span className="text-sm text-slate-400">Étape {step + 1} / {steps.length}</span>
+      </div>
+
+      <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-slate-400 font-mono text-sm">R-Sec(config)#</span>
+          <code className="text-emerald-400 font-mono font-bold">{generateCommand()}</code>
+        </div>
+        {feedback && (
+          <div className={`p-3 rounded-lg ${feedback.includes('✅') ? 'bg-emerald-900/30 border border-emerald-500/30' : 'bg-yellow-900/30 border border-yellow-500/30'}`}>
+            <p className={feedback.includes('✅') ? 'text-emerald-300' : 'text-yellow-300'}>{feedback}</p>
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-4">
+        <label className="block">
+          <span className="text-slate-300 font-semibold mb-2 block">{steps[step].title}</span>
+          {steps[step].field === 'privilege' ? (
+            <select
+              value={config.privilege}
+              onChange={(e) => handleInput('privilege', e.target.value)}
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 focus:outline-none"
+            >
+              <option value="0">Niveau 0 - Accès ultra-limité</option>
+              <option value="1">Niveau 1 - Accès utilisateur (par défaut)</option>
+              <option value="15">Niveau 15 - Administrateur</option>
+            </select>
+          ) : steps[step].field === 'rsaGenerated' || steps[step].field === 'sshEnabled' ? (
+            <button
+              onClick={() => handleInput(steps[step].field, true)}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+            >
+              Exécuter : {steps[step].cmd}
+            </button>
+          ) : (
+            <input
+              type={steps[step].field === 'password' ? 'password' : 'text'}
+              value={config[steps[step].field]}
+              onChange={(e) => handleInput(steps[step].field, e.target.value)}
+              placeholder={steps[step].placeholder}
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+            />
+          )}
+          {steps[step].example && (
+            <p className="text-xs text-slate-500 mt-1">Exemple : {steps[step].example}</p>
+          )}
+        </label>
+      </div>
+
+      <div className="flex gap-3">
+        <button
+          onClick={() => setStep(Math.max(0, step - 1))}
+          disabled={step === 0}
+          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          Précédent
+        </button>
+        <button
+          onClick={handleNext}
+          className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
+        >
+          {step === steps.length - 1 ? 'Terminer' : 'Suivant'}
+        </button>
+      </div>
+
+      {step === steps.length - 1 && config.sshEnabled && (
+        <div className="bg-emerald-900/30 border border-emerald-500/30 p-4 rounded-lg">
+          <p className="text-emerald-300 font-bold">🎉 Configuration SSH complète !</p>
+          <p className="text-emerald-200 text-sm mt-2">Votre équipement est maintenant sécurisé avec SSH.</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Quiz interactif intégré dans les slides
+const InteractiveQuiz = ({ questions }) => {
+  const [currentQ, setCurrentQ] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [score, setScore] = useState(0);
+  const [showResult, setShowResult] = useState(false);
+  const [answered, setAnswered] = useState(false);
+
+  const handleAnswer = (index) => {
+    if (answered) return;
+    setSelected(index);
+    setAnswered(true);
+    if (index === questions[currentQ].a) {
+      setScore(score + 1);
+    }
+  };
+
+  const nextQuestion = () => {
+    if (currentQ < questions.length - 1) {
+      setCurrentQ(currentQ + 1);
+      setSelected(null);
+      setAnswered(false);
+    } else {
+      setShowResult(true);
+    }
+  };
+
+  if (showResult) {
+    return (
+      <div className="bg-slate-800 rounded-xl border border-slate-700 p-8 text-center">
+        <div className="text-6xl mb-4">{score === questions.length ? '🎉' : score >= questions.length / 2 ? '👍' : '📚'}</div>
+        <h3 className="text-2xl font-bold text-white mb-2">Quiz terminé !</h3>
+        <p className="text-slate-300 mb-4">Score : {score} / {questions.length}</p>
+        <p className="text-slate-400 text-sm">
+          {score === questions.length ? 'Parfait ! Tu maîtrises SSH !' :
+           score >= questions.length / 2 ? 'Bien joué ! Continue comme ça !' :
+           'Pas mal ! Continue à réviser.'}
+        </p>
+        <button
+          onClick={() => {
+            setCurrentQ(0);
+            setSelected(null);
+            setScore(0);
+            setShowResult(false);
+            setAnswered(false);
+          }}
+          className="mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
+        >
+          Recommencer
+        </button>
+      </div>
+    );
+  }
+
+  const q = questions[currentQ];
+
+  return (
+    <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-bold text-white">Quiz Interactif</h3>
+        <span className="text-sm text-slate-400">Question {currentQ + 1} / {questions.length}</span>
+      </div>
+
+      <div className="bg-slate-900 rounded-lg p-6 border border-slate-700">
+        <h4 className="text-lg font-semibold text-white mb-4">{q.q}</h4>
+        <div className="space-y-3">
+          {q.options.map((opt, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleAnswer(idx)}
+              disabled={answered}
+              className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                answered
+                  ? idx === q.a
+                    ? 'bg-emerald-900/30 border-emerald-500 text-emerald-300'
+                    : idx === selected && idx !== q.a
+                    ? 'bg-red-900/30 border-red-500 text-red-300'
+                    : 'bg-slate-800 border-slate-700 text-slate-400'
+                  : 'bg-slate-800 border-slate-700 text-slate-200 hover:border-blue-500 hover:bg-slate-750'
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {answered && (
+        <div className={`p-4 rounded-lg ${selected === q.a ? 'bg-emerald-900/30 border border-emerald-500/30' : 'bg-red-900/30 border border-red-500/30'}`}>
+          <p className={selected === q.a ? 'text-emerald-300 font-bold' : 'text-red-300 font-bold'}>
+            {selected === q.a ? '✅ Correct !' : '❌ Incorrect'}
+          </p>
+          {selected !== q.a && (
+            <p className="text-slate-300 text-sm mt-2">La bonne réponse est : {q.options[q.a]}</p>
+          )}
+        </div>
+      )}
+
+      <button
+        onClick={nextQuestion}
+        disabled={!answered}
+        className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        {currentQ === questions.length - 1 ? 'Voir les résultats' : 'Question suivante'}
+      </button>
+    </div>
+  );
+};
+
+// Constructeur de commandes avec validation
+const CommandBuilder = ({ steps }) => {
+  const [selectedSteps, setSelectedSteps] = useState([]);
+  const [feedback, setFeedback] = useState('');
+
+  const handleStepClick = (step) => {
+    if (selectedSteps.includes(step)) {
+      setSelectedSteps(selectedSteps.filter(s => s !== step));
+    } else {
+      setSelectedSteps([...selectedSteps, step]);
+    }
+    setFeedback('');
+  };
+
+  const validateOrder = () => {
+    const correctOrder = steps.map(s => s.cmd);
+    const userOrder = selectedSteps.map(s => s.cmd);
+    
+    if (userOrder.length !== correctOrder.length) {
+      setFeedback('⚠️ Tu n\'as pas sélectionné toutes les étapes.');
+      return;
+    }
+
+    const isCorrect = userOrder.every((cmd, idx) => cmd === correctOrder[idx]);
+    
+    if (isCorrect) {
+      setFeedback('✅ Parfait ! L\'ordre est correct.');
+    } else {
+      setFeedback('❌ L\'ordre n\'est pas correct. Réessaie !');
+    }
+  };
+
+  const reset = () => {
+    setSelectedSteps([]);
+    setFeedback('');
+  };
+
+  return (
+    <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 space-y-6">
+      <h3 className="text-xl font-bold text-white">Construire la Configuration SSH</h3>
+      <p className="text-slate-400">Clique sur les étapes dans le bon ordre :</p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {steps.map((step, idx) => (
+          <button
+            key={idx}
+            onClick={() => handleStepClick(step)}
+            className={`p-4 rounded-lg border-2 text-left transition-all ${
+              selectedSteps.includes(step)
+                ? 'bg-blue-900/30 border-blue-500 text-blue-300'
+                : 'bg-slate-900 border-slate-700 text-slate-300 hover:border-blue-500'
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              {selectedSteps.includes(step) && (
+                <span className="text-blue-400 font-bold">
+                  {selectedSteps.indexOf(step) + 1}.
+                </span>
+              )}
+              <code className="text-emerald-400 font-mono font-bold text-sm">{step.cmd}</code>
+            </div>
+            <p className="text-xs text-slate-500">{step.desc}</p>
+          </button>
+        ))}
+      </div>
+
+      {selectedSteps.length > 0 && (
+        <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+          <p className="text-slate-400 text-sm mb-2">Ordre sélectionné :</p>
+          <div className="flex flex-wrap gap-2">
+            {selectedSteps.map((step, idx) => (
+              <span key={idx} className="bg-blue-900/30 text-blue-300 px-3 py-1 rounded font-mono text-sm">
+                {idx + 1}. {step.cmd}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {feedback && (
+        <div className={`p-4 rounded-lg ${
+          feedback.includes('✅') ? 'bg-emerald-900/30 border border-emerald-500/30' : 'bg-yellow-900/30 border border-yellow-500/30'
+        }`}>
+          <p className={feedback.includes('✅') ? 'text-emerald-300' : 'text-yellow-300'}>{feedback}</p>
+        </div>
+      )}
+
+      <div className="flex gap-3">
+        <button
+          onClick={validateOrder}
+          disabled={selectedSteps.length === 0}
+          className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          Valider l'ordre
+        </button>
+        <button
+          onClick={reset}
+          className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+        >
+          Réinitialiser
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Explorateur interactif des niveaux de privilège
+const PrivilegeExplorer = () => {
+  const [selectedLevel, setSelectedLevel] = useState(null);
+
+  const levels = [
+    {
+      level: 0,
+      name: "Accès ultra-limité",
+      colorClass: "red",
+      bgClass: "bg-red-900/30",
+      borderClass: "border-red-500",
+      textClass: "text-red-400",
+      textLightClass: "text-red-300",
+      commands: ["ping", "logout", "exit"],
+      description: "Accès minimal, seulement les commandes de base"
+    },
+    {
+      level: 1,
+      name: "Accès utilisateur",
+      colorClass: "yellow",
+      bgClass: "bg-yellow-900/30",
+      borderClass: "border-yellow-500",
+      textClass: "text-yellow-400",
+      textLightClass: "text-yellow-300",
+      commands: ["show", "ping", "traceroute", "telnet", "ssh"],
+      description: "Accès par défaut, peut consulter mais pas modifier"
+    },
+    {
+      level: 15,
+      name: "Administrateur",
+      colorClass: "emerald",
+      bgClass: "bg-emerald-900/30",
+      borderClass: "border-emerald-500",
+      textClass: "text-emerald-400",
+      textLightClass: "text-emerald-300",
+      commands: ["configure terminal", "copy", "reload", "erase", "toutes les commandes"],
+      description: "Accès total, peut tout faire"
+    }
+  ];
+
+  const selectedLevelData = selectedLevel !== null ? levels[selectedLevel] : null;
+
+  return (
+    <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 space-y-6">
+      <h3 className="text-xl font-bold text-white">Explorateur de Niveaux de Privilège</h3>
+      <p className="text-slate-400">Clique sur un niveau pour voir ses capacités :</p>
+
+      <div className="grid grid-cols-3 gap-4">
+        {levels.map((lvl) => (
+          <button
+            key={lvl.level}
+            onClick={() => setSelectedLevel(lvl.level === selectedLevel ? null : lvl.level)}
+            className={`p-4 rounded-lg border-2 transition-all ${
+              selectedLevel === lvl.level
+                ? `${lvl.bgClass} ${lvl.borderClass}`
+                : 'bg-slate-900 border-slate-700 hover:border-blue-500'
+            }`}
+          >
+            <div className={`text-3xl font-bold ${lvl.textClass} mb-2`}>{lvl.level}</div>
+            <div className={`text-sm font-semibold ${lvl.textLightClass}`}>{lvl.name}</div>
+          </button>
+        ))}
+      </div>
+
+      {selectedLevelData && (
+        <div className={`${selectedLevelData.bgClass} border ${selectedLevelData.borderClass}/30 rounded-lg p-6`}>
+          <h4 className={`text-xl font-bold ${selectedLevelData.textClass} mb-2`}>
+            Niveau {selectedLevelData.level} : {selectedLevelData.name}
+          </h4>
+          <p className="text-slate-300 mb-4">{selectedLevelData.description}</p>
+          <div>
+            <p className="text-slate-400 text-sm mb-2">Commandes disponibles :</p>
+            <div className="flex flex-wrap gap-2">
+              {selectedLevelData.commands.map((cmd, idx) => (
+                <code key={idx} className="bg-black/40 text-emerald-400 px-3 py-1 rounded font-mono text-sm">
+                  {cmd}
+                </code>
+              ))}
+            </div>
+          </div>
+          <div className="mt-4 p-3 bg-slate-900/50 rounded-lg">
+            <p className="text-slate-400 text-sm mb-1">Exemple de création :</p>
+            <code className="text-emerald-400 font-mono text-sm">
+              username user{selectedLevelData.level} privilege {selectedLevelData.level} secret password123
+            </code>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // --- DONNÉES DE COURS (théorie + lab + quiz) ---
 
 const sessions = [
@@ -608,6 +1056,28 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
         )
       },
       {
+        type: 'interactive_quiz',
+        title: "Quiz Interactif : Teste tes Connaissances",
+        questions: [
+          { q: "Quel prompt indique le mode privilégié ?", options: [">", "#", "(config)#"], a: 1 },
+          { q: "Quelle est la différence entre running-config et startup-config ?", options: ["Aucune différence", "running-config est en RAM (actuelle), startup-config est en NVRAM (sauvegardée)", "running-config est sauvegardée, startup-config est temporaire"], a: 1 },
+          { q: "Que fait la commande 'copy running-config startup-config' ?", options: ["Redémarre le routeur", "Sauvegarde la config active dans la NVRAM", "Efface la configuration"], a: 1 },
+          { q: "Pourquoi utiliser 'enable secret' plutôt que 'enable password' ?", options: ["enable secret est plus rapide", "enable secret est chiffré (hashé MD5), donc plus sécurisé", "enable password ne fonctionne pas"], a: 1 },
+          { q: "Que se passe-t-il si on oublie de faire 'copy running-config startup-config' après modification ?", options: ["Rien, c'est automatique", "Toutes les modifications seront perdues au redémarrage", "Le routeur plante"], a: 1 }
+        ]
+      },
+      {
+        type: 'command_builder',
+        title: "Construire la Configuration de Base",
+        steps: [
+          { cmd: "enable", desc: "Passer en mode privilégié" },
+          { cmd: "configure terminal", desc: "Entrer en configuration globale" },
+          { cmd: "hostname R-Nova", desc: "Nommer le routeur" },
+          { cmd: "enable secret cisco123", desc: "Définir le mot de passe privilégié" },
+          { cmd: "copy running-config startup-config", desc: "Sauvegarder la configuration" }
+        ]
+      },
+      {
         type: 'flashcards',
         title: "Révision Complète : Toutes les Commandes",
         mode: 'command_to_definition',
@@ -692,46 +1162,672 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
     slides: [
       {
         type: 'intro',
-        title: "Telnet vs SSH",
-        content: `Telnet envoie tout en clair (mots de passe compris).
-SSH chiffre toute la conversation.`
+        title: "SSH : Parler en Secret",
+        content: `Imagine que tu veux contrôler ton routeur depuis chez toi, mais tu ne veux pas que n'importe qui puisse écouter tes conversations. SSH, c'est comme avoir une conversation téléphonique cryptée avec ton équipement réseau !`
       },
       {
         type: 'rich_text',
-        title: "Recette SSH",
+        title: "Qu'est-ce que SSH ?",
         content: (
-          <div className="space-y-2">
-            <HumanCommand 
-              cmd="hostname R1" 
-              human="Je dois avoir un nom unique." 
-            />
-            <HumanCommand 
-              cmd="ip domain-name lab.net" 
-              human="Je rejoins le domaine lab.net." 
-            />
-            <HumanCommand 
-              cmd="crypto key generate rsa" 
-              human="Fabrique-moi des clés de chiffrement." 
-            />
+          <div className="space-y-4">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              <strong className="text-blue-400">SSH (Secure Shell)</strong> = c'est comme avoir une <strong>conversation privée et cryptée</strong> avec ton routeur ou ton switch à distance.
+            </p>
+            <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
+              <p className="text-blue-200 mb-3"><strong>💡 Exemple concret :</strong></p>
+              <p className="text-blue-100 text-sm leading-relaxed">
+                Tu es chez toi, ton routeur est au bureau. Avec SSH, tu peux te connecter à distance et faire toutes tes configurations, 
+                mais personne ne peut "écouter" ce que tu dis (même si quelqu'un intercepte les données, elles sont cryptées).
+              </p>
+            </div>
+            <DangerZone>
+              <p className="text-sm font-bold mb-2">Telnet vs SSH : La Différence en Langage Simple</p>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-start gap-2">
+                  <span className="text-red-400 font-bold">❌ Telnet :</span>
+                  <span className="text-red-100">C'est comme parler dans un téléphone sans fil que tout le monde peut écouter. 
+                  <strong> Ton mot de passe passe en clair</strong> - n'importe qui peut le voir !</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-emerald-400 font-bold">✅ SSH :</span>
+                  <span className="text-emerald-100">C'est comme parler dans une langue secrète que seul toi et ton routeur comprennent. 
+                  <strong> Tout est crypté</strong> - même si quelqu'un écoute, il ne comprend rien !</span>
+                </div>
+              </div>
+            </DangerZone>
+            <ProTip>
+              <strong>Petit détail technique :</strong> SSH utilise le <strong>port 22</strong> par défaut (comme une adresse postale spécifique pour les lettres cryptées).
+            </ProTip>
           </div>
         )
+      },
+      {
+        type: 'rich_text',
+        title: "Les 6 Ingédients Magiques pour SSH",
+        content: (
+          <div className="space-y-4">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Pour que SSH fonctionne, c'est comme faire un gâteau : il faut <strong className="text-blue-400">TOUS les ingrédients</strong>. 
+              Si tu en oublies un seul, ça ne marchera pas !
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3">
+              <div className="flex items-start gap-3">
+                <span className="text-emerald-400 font-bold text-xl">1.</span>
+                <div className="flex-1">
+                  <span className="text-slate-200 font-semibold">Une adresse IP</span>
+                  <p className="text-slate-400 text-sm mt-1">💡 C'est l'adresse de ton équipement sur le réseau. Sans ça, personne ne peut le trouver !</p>
+                  <p className="text-slate-500 text-xs mt-1 italic">Exemple : 192.168.1.10</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-emerald-400 font-bold text-xl">2.</span>
+                <div className="flex-1">
+                  <span className="text-slate-200 font-semibold">Un nom d'hôte (hostname)</span>
+                  <p className="text-slate-400 text-sm mt-1">💡 C'est le "prénom" de ton équipement. Au lieu de "Router", tu lui donnes un vrai nom.</p>
+                  <p className="text-slate-500 text-xs mt-1 italic">Exemple : SW-Securite ou R-Bureau</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-emerald-400 font-bold text-xl">3.</span>
+                <div className="flex-1">
+                  <span className="text-slate-200 font-semibold">Un nom de domaine</span>
+                  <p className="text-slate-400 text-sm mt-1">💡 C'est le "nom de famille" de ton équipement. Nécessaire pour créer les clés de chiffrement.</p>
+                  <p className="text-slate-500 text-xs mt-1 italic">Exemple : novatech.local ou entreprise.fr</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-emerald-400 font-bold text-xl">4.</span>
+                <div className="flex-1">
+                  <span className="text-slate-200 font-semibold">Un compte utilisateur avec mot de passe</span>
+                  <p className="text-slate-400 text-sm mt-1">💡 C'est comme créer un compte utilisateur sur ton ordinateur. Tu crées un "utilisateur" qui pourra se connecter.</p>
+                  <p className="text-slate-500 text-xs mt-1 italic">Exemple : username admin secret admin123</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-emerald-400 font-bold text-xl">5.</span>
+                <div className="flex-1">
+                  <span className="text-slate-200 font-semibold">Une clé RSA générée</span>
+                  <p className="text-slate-400 text-sm mt-1">💡 C'est la "clé de chiffrement" qui permet de crypter les conversations. Sans ça, pas de cryptage possible !</p>
+                  <p className="text-slate-500 text-xs mt-1 italic">Exemple : crypto key generate rsa</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-emerald-400 font-bold text-xl">6.</span>
+                <div className="flex-1">
+                  <span className="text-slate-200 font-semibold">SSH activé sur les lignes VTY</span>
+                  <p className="text-slate-400 text-sm mt-1">💡 C'est comme ouvrir la porte d'entrée pour SSH. Tu dis "OK, les connexions SSH sont autorisées".</p>
+                  <p className="text-slate-500 text-xs mt-1 italic">Exemple : transport input ssh</p>
+                </div>
+              </div>
+            </div>
+            <DangerZone>
+              <strong>⚠️ Attention :</strong> Si tu oublies UN SEUL de ces ingrédients, SSH ne fonctionnera pas du tout. 
+              C'est tout ou rien ! (Mais ne t'inquiète pas, on va tout faire ensemble étape par étape 😊)
+            </DangerZone>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Donner une Adresse IP à un Switch",
+        content: (
+          <div className="space-y-4">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Un switch, c'est un peu spécial : il n'a <strong className="text-blue-400">pas de prise réseau physique</strong> pour lui donner une adresse IP directement. 
+              C'est comme un immeuble sans numéro de rue !
+            </p>
+            <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
+              <p className="text-blue-200 mb-2"><strong>💡 Le Problème :</strong></p>
+              <p className="text-blue-100 text-sm leading-relaxed">
+                Un routeur a des interfaces physiques (GigabitEthernet 0/0, etc.) où tu peux mettre une IP. 
+                Un switch n'a que des ports pour brancher des câbles, mais pas d'interface "réseau" pour lui-même.
+              </p>
+            </div>
+            <p className="text-slate-200 leading-relaxed">
+              <strong>La Solution :</strong> On crée une <strong className="text-emerald-400">interface virtuelle</strong> (VLAN 1) qui agit comme une "fausse interface réseau" pour le switch.
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3">
+              <p className="text-slate-300 font-semibold mb-2">📝 Les 3 Commandes Magiques :</p>
+              <HumanCommand 
+                cmd="interface vlan 1" 
+                human="Je crée une interface virtuelle pour mon switch (comme créer une fausse prise réseau)." 
+              />
+              <HumanCommand 
+                cmd="ip address 192.168.1.10 255.255.255.0" 
+                human="Je lui donne une adresse IP : 192.168.1.10 avec le masque 255.255.255.0 (comme donner une adresse postale)." 
+              />
+              <HumanCommand 
+                cmd="no shutdown" 
+                human="J'active cette interface (par défaut elle est désactivée, comme une prise électrique éteinte)." 
+              />
+            </div>
+            <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/30">
+              <p className="text-emerald-200 mb-2"><strong>✅ Résultat :</strong></p>
+              <p className="text-emerald-100 text-sm leading-relaxed">
+                Maintenant ton switch a une adresse IP ! Tu peux :
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>Te connecter en SSH depuis un autre ordinateur</li>
+                  <li>Faire un ping vers cette adresse</li>
+                  <li>Le gérer à distance comme un routeur</li>
+                </ul>
+              </p>
+            </div>
+            <ProTip>
+              <strong>Exemple concret :</strong> Si ton switch est à l'adresse 192.168.1.10, tu peux faire <code className="bg-black/40 px-1 rounded">ping 192.168.1.10</code> 
+              depuis ton PC et ça répondra ! Avant, sans IP, c'était impossible.
+            </ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Configuration SSH : Les 3 Premières Étapes",
+        content: (
+          <div className="space-y-4">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              On y va étape par étape ! C'est comme suivre une recette de cuisine. Voici les <strong className="text-blue-400">3 premières étapes</strong> :
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-4">
+              <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
+                <p className="text-emerald-400 font-bold mb-2 text-lg">Étape 1 : Donner un nom à ton équipement</p>
+                <HumanCommand cmd="hostname SW-SSH" human="Je renomme mon switch 'SW-SSH' pour qu'on sache qui c'est." />
+                <p className="text-slate-400 text-sm mt-2">
+                  💡 <strong>Pourquoi ?</strong> Au lieu d'avoir "Switch#" comme prompt, tu auras "SW-SSH#". 
+                  C'est plus clair quand tu gères plusieurs équipements !
+                </p>
+                <p className="text-slate-500 text-xs mt-1 italic">Autres exemples : R-Bureau, SW-Salle1, Router-Maison</p>
+              </div>
+              
+              <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
+                <p className="text-emerald-400 font-bold mb-2 text-lg">Étape 2 : Définir un nom de domaine</p>
+                <HumanCommand cmd="ip domain-name novatech.local" human="Je définis le domaine 'novatech.local' (comme un nom de famille)." />
+                <p className="text-slate-400 text-sm mt-2">
+                  💡 <strong>Pourquoi ?</strong> C'est obligatoire pour générer les clés RSA. Sans ça, pas de clés = pas de SSH !
+                  C'est comme avoir besoin d'un nom complet pour créer une carte d'identité.
+                </p>
+                <p className="text-slate-500 text-xs mt-1 italic">Exemples : entreprise.fr, lab.local, monreseau.com</p>
+              </div>
+              
+              <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
+                <p className="text-emerald-400 font-bold mb-2 text-lg">Étape 3 : Créer un utilisateur</p>
+                <HumanCommand cmd="username admin privilege 15 secret admin123" human="Je crée un utilisateur 'admin' avec tous les droits (niveau 15) et le mot de passe 'admin123'." />
+                <p className="text-slate-400 text-sm mt-2">
+                  💡 <strong>Décortiquons cette commande :</strong>
+                  <ul className="list-disc list-inside mt-2 space-y-1 text-xs">
+                    <li><code className="bg-black/40 px-1 rounded">username admin</code> = le nom de l'utilisateur</li>
+                    <li><code className="bg-black/40 px-1 rounded">privilege 15</code> = tous les droits (comme être admin)</li>
+                    <li><code className="bg-black/40 px-1 rounded">secret admin123</code> = le mot de passe (chiffré automatiquement)</li>
+                  </ul>
+                </p>
+                <p className="text-slate-500 text-xs mt-2 italic">
+                  Exemple avec utilisateur limité : <code className="bg-black/40 px-1 rounded">username consult privilege 1 secret consult123</code> 
+                  (peut seulement consulter, pas modifier)
+                </p>
+              </div>
+            </div>
+            <ProTip>
+              <strong>Astuce :</strong> Tu peux créer plusieurs utilisateurs avec des niveaux différents. 
+              Par exemple : un admin (niveau 15) et un stagiaire (niveau 1) qui peut seulement regarder.
+            </ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Configuration SSH : Les 3 Dernières Étapes",
+        content: (
+          <div className="space-y-4">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              On continue ! Les <strong className="text-blue-400">3 dernières étapes</strong> pour finaliser SSH :
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-4">
+              <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/30">
+                <p className="text-emerald-400 font-bold mb-2 text-lg">Étape 4 : Générer les clés de chiffrement</p>
+                <HumanCommand cmd="crypto key generate rsa" human="Je génère les clés RSA (comme créer une paire de clés : une publique, une privée)." />
+                <p className="text-slate-400 text-sm mt-2">
+                  💡 <strong>Quand tu tapes ça, le routeur va te demander :</strong> "Quelle taille de clé ?" 
+                  Tu réponds <strong>1024</strong> ou <strong>2048</strong> (plus c'est grand, plus c'est sécurisé, mais plus c'est lent).
+                </p>
+                <div className="bg-slate-900/50 rounded p-2 mt-2 text-xs text-slate-300">
+                  <p className="font-mono">The name for the keys will be: R-Sec.novatech.local</p>
+                  <p className="font-mono">Choose the size of the key modulus: <span className="text-emerald-400">1024</span></p>
+                </div>
+                <p className="text-slate-500 text-xs mt-2 italic">
+                  💡 <strong>Astuce :</strong> Tape juste "1024" et appuie sur Entrée. C'est le minimum recommandé.
+                </p>
+              </div>
+              
+              <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/30">
+                <p className="text-emerald-400 font-bold mb-2 text-lg">Étape 5 : Configurer les lignes VTY (les portes d'entrée)</p>
+                <p className="text-slate-300 text-sm mb-3">
+                  Les lignes VTY, c'est comme les <strong>"portes d'entrée"</strong> pour les connexions à distance. 
+                  On va les configurer pour accepter seulement SSH.
+                </p>
+                <HumanCommand cmd="line vty 0 4" human="Je configure les lignes 0 à 4 (5 portes d'entrée pour 5 connexions simultanées)." />
+                <p className="text-slate-400 text-xs mt-1 ml-4">
+                  💡 <strong>Pourquoi 0 à 4 ?</strong> Ça veut dire 5 lignes (0, 1, 2, 3, 4). 
+                  Tu peux avoir jusqu'à 5 personnes connectées en même temps.
+                </p>
+                <HumanCommand cmd="login local" human="Je dis 'utilise les comptes locaux qu'on a créés avec username'." />
+                <p className="text-slate-400 text-xs mt-1 ml-4">
+                  💡 Sans ça, le routeur ne saurait pas quel compte utiliser pour se connecter !
+                </p>
+                <HumanCommand cmd="transport input ssh" human="Je dis 'seulement SSH est autorisé, pas Telnet'." />
+                <p className="text-slate-400 text-xs mt-1 ml-4">
+                  💡 <strong>Important :</strong> Ça bloque Telnet (non sécurisé) et autorise seulement SSH (sécurisé). 
+                  C'est comme fermer la porte d'entrée non sécurisée et garder seulement la porte blindée !
+                </p>
+              </div>
+            </div>
+            <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/30">
+              <p className="text-emerald-200 font-bold mb-2">✅ Résumé en langage simple :</p>
+              <p className="text-emerald-100 text-sm leading-relaxed">
+                Tu as créé les clés de chiffrement (étape 4) et ouvert les portes d'entrée pour SSH uniquement (étape 5). 
+                Maintenant ton équipement est prêt à accepter des connexions SSH sécurisées !
+              </p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Renforcer la Sécurité SSH (Optionnel mais Recommandé)",
+        content: (
+          <div className="space-y-4">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              SSH fonctionne déjà maintenant, mais on peut le rendre <strong className="text-blue-400">encore plus sécurisé</strong> 
+              avec ces 3 paramètres optionnels (mais très recommandés !) :
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-4">
+              <div className="bg-yellow-900/20 rounded-lg p-4 border border-yellow-500/30">
+                <HumanCommand 
+                  cmd="ip ssh version 2" 
+                  human="Je force l'utilisation de SSH version 2 uniquement (la plus récente et sécurisée)." 
+                />
+                <p className="text-slate-400 text-sm mt-2">
+                  💡 <strong>Pourquoi ?</strong> Il existe SSH version 1 (ancienne, moins sécurisée) et version 2 (moderne, très sécurisée). 
+                  On veut seulement la version 2, comme refuser les vieilles serrures et accepter seulement les nouvelles.
+                </p>
+              </div>
+              
+              <div className="bg-yellow-900/20 rounded-lg p-4 border border-yellow-500/30">
+                <HumanCommand 
+                  cmd="ip ssh time-out 60" 
+                  human="Si quelqu'un se connecte mais ne fait rien pendant 60 secondes, il est déconnecté automatiquement." 
+                />
+                <p className="text-slate-400 text-sm mt-2">
+                  💡 <strong>Pourquoi ?</strong> C'est comme fermer automatiquement une porte laissée ouverte. 
+                  Si quelqu'un oublie sa session ouverte, elle se ferme toute seule après 1 minute d'inactivité. 
+                  Ça évite les sessions "oubliées" qui restent ouvertes.
+                </p>
+                <p className="text-slate-500 text-xs mt-1 italic">Tu peux mettre 120, 300, etc. selon tes besoins (en secondes).</p>
+              </div>
+              
+              <div className="bg-yellow-900/20 rounded-lg p-4 border border-yellow-500/30">
+                <HumanCommand 
+                  cmd="ip ssh authentication-retries 3" 
+                  human="Maximum 3 tentatives de mot de passe. Après ça, la connexion est refusée." 
+                />
+                <p className="text-slate-400 text-sm mt-2">
+                  💡 <strong>Pourquoi ?</strong> C'est une protection contre les "attaques par force brute" : 
+                  quelqu'un qui essaie des milliers de mots de passe pour trouver le bon. 
+                  Avec cette limite, après 3 mauvais essais, la connexion est bloquée.
+                </p>
+                <p className="text-slate-500 text-xs mt-1 italic">
+                  Exemple : Si quelqu'un tape 3 fois le mauvais mot de passe, il doit attendre avant de réessayer.
+                </p>
+              </div>
+            </div>
+            <DangerZone>
+              <strong>⚠️ Important :</strong> Ces paramètres sont <strong>optionnels</strong> (SSH fonctionne sans), 
+              mais en production (vraie entreprise), <strong>toujours les configurer</strong> ! 
+              C'est comme mettre une alarme en plus d'une serrure : pas obligatoire, mais très recommandé.
+            </DangerZone>
+            <ProTip>
+              <strong>Résumé simple :</strong> Version 2 = plus sécurisé, Timeout = ferme les sessions oubliées, 
+              Retries = bloque les tentatives de piratage. Trois couches de sécurité en plus !
+            </ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Les Niveaux de Privilège : Qui Peut Faire Quoi ?",
+        content: (
+          <div className="space-y-4">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Les niveaux de privilège, c'est comme les <strong className="text-blue-400">niveaux d'accès</strong> dans un jeu vidéo ou dans un immeuble avec des badges :
+            </p>
+            <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30 mb-4">
+              <p className="text-blue-200 text-sm leading-relaxed">
+                💡 <strong>Exemple concret :</strong> Dans un immeuble, il y a des badges différents :
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li>Badge visiteur = peut seulement entrer dans le hall (niveau 0)</li>
+                  <li>Badge employé = peut entrer dans les bureaux (niveau 1)</li>
+                  <li>Badge admin = peut TOUT faire, même la salle serveurs (niveau 15)</li>
+                </ul>
+              </p>
+            </div>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-4">
+              <div className="bg-red-900/20 rounded-lg p-4 border border-red-500/30">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-red-400 font-bold text-2xl">0</span>
+                  <span className="text-red-300 font-bold text-lg">Accès Ultra-Limité</span>
+                </div>
+                <p className="text-slate-300 text-sm mb-2">
+                  C'est comme un <strong>visiteur</strong> : il peut seulement faire des trucs basiques.
+                </p>
+                <p className="text-slate-400 text-xs mb-2"><strong>Peut faire :</strong> ping, logout, exit</p>
+                <p className="text-slate-400 text-xs mb-2"><strong>Ne peut PAS faire :</strong> show running-config, configure terminal, etc.</p>
+                <code className="bg-black/40 text-red-300 px-3 py-1 rounded font-mono text-xs block mt-2">
+                  username stagiaire privilege 0 secret stagiaire123
+                </code>
+                <p className="text-slate-500 text-xs mt-2 italic">💡 Utilisé pour : stagiaires, visiteurs, comptes très limités</p>
+              </div>
+              
+              <div className="bg-yellow-900/20 rounded-lg p-4 border border-yellow-500/30">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-yellow-400 font-bold text-2xl">1</span>
+                  <span className="text-yellow-300 font-bold text-lg">Accès Utilisateur (Par Défaut)</span>
+                </div>
+                <p className="text-slate-300 text-sm mb-2">
+                  C'est comme un <strong>employé normal</strong> : il peut consulter mais pas modifier.
+                </p>
+                <p className="text-slate-400 text-xs mb-2"><strong>Peut faire :</strong> show (toutes les commandes show), ping, traceroute, telnet, ssh</p>
+                <p className="text-slate-400 text-xs mb-2"><strong>Ne peut PAS faire :</strong> configure terminal, copy, reload, erase</p>
+                <code className="bg-black/40 text-yellow-300 px-3 py-1 rounded font-mono text-xs block mt-2">
+                  username consult privilege 1 secret consult123
+                </code>
+                <p className="text-slate-500 text-xs mt-2 italic">💡 Utilisé pour : techniciens qui doivent regarder mais pas modifier</p>
+              </div>
+              
+              <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/30">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-emerald-400 font-bold text-2xl">15</span>
+                  <span className="text-emerald-300 font-bold text-lg">Administrateur (Tous les Droits)</span>
+                </div>
+                <p className="text-slate-300 text-sm mb-2">
+                  C'est comme le <strong>boss</strong> : il peut TOUT faire, absolument tout !
+                </p>
+                <p className="text-slate-400 text-xs mb-2"><strong>Peut faire :</strong> TOUTES les commandes (configure terminal, copy, reload, erase, etc.)</p>
+                <p className="text-slate-400 text-xs mb-2"><strong>Équivalent à :</strong> être en mode <code className="bg-black/40 px-1 rounded">enable</code> en permanence</p>
+                <code className="bg-black/40 text-emerald-300 px-3 py-1 rounded font-mono text-xs block mt-2">
+                  username admin privilege 15 secret admin123
+                </code>
+                <p className="text-slate-500 text-xs mt-2 italic">💡 Utilisé pour : administrateurs réseau, responsables IT</p>
+              </div>
+            </div>
+            <ProTip>
+              <strong>Astuce pratique :</strong> Tu peux créer plusieurs utilisateurs avec des niveaux différents sur le même équipement. 
+              Par exemple : un admin (niveau 15), un technicien (niveau 1), et un stagiaire (niveau 0). 
+              Chacun aura accès selon son niveau !
+            </ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'privilege_explorer',
+        title: "Explorer les Niveaux de Privilège"
+      },
+      {
+        type: 'ssh_configurator',
+        title: "Simulateur de Configuration SSH"
+      },
+      {
+        type: 'command_builder',
+        title: "Construire la Configuration SSH",
+        steps: [
+          { cmd: "hostname R-Sec", desc: "Nommer l'équipement" },
+          { cmd: "ip domain-name novatech.local", desc: "Définir le domaine" },
+          { cmd: "username admin privilege 15 secret admin123", desc: "Créer un utilisateur admin" },
+          { cmd: "crypto key generate rsa", desc: "Générer les clés RSA" },
+          { cmd: "line vty 0 4", desc: "Configurer les lignes VTY" },
+          { cmd: "login local", desc: "Activer l'authentification locale" },
+          { cmd: "transport input ssh", desc: "Autoriser uniquement SSH" }
+        ]
+      },
+      {
+        type: 'rich_text',
+        title: "Les Lignes VTY : Les Portes d'Entrée à Distance",
+        content: (
+          <div className="space-y-4">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              <strong className="text-blue-400">VTY = Virtual Teletype Lines</strong> = Les <strong>"portes d'entrée virtuelles"</strong> pour se connecter à distance.
+            </p>
+            <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
+              <p className="text-blue-200 mb-3"><strong>💡 Exemple concret :</strong></p>
+              <p className="text-blue-100 text-sm leading-relaxed">
+                Imagine ton routeur comme un immeuble :
+                <ul className="list-disc list-inside mt-2 space-y-1">
+                  <li><strong>Console (câble bleu)</strong> = la porte d'entrée physique (tu es sur place avec un câble)</li>
+                  <li><strong>Lignes VTY</strong> = les portes d'entrée virtuelles pour les connexions à distance (via réseau)</li>
+                </ul>
+              </p>
+            </div>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3">
+              <p className="text-slate-200">
+                Ces connexions peuvent se faire via <strong className="text-red-400">Telnet</strong> (non sécurisé, comme une porte sans serrure) 
+                ou <strong className="text-emerald-400">SSH</strong> (sécurisé, comme une porte blindée). 
+                On privilégie toujours SSH !
+              </p>
+            </div>
+            <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/30">
+              <p className="text-emerald-200 font-bold mb-2 text-lg">Que veut dire "line vty 0 4" ?</p>
+              <div className="space-y-2 text-emerald-100 text-sm">
+                <p>
+                  Les lignes VTY sont <strong>numérotées</strong>, comme des portes numérotées dans un immeuble.
+                </p>
+                <p>
+                  <code className="bg-black/40 px-2 py-1 rounded font-mono">line vty 0 4</code> signifie que tu configures les lignes 
+                  <strong> 0, 1, 2, 3, et 4</strong>.
+                </p>
+                <p>
+                  <strong>Résultat :</strong> Tu peux avoir <strong>5 personnes connectées en même temps</strong> à distance !
+                </p>
+              </div>
+              <div className="bg-slate-900/50 rounded p-3 mt-3">
+                <p className="text-slate-300 text-xs mb-2"><strong>Exemple visuel :</strong></p>
+                <div className="font-mono text-xs text-slate-400 space-y-1">
+                  <p>Ligne VTY 0 ← Personne 1 peut se connecter</p>
+                  <p>Ligne VTY 1 ← Personne 2 peut se connecter</p>
+                  <p>Ligne VTY 2 ← Personne 3 peut se connecter</p>
+                  <p>Ligne VTY 3 ← Personne 4 peut se connecter</p>
+                  <p>Ligne VTY 4 ← Personne 5 peut se connecter</p>
+                  <p className="text-red-400 mt-2">Ligne VTY 5 ← Plus de place ! (pas configurée)</p>
+                </div>
+              </div>
+            </div>
+            <ProTip>
+              <strong>Astuce :</strong> Sur certains équipements plus puissants, tu peux avoir <code className="bg-black/40 px-1 rounded">line vty 0 15</code> 
+              pour jusqu'à <strong>16 connexions simultanées</strong> (lignes 0 à 15) ! 
+              C'est utile si plusieurs personnes doivent gérer l'équipement en même temps.
+            </ProTip>
+            <div className="bg-yellow-900/20 rounded-lg p-4 border border-yellow-500/30">
+              <p className="text-yellow-200 text-sm">
+                <strong>⚠️ Cas pratique :</strong> Si tu configures seulement <code className="bg-black/40 px-1 rounded">line vty 0</code> 
+                (une seule ligne), alors <strong>une seule personne</strong> pourra se connecter à distance à la fois. 
+                Les autres verront "Connection refused" (connexion refusée).
+              </p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Comment Vérifier que SSH Fonctionne ?",
+        content: (
+          <div className="space-y-4">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Après avoir tout configuré, tu veux être sûr que SSH fonctionne bien ? Voici <strong className="text-blue-400">3 commandes magiques</strong> pour vérifier :
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-4">
+              <div className="bg-green-900/20 rounded-lg p-4 border border-green-500/30">
+                <HumanCommand 
+                  cmd="show ip ssh" 
+                  human="Je vérifie le statut SSH : est-ce qu'il est activé ? Quelle version ? Quel timeout ?" 
+                />
+                <div className="bg-slate-900/50 rounded p-3 mt-2 text-xs">
+                  <p className="text-green-300 font-mono mb-1">R-Sec# show ip ssh</p>
+                  <p className="text-slate-300 font-mono">SSH Enabled - version 2.0</p>
+                  <p className="text-slate-300 font-mono">Authentication timeout: 60 secs</p>
+                  <p className="text-slate-300 font-mono">Authentication retries: 3</p>
+                </div>
+                <p className="text-slate-400 text-xs mt-2">
+                  💡 Si tu vois <strong>"SSH Enabled"</strong>, c'est bon signe ! Ça veut dire que SSH est actif.
+                </p>
+              </div>
+              
+              <div className="bg-green-900/20 rounded-lg p-4 border border-green-500/30">
+                <HumanCommand 
+                  cmd="show running-config | section line vty" 
+                  human="Je vérifie la configuration des lignes VTY (est-ce que transport input ssh est bien là ?)." 
+                />
+                <div className="bg-slate-900/50 rounded p-3 mt-2 text-xs">
+                  <p className="text-green-300 font-mono mb-1">R-Sec# show running-config | section line vty</p>
+                  <p className="text-slate-300 font-mono">line vty 0 4</p>
+                  <p className="text-emerald-400 font-mono"> login local</p>
+                  <p className="text-emerald-400 font-mono"> transport input ssh</p>
+                </div>
+                <p className="text-slate-400 text-xs mt-2">
+                  💡 Tu dois voir <code className="bg-black/40 px-1 rounded">transport input ssh</code> et <code className="bg-black/40 px-1 rounded">login local</code>. 
+                  Si tu vois ça, c'est parfait !
+                </p>
+              </div>
+              
+              <div className="bg-green-900/20 rounded-lg p-4 border border-green-500/30">
+                <HumanCommand 
+                  cmd="show crypto key mypubkey rsa" 
+                  human="Je vérifie que les clés RSA sont bien générées (sans ça, SSH ne marche pas)." 
+                />
+                <div className="bg-slate-900/50 rounded p-3 mt-2 text-xs">
+                  <p className="text-green-300 font-mono mb-1">R-Sec# show crypto key mypubkey rsa</p>
+                  <p className="text-slate-300 font-mono">Key name: R-Sec.novatech.local</p>
+                  <p className="text-slate-300 font-mono">Key type: RSA PUBLIC KEY</p>
+                  <p className="text-emerald-400 font-mono">Key Data: 30820122 300D0609...</p>
+                </div>
+                <p className="text-slate-400 text-xs mt-2">
+                  💡 Si tu vois une clé avec des chiffres et lettres (comme "30820122..."), c'est bon ! 
+                  Les clés RSA sont générées.
+                </p>
+              </div>
+            </div>
+            <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/30">
+              <p className="text-emerald-200 font-bold mb-2">✅ Test Final : Essaie de te connecter !</p>
+              <p className="text-emerald-100 text-sm leading-relaxed">
+                Depuis un autre ordinateur sur le même réseau, essaie de te connecter en SSH :
+                <code className="bg-black/40 px-2 py-1 rounded font-mono text-xs block mt-2">
+                  ssh admin@192.168.1.1
+                </code>
+                Si ça te demande le mot de passe et que tu arrives à te connecter, <strong>c'est gagné !</strong> 🎉
+              </p>
+            </div>
+            <ProTip>
+              <strong>Astuce de dépannage :</strong> Si SSH ne fonctionne pas, vérifie ces 3 choses dans l'ordre : 
+              (1) Les clés RSA sont générées ? (2) transport input ssh est configuré ? (3) L'adresse IP est correcte ?
+            </ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'interactive_quiz',
+        title: "Quiz Interactif : Teste tes Connaissances SSH",
+        questions: [
+          { q: "Sur quel port SSH fonctionne-t-il par défaut ?", options: ["Port 21", "Port 22", "Port 23"], a: 1 },
+          { q: "Quelle est la principale différence entre SSH et Telnet ?", options: ["SSH est plus rapide", "SSH chiffre les données, Telnet les envoie en clair", "Aucune différence"], a: 1 },
+          { q: "Pourquoi faut-il générer une clé RSA pour utiliser SSH ?", options: ["Ce n'est pas nécessaire", "Elle permet l'établissement de connexions chiffrées", "Pour accélérer les connexions"], a: 1 },
+          { q: "Que signifie 'line vty 0 4' ?", options: ["Configuration de 1 ligne", "Configuration des lignes 0 à 4, soit 5 sessions simultanées", "Configuration de 10 lignes"], a: 1 },
+          { q: "Quel niveau de privilège donne tous les droits (administrateur) ?", options: ["Niveau 0", "Niveau 1", "Niveau 15"], a: 2 }
+        ]
+      },
+      {
+        type: 'flashcards',
+        title: "Flashcards : Commandes SSH",
+        mode: 'command_to_definition',
+        cards: [
+          { q: "hostname <nom>", a: "Définir le nom d'hôte de l'équipement" },
+          { q: "ip domain-name <domaine>", a: "Définir le nom de domaine (nécessaire pour générer la clé RSA)" },
+          { q: "username <nom> privilege <niveau> secret <mdp>", a: "Créer un utilisateur local avec niveau de privilège et mot de passe" },
+          { q: "crypto key generate rsa", a: "Générer les clés RSA pour SSH (minimum 1024 bits)" },
+          { q: "line vty 0 4", a: "Accéder aux lignes de connexion distante (5 sessions)" },
+          { q: "login local", a: "Forcer l'authentification par comptes utilisateurs locaux" },
+          { q: "transport input ssh", a: "Autoriser uniquement SSH sur les lignes VTY (pas Telnet)" },
+          { q: "ip ssh version 2", a: "Forcer l'utilisation de SSH version 2 (plus sécurisée)" },
+          { q: "ip ssh time-out <secondes>", a: "Définir le timeout d'inactivité avant déconnexion" },
+          { q: "ip ssh authentication-retries <nombre>", a: "Limiter le nombre de tentatives de connexion" },
+          { q: "interface vlan 1", a: "Accéder à l'interface virtuelle VLAN 1 (pour donner une IP au switch)" },
+          { q: "ip address <ip> <masque>", a: "Configurer une adresse IP sur une interface" },
+          { q: "no shutdown", a: "Activer une interface (par défaut elle est désactivée)" },
+          { q: "show ip ssh", a: "Afficher le statut et la configuration SSH" },
+          { q: "show crypto key mypubkey rsa", a: "Afficher les clés RSA générées" }
+        ]
+      },
+      {
+        type: 'lab_correction',
+        title: "Correction du Lab 2 : Configuration SSH Complète"
       }
     ],
     lab: {
-      title: "Lab 2 : Activer SSH",
-      context: "Configurer un accès SSH de base.",
-      initialPrompt: "R1(config)#",
+      title: "Lab 2 : Sécurisation SSH Complète",
+      context: "SCÉNARIO : Vous êtes missionné par NovaTech pour sécuriser l'accès à distance. Configurez SSH sur le routeur R-Sec et le switch SW-Core avec différents niveaux de privilèges.",
+      initialPrompt: "Router>",
       tasks: [
-        { cmd: "ip domain-name lab.net", desc: "Nom de domaine" },
-        { cmd: "crypto key generate rsa", desc: "Générer les clés" }
+        { cmd: "enable", desc: "Passer en mode privilégié" },
+        { cmd: "configure terminal", desc: "Entrer en configuration globale" },
+        { cmd: "hostname R-Sec", desc: "Renommer le routeur" },
+        { cmd: "ip domain-name novatech.local", desc: "Définir le nom de domaine" },
+        { cmd: "username admin privilege 15 secret admin123", desc: "Créer un utilisateur admin avec privilège 15" },
+        { cmd: "username consult privilege 1 secret consult123", desc: "Créer un utilisateur avec privilège 1 (consultation)" },
+        { cmd: "crypto key generate rsa", desc: "Générer les clés RSA (choisir 1024 bits minimum)" },
+        { cmd: "line vty 0 4", desc: "Configurer les lignes VTY" },
+        { cmd: "login local", desc: "Activer l'authentification locale" },
+        { cmd: "transport input ssh", desc: "Autoriser uniquement SSH" },
+        { cmd: "exit", desc: "Sortir des lignes VTY" },
+        { cmd: "ip ssh version 2", desc: "Forcer SSH version 2" },
+        { cmd: "ip ssh time-out 60", desc: "Définir timeout à 60 secondes" },
+        { cmd: "ip ssh authentication-retries 3", desc: "Limiter à 3 tentatives" },
+        { cmd: "interface gigabitethernet 0/0", desc: "Configurer l'interface du routeur" },
+        { cmd: "ip address 192.168.1.1 255.255.255.0", desc: "Donner une IP au routeur" },
+        { cmd: "no shutdown", desc: "Activer l'interface" },
+        { cmd: "exit", desc: "Sortir de l'interface" },
+        { cmd: "exit", desc: "Sortir du mode config" },
+        { cmd: "copy running-config startup-config", desc: "Sauvegarder la configuration" }
       ],
       validations: {
-        "ip domain-name": { msg: "Domaine configuré." },
-        "crypto key": { msg: "Clés RSA générées, SSH prêt." }
+        "enable": { nextPrompt: "Router#", msg: "OK. Mode privilégié activé." },
+        "configure terminal": { nextPrompt: "Router(config)#", msg: "Mode configuration globale activé." },
+        "hostname R-Sec": { nextPrompt: "R-Sec(config)#", msg: "Routeur renommé R-Sec." },
+        "ip domain-name": { msg: "Nom de domaine configuré. Nécessaire pour générer la clé RSA." },
+        "username admin": { msg: "Utilisateur admin créé avec privilège 15 (tous les droits)." },
+        "username consult": { msg: "Utilisateur consult créé avec privilège 1 (consultation uniquement)." },
+        "crypto key": { msg: "Clés RSA générées. SSH peut maintenant fonctionner." },
+        "line vty": { nextPrompt: "R-Sec(config-line)#", msg: "Configuration des lignes VTY (5 sessions simultanées)." },
+        "login local": { msg: "Authentification locale activée. Les comptes username seront utilisés." },
+        "transport input ssh": { msg: "SSH uniquement activé. Telnet est désormais bloqué." },
+        "exit": { msg: "Sortie effectuée." },
+        "ip ssh version": { msg: "SSH version 2 forcée (plus sécurisée)." },
+        "ip ssh time-out": { msg: "Timeout configuré à 60 secondes d'inactivité." },
+        "ip ssh authentication-retries": { msg: "Limite de 3 tentatives configurée (protection brute force)." },
+        "interface gigabitethernet": { nextPrompt: "R-Sec(config-if)#", msg: "Configuration de l'interface GigabitEthernet." },
+        "ip address": { msg: "Adresse IP configurée sur l'interface." },
+        "no shutdown": { msg: "Interface activée." },
+        "copy": { msg: "[OK] Configuration sauvegardée en NVRAM." }
       }
     },
     quiz: [
-      { q: "Pourquoi SSH est plus sûr que Telnet ?", options: ["Plus rapide", "Chiffré", "Plus simple"], a: 1 }
+      { q: "Qu'est-ce que SSH ?", options: ["Un protocole de communication chiffré pour accéder à distance", "Un protocole non sécurisé comme Telnet", "Une commande pour redémarrer un routeur"], a: 0 },
+      { q: "Sur quel port SSH fonctionne-t-il par défaut ?", options: ["Port 21", "Port 22", "Port 23"], a: 1 },
+      { q: "Quelle est la principale différence entre SSH et Telnet ?", options: ["SSH est plus rapide", "SSH chiffre les données, Telnet les envoie en clair", "Aucune différence"], a: 1 },
+      { q: "Pourquoi faut-il générer une clé RSA pour utiliser SSH ?", options: ["Ce n'est pas nécessaire", "Elle permet l'établissement de connexions chiffrées. Sans elle, SSH ne peut pas fonctionner", "Pour accélérer les connexions"], a: 1 },
+      { q: "Que signifie 'line vty 0 4' ?", options: ["Configuration de 1 ligne", "Configuration des lignes 0 à 4, soit 5 sessions simultanées", "Configuration de 10 lignes"], a: 1 },
+      { q: "À quoi sert la commande 'login local' ?", options: ["Elle force l'utilisation des comptes utilisateurs locaux définis avec username", "Elle désactive l'authentification", "Elle active Telnet"], a: 0 },
+      { q: "Quelle commande permet de vérifier que SSH est activé ?", options: ["show ssh", "show ip ssh", "show crypto"], a: 1 },
+      { q: "Pourquoi définir un nom d'hôte et un nom de domaine pour SSH ?", options: ["Ce n'est pas nécessaire", "Ils sont nécessaires pour générer la clé RSA. SSH dépend de ces informations", "Pour améliorer les performances"], a: 1 },
+      { q: "Peut-on utiliser SSH sur un switch de couche 2 ?", options: ["Non, impossible", "Oui, à condition d'avoir une interface VLAN configurée avec une IP et tous les prérequis SSH", "Oui, sans aucune condition"], a: 1 },
+      { q: "Pourquoi limiter les tentatives d'authentification SSH ?", options: ["Pour ralentir les connexions", "Pour se protéger contre les attaques par brute force et sécuriser l'accès", "Ce n'est pas recommandé"], a: 1 },
+      { q: "Quel niveau de privilège donne tous les droits (administrateur) ?", options: ["Niveau 0", "Niveau 1", "Niveau 15"], a: 2 },
+      { q: "Que fait la commande 'transport input ssh' ?", options: ["Active Telnet", "Autorise uniquement SSH sur les lignes VTY (bloque Telnet)", "Désactive SSH"], a: 1 },
+      { q: "Comment donner une adresse IP à un switch de couche 2 ?", options: ["Via une interface physique", "Via une interface VLAN virtuelle (interface vlan 1)", "C'est impossible"], a: 1 },
+      { q: "Que fait 'ip ssh version 2' ?", options: ["Désactive SSH", "Force l'utilisation de SSH version 2 (plus sécurisée)", "Active SSH version 1"], a: 1 }
     ]
   },
   {
@@ -800,6 +1896,14 @@ const TheoryPlayer = ({ slides, lab }) => {
         return <FlashCards cards={s.cards} mode={s.mode} />;
       case 'lab_correction':
         return <LabCorrection scenario={lab || s.scenario} />;
+      case 'ssh_configurator':
+        return <SSHConfigurator />;
+      case 'interactive_quiz':
+        return <InteractiveQuiz questions={s.questions} />;
+      case 'command_builder':
+        return <CommandBuilder steps={s.steps} />;
+      case 'privilege_explorer':
+        return <PrivilegeExplorer />;
       case 'rich_text':
         return (
           <div className="bg-slate-800 p-8 rounded-xl border border-slate-700 shadow-xl">
