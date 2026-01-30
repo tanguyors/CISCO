@@ -4,7 +4,7 @@ import {
   ChevronRight, ChevronLeft, Lock, Shield, 
   Cpu, RotateCcw, Menu, X, Globe,
   Clock, Save, Power, AlertCircle, Eye, AlertTriangle, Lightbulb, HardDrive, Microscope, Router as RouterIcon, Network, ArrowUpDown, Monitor, Command, MessageCircle, HelpCircle,
-  BarChart3, TrendingUp, History, Target, Zap, Activity, Send, Key, User
+  BarChart3, TrendingUp, History, Target, Zap, Activity, Send, Key, User, Layout, Plus, Trash2, Link
 } from 'lucide-react';
 
 // --- COMPOSANTS UI UTILITAIRES ---
@@ -3113,9 +3113,234 @@ const StatsDashboard = ({ stats, sessions, onReset }) => {
   );
 };
 
+// --- PACKET TRACER : Simulateur réseau type Cisco Packet Tracer ---
+
+const DEVICE_TYPES = { router: { label: 'Routeur', icon: RouterIcon, color: 'from-blue-600 to-blue-800' }, switch: { label: 'Switch', icon: Network, color: 'from-emerald-600 to-emerald-800' }, pc: { label: 'PC', icon: Monitor, color: 'from-slate-600 to-slate-800' } };
+
+function generateId() { return Math.random().toString(36).slice(2, 10); }
+
+// Terminal CLI sandbox pour un appareil (libre, comme Packet Tracer)
+const PacketTracerCLI = ({ device, onClose, devices }) => {
+  const [history, setHistory] = useState([
+    "Cisco IOS Software, Version 15.2(4)M6",
+    "Press RETURN to get started!",
+    ""
+  ]);
+  const [input, setInput] = useState("");
+  const [mode, setMode] = useState('user'); // user, priv, config
+  const [config, setConfig] = useState({ hostname: device.name, interfaces: [] });
+  const bottomRef = useRef(null);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [history]);
+
+  const getPrompt = () => {
+    if (device.type === 'pc') return `${device.name}>`;
+    if (mode === 'config') return `${config.hostname}(config)#`;
+    if (mode === 'priv') return `${config.hostname}#`;
+    return `${config.hostname}>`;
+  };
+
+  const executeCommand = (cmd) => {
+    const c = cmd.trim().toLowerCase();
+    if (!c) return null;
+    if (device.type === 'pc') {
+      if (c === 'ping 192.168.1.1' || c.startsWith('ping ')) return 'Reply from 192.168.1.1: bytes=32 time=1ms TTL=64';
+      if (c === 'ipconfig' || c === 'ip config') return 'IPv4 Address: 192.168.1.10\nSubnet Mask: 255.255.255.0\nDefault Gateway: 192.168.1.1';
+      return 'Commande non reconnue. Essayez ping ou ipconfig.';
+    }
+    if (c === 'enable') { setMode('priv'); return ''; }
+    if (c === 'disable') { setMode('user'); return ''; }
+    if (c === 'configure terminal' || c === 'conf t') { setMode('config'); return ''; }
+    if (c === 'exit' || c === 'end') { setMode(mode === 'config' ? 'priv' : 'user'); return ''; }
+    if (c.startsWith('hostname ')) { const name = cmd.split(/\s+/)[1] || ''; setConfig(prev => ({ ...prev, hostname: name || prev.hostname })); return ''; }
+    if (c === 'show running-config' || c === 'sh run') {
+      return `Building configuration...\n\nhostname ${config.hostname}\n!\ninterface GigabitEthernet0/0\n no ip address\n shutdown\n!\nend`;
+    }
+    if (c === 'show ip interface brief' || c === 'sh ip int b') {
+      return `Interface\t\tIP-Address\tOK?\tMethod\tStatus\nGigabitEthernet0/0\tunassigned\tYES\tunset\tadministratively down`;
+    }
+    if (c.startsWith('ping ')) return 'Sending 5, 100-byte ICMP Echos to ' + c.split(/\s+/)[1] + ', timeout is 2 seconds:\n!!!!!\nSuccess rate is 100 percent (5/5)';
+    if (c === 'copy running-config startup-config' || c === 'wr') return '[OK] Configuration saved to NVRAM.';
+    if (c === 'show startup-config' || c === 'sh start') return `Using ${config.hostname} configuration...\nhostname ${config.hostname}\n!`;
+    if (c.startsWith('interface ') || c.startsWith('int ')) return '';
+    if (c.startsWith('ip address ')) return '';
+    if (c === 'no shutdown') return '';
+    if (c === '?') return 'enable\nexit\nping\nshow\nconfigure terminal\nhostname\ninterface\nip address';
+    return '% Invalid input detected at \'^\' marker.';
+  };
+
+  const handleEnter = (e) => {
+    if (e.key !== 'Enter') return;
+    const cmd = input.trim();
+    const currentPrompt = getPrompt();
+    setHistory(prev => [...prev, `${currentPrompt} ${cmd}`]);
+    const out = executeCommand(cmd);
+    if (out) setHistory(prev => [...prev, out]);
+    setHistory(prev => [...prev, '']);
+    setInput("");
+  };
+
+  return (
+    <div className="absolute inset-0 z-30 bg-slate-950/95 backdrop-blur flex flex-col border border-slate-700 rounded-xl overflow-hidden shadow-2xl">
+      <div className="bg-slate-800 px-4 py-2 flex justify-between items-center border-b border-slate-700">
+        <span className="text-white font-bold flex items-center gap-2"><Terminal className="w-4 h-4 text-emerald-400" /> {device.name} – CLI</span>
+        <button onClick={onClose} className="p-1 rounded hover:bg-slate-700 text-slate-400"><X size={18} /></button>
+      </div>
+      <div className="flex-1 p-3 overflow-y-auto font-mono text-sm text-slate-300">
+        {history.map((line, i) => (
+          <div key={i} className={line.includes('Invalid') ? 'text-red-400' : ''}>{line || ' '}</div>
+        ))}
+        <div className="flex items-center mt-1">
+          <span className="text-slate-400 mr-2">{getPrompt()}</span>
+          <input type="text" value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleEnter}
+            className="bg-transparent border-none outline-none flex-1 text-white" autoComplete="off" autoFocus />
+        </div>
+        <div ref={bottomRef} />
+      </div>
+    </div>
+  );
+};
+
+const PacketTracerSection = () => {
+  const [devices, setDevices] = useState([]);
+  const [links, setLinks] = useState([]);
+  const [mode, setMode] = useState('select'); // select | add_router | add_switch | add_pc | connect
+  const [connectFrom, setConnectFrom] = useState(null);
+  const [selectedDevice, setSelectedDevice] = useState(null);
+  const [cliDevice, setCliDevice] = useState(null);
+  const [dragging, setDragging] = useState(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const canvasRef = useRef(null);
+
+  const handleCanvasClick = (e) => {
+    if (e.target !== canvasRef.current) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    if (mode === 'add_router') {
+      setDevices(prev => [...prev, { id: generateId(), type: 'router', x, y, name: `R${prev.filter(d => d.type === 'router').length + 1}` }]);
+      setMode('select');
+    } else if (mode === 'add_switch') {
+      setDevices(prev => [...prev, { id: generateId(), type: 'switch', x, y, name: `SW${prev.filter(d => d.type === 'switch').length + 1}` }]);
+      setMode('select');
+    } else if (mode === 'add_pc') {
+      setDevices(prev => [...prev, { id: generateId(), type: 'pc', x, y, name: `PC${prev.filter(d => d.type === 'pc').length + 1}` }]);
+      setMode('select');
+    }
+  };
+
+  const handleDeviceClick = (device, e) => {
+    e.stopPropagation();
+    if (mode === 'connect') {
+      if (!connectFrom) setConnectFrom(device);
+      else if (connectFrom.id !== device.id) {
+        setLinks(prev => [...prev, { id: generateId(), fromId: connectFrom.id, toId: device.id }]);
+        setConnectFrom(null);
+        setMode('select');
+      }
+      return;
+    }
+    setSelectedDevice(device);
+    setCliDevice(device);
+  };
+
+  const handleDragStart = (device, e) => {
+    e.stopPropagation();
+    setDragging(device.id);
+    const rect = canvasRef.current.getBoundingClientRect();
+    setDragOffset({ x: e.clientX - rect.left - device.x, y: e.clientY - rect.top - device.y });
+  };
+
+  const handleDragMove = (e) => {
+    if (!dragging) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left - dragOffset.x;
+    const y = e.clientY - rect.top - dragOffset.y;
+    setDevices(prev => prev.map(d => d.id === dragging ? { ...d, x, y } : d));
+  };
+
+  const handleDragEnd = () => { setDragging(null); };
+
+  const deleteDevice = (id) => {
+    setDevices(prev => prev.filter(d => d.id !== id));
+    setLinks(prev => prev.filter(l => l.fromId !== id && l.toId !== id));
+    setSelectedDevice(null);
+    setCliDevice(null);
+    setConnectFrom(prev => prev?.id === id ? null : prev);
+  };
+
+  const getDevicePos = (id) => devices.find(d => d.id === id);
+  const getCenter = (d) => ({ x: d.x + 50, y: d.y + 40 });
+
+  return (
+    <div className="h-full flex flex-col bg-slate-950">
+      <div className="bg-slate-900 border-b border-slate-800 p-3 flex flex-wrap items-center gap-2">
+        <span className="text-slate-400 font-bold text-sm mr-2">Outils :</span>
+        <button onClick={() => setMode('select')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${mode === 'select' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}>Sélectionner</button>
+        <button onClick={() => setMode('add_router')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 ${mode === 'add_router' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}><RouterIcon size={14} /> Routeur</button>
+        <button onClick={() => setMode('add_switch')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 ${mode === 'add_switch' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}><Network size={14} /> Switch</button>
+        <button onClick={() => setMode('add_pc')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 ${mode === 'add_pc' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}><Monitor size={14} /> PC</button>
+        <button onClick={() => setMode('connect')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 ${mode === 'connect' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300'}`}><Link size={14} /> Câbler</button>
+        {selectedDevice && (
+          <button onClick={() => deleteDevice(selectedDevice.id)} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600/80 text-white flex items-center gap-1"><Trash2 size={14} /> Supprimer</button>
+        )}
+        {(mode === 'add_router' || mode === 'add_switch' || mode === 'add_pc') && (
+          <span className="text-slate-500 text-xs">Cliquez sur la zone de travail pour placer l'appareil.</span>
+        )}
+        {mode === 'connect' && <span className="text-slate-500 text-xs">Cliquez sur un premier appareil puis sur un second pour les relier.</span>}
+      </div>
+
+      <div className="flex-1 relative overflow-hidden p-4">
+        <div
+          ref={canvasRef}
+          className="w-full h-full min-h-[400px] bg-slate-900/80 rounded-xl border-2 border-dashed border-slate-700 cursor-crosshair relative"
+          onClick={handleCanvasClick}
+          onMouseMove={handleDragMove}
+          onMouseLeave={handleDragEnd}
+          onMouseUp={handleDragEnd}
+        >
+          <svg className="absolute inset-0 w-full h-full pointer-events-none">
+            {links.map(l => {
+              const from = getDevicePos(l.fromId);
+              const to = getDevicePos(l.toId);
+              if (!from || !to) return null;
+              const c1 = getCenter(from);
+              const c2 = getCenter(to);
+              return <line key={l.id} x1={c1.x} y1={c1.y} x2={c2.x} y2={c2.y} stroke="#475569" strokeWidth="2" />;
+            })}
+          </svg>
+          {devices.map(d => {
+            const meta = DEVICE_TYPES[d.type];
+            const Icon = meta.icon;
+            return (
+              <div
+                key={d.id}
+                className={`absolute w-[100px] h-[80px] rounded-xl border-2 flex flex-col items-center justify-center cursor-pointer select-none bg-gradient-to-br ${meta.color} ${selectedDevice?.id === d.id ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-900' : ''} ${connectFrom?.id === d.id ? 'ring-2 ring-emerald-400' : ''}`}
+                style={{ left: d.x, top: d.y }}
+                onClick={e => handleDeviceClick(d, e)}
+                onMouseDown={e => handleDragStart(d, e)}
+              >
+                <Icon className="w-8 h-8 text-white/90" />
+                <span className="text-white text-xs font-bold mt-1">{d.name}</span>
+              </div>
+            );
+          })}
+        </div>
+
+        {cliDevice && (
+          <div className="absolute bottom-4 right-4 w-full max-w-lg h-72 z-30">
+            <PacketTracerCLI device={cliDevice} onClose={() => setCliDevice(null)} devices={devices} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // --- MAIN APP : THÉORIE + LAB + QUIZ ---
 
 export default function NetMasterClass() {
+  const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer'
   const [activeSessionId, setActiveSessionId] = useState(1);
   const [activeTab, setActiveTab] = useState('theory');
   const [completedSessions, setCompletedSessions] = useState([]);
@@ -3177,10 +3402,14 @@ export default function NetMasterClass() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          <div className="mb-4 pb-3 border-b border-slate-800">
+            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Sessions</p>
+          </div>
           {sessions.map((session) => (
             <button
               key={session.id}
               onClick={() => {
+                setViewMode('sessions');
                 setActiveSessionId(session.id);
                 setActiveTab('theory');
                 setQuizScore(null);
@@ -3215,6 +3444,28 @@ export default function NetMasterClass() {
               </div>
             </button>
           ))}
+          <div className="mt-6 pt-4 border-t border-slate-800">
+            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Outils</p>
+            <button
+              onClick={() => {
+                setViewMode('packet_tracer');
+                if (window.innerWidth < 1024) setSidebarOpen(false);
+              }}
+              className={`w-full p-4 rounded-xl flex items-center gap-3 transition-all border ${
+                viewMode === 'packet_tracer'
+                  ? 'bg-blue-600/20 border-blue-500 text-blue-100'
+                  : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-400 hover:border-slate-600'
+              }`}
+            >
+              <div className={`p-2 rounded-lg ${viewMode === 'packet_tracer' ? 'bg-blue-600 text-white' : 'bg-slate-800'}`}>
+                <Layout className="w-5 h-5" />
+              </div>
+              <div className="text-left flex-1">
+                <p className="font-bold text-sm">Packet Tracer</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">Simulateur réseau</p>
+              </div>
+            </button>
+          </div>
         </div>
 
         <div className="p-3 border-t border-slate-800 text-center text-[11px] text-slate-600">
@@ -3235,36 +3486,43 @@ export default function NetMasterClass() {
             </button>
             <div>
               <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
-                {activeSession.title}
+                {viewMode === 'packet_tracer' ? 'Packet Tracer – Simulateur réseau' : activeSession.title}
               </h2>
             </div>
           </div>
 
-          <div className="flex bg-slate-800 p-1 rounded-lg border border-slate-700 w-full md:w-auto overflow-x-auto">
-            {[
-              { id: 'theory', label: 'Théorie & Concepts', icon: BookOpen },
-              { id: 'lab', label: 'Lab Pratique', icon: Terminal },
-              { id: 'quiz', label: 'Validation', icon: Award },
-              { id: 'stats', label: 'Statistiques', icon: BarChart3 }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 md:flex-none flex items-center justify-center px-4 py-2 rounded-md text-xs md:text-sm font-medium transition-all whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-700'
-                }`}
-              >
-                <tab.icon className="w-4 h-4 mr-1.5" />
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </div>
+          {viewMode === 'sessions' && (
+            <div className="flex bg-slate-800 p-1 rounded-lg border border-slate-700 w-full md:w-auto overflow-x-auto">
+              {[
+                { id: 'theory', label: 'Théorie & Concepts', icon: BookOpen },
+                { id: 'lab', label: 'Lab Pratique', icon: Terminal },
+                { id: 'quiz', label: 'Validation', icon: Award },
+                { id: 'stats', label: 'Statistiques', icon: BarChart3 }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 md:flex-none flex items-center justify-center px-4 py-2 rounded-md text-xs md:text-sm font-medium transition-all whitespace-nowrap ${
+                    activeTab === tab.id
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-700'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4 mr-1.5" />
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </header>
 
         {/* Content */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-8">
+          {viewMode === 'packet_tracer' ? (
+            <div className="h-full min-h-[500px]">
+              <PacketTracerSection />
+            </div>
+          ) : (
           <div className="max-w-6xl mx-auto h-full flex flex-col">
             {activeTab === 'theory' && <TheoryPlayer slides={activeSession.slides} lab={activeSession.lab} sessionId={activeSessionId} />}
 
@@ -3303,7 +3561,7 @@ export default function NetMasterClass() {
               </div>
             )}
 
-            {activeTab === 'quiz' && (
+            {activeTab === 'quiz' && viewMode === 'sessions' && (
               <div className="max-w-3xl mx-auto w-full pb-12">
                 <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
                   <div className="p-8 border-b border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800">
@@ -3371,6 +3629,7 @@ export default function NetMasterClass() {
               </div>
             )}
           </div>
+          )}
         </main>
       </div>
     </div>
