@@ -738,6 +738,60 @@ const ConfigComparison = ({ before, after, title }) => {
   );
 };
 
+// Schéma interactif : Sauvegarde vs Restauration TFTP (sens du flux)
+const TFTPFlow = () => {
+  const [highlight, setHighlight] = useState(null); // 'save' | 'restore' | null
+
+  return (
+    <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 my-6">
+      <h4 className="text-slate-300 font-bold mb-4 flex items-center gap-2">
+        <ArrowUpDown className="w-5 h-5 text-blue-400" /> Qui envoie quoi à qui ?
+      </h4>
+      <div className="flex items-center justify-between gap-6 flex-wrap">
+        <div className="bg-slate-900 rounded-xl p-6 border-2 border-slate-600 text-center min-w-[140px]">
+          <RouterIcon className="w-10 h-10 text-blue-400 mx-auto mb-2" />
+          <p className="text-white font-bold">Routeur</p>
+          <p className="text-slate-500 text-xs">running-config</p>
+        </div>
+
+        <div className="flex flex-col gap-4 flex-1 max-w-md">
+          <button
+            onClick={() => setHighlight(highlight === 'save' ? null : 'save')}
+            className={`text-left p-4 rounded-xl border-2 transition-all ${highlight === 'save' ? 'bg-emerald-900/30 border-emerald-500' : 'bg-slate-900 border-slate-700 hover:border-emerald-500/50'}`}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-emerald-400 font-bold">→ Sauvegarde</span>
+            </div>
+            <code className="text-emerald-300 font-mono text-sm">copy running-config tftp:</code>
+            <p className="text-slate-400 text-xs mt-2">Le routeur envoie sa config vers le serveur TFTP.</p>
+          </button>
+          <button
+            onClick={() => setHighlight(highlight === 'restore' ? null : 'restore')}
+            className={`text-left p-4 rounded-xl border-2 transition-all ${highlight === 'restore' ? 'bg-amber-900/30 border-amber-500' : 'bg-slate-900 border-slate-700 hover:border-amber-500/50'}`}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-amber-400 font-bold">← Restauration</span>
+            </div>
+            <code className="text-amber-300 font-mono text-sm">copy tftp: running-config</code>
+            <p className="text-slate-400 text-xs mt-2">Le routeur reçoit une config depuis le serveur (écrase l’actuelle).</p>
+          </button>
+        </div>
+
+        <div className="bg-slate-900 rounded-xl p-6 border-2 border-slate-600 text-center min-w-[140px]">
+          <Globe className="w-10 h-10 text-emerald-400 mx-auto mb-2" />
+          <p className="text-white font-bold">Serveur TFTP</p>
+          <p className="text-slate-500 text-xs">fichier .cfg</p>
+        </div>
+      </div>
+      {highlight === 'restore' && (
+        <div className="mt-4 p-3 bg-amber-900/20 border border-amber-500/30 rounded-lg text-amber-200 text-sm">
+          ⚠️ Avant de restaurer : sauvegardez votre config actuelle avec <code className="font-mono">copy running-config startup-config</code>, sinon vous la perdez.
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Visualisation du flux de connexion SSH étape par étape
 const SSHConnectionFlow = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -1623,23 +1677,44 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
         type: 'rich_text',
         title: "Sauvegarde/Restauration avec TFTP",
         content: (
-          <div className="space-y-4">
-            <p className="text-slate-300 mb-4">TFTP (Trivial File Transfer Protocol) permet de sauvegarder vos configurations sur un serveur externe. C'est comme avoir une sauvegarde dans le cloud.</p>
-            <HumanCommand 
-              cmd="copy running-config tftp:" 
-              human="Envoie ma configuration actuelle vers un serveur TFTP." 
-              context="Le routeur vous demandera : 1) L'adresse IP du serveur TFTP, 2) Le nom du fichier. Utile pour avoir une sauvegarde centralisée de toutes vos configs."
-            />
-            <HumanCommand 
-              cmd="copy tftp: running-config" 
-              human="Récupère une configuration depuis un serveur TFTP et la charge en RAM." 
-              context="⚠️ ATTENTION : Cela remplace complètement votre configuration actuelle. Le routeur vous demandera l'IP du serveur et le nom du fichier."
-            />
-            <DangerZone>
-              <strong>Restauration TFTP :</strong> La commande <code className="text-red-400 font-mono">copy tftp: running-config</code> écrase votre config actuelle. Assurez-vous d'avoir sauvegardé avant, ou utilisez-la seulement si vous voulez restaurer une ancienne version.
-            </DangerZone>
+          <div className="space-y-6">
+            <div>
+              <h4 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                <Globe className="w-5 h-5 text-blue-400" /> C'est quoi TFTP ?
+              </h4>
+              <p className="text-slate-300 leading-relaxed">
+                <strong>TFTP</strong> (Trivial File Transfer Protocol) est un protocole simple pour transférer des fichiers sur le réseau. Sur un <strong>serveur TFTP</strong> (PC ou serveur dédié), vous stockez des copies de vos configurations. C'est comme avoir une sauvegarde externe : si le routeur tombe en panne ou que quelqu'un efface la config, vous récupérez la version sauvegardée sur le serveur.
+              </p>
+            </div>
+
+            <TFTPFlow />
+
+            <div>
+              <h4 className="text-lg font-bold text-white mb-2">Sauvegarder vers le serveur (routeur → TFTP)</h4>
+              <HumanCommand 
+                cmd="copy running-config tftp:" 
+                human="Envoie ma configuration actuelle (celle en RAM) vers un serveur TFTP." 
+                context="Après avoir tapé la commande, le routeur demande : 1) Adresse IP du serveur TFTP, 2) Nom du fichier (ex. R1-backup.cfg). La config est copiée sur le serveur = sauvegarde centralisée."
+              />
+              <p className="text-slate-400 text-sm mt-2 pl-2 border-l-2 border-slate-600">
+                <strong>Quand l'utiliser ?</strong> Après une modification importante, ou régulièrement, pour garder une copie de secours en dehors du routeur.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="text-lg font-bold text-white mb-2">Restaurer depuis le serveur (TFTP → routeur)</h4>
+              <HumanCommand 
+                cmd="copy tftp: running-config" 
+                human="Récupère un fichier de config depuis un serveur TFTP et le charge en RAM (à la place de la config actuelle)." 
+                context="Le routeur demande l'IP du serveur et le nom du fichier. La config reçue remplace tout ce qui est en RAM. Ce qui était en cours est perdu si vous n'avez pas sauvegardé avant."
+              />
+              <DangerZone>
+                <strong>Restauration = écrasement.</strong> La commande <code className="text-red-400 font-mono">copy tftp: running-config</code> remplace entièrement votre configuration actuelle par celle du fichier. Avant de lancer cette commande : faites un <code className="text-emerald-400 font-mono">copy running-config startup-config</code> si vous voulez garder une copie de l’état actuel, ou acceptez de perdre la config en cours. Utilisez la restauration pour remettre une ancienne config connue (après incident ou test).
+              </DangerZone>
+            </div>
+
             <ProTip>
-              <strong>Avantages du TFTP :</strong> Sauvegarde centralisée, restauration rapide en cas de problème, partage de configurations entre équipements identiques.
+              <strong>Avantages du TFTP :</strong> Sauvegarde centralisée de tous vos équipements sur un seul serveur ; restauration rapide en cas de panne ; possibilité de dupliquer une config sur plusieurs routeurs identiques en restaurant le même fichier.
             </ProTip>
           </div>
         )
