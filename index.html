@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Tailwind en CDN pour le style -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .timeline-consignes { list-style: none; counter-reset: step; padding-left: 0; margin-left: 0; }
+      .timeline-consignes li { counter-increment: step; }
+      .timeline-consignes li::before { content: counter(step) " - "; font-weight: 600; color: rgba(52, 211, 153, 0.9); margin-right: 0.25rem; }
+    </style>
   </head>
   <body class="bg-slate-950 text-slate-100">
     <div id="root"></div>

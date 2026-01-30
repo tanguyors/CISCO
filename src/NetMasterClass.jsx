@@ -4,7 +4,7 @@ import {
   ChevronRight, ChevronLeft, Lock, Shield, 
   Cpu, RotateCcw, Menu, X, Globe,
   Clock, Save, Power, AlertCircle, Eye, AlertTriangle, Lightbulb, HardDrive, Microscope, Router as RouterIcon, Network, ArrowUpDown, Monitor, Command, MessageCircle, HelpCircle,
-  BarChart3, TrendingUp, History, Target, Zap, Activity, Send, Key, User, Layout, Plus, Trash2, Link
+  BarChart3, TrendingUp, History, Target, Zap, Activity, Send, Key, User, Layout, Plus, Trash2, Link, Server
 } from 'lucide-react';
 
 // --- COMPOSANTS UI UTILITAIRES ---
@@ -55,6 +55,18 @@ const HumanCommand = ({ cmd, human, context }) => (
         )}
       </div>
     </div>
+  </div>
+);
+
+// --- TIMELINE : étapes numérotées 1-, 2-, 3- ---
+const Timeline = ({ steps, className = '' }) => (
+  <div className={`border-l-2 border-blue-500/50 pl-5 ml-1 space-y-3 ${className}`}>
+    {steps.map((step, i) => (
+      <div key={i} className="flex gap-3 items-start -ml-7">
+        <span className="flex-shrink-0 w-7 text-right font-bold text-blue-400 tabular-nums">{i + 1}-</span>
+        <div className="flex-1 text-slate-300">{step}</div>
+      </div>
+    ))}
   </div>
 );
 
@@ -1851,6 +1863,116 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
     lab: {
       title: "Lab 1 : Sécurisation et SSH",
       context: "SCÉNARIO : Sécurisez le routeur (nom, console, enable secret, DNS) puis activez SSH (domaine, utilisateur, clé RSA, lignes VTY). Sauvegardez en fin de lab.",
+      consignes: (
+        <div className="space-y-8 text-slate-200 text-base leading-relaxed">
+          <div className="bg-blue-900/30 border border-blue-500/40 rounded-xl p-5">
+            <p className="text-blue-100 font-semibold text-lg mb-1">Où faire les labs ?</p>
+            <p className="text-blue-200/90">
+              Ces trois labs se réalisent sur <strong>Cisco Packet Tracer</strong>. Utilisez l’onglet <strong>Packet Tracer</strong> dans la barre latérale (simulateur intégré) ou l’application Cisco Packet Tracer sur votre poste. Le terminal ci-dessous sert à vous entraîner aux commandes avant ou pendant le lab.
+            </p>
+          </div>
+
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6">
+            <h4 className="text-emerald-400 font-bold text-lg mb-3 pb-2 border-b border-slate-600">LAB S1 – Configuration initiale (NovaTech)</h4>
+            <p className="mb-4 text-slate-300">Préparer un mini-réseau local pour le client NovaTech : équipements identifiés, sécurisés, sauvegardés sur TFTP.</p>
+            <p className="text-slate-400 text-sm font-semibold mb-2">Infrastructure à placer dans Packet Tracer</p>
+            <ul className="list-disc list-inside space-y-2 mb-4 ml-2 text-slate-300">
+              <li>1 Routeur (à renommer <strong>R-Nova</strong>)</li>
+              <li>2 Switchs (<strong>SW-Entrée</strong>, <strong>SW-Bureau</strong>)</li>
+              <li>1 Serveur TFTP (<strong>Srv-TFTP</strong>)</li>
+              <li>1 PC Technicien (<strong>Tech-PC</strong>)</li>
+            </ul>
+            <p className="text-slate-400 text-sm font-semibold mb-2">Câblage</p>
+            <p className="mb-4 text-slate-300">Connecter les switches au routeur. Brancher le serveur TFTP et le PC Tech sur l’un des switches.</p>
+            <p className="text-slate-400 text-sm font-semibold mb-2">Sur le routeur</p>
+            <ol className="timeline-consignes space-y-2 text-slate-300">
+              <li>Renommer l’équipement</li>
+              <li>Donner une adresse IP dans le réseau 192.168.10.0/24</li>
+              <li>Désactiver la résolution DNS</li>
+              <li>Sécuriser l’accès console (mot de passe) et l’accès privilégié (enable secret)</li>
+              <li>Activer l’enregistrement de la configuration</li>
+            </ol>
+            <p className="text-slate-400 text-sm font-semibold mt-4 mb-2">Sur chaque switch</p>
+            <ol className="timeline-consignes space-y-2 text-slate-300">
+              <li>Affecter un nom correspondant à sa localisation</li>
+              <li>Configurer une IP sur l’interface VLAN 1 (même réseau que le routeur)</li>
+              <li>Configurer un mot de passe console</li>
+              <li>Sauvegarder la configuration</li>
+              <li>Depuis un switch, tester la sauvegarde vers le serveur TFTP</li>
+            </ol>
+            <p className="text-slate-400 text-sm font-semibold mt-4 mb-2">Sur le serveur TFTP</p>
+            <ol className="timeline-consignes space-y-2 text-slate-300">
+              <li>Donner une adresse IP dans le réseau</li>
+              <li>Activer le service TFTP</li>
+              <li>Vérifier que le routeur et les switches peuvent envoyer leurs configs vers le serveur</li>
+            </ol>
+            <p className="text-amber-300/90 text-sm mt-4">Recommandations : utiliser <code className="text-emerald-400 font-mono bg-slate-900/50 px-1 rounded">show</code> pour valider ; sauvegarder régulièrement (local + TFTP) ; tester le ping depuis le PC Tech.</p>
+          </div>
+
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6">
+            <h4 className="text-emerald-400 font-bold text-lg mb-3 pb-2 border-b border-slate-600">LAB S2 – Sécurisation SSH (NovaTech)</h4>
+            <p className="mb-4 text-slate-300">Sécuriser l’accès à distance (SSH) sur un routeur et un switch après incidents Telnet.</p>
+            <p className="text-slate-400 text-sm font-semibold mb-2">Infrastructure</p>
+            <ul className="list-disc list-inside space-y-2 mb-4 ml-2 text-slate-300">
+              <li>1 Routeur (<strong>R-Sec</strong>), 1 Switch (<strong>SW-Core</strong>), 1 PC Technicien (<strong>PC-Tech</strong>)</li>
+              <li>Câblage : PC → Switch → Routeur (câble droit entre switch et routeur)</li>
+            </ul>
+            <p className="text-slate-400 text-sm font-semibold mb-2">Sur le routeur (R-Sec)</p>
+            <ol className="timeline-consignes space-y-2 text-slate-300">
+              <li>Renommer l’équipement</li>
+              <li>Donner une IP (ex. 192.168.1.1/24)</li>
+              <li>Créer 2 comptes utilisateurs : un avec privilège 15 (admin), un avec privilège 1 ou 0 (consultation uniquement)</li>
+              <li>Configurer un nom de domaine et générer les clés RSA</li>
+              <li>Sur les lignes VTY : activer uniquement SSH (<code className="text-emerald-400 font-mono text-sm">login local</code>, <code className="text-emerald-400 font-mono text-sm">transport input ssh</code>)</li>
+              <li>Paramètres : timeout 60 s, 3 tentatives max, SSH v2 uniquement</li>
+            </ol>
+            <p className="text-slate-400 text-sm font-semibold mt-4 mb-2">Sur le switch (SW-Core)</p>
+            <ol className="timeline-consignes space-y-2 text-slate-300">
+              <li>Renommer l’équipement</li>
+              <li>Attribuer une IP à l’interface VLAN 1 (ex. 192.168.1.2/24)</li>
+              <li>Créer un utilisateur local avec privilège 15</li>
+              <li>Activer SSH uniquement (comme sur le routeur)</li>
+            </ol>
+            <p className="text-slate-400 text-sm font-semibold mt-4 mb-2">Sur le PC (PC-Tech)</p>
+            <ol className="timeline-consignes space-y-2 text-slate-300">
+              <li>Tester la connexion SSH avec l’utilisateur admin puis avec l’utilisateur restreint</li>
+              <li>Observer les différences de droits</li>
+              <li>Essayer une commande interdite avec le compte restreint (ex. <code className="text-emerald-400 font-mono text-sm">show running-config</code>)</li>
+            </ol>
+          </div>
+
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6">
+            <h4 className="text-emerald-400 font-bold text-lg mb-3 pb-2 border-b border-slate-600">LAB S3 – Connexion SSH avec résolution de noms (DNS)</h4>
+            <p className="mb-4 text-slate-300">Rendre les connexions SSH plus lisibles en accédant aux équipements par nom (et non par IP).</p>
+            <p className="text-slate-400 text-sm font-semibold mb-2">Infrastructure</p>
+            <ul className="list-disc list-inside space-y-2 mb-4 ml-2 text-slate-300">
+              <li>1 Routeur (<strong>R-Admin</strong>), 1 Switch (<strong>SW-Core</strong>), 1 Serveur DNS (<strong>Srv-DNS</strong>), 1 PC Technicien (<strong>PC-Tech</strong>)</li>
+            </ul>
+            <p className="text-slate-400 text-sm font-semibold mb-2">Étape 1 – Configuration IP</p>
+            <p className="mb-2 text-slate-300">Attribuer : Routeur 192.168.1.1/24 ; Switch 192.168.1.2/24 (VLAN 1) ; DNS 192.168.1.254/24 ; PC 192.168.1.100/24.</p>
+            <p className="text-slate-400 text-sm font-semibold mb-2">Étape 2 – Switch (SW-Core)</p>
+            <ol className="timeline-consignes space-y-2 text-slate-300 mb-4">
+              <li>Renommer le switch</li>
+              <li>Configurer l’interface VLAN 1 (IP + <code className="text-emerald-400 font-mono text-sm">no shutdown</code>)</li>
+              <li>Définir une passerelle par défaut (le routeur)</li>
+              <li>Activer SSH : hostname, ip domain-name, utilisateur, clé RSA, lignes VTY avec SSH uniquement</li>
+              <li>Tester le ping depuis le PC vers le switch (par IP)</li>
+            </ol>
+            <p className="text-slate-400 text-sm font-semibold mb-2">Étape 3 – Serveur DNS (Srv-DNS)</p>
+            <ol className="timeline-consignes space-y-2 text-slate-300 mb-4">
+              <li>Activer le service DNS dans l’onglet Services</li>
+              <li>Ajouter une entrée DNS : nom <strong>SW-Core</strong>, IP 192.168.1.2</li>
+              <li>Vérifier que le serveur répond au ping</li>
+            </ol>
+            <p className="text-slate-400 text-sm font-semibold mb-2">Étape 4 – Routeur</p>
+            <p className="mb-2 text-slate-300">Sur le routeur : <code className="text-emerald-400 font-mono bg-slate-900/50 px-1.5 py-0.5 rounded">ip name-server 192.168.1.254</code>. Tester : <code className="text-emerald-400 font-mono bg-slate-900/50 px-1.5 py-0.5 rounded">ping SW-Core</code>.</p>
+            <p className="text-slate-400 text-sm font-semibold mb-2">Étape 5 – SSH par nom</p>
+            <p className="mb-4 text-slate-300">Depuis le PC (Terminal) : <code className="text-emerald-400 font-mono bg-slate-900/50 px-1.5 py-0.5 rounded">ssh -l admin SW-Core</code>. Valider que la connexion s’effectue sans utiliser l’adresse IP ; vérifier les permissions (niveau 15).</p>
+            <p className="text-slate-400 text-sm font-semibold mb-2">Étape 6 (bonus) – Résolution locale</p>
+            <p className="text-slate-300">Supprimer <code className="text-emerald-400 font-mono text-sm">ip name-server</code> ; sur le routeur ajouter <code className="text-emerald-400 font-mono bg-slate-900/50 px-1.5 py-0.5 rounded">ip host SW-Core 192.168.1.2</code> ; retester <code className="text-emerald-400 font-mono text-sm">ssh -l admin SW-Core</code>.</p>
+          </div>
+        </div>
+      ),
       initialPrompt: "Router>",
       tasks: [
         { cmd: "enable", desc: "Passer en mode privilégié" },
@@ -3115,11 +3237,234 @@ const StatsDashboard = ({ stats, sessions, onReset }) => {
 
 // --- PACKET TRACER : Simulateur réseau type Cisco Packet Tracer ---
 
-const DEVICE_TYPES = { router: { label: 'Routeur', icon: RouterIcon, color: 'from-blue-600 to-blue-800' }, switch: { label: 'Switch', icon: Network, color: 'from-emerald-600 to-emerald-800' }, pc: { label: 'PC', icon: Monitor, color: 'from-slate-600 to-slate-800' } };
+const DEVICE_TYPES = {
+  router:   { label: 'Routeur',   icon: RouterIcon, color: 'from-blue-600 to-blue-800' },
+  switch:   { label: 'Switch',    icon: Network,   color: 'from-emerald-600 to-emerald-800' },
+  pc:       { label: 'PC',        icon: Monitor,   color: 'from-slate-600 to-slate-800' },
+  server_tftp: { label: 'Serveur TFTP', icon: Server, color: 'from-amber-600 to-amber-800' },
+  server_dns:  { label: 'Serveur DNS',  icon: Server, color: 'from-violet-600 to-violet-800' }
+};
 
 function generateId() { return Math.random().toString(36).slice(2, 10); }
 
-// Terminal CLI sandbox pour un appareil (libre, comme Packet Tracer)
+// Presets des trois labs (devices + links) pour charger d'un coup
+const LAB_PRESETS = {
+  empty: { name: 'Vide', devices: [], links: [] },
+  lab_s1: {
+    name: 'LAB S1 – NovaTech',
+    devices: [
+      { id: 'r1', type: 'router',   x: 80,  y: 120, name: 'R-Nova' },
+      { id: 's1', type: 'switch',  x: 280, y: 60,  name: 'SW-Entrée' },
+      { id: 's2', type: 'switch',  x: 280, y: 180, name: 'SW-Bureau' },
+      { id: 't1', type: 'server_tftp', x: 480, y: 60,  name: 'Srv-TFTP', ipConfig: { ip: '192.168.10.10', mask: '255.255.255.0', gateway: '192.168.10.1' }, tftpEnabled: false },
+      { id: 'p1', type: 'pc',      x: 480, y: 180, name: 'Tech-PC',  ipConfig: { ip: '192.168.10.20', mask: '255.255.255.0', gateway: '192.168.10.1' } }
+    ],
+    links: [
+      { id: 'l1', fromId: 'r1', toId: 's1' }, { id: 'l2', fromId: 'r1', toId: 's2' },
+      { id: 'l3', fromId: 's1', toId: 't1' }, { id: 'l4', fromId: 's1', toId: 'p1' }
+    ]
+  },
+  lab_s2: {
+    name: 'LAB S2 – SSH',
+    devices: [
+      { id: 'r1', type: 'router', x: 80,  y: 120, name: 'R-Sec' },
+      { id: 's1', type: 'switch', x: 280, y: 120, name: 'SW-Core' },
+      { id: 'p1', type: 'pc',     x: 480, y: 120, name: 'PC-Tech', ipConfig: { ip: '192.168.1.10', mask: '255.255.255.0', gateway: '192.168.1.1' } }
+    ],
+    links: [
+      { id: 'l1', fromId: 'r1', toId: 's1' }, { id: 'l2', fromId: 's1', toId: 'p1' }
+    ]
+  },
+  lab_s3: {
+    name: 'LAB S3 – DNS',
+    devices: [
+      { id: 'r1', type: 'router',     x: 60,  y: 120, name: 'R-Admin' },
+      { id: 's1', type: 'switch',     x: 260, y: 120, name: 'SW-Core' },
+      { id: 'd1', type: 'server_dns', x: 460, y: 60,  name: 'Srv-DNS', ipConfig: { ip: '192.168.1.254', mask: '255.255.255.0', gateway: '192.168.1.1' }, dnsEnabled: false, dnsEntries: [] },
+      { id: 'p1', type: 'pc',         x: 460, y: 180, name: 'PC-Tech', ipConfig: { ip: '192.168.1.100', mask: '255.255.255.0', gateway: '192.168.1.1' } }
+    ],
+    links: [
+      { id: 'l1', fromId: 'r1', toId: 's1' }, { id: 'l2', fromId: 's1', toId: 'd1' }, { id: 'l3', fromId: 's1', toId: 'p1' }
+    ]
+  }
+};
+
+function applyPreset(presetKey) {
+  const preset = LAB_PRESETS[presetKey];
+  if (!preset) return { devices: [], links: [] };
+  const devices = preset.devices.map(d => ({ ...d, id: d.id || generateId() }));
+  const links = preset.links.map(l => ({ ...l, id: l.id || generateId() }));
+  return { devices, links };
+}
+
+// Panneau PC : Configuration IP (pas Cisco IOS) + Invite de commandes
+const PCConfigPanel = ({ device, onClose, onUpdateDevice }) => {
+  const [tab, setTab] = useState('config'); // 'config' | 'cmd'
+  const [ip, setIp] = useState(device.ipConfig?.ip || '');
+  const [mask, setMask] = useState(device.ipConfig?.mask || '255.255.255.0');
+  const [gateway, setGateway] = useState(device.ipConfig?.gateway || '');
+  const [history, setHistory] = useState(["Microsoft Windows [Version 10.0]", "C:\\>", ""]);
+  const [input, setInput] = useState("");
+  const bottomRef = useRef(null);
+  const ipConfig = device.ipConfig || { ip: '', mask: '255.255.255.0', gateway: '' };
+
+  useEffect(() => { setIp(ipConfig.ip); setMask(ipConfig.mask); setGateway(ipConfig.gateway); }, [device.id, ipConfig.ip, ipConfig.mask, ipConfig.gateway]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [history]);
+
+  const handleApply = () => {
+    onUpdateDevice({ ip: ip.trim(), mask: mask.trim() || '255.255.255.0', gateway: gateway.trim() });
+  };
+
+  const runCmd = (cmd) => {
+    const c = cmd.trim().toLowerCase();
+    if (!c) return null;
+    if (c === 'ipconfig' || c === 'ipconfig /all' || c === 'ip config') {
+      const cfg = device.ipConfig || {};
+      if (!cfg.ip) return 'Aucune adresse IP configurée.\nConfigurez l\'adressage dans l\'onglet "Configuration IP".';
+      return `Configuration IP de Ethernet :\n  Adresse IPv4. . . . . . : ${cfg.ip}\n  Masque de sous-réseau . : ${cfg.mask}\n  Passerelle par défaut . : ${cfg.gateway || '(non configurée)'}`;
+    }
+    if (c.startsWith('ping ')) {
+      const target = cmd.trim().split(/\s+/)[1] || '';
+      return `Envoi d’une requête 'Ping'  ${target} avec 32 octets de données :\nRéponse de ${target} : octets=32 temps=1 ms TTL=64`;
+    }
+    if (cmd.trim().startsWith('ssh')) {
+      const parts = cmd.trim().split(/\s+/);
+      let user = 'admin', host = '';
+      if (parts[1] === '-l' && parts[2]) { user = parts[2]; host = parts[3] || ''; } else host = parts[1] || '';
+      if (!host) return 'Usage : ssh -l <utilisateur> <adresse_ou_nom>';
+      return `Connexion à ${user}@${host}...\nAuthentification par mot de passe : OK\n\nBienvenue sur le CLI de ${host}. (Pour configurer l'équipement, cliquez sur lui dans le schéma et utilisez son terminal.)`;
+    }
+    return 'Commande non reconnue. Essayez : ipconfig   ou   ping <adresse>   ssh -l <user> <host>';
+  };
+
+  const handleEnter = (e) => {
+    if (e.key !== 'Enter') return;
+    const cmd = input.trim();
+    setHistory(prev => [...prev, `C:\\> ${cmd}`]);
+    const out = runCmd(cmd);
+    if (out) setHistory(prev => [...prev, out]);
+    setHistory(prev => [...prev, ""]);
+    setInput("");
+  };
+
+  return (
+    <div className="absolute inset-0 z-30 bg-slate-950/95 backdrop-blur flex flex-col border border-slate-700 rounded-xl overflow-hidden shadow-2xl">
+      <div className="bg-slate-800 px-4 py-2 flex justify-between items-center border-b border-slate-700">
+        <span className="text-white font-bold flex items-center gap-2"><Monitor className="w-4 h-4 text-blue-400" /> {device.name} – PC (pas Cisco IOS)</span>
+        <button onClick={onClose} className="p-1 rounded hover:bg-slate-700 text-slate-400"><X size={18} /></button>
+      </div>
+      <div className="flex border-b border-slate-700">
+        <button onClick={() => setTab('config')} className={`px-4 py-2 text-sm font-semibold ${tab === 'config' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}>Configuration IP</button>
+        <button onClick={() => setTab('cmd')} className={`px-4 py-2 text-sm font-semibold ${tab === 'cmd' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`}>Invite de commandes</button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4">
+        {tab === 'config' && (
+          <div className="space-y-4 max-w-md">
+            <p className="text-slate-400 text-sm">Le PC n’utilise pas Cisco IOS. Configurez l’adressage IP manuellement (comme sous Windows).</p>
+            <div>
+              <label className="block text-slate-400 text-xs font-bold mb-1">Adresse IPv4</label>
+              <input type="text" value={ip} onChange={e => setIp(e.target.value)} placeholder="ex. 192.168.1.10"
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono text-sm" />
+            </div>
+            <div>
+              <label className="block text-slate-400 text-xs font-bold mb-1">Masque de sous-réseau</label>
+              <input type="text" value={mask} onChange={e => setMask(e.target.value)} placeholder="255.255.255.0"
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono text-sm" />
+            </div>
+            <div>
+              <label className="block text-slate-400 text-xs font-bold mb-1">Passerelle par défaut</label>
+              <input type="text" value={gateway} onChange={e => setGateway(e.target.value)} placeholder="ex. 192.168.1.1"
+                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono text-sm" />
+            </div>
+            <button onClick={handleApply} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-sm">Appliquer</button>
+          </div>
+        )}
+        {tab === 'cmd' && (
+          <div className="font-mono text-sm text-slate-300 h-full flex flex-col">
+            <p className="text-slate-500 text-xs mb-2">Commandes : ipconfig | ping &lt;adresse&gt; | ssh -l &lt;user&gt; &lt;host&gt;</p>
+            {history.map((line, i) => (
+              <div key={i}>{line || ' '}</div>
+            ))}
+            <div className="flex items-center mt-1">
+              <span className="text-slate-400 mr-2">C:\&gt;</span>
+              <input type="text" value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleEnter}
+                className="bg-transparent border-none outline-none flex-1 text-white" autoComplete="off" autoFocus />
+            </div>
+            <div ref={bottomRef} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Panneau Serveur TFTP : IP + activation du service TFTP
+const ServerTFTPPanel = ({ device, onClose, onUpdateDevice }) => {
+  const [ip, setIp] = useState(device.ipConfig?.ip || '');
+  const [mask, setMask] = useState(device.ipConfig?.mask || '255.255.255.0');
+  const [gateway, setGateway] = useState(device.ipConfig?.gateway || '');
+  const [tftpEnabled, setTftpEnabled] = useState(device.tftpEnabled ?? false);
+  useEffect(() => {
+    setIp(device.ipConfig?.ip || ''); setMask(device.ipConfig?.mask || '255.255.255.0'); setGateway(device.ipConfig?.gateway || '');
+    setTftpEnabled(device.tftpEnabled ?? false);
+  }, [device.id]);
+  const handleApply = () => {
+    onUpdateDevice({ ipConfig: { ip: ip.trim(), mask: mask.trim() || '255.255.255.0', gateway: gateway.trim() }, tftpEnabled });
+  };
+  return (
+    <div className="absolute inset-0 z-30 bg-slate-950/95 backdrop-blur flex flex-col border border-slate-700 rounded-xl overflow-hidden shadow-2xl">
+      <div className="bg-slate-800 px-4 py-2 flex justify-between items-center border-b border-slate-700">
+        <span className="text-white font-bold flex items-center gap-2"><Server className="w-4 h-4 text-amber-400" /> {device.name} – Serveur TFTP</span>
+        <button onClick={onClose} className="p-1 rounded hover:bg-slate-700 text-slate-400"><X size={18} /></button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-md">
+        <p className="text-slate-400 text-sm">Configurez l'adresse IP du serveur TFTP. Activez le service pour que les routeurs/switches puissent sauvegarder leurs configs.</p>
+        <div><label className="block text-slate-400 text-xs font-bold mb-1">Adresse IPv4</label><input type="text" value={ip} onChange={e => setIp(e.target.value)} placeholder="ex. 192.168.10.10" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono text-sm" /></div>
+        <div><label className="block text-slate-400 text-xs font-bold mb-1">Masque</label><input type="text" value={mask} onChange={e => setMask(e.target.value)} placeholder="255.255.255.0" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono text-sm" /></div>
+        <div><label className="block text-slate-400 text-xs font-bold mb-1">Passerelle</label><input type="text" value={gateway} onChange={e => setGateway(e.target.value)} placeholder="ex. 192.168.10.1" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono text-sm" /></div>
+        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={tftpEnabled} onChange={e => setTftpEnabled(e.target.checked)} className="rounded" /><span className="text-slate-300 text-sm">Service TFTP activé</span></label>
+        <button onClick={handleApply} className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg text-sm">Appliquer</button>
+      </div>
+    </div>
+  );
+};
+
+// Panneau Serveur DNS : IP + activation DNS + entrées (nom → IP)
+const ServerDNSPanel = ({ device, onClose, onUpdateDevice }) => {
+  const [ip, setIp] = useState(device.ipConfig?.ip || '');
+  const [mask, setMask] = useState(device.ipConfig?.mask || '255.255.255.0');
+  const [gateway, setGateway] = useState(device.ipConfig?.gateway || '');
+  const [dnsEnabled, setDnsEnabled] = useState(device.dnsEnabled ?? false);
+  const [dnsEntries, setDnsEntries] = useState(device.dnsEntries || []);
+  const [newName, setNewName] = useState(''); const [newIp, setNewIp] = useState('');
+  useEffect(() => { setIp(device.ipConfig?.ip || ''); setMask(device.ipConfig?.mask || '255.255.255.0'); setGateway(device.ipConfig?.gateway || ''); setDnsEnabled(device.dnsEnabled ?? false); setDnsEntries(device.dnsEntries || []); }, [device.id]);
+  const handleApply = () => { onUpdateDevice({ ipConfig: { ip: ip.trim(), mask: mask.trim() || '255.255.255.0', gateway: gateway.trim() }, dnsEnabled, dnsEntries }); };
+  const addEntry = () => { if (newName.trim() && newIp.trim()) { setDnsEntries(prev => [...prev, { name: newName.trim(), ip: newIp.trim() }]); setNewName(''); setNewIp(''); } };
+  const removeEntry = (i) => { setDnsEntries(prev => prev.filter((_, idx) => idx !== i)); };
+  return (
+    <div className="absolute inset-0 z-30 bg-slate-950/95 backdrop-blur flex flex-col border border-slate-700 rounded-xl overflow-hidden shadow-2xl">
+      <div className="bg-slate-800 px-4 py-2 flex justify-between items-center border-b border-slate-700">
+        <span className="text-white font-bold flex items-center gap-2"><Server className="w-4 h-4 text-violet-400" /> {device.name} – Serveur DNS</span>
+        <button onClick={onClose} className="p-1 rounded hover:bg-slate-700 text-slate-400"><X size={18} /></button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 max-w-md">
+        <p className="text-slate-400 text-sm">Configurez l'IP et les entrées DNS (ex. SW-Core → 192.168.1.2) pour la résolution de noms.</p>
+        <div><label className="block text-slate-400 text-xs font-bold mb-1">Adresse IPv4</label><input type="text" value={ip} onChange={e => setIp(e.target.value)} placeholder="ex. 192.168.1.254" className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono text-sm" /></div>
+        <div><label className="block text-slate-400 text-xs font-bold mb-1">Masque</label><input type="text" value={mask} onChange={e => setMask(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono text-sm" /></div>
+        <div><label className="block text-slate-400 text-xs font-bold mb-1">Passerelle</label><input type="text" value={gateway} onChange={e => setGateway(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono text-sm" /></div>
+        <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={dnsEnabled} onChange={e => setDnsEnabled(e.target.checked)} className="rounded" /><span className="text-slate-300 text-sm">Service DNS activé</span></label>
+        <div className="border-t border-slate-700 pt-3">
+          <p className="text-slate-400 text-xs font-bold mb-2">Entrées DNS (nom → IP)</p>
+          {dnsEntries.map((e, i) => (<div key={i} className="flex justify-between items-center bg-slate-800 rounded px-2 py-1 mb-1"><span className="font-mono text-sm text-slate-300">{e.name} → {e.ip}</span><button type="button" onClick={() => removeEntry(i)} className="text-red-400 hover:text-red-300 text-xs">Suppr.</button></div>))}
+          <div className="flex gap-2 mt-2"><input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Nom (ex. SW-Core)" className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-sm" /><input type="text" value={newIp} onChange={e => setNewIp(e.target.value)} placeholder="IP (ex. 192.168.1.2)" className="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-sm" /><button type="button" onClick={addEntry} className="px-2 py-1 bg-violet-600 rounded text-white text-xs font-bold">Ajouter</button></div>
+        </div>
+        <button onClick={handleApply} className="px-4 py-2 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-lg text-sm">Appliquer</button>
+      </div>
+    </div>
+  );
+};
+
+// Terminal CLI sandbox pour routeur/switch (Cisco IOS)
 const PacketTracerCLI = ({ device, onClose, devices }) => {
   const [history, setHistory] = useState([
     "Cisco IOS Software, Version 15.2(4)M6",
@@ -3134,38 +3479,56 @@ const PacketTracerCLI = ({ device, onClose, devices }) => {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [history]);
 
   const getPrompt = () => {
-    if (device.type === 'pc') return `${device.name}>`;
     if (mode === 'config') return `${config.hostname}(config)#`;
     if (mode === 'priv') return `${config.hostname}#`;
     return `${config.hostname}>`;
   };
 
   const executeCommand = (cmd) => {
-    const c = cmd.trim().toLowerCase();
+    const raw = cmd.trim();
+    const c = raw.toLowerCase();
     if (!c) return null;
-    if (device.type === 'pc') {
-      if (c === 'ping 192.168.1.1' || c.startsWith('ping ')) return 'Reply from 192.168.1.1: bytes=32 time=1ms TTL=64';
-      if (c === 'ipconfig' || c === 'ip config') return 'IPv4 Address: 192.168.1.10\nSubnet Mask: 255.255.255.0\nDefault Gateway: 192.168.1.1';
-      return 'Commande non reconnue. Essayez ping ou ipconfig.';
-    }
     if (c === 'enable') { setMode('priv'); return ''; }
     if (c === 'disable') { setMode('user'); return ''; }
     if (c === 'configure terminal' || c === 'conf t') { setMode('config'); return ''; }
     if (c === 'exit' || c === 'end') { setMode(mode === 'config' ? 'priv' : 'user'); return ''; }
-    if (c.startsWith('hostname ')) { const name = cmd.split(/\s+/)[1] || ''; setConfig(prev => ({ ...prev, hostname: name || prev.hostname })); return ''; }
+    if (c.startsWith('hostname ')) { const name = raw.split(/\s+/)[1] || ''; setConfig(prev => ({ ...prev, hostname: name || prev.hostname })); return ''; }
+    if (c === 'no ip domain lookup') return '';
+    if (c.startsWith('line console ') || c.startsWith('line vty ')) return '';
+    if (c === 'password ' || c.startsWith('password ')) return '';
+    if (c === 'login') return '';
+    if (c.startsWith('enable secret ') || c.startsWith('enable secret')) return '';
+    if (c.startsWith('ip domain-name ')) return '';
+    if (c.startsWith('crypto key generate rsa')) return '';
+    if (c.startsWith('username ')) return '';
+    if (c === 'login local') return '';
+    if (c === 'transport input ssh') return '';
+    if (c.startsWith('ip default-gateway ')) return '';
+    if (c === 'interface vlan 1' || c === 'int vlan 1') return '';
+    if (c.startsWith('ip address ')) { const parts = raw.split(/\s+/); if (parts[2]) setConfig(prev => ({ ...prev, vlan1Ip: parts[2], vlan1Mask: parts[3] || '255.255.255.0' })); return ''; }
+    if (c === 'copy running-config startup-config' || c === 'wr' || c === 'write memory' || c === 'write') return '[OK] Configuration saved to NVRAM.';
+    if (c.startsWith('copy running-config tftp') || c.startsWith('copy run tftp')) {
+      const tftp = devices?.find(d => d.type === 'server_tftp' && d.tftpEnabled && d.ipConfig?.ip);
+      return tftp ? `Address or name of remote host []? ${tftp.ipConfig.ip}\nDestination filename [${config.hostname}-config]? \nWriting ${config.hostname}-config !!!\n[OK]` : '% No TFTP server reachable or TFTP service not enabled on server.';
+    }
     if (c === 'show running-config' || c === 'sh run') {
-      return `Building configuration...\n\nhostname ${config.hostname}\n!\ninterface GigabitEthernet0/0\n no ip address\n shutdown\n!\nend`;
+      let out = `Building configuration...\n\nhostname ${config.hostname}\n!\n`;
+      if (config.vlan1Ip) out += `interface Vlan1\n ip address ${config.vlan1Ip} ${config.vlan1Mask || '255.255.255.0'}\n!\n`;
+      out += `interface GigabitEthernet0/0\n no ip address\n shutdown\n!\nend`;
+      return out;
     }
     if (c === 'show ip interface brief' || c === 'sh ip int b') {
-      return `Interface\t\tIP-Address\tOK?\tMethod\tStatus\nGigabitEthernet0/0\tunassigned\tYES\tunset\tadministratively down`;
+      const gi = config.vlan1Ip ? `Vlan1\t\t${config.vlan1Ip}\tYES\tmanual\tup` : '';
+      return `Interface\t\tIP-Address\tOK?\tMethod\tStatus\n${gi || 'GigabitEthernet0/0\tunassigned\tYES\tunset\tadministratively down'}`;
     }
-    if (c.startsWith('ping ')) return 'Sending 5, 100-byte ICMP Echos to ' + c.split(/\s+/)[1] + ', timeout is 2 seconds:\n!!!!!\nSuccess rate is 100 percent (5/5)';
-    if (c === 'copy running-config startup-config' || c === 'wr') return '[OK] Configuration saved to NVRAM.';
+    if (c.startsWith('ping ')) { const target = raw.split(/\s+/)[1] || ''; return `Sending 5, 100-byte ICMP Echos to ${target}, timeout is 2 seconds:\n!!!!!\nSuccess rate is 100 percent (5/5)`; }
     if (c === 'show startup-config' || c === 'sh start') return `Using ${config.hostname} configuration...\nhostname ${config.hostname}\n!`;
     if (c.startsWith('interface ') || c.startsWith('int ')) return '';
-    if (c.startsWith('ip address ')) return '';
+    if (c.startsWith('ip address ') && !c.includes('vlan')) return '';
     if (c === 'no shutdown') return '';
-    if (c === '?') return 'enable\nexit\nping\nshow\nconfigure terminal\nhostname\ninterface\nip address';
+    if (c.startsWith('ip name-server ')) return '';
+    if (c.startsWith('ip host ')) return '';
+    if (c === '?') return 'enable\nexit\nping\nshow\nconfigure terminal\nhostname\ninterface\nip address\ncopy running-config tftp\nip default-gateway';
     return '% Invalid input detected at \'^\' marker.';
   };
 
@@ -3204,13 +3567,25 @@ const PacketTracerCLI = ({ device, onClose, devices }) => {
 const PacketTracerSection = () => {
   const [devices, setDevices] = useState([]);
   const [links, setLinks] = useState([]);
-  const [mode, setMode] = useState('select'); // select | add_router | add_switch | add_pc | connect
+  const [mode, setMode] = useState('select'); // select | add_router | add_switch | add_pc | add_tftp | add_dns | connect
   const [connectFrom, setConnectFrom] = useState(null);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [cliDevice, setCliDevice] = useState(null);
   const [dragging, setDragging] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [presetKey, setPresetKey] = useState('empty');
   const canvasRef = useRef(null);
+
+  const loadPreset = (key) => {
+    const k = key || 'empty';
+    setPresetKey(k);
+    const { devices: d, links: l } = applyPreset(k);
+    setDevices(d);
+    setLinks(l);
+    setSelectedDevice(null);
+    setCliDevice(null);
+    setMode('select');
+  };
 
   const handleCanvasClick = (e) => {
     if (e.target !== canvasRef.current) return;
@@ -3224,7 +3599,34 @@ const PacketTracerSection = () => {
       setDevices(prev => [...prev, { id: generateId(), type: 'switch', x, y, name: `SW${prev.filter(d => d.type === 'switch').length + 1}` }]);
       setMode('select');
     } else if (mode === 'add_pc') {
-      setDevices(prev => [...prev, { id: generateId(), type: 'pc', x, y, name: `PC${prev.filter(d => d.type === 'pc').length + 1}` }]);
+      setDevices(prev => [...prev, {
+        id: generateId(),
+        type: 'pc',
+        x, y,
+        name: `PC${prev.filter(d => d.type === 'pc').length + 1}`,
+        ipConfig: { ip: '', mask: '255.255.255.0', gateway: '' }
+      }]);
+      setMode('select');
+    } else if (mode === 'add_tftp') {
+      setDevices(prev => [...prev, {
+        id: generateId(),
+        type: 'server_tftp',
+        x, y,
+        name: 'Srv-TFTP',
+        ipConfig: { ip: '', mask: '255.255.255.0', gateway: '' },
+        tftpEnabled: false
+      }]);
+      setMode('select');
+    } else if (mode === 'add_dns') {
+      setDevices(prev => [...prev, {
+        id: generateId(),
+        type: 'server_dns',
+        x, y,
+        name: 'Srv-DNS',
+        ipConfig: { ip: '', mask: '255.255.255.0', gateway: '' },
+        dnsEnabled: false,
+        dnsEntries: []
+      }]);
       setMode('select');
     }
   };
@@ -3242,6 +3644,10 @@ const PacketTracerSection = () => {
     }
     setSelectedDevice(device);
     setCliDevice(device);
+  };
+
+  const updateDevice = (id, updates) => {
+    setDevices(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
   };
 
   const handleDragStart = (device, e) => {
@@ -3275,16 +3681,26 @@ const PacketTracerSection = () => {
   return (
     <div className="h-full flex flex-col bg-slate-950">
       <div className="bg-slate-900 border-b border-slate-800 p-3 flex flex-wrap items-center gap-2">
+        <span className="text-slate-400 font-bold text-sm mr-2">Charger un lab :</span>
+        <select value={presetKey} onChange={e => loadPreset(e.target.value)} className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-slate-200 font-semibold">
+          <option value="empty">Vide</option>
+          <option value="lab_s1">LAB S1 – NovaTech</option>
+          <option value="lab_s2">LAB S2 – SSH</option>
+          <option value="lab_s3">LAB S3 – DNS</option>
+        </select>
+        <span className="text-slate-600 mx-1">|</span>
         <span className="text-slate-400 font-bold text-sm mr-2">Outils :</span>
         <button onClick={() => setMode('select')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${mode === 'select' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}>Sélectionner</button>
         <button onClick={() => setMode('add_router')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 ${mode === 'add_router' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}><RouterIcon size={14} /> Routeur</button>
         <button onClick={() => setMode('add_switch')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 ${mode === 'add_switch' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}><Network size={14} /> Switch</button>
         <button onClick={() => setMode('add_pc')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 ${mode === 'add_pc' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300'}`}><Monitor size={14} /> PC</button>
+        <button onClick={() => setMode('add_tftp')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 ${mode === 'add_tftp' ? 'bg-amber-600 text-white' : 'bg-slate-800 text-slate-300'}`}><Server size={14} /> TFTP</button>
+        <button onClick={() => setMode('add_dns')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 ${mode === 'add_dns' ? 'bg-violet-600 text-white' : 'bg-slate-800 text-slate-300'}`}><Server size={14} /> DNS</button>
         <button onClick={() => setMode('connect')} className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 ${mode === 'connect' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-300'}`}><Link size={14} /> Câbler</button>
         {selectedDevice && (
           <button onClick={() => deleteDevice(selectedDevice.id)} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600/80 text-white flex items-center gap-1"><Trash2 size={14} /> Supprimer</button>
         )}
-        {(mode === 'add_router' || mode === 'add_switch' || mode === 'add_pc') && (
+        {(mode === 'add_router' || mode === 'add_switch' || mode === 'add_pc' || mode === 'add_tftp' || mode === 'add_dns') && (
           <span className="text-slate-500 text-xs">Cliquez sur la zone de travail pour placer l'appareil.</span>
         )}
         {mode === 'connect' && <span className="text-slate-500 text-xs">Cliquez sur un premier appareil puis sur un second pour les relier.</span>}
@@ -3327,7 +3743,34 @@ const PacketTracerSection = () => {
           })}
         </div>
 
-        {cliDevice && (
+        {cliDevice && cliDevice.type === 'pc' && (
+          <div className="absolute bottom-4 right-4 w-full max-w-lg h-80 z-30">
+            <PCConfigPanel
+              device={devices.find(d => d.id === cliDevice.id) || cliDevice}
+              onClose={() => setCliDevice(null)}
+              onUpdateDevice={(ipConfig) => updateDevice(cliDevice.id, { ipConfig })}
+            />
+          </div>
+        )}
+        {cliDevice && cliDevice.type === 'server_tftp' && (
+          <div className="absolute bottom-4 right-4 w-full max-w-md max-h-[420px] z-30">
+            <ServerTFTPPanel
+              device={devices.find(d => d.id === cliDevice.id) || cliDevice}
+              onClose={() => setCliDevice(null)}
+              onUpdateDevice={(updates) => updateDevice(cliDevice.id, updates)}
+            />
+          </div>
+        )}
+        {cliDevice && cliDevice.type === 'server_dns' && (
+          <div className="absolute bottom-4 right-4 w-full max-w-md max-h-[420px] z-30">
+            <ServerDNSPanel
+              device={devices.find(d => d.id === cliDevice.id) || cliDevice}
+              onClose={() => setCliDevice(null)}
+              onUpdateDevice={(updates) => updateDevice(cliDevice.id, updates)}
+            />
+          </div>
+        )}
+        {cliDevice && (cliDevice.type === 'router' || cliDevice.type === 'switch') && (
           <div className="absolute bottom-4 right-4 w-full max-w-lg h-72 z-30">
             <PacketTracerCLI device={cliDevice} onClose={() => setCliDevice(null)} devices={devices} />
           </div>
@@ -3337,10 +3780,439 @@ const PacketTracerSection = () => {
   );
 };
 
+// --- LAB INDÉPENDANT : Session 1 (consignes + correction) ---
+const LabsSection = ({ lab }) => {
+  const [labTab, setLabTab] = useState('consignes'); // 'consignes' | 'correction' | 'correction_lab2'
+  return (
+    <div className="h-full flex flex-col">
+      <div className="bg-slate-800 p-6 rounded-t-xl border border-slate-700 border-b-0">
+        <h3 className="font-bold text-white flex items-center gap-2 text-xl">
+          <Terminal className="text-emerald-500 w-5 h-5" /> Lab Pratique – Session 1
+        </h3>
+        <p className="text-slate-300 mt-2 max-w-2xl leading-relaxed">
+          Les trois labs (S1, S2 SSH, S3 DNS) se réalisent sur <strong className="text-blue-300">Cisco Packet Tracer</strong>. Consignes et corrections ci-dessous.
+        </p>
+        <div className="flex flex-wrap gap-2 mt-4 p-1 bg-slate-900/60 rounded-lg border border-slate-700 w-fit">
+          <button
+            onClick={() => setLabTab('consignes')}
+            className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'consignes' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+          >
+            <BookOpen className="w-4 h-4" /> Consignes
+          </button>
+          <button
+            onClick={() => setLabTab('correction')}
+            className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+          >
+            <CheckCircle className="w-4 h-4" /> Correction Lab 1
+          </button>
+          <button
+            onClick={() => setLabTab('correction_lab2')}
+            className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab2' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+          >
+            <CheckCircle className="w-4 h-4" /> Correction Lab 2
+          </button>
+        </div>
+      </div>
+      {labTab === 'consignes' && lab.consignes && (
+        <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl px-6 py-5 overflow-y-auto">
+          <h4 className="text-white font-bold flex items-center gap-2 mb-4 text-base">
+            <BookOpen className="w-5 h-5 text-amber-400" /> Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer
+          </h4>
+          <div className="pr-4 space-y-1 text-slate-300">
+            {lab.consignes}
+          </div>
+        </div>
+      )}
+      {labTab === 'correction' && (
+        <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl overflow-y-auto">
+          <div className="p-6">
+            <LabCorrectionSection />
+          </div>
+        </div>
+      )}
+      {labTab === 'correction_lab2' && (
+        <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl overflow-y-auto">
+          <div className="p-6">
+            <LabCorrectionSection2 />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// --- CORRECTION LAB 1 – Session 1 (NovaTech) – Version lisible ---
+const LabCorrectionSection = () => (
+  <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16">
+    <div className="bg-gradient-to-br from-emerald-900/30 to-blue-900/20 border border-emerald-500/40 rounded-2xl p-8">
+      <h1 className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
+        <CheckCircle className="w-8 h-8 text-emerald-400 flex-shrink-0" /> Correction Lab 1 – Session 1
+      </h1>
+      <p className="text-emerald-100/90 text-lg leading-relaxed">Réseau local NovaTech : correction complète avec explications à chaque étape.</p>
+    </div>
+
+    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-emerald-400 mb-6 flex items-center gap-2">🎯 Objectif final</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">Ce lab vise à créer un petit réseau local pour le client NovaTech. À la fin, tu dois avoir :</p>
+      <ul className="list-none space-y-4 ml-0 text-slate-300">
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">1-</span> <span><strong>Les machines peuvent communiquer</strong> — le PC peut ping le routeur et les autres équipements du même réseau.</span></li>
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">2-</span> <span><strong>Le réseau est configuré et sécurisé</strong> — chaque équipement a un nom, une IP cohérente, et les ports nécessaires sont activés.</span></li>
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">3-</span> <span><strong>Les configurations sont sauvegardées</strong> — en local (NVRAM) sur chaque routeur/switch, et en copie sur le serveur TFTP pour archivage.</span></li>
+      </ul>
+      <p className="mt-6 text-slate-400 border-l-4 border-emerald-500/50 pl-4 py-1">👉 Suis les étapes dans l’ordre : le câblage puis les IP, sinon rien ne communiquera.</p>
+    </section>
+
+    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-blue-400 mb-6">🧩 Étape 0 — Comprendre les rôles</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">Avant de toucher Packet Tracer, il faut savoir <strong>qui fait quoi</strong>. Sinon tu branches au hasard et tu ne comprends pas pourquoi ça ne marche pas.</p>
+      <div className="overflow-x-auto rounded-xl border border-slate-600 mb-6">
+        <table className="w-full text-left">
+          <thead><tr className="bg-slate-700/80 text-slate-200"><th className="px-5 py-3 font-bold">Équipement</th><th className="px-5 py-3 font-bold">Rôle</th></tr></thead>
+          <tbody className="text-slate-300">
+            <tr className="border-t border-slate-600"><td className="px-5 py-3 font-medium align-top w-40">Routeur</td><td className="px-5 py-3 leading-relaxed">Relie les réseaux et sert de <strong>passerelle</strong> : c’est lui qui aura l’IP 192.168.10.1 et que le PC utilisera pour sortir du réseau (gateway).</td></tr>
+            <tr className="border-t border-slate-600"><td className="px-5 py-3 font-medium align-top">Switch</td><td className="px-5 py-3 leading-relaxed">Relie les machines dans le <strong>même réseau local</strong> : PC, serveur et routeur sont branchés sur les switches ; le switch ne route pas, il aiguille les trames.</td></tr>
+            <tr className="border-t border-slate-600"><td className="px-5 py-3 font-medium align-top">PC</td><td className="px-5 py-3 leading-relaxed">Poste utilisateur pour les <strong>tests (ping)</strong> et l’administration ; on lui donne une IP dans le même réseau que le routeur.</td></tr>
+            <tr className="border-t border-slate-600"><td className="px-5 py-3 font-medium align-top">Serveur TFTP</td><td className="px-5 py-3 leading-relaxed">Stocke les <strong>sauvegardes de configuration</strong> (fichiers .cfg) envoyées par les routeurs et switches ; on l’utilise avec <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">copy startup-config tftp:</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p className="text-slate-400 leading-relaxed"><strong>En résumé :</strong> Un réseau qui fonctionne = <strong>câbles corrects</strong> + <strong>adresses IP dans le même réseau</strong> + <strong>ports activés</strong> (surtout sur le routeur).</p>
+    </section>
+
+    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-blue-400 mb-6">🟦 Étape 1 — Placer les équipements</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">Tu construis le schéma physique du lab : un routeur, deux switches, un PC et un serveur. Peu importe le modèle exact (1841, 2960, etc.), Packet Tracer s’adapte.</p>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">1.1 Où cliquer</h3>
+      <ul className="list-none space-y-3 ml-0 text-slate-300">
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">1-</span> En bas de l’écran : <strong>Network Devices</strong> → choisis un <strong>Routeur</strong> et un <strong>Switch</strong> (tu en placeras deux).</li>
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">2-</span> <strong>End Devices</strong> → choisis un <strong>PC</strong> et un <strong>Server</strong>.</li>
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">3-</span> Clique sur la zone de travail pour déposer chaque appareil ; arrange-les pour que les câbles soient lisibles (ex. routeur à gauche, switches au centre, PC et serveur à droite).</li>
+      </ul>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">1.2 Équipements à placer</h3>
+      <p className="text-slate-300 mb-6 leading-relaxed">Exactement : <strong>1 routeur</strong>, <strong>2 switches</strong>, <strong>1 PC</strong>, <strong>1 serveur</strong>. Pas de deuxième routeur ni de deuxième PC pour ce lab.</p>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">1.3 Renommer les équipements</h3>
+      <p className="text-slate-300 mb-4 leading-relaxed">Pour savoir qui est qui (comme en entreprise), renomme chaque appareil : <strong>clic sur l’équipement → onglet Config → Display Name</strong>. Saisis le nom puis valide.</p>
+      <ul className="list-none space-y-3 ml-0 text-slate-300">
+        <li className="flex gap-3"><span className="font-bold text-emerald-400/90 shrink-0">1-</span> Routeur → <strong>R-Nova</strong></li>
+        <li className="flex gap-3"><span className="font-bold text-emerald-400/90 shrink-0">2-</span> Premier switch → <strong>SW-Entrée</strong></li>
+        <li className="flex gap-3"><span className="font-bold text-emerald-400/90 shrink-0">3-</span> Deuxième switch → <strong>SW-Bureau</strong></li>
+        <li className="flex gap-3"><span className="font-bold text-emerald-400/90 shrink-0">4-</span> PC → <strong>Tech-PC</strong></li>
+        <li className="flex gap-3"><span className="font-bold text-emerald-400/90 shrink-0">5-</span> Serveur → <strong>Srv-TFTP</strong></li>
+      </ul>
+      <p className="mt-6 text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-1">✅ Vérification : tu dois voir ces cinq noms directement sous les icônes sur le schéma.</p>
+    </section>
+
+    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-emerald-500 mb-6">🟩 Étape 2 — Le câblage</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">Sans les bons câbles au bon endroit, aucun trafic ne passe. Il existe plusieurs types de câbles dans Packet Tracer ; pour ce lab on n’en utilise qu’un seul.</p>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">2.1 Quel câble utiliser ?</h3>
+      <p className="text-slate-300 mb-3 leading-relaxed">Câble à utiliser : <strong>vert clair</strong>, nommé <strong>Copper Straight-Through</strong>. Il transporte le trafic Ethernet (données).</p>
+      <p className="text-red-300/90 mb-6 border-l-4 border-red-500/50 pl-4 py-2">🚫 Le câble <strong>bleu clair</strong> (console) sert à configurer un équipement en local, pas à faire circuler le réseau. Ne l’utilise pas ici.</p>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">2.2 Pourquoi ce câble ?</h3>
+      <p className="text-slate-300 mb-6 leading-relaxed">PC ↔ Switch, Switch ↔ Routeur et Serveur ↔ Switch = connexions <strong>Ethernet</strong>. Le Copper Straight-Through est fait pour ça. On l’utilise partout dans ce lab.</p>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">2.3 Brancher (clic par clic)</h3>
+      <p className="text-slate-300 mb-4 leading-relaxed">Clique sur l’icône <strong>⚡ Connections</strong>, puis sur le <strong>câble vert clair</strong>. Premier clic = premier appareil + port ; deuxième clic = second appareil + port.</p>
+      <ul className="list-none space-y-5 ml-0 text-slate-300">
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">A)</span> <span><strong>Routeur → Switch</strong><br />R-Nova → GigabitEthernet0/0 ; puis SW-Entrée → FastEthernet0/1.</span></li>
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">B)</span> <span><strong>PC → Switch</strong><br />Tech-PC → FastEthernet0 ; puis SW-Entrée → FastEthernet0/2.</span></li>
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">C)</span> <span><strong>Serveur → Switch</strong><br />Srv-TFTP → FastEthernet0 ; puis SW-Entrée → FastEthernet0/3.</span></li>
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">D)</span> <span><strong>Switch → Switch</strong><br />SW-Entrée → FastEthernet0/4 ; puis SW-Bureau → FastEthernet0/1.</span></li>
+      </ul>
+      <p className="mt-6 text-amber-300/90 border-l-4 border-amber-500/50 pl-4 py-2">⏱️ Après le branchement, attends 10 à 20 secondes. Les liens passent de l’orange au vert quand la liaison est opérationnelle.</p>
+    </section>
+
+    <section className="bg-slate-800/50 border border-red-500/30 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-red-400 mb-6">🔴 Étape 3 — Pourquoi c’était rouge ?</h2>
+      <p className="text-slate-300 mb-4 leading-relaxed">Sur les routeurs Cisco, les ports sont <strong>fermés (shutdown)</strong> par défaut. Même avec un câble bien branché, le lien reste rouge tant que le port n’est pas activé.</p>
+      <p className="text-slate-300 mb-4 leading-relaxed">En résumé : <strong>câble OK</strong> + <strong>port OFF</strong> = rouge. Il faut « allumer » le port avec <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono">no shutdown</code> (étape 4 sur le routeur).</p>
+      <p className="text-slate-400 leading-relaxed">Sur les switches, l’interface VLAN 1 peut aussi être down par défaut ; on l’active avec <code className="bg-slate-900 px-1 rounded text-emerald-400 font-mono text-sm">no shutdown</code> à l’étape 6.</p>
+    </section>
+
+    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-blue-400 mb-6">🧠 Étape 4 — Configuration du routeur (R-Nova)</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">Le routeur doit avoir une IP sur son interface connectée au switch (192.168.10.1) et le port doit être activé. C’est la passerelle du réseau.</p>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">4.1 Ouvrir le routeur</h3>
+      <p className="text-slate-300 mb-6 leading-relaxed">Clique sur <strong>R-Nova</strong> → onglet <strong>CLI</strong>. Si le routeur demande « Would you like to enter the initial configuration dialog? », tape <code className="bg-slate-900 px-1.5 py-0.5 rounded font-mono text-sm">no</code> puis Entrée.</p>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">4.2 Passer en mode admin</h3>
+      <p className="text-slate-300 mb-6 leading-relaxed">Par défaut tu es en mode utilisateur (prompt <code className="bg-slate-900 px-1 rounded font-mono text-sm">Router&gt;</code>). Tape <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">enable</code> → le prompt devient <code className="bg-slate-900 px-1 rounded font-mono text-sm">Router#</code>.</p>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">4.3 Entrer en configuration</h3>
+      <p className="text-slate-300 mb-6 leading-relaxed">Tape <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">configure terminal</code> (ou <code className="bg-slate-900 px-1 rounded font-mono text-sm">conf t</code>). Le prompt devient <code className="bg-slate-900 px-1 rounded font-mono text-sm">Router(config)#</code>.</p>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">4.4 Renommer + bloquer le DNS</h3>
+      <ul className="list-none space-y-4 ml-0 text-slate-300 mb-6">
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">1-</span> <code className="bg-slate-900 px-1.5 py-0.5 rounded font-mono text-sm">hostname R-Nova</code> — le prompt devient R-Nova(config)#.</li>
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">2-</span> <code className="bg-slate-900 px-1.5 py-0.5 rounded font-mono text-sm">no ip domain-lookup</code> — désactive la résolution DNS (évite les délais en cas de faute de frappe).</li>
+      </ul>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">4.5 Donner une IP et activer le port</h3>
+      <p className="text-slate-300 mb-4 leading-relaxed">IP <strong>192.168.10.1</strong> sur l’interface GigabitEthernet0/0, puis <strong>no shutdown</strong> pour activer le port.</p>
+      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto mb-6"><code>interface gigabitEthernet0/0
+ip address 192.168.10.1 255.255.255.0
+no shutdown
+end</code></pre>
+      <ul className="list-none space-y-3 ml-0 text-slate-300 mb-6">
+        <li className="flex gap-3 items-start"><span className="text-emerald-400 shrink-0">•</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">interface gigabitEthernet0/0</code> — config de l’interface.</li>
+        <li className="flex gap-3 items-start"><span className="text-emerald-400 shrink-0">•</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">ip address …</code> — IP et masque 192.168.10.0/24.</li>
+        <li className="flex gap-3 items-start"><span className="text-emerald-400 shrink-0">•</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">no shutdown</code> — active le port.</li>
+        <li className="flex gap-3 items-start"><span className="text-emerald-400 shrink-0">•</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">end</code> — sort de la config.</li>
+      </ul>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">4.6 Vérifier</h3>
+      <p className="text-slate-300 mb-3 leading-relaxed">Tape <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">show ip interface brief</code>. Tu dois voir :</p>
+      <p className="text-slate-300 font-mono text-sm bg-slate-900/50 rounded-lg px-4 py-3 mb-4">GigabitEthernet0/0  192.168.10.1  YES  manual  up  up</p>
+      <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-1">✅ Si l’interface est <strong>up up</strong> avec 192.168.10.1, le routeur est prêt. Le lien vers le switch devrait être vert.</p>
+    </section>
+
+    <section className="bg-slate-800/50 border border-amber-500/30 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-amber-400 mb-6">🟨 Étape 5 — IP du PC (test)</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">Le PC doit être dans le <strong>même réseau</strong> que le routeur (192.168.10.0/24) et avoir la <strong>passerelle par défaut</strong> = 192.168.10.1 pour communiquer.</p>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">5.1 Configuration IP du PC</h3>
+      <p className="text-slate-300 mb-4 leading-relaxed">Clique sur <strong>Tech-PC</strong> → <strong>Desktop</strong> → <strong>IP Configuration</strong>. Renseigne :</p>
+      <ul className="list-none space-y-3 ml-0 text-slate-300 mb-6">
+        <li className="flex gap-3"><span className="font-bold text-emerald-400/90 shrink-0">1-</span> <strong>IP Address</strong> : 192.168.10.20</li>
+        <li className="flex gap-3"><span className="font-bold text-emerald-400/90 shrink-0">2-</span> <strong>Subnet Mask</strong> : 255.255.255.0</li>
+        <li className="flex gap-3"><span className="font-bold text-emerald-400/90 shrink-0">3-</span> <strong>Default Gateway</strong> : 192.168.10.1</li>
+      </ul>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">5.2 Test (ping)</h3>
+      <p className="text-slate-300 mb-3 leading-relaxed">Tech-PC → <strong>Desktop</strong> → <strong>Command Prompt</strong>. Tape :</p>
+      <p className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-4">ping 192.168.10.1</p>
+      <p className="text-slate-300 mb-4 leading-relaxed">Tu dois voir des réponses du type « Reply from 192.168.10.1: bytes=32 time=1ms TTL=64 ».</p>
+      <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-1">✅ Si le ping répond → le réseau fonctionne. Tu peux enchaîner sur la config des switches.</p>
+    </section>
+
+    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-blue-400 mb-6">🟦 Étape 6 — Configuration des switches</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">Un switch n’a <strong>pas besoin d’IP pour faire circuler les trames</strong>. Pour l’<strong>administrer à distance</strong> (SSH, TFTP), il doit avoir une IP et une passerelle. On configure <strong>VLAN 1</strong> (management) et <strong>ip default-gateway</strong> vers le routeur.</p>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">6.1 Sur SW-Entrée</h3>
+      <p className="text-slate-300 mb-4 leading-relaxed">Clique sur <strong>SW-Entrée</strong> → <strong>CLI</strong>. Tape <code className="bg-slate-900 px-1 rounded font-mono text-sm">no</code> si demandé, puis :</p>
+      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto mb-6"><code>enable
+configure terminal
+hostname SW-Entree
+interface vlan 1
+ip address 192.168.10.2 255.255.255.0
+no shutdown
+exit
+ip default-gateway 192.168.10.1
+end
+copy running-config startup-config</code></pre>
+      <p className="text-slate-400 mb-6 leading-relaxed text-sm">Rappel : <code className="bg-slate-900 px-1 rounded font-mono text-sm">interface vlan 1</code> = management ; <code className="bg-slate-900 px-1 rounded font-mono text-sm">copy running-config startup-config</code> = sauvegarde en NVRAM.</p>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">6.2 Sur SW-Bureau</h3>
+      <p className="text-slate-300 mb-4 leading-relaxed">Même principe : IP <strong>192.168.10.3</strong> sur VLAN 1, même masque, même passerelle 192.168.10.1. Puis sauvegarde.</p>
+      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto mb-4"><code>enable
+configure terminal
+hostname SW-Bureau
+interface vlan 1
+ip address 192.168.10.3 255.255.255.0
+no shutdown
+exit
+ip default-gateway 192.168.10.1
+end
+copy running-config startup-config</code></pre>
+      <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-1">✅ Après les deux switches : chaque équipement a un nom, une IP dans 192.168.10.0/24, et les configs sont sauvegardées en local.</p>
+    </section>
+
+    <section className="bg-slate-800/50 border border-violet-500/30 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-violet-400 mb-6">🟪 Étape 7 — Serveur TFTP</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">Le serveur TFTP reçoit les fichiers de configuration. Il doit être dans le même réseau (192.168.10.0/24) et le <strong>service TFTP doit être activé</strong>.</p>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">7.1 IP du serveur</h3>
+      <p className="text-slate-300 mb-4 leading-relaxed">Clique sur <strong>Srv-TFTP</strong> → <strong>Config</strong> (ou <strong>Desktop</strong>) → section <strong>IP</strong>. Saisis :</p>
+      <ul className="list-none space-y-3 ml-0 text-slate-300 mb-6">
+        <li className="flex gap-3"><span className="font-bold text-emerald-400/90 shrink-0">1-</span> <strong>IP Address</strong> : 192.168.10.10</li>
+        <li className="flex gap-3"><span className="font-bold text-emerald-400/90 shrink-0">2-</span> <strong>Subnet Mask</strong> : 255.255.255.0</li>
+        <li className="flex gap-3"><span className="font-bold text-emerald-400/90 shrink-0">3-</span> <strong>Default Gateway</strong> : 192.168.10.1</li>
+      </ul>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">7.2 Activer le service TFTP</h3>
+      <p className="text-slate-300 mb-4 leading-relaxed">Dans le même appareil : <strong>Services</strong> (ou <strong>Config → Services</strong>) → onglet <strong>TFTP</strong> → <strong>ON</strong>. Sans ça, les routeurs/switches ne pourront pas envoyer leur config.</p>
+      <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-1">✅ Le serveur est prêt à recevoir les sauvegardes.</p>
+    </section>
+
+    <section className="bg-slate-800/50 border border-amber-700/40 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-amber-300 mb-6">🟫 Étape 8 — Sauvegarde vers TFTP</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">On envoie une copie de la configuration (déjà en NVRAM) vers le serveur TFTP pour avoir une copie centralisée.</p>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">Sur le routeur ou un switch (mode privilégié)</h3>
+      <p className="text-slate-300 mb-4 leading-relaxed">Tape :</p>
+      <p className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-6">copy startup-config tftp:</p>
+      <p className="text-slate-300 mb-4 leading-relaxed">Le routeur/switch demande :</p>
+      <ul className="list-none space-y-3 ml-0 text-slate-300 mb-6">
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">1-</span> <strong>Address or name of remote host</strong> : <strong>192.168.10.10</strong></li>
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">2-</span> <strong>Destination filename</strong> : ex. <strong>R-Nova.cfg</strong>, <strong>SW-Entree.cfg</strong>, <strong>SW-Bureau.cfg</strong></li>
+      </ul>
+      <p className="text-slate-300 mb-4 leading-relaxed">Si tout est bon : « Writing … !!! » puis « [OK] ».</p>
+      <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-1">✅ Sauvegarde locale (NVRAM) + copie sur TFTP. Restauration possible avec <code className="bg-slate-900 px-1 rounded font-mono text-sm">copy tftp: startup-config</code>.</p>
+    </section>
+
+    <section className="bg-gradient-to-br from-emerald-900/20 to-slate-800/50 border border-emerald-500/40 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-emerald-400 mb-6 flex items-center gap-2">🎉 Ce que tu sais faire maintenant</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">À la fin de ce lab, tu es capable de :</p>
+      <ul className="list-none space-y-4 ml-0 text-slate-300">
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">1-</span> <strong>Câbler un réseau</strong> — Copper Straight-Through, brancher routeur, switches, PC et serveur.</li>
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">2-</span> <strong>Comprendre les ports</strong> — lien rouge = port shutdown ; <code className="bg-slate-900 px-1 rounded font-mono text-sm">no shutdown</code> pour activer.</li>
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">3-</span> <strong>Activer un routeur</strong> — IP sur l’interface + <code className="bg-slate-900 px-1 rounded font-mono text-sm">no shutdown</code>.</li>
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">4-</span> <strong>Donner des IP</strong> — PC, routeur et switches dans le même réseau, passerelle cohérente.</li>
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">5-</span> <strong>Tester avec ping</strong> — vérifier la connectivité PC ↔ routeur.</li>
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">6-</span> <strong>Sauvegarder avec TFTP</strong> — <code className="bg-slate-900 px-1 rounded font-mono text-sm">copy startup-config tftp:</code> pour une copie sur le serveur.</li>
+      </ul>
+      <p className="mt-6 text-slate-400 border-t border-slate-600 pt-6 leading-relaxed">👉 Prochaine étape possible : <strong>sécurité</strong> (mot de passe console, enable secret, SSH) ou un résumé « anti-stress examen ».</p>
+    </section>
+  </div>
+);
+
+// --- CORRECTION LAB 2 – Session 1 (SSH) – Même lisibilité que Lab 1 ---
+const LabCorrectionSection2 = () => (
+  <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16">
+    <div className="bg-gradient-to-br from-blue-900/30 to-emerald-900/20 border border-blue-500/40 rounded-2xl p-8">
+      <h1 className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
+        <CheckCircle className="w-8 h-8 text-blue-400 flex-shrink-0" /> Correction Lab 2 – Session 1 (SSH)
+      </h1>
+      <p className="text-slate-200/90 text-lg leading-relaxed">LAB S2 de zéro, étape par étape : câblage → IP → users → RSA/SSH → VTY → tests PC.</p>
+    </div>
+
+    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-blue-400 mb-6">Étape 1 — Câblage (PC → Switch → Routeur)</h2>
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">À faire</h3>
+      <p className="text-slate-300 mb-6 leading-relaxed">Utilise le câble automatique (⚡) ou <strong>Copper Straight-Through</strong> (vert clair) :</p>
+      <ul className="list-none space-y-4 ml-0 text-slate-300 mb-6">
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">1-</span> <strong>PC-Tech</strong> ↔ <strong>SW-Core</strong></li>
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">2-</span> <strong>SW-Core</strong> ↔ <strong>R-Sec</strong></li>
+      </ul>
+      <p className="text-slate-400 mb-6 leading-relaxed"><strong>Pourquoi ?</strong> Sans lien physique, aucune IP/SSH ne marchera.</p>
+      <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-2">Vérif : les liens deviennent 🟢 (ou 🟠 puis 🟢).</p>
+    </section>
+
+    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-blue-400 mb-6">Étape 2 — Adresses IP (obligatoire pour SSH)</h2>
+      <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">2A) Routeur R-Sec : IP 192.168.1.1/24</h3>
+      <p className="text-slate-300 mb-6 leading-relaxed">Sur <strong>R-Sec</strong> → CLI :</p>
+      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto mb-6"><code>enable
+configure terminal
+hostname R-Sec
+interface gigabitEthernet0/0
+ip address 192.168.1.1 255.255.255.0
+no shutdown
+end</code></pre>
+      <ul className="list-none space-y-4 ml-0 text-slate-300 mb-6 leading-relaxed">
+        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1.5 py-0.5 rounded font-mono text-sm">enable</code> : passe en mode admin (#).</li>
+        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1.5 py-0.5 rounded font-mono text-sm">configure terminal</code> : entre en mode config.</li>
+        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1.5 py-0.5 rounded font-mono text-sm">hostname R-Sec</code> : renomme le routeur.</li>
+        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1.5 py-0.5 rounded font-mono text-sm">interface gigabitEthernet0/0</code> : sélectionne le port branché au switch.</li>
+        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1.5 py-0.5 rounded font-mono text-sm">ip address …</code> : donne l’IP (adresse SSH + passerelle).</li>
+        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1.5 py-0.5 rounded font-mono text-sm">no shutdown</code> : allume le port.</li>
+      </ul>
+      <p className="text-slate-400 mb-3 leading-relaxed">Vérif routeur : <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">show ip interface brief</code></p>
+      <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-2 mb-8">✅ Attendu : g0/0 192.168.1.1 up up</p>
+
+      <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">2B) Switch SW-Core : IP de gestion 192.168.1.2/24 (VLAN 1)</h3>
+      <p className="text-slate-300 mb-6 leading-relaxed">Sur <strong>SW-Core</strong> → CLI. Un switch 2960 n’a pas d’IP sur les ports physiques ; l’IP se met sur <strong>VLAN 1</strong> (SVI) pour l’administration (SSH/ping/TFTP).</p>
+      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto mb-6"><code>enable
+configure terminal
+hostname SW-Core
+interface vlan 1
+ip address 192.168.1.2 255.255.255.0
+no shutdown
+exit
+ip default-gateway 192.168.1.1
+end</code></pre>
+      <p className="text-slate-400 mb-3 leading-relaxed">Vérif switch : <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">show ip interface brief</code></p>
+      <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-2 mb-8">✅ Attendu : Vlan1 192.168.1.2 up up</p>
+
+      <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">2C) PC-Tech : IP 192.168.1.10/24</h3>
+      <p className="text-slate-300 mb-6 leading-relaxed">Sur <strong>PC-Tech</strong> → Desktop → IP Configuration : IP <strong>192.168.1.10</strong>, Mask <strong>255.255.255.0</strong>, Gateway <strong>192.168.1.1</strong>.</p>
+      <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">Test ping (OBLIGATOIRE avant SSH)</h3>
+      <p className="text-slate-300 mb-4 leading-relaxed">PC-Tech → Command Prompt :</p>
+      <p className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-6 leading-relaxed">ping 192.168.1.1<br />ping 192.168.1.2</p>
+      <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-2">✅ Si les 2 répondent → on peut faire SSH.</p>
+    </section>
+
+    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-blue-400 mb-6">Étape 3 — Créer les comptes locaux (SSH = login local)</h2>
+      <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">3A) Sur le routeur R-Sec (2 comptes)</h3>
+      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto mb-6"><code>configure terminal
+username admin privilege 15 secret Admin123
+username guest privilege 1 secret Guest123
+end</code></pre>
+      <ul className="list-none space-y-4 ml-0 text-slate-300 mb-6 leading-relaxed">
+        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <strong>admin</strong> : privilege 15 = tous les droits ; secret = mot de passe chiffré.</li>
+        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <strong>guest</strong> : privilege 1 = droits limités.</li>
+      </ul>
+      <p className="text-slate-400 mb-3 leading-relaxed">Vérif : <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">show running-config | include username</code></p>
+      <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">3B) Sur le switch SW-Core (1 compte admin)</h3>
+      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto mb-6"><code>configure terminal
+username admin privilege 15 secret Admin123
+end</code></pre>
+      <p className="text-slate-400 leading-relaxed">Le switch a aussi besoin d’un user local si on fait <code className="bg-slate-900 px-1 rounded font-mono text-sm">login local</code> sur VTY.</p>
+    </section>
+
+    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-blue-400 mb-6">Étape 4 — Activer SSH (domaine + clés RSA + SSH v2)</h2>
+      <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">4A) Routeur R-Sec</h3>
+      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto mb-6"><code>configure terminal
+ip domain-name novatech.local
+crypto key generate rsa
+ip ssh version 2
+end</code></pre>
+      <ul className="list-none space-y-4 ml-0 text-slate-300 mb-8 leading-relaxed">
+        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">ip domain-name</code> : nécessaire pour générer les clés RSA.</li>
+        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">crypto key generate rsa</code> : quand il demande la taille, tape <strong>1024</strong> (ou 2048 si proposé).</li>
+        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">ip ssh version 2</code> : force SSH v2 uniquement.</li>
+      </ul>
+      <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">4B) Switch SW-Core</h3>
+      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto"><code>configure terminal
+ip domain-name novatech.local
+crypto key generate rsa
+ip ssh version 2
+end</code></pre>
+    </section>
+
+    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-blue-400 mb-6">Étape 5 — Sécuriser les lignes VTY (SSH ONLY)</h2>
+      <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">5A) Routeur R-Sec</h3>
+      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto mb-6"><code>configure terminal
+line vty 0 4
+login local
+transport input ssh
+exec-timeout 1 0
+exit
+login block-for 60 attempts 3 within 60
+end</code></pre>
+      <ul className="list-none space-y-4 ml-0 text-slate-300 mb-8 leading-relaxed">
+        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">line vty 0 4</code> : accès distants (sessions).</li>
+        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">login local</code> : utilise les users locaux (admin/guest).</li>
+        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">transport input ssh</code> : interdit Telnet, SSH uniquement.</li>
+        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">exec-timeout 1 0</code> : déconnecte après 60 s d’inactivité.</li>
+        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">login block-for 60 attempts 3 within 60</code> : anti brute-force (3 essais ratés → blocage 60 s).</li>
+      </ul>
+      <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">5B) Switch SW-Core</h3>
+      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto"><code>configure terminal
+line vty 0 4
+login local
+transport input ssh
+exec-timeout 1 0
+end</code></pre>
+    </section>
+
+    <section className="bg-slate-800/50 border border-amber-500/30 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-amber-400 mb-6">Étape 6 — Sauvegarder</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">Sur routeur et switch :</p>
+      <p className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-6">copy running-config startup-config</p>
+      <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-2">➡️ Sauvegarde permanente (sinon tout est perdu au reboot).</p>
+    </section>
+
+    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-blue-400 mb-6">Étape 7 — Tests SSH depuis PC-Tech</h2>
+      <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">7A) SSH admin vers routeur</h3>
+      <p className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-6">ssh -l admin 192.168.1.1</p>
+      <p className="text-slate-300 mb-8 leading-relaxed">Doit te donner accès complet. Test : <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">show running-config</code></p>
+      <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">7B) SSH guest vers routeur</h3>
+      <p className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-6">ssh -l guest 192.168.1.1</p>
+      <p className="text-slate-300 mb-6 leading-relaxed">Test : <code className="bg-slate-900 px-1.5 py-0.5 rounded font-mono text-sm">show running-config</code>. L’utilisateur guest a des droits limités (niveau 1).</p>
+      <p className="text-amber-300/90 border-l-4 border-amber-500/50 pl-4 py-2 mb-8 leading-relaxed">⚠️ Si « guest » arrive quand même à faire <code className="bg-slate-900 px-1 rounded font-mono text-sm">show running-config</code> dans Packet Tracer, on peut interdire la commande au niveau 1.</p>
+      <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">7C) SSH vers switch</h3>
+      <p className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300">ssh -l admin 192.168.1.2</p>
+    </section>
+  </div>
+);
+
 // --- MAIN APP : THÉORIE + LAB + QUIZ ---
 
 export default function NetMasterClass() {
-  const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer'
+  const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer' | 'labs'
   const [activeSessionId, setActiveSessionId] = useState(1);
   const [activeTab, setActiveTab] = useState('theory');
   const [completedSessions, setCompletedSessions] = useState([]);
@@ -3444,8 +4316,27 @@ export default function NetMasterClass() {
               </div>
             </button>
           ))}
-          <div className="mt-6 pt-4 border-t border-slate-800">
+          <div className="mt-6 pt-4 border-t border-slate-800 space-y-2">
             <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Outils</p>
+            <button
+              onClick={() => {
+                setViewMode('labs');
+                if (window.innerWidth < 1024) setSidebarOpen(false);
+              }}
+              className={`w-full p-4 rounded-xl flex items-center gap-3 transition-all border ${
+                viewMode === 'labs'
+                  ? 'bg-blue-600/20 border-blue-500 text-blue-100'
+                  : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-400 hover:border-slate-600'
+              }`}
+            >
+              <div className={`p-2 rounded-lg ${viewMode === 'labs' ? 'bg-blue-600 text-white' : 'bg-slate-800'}`}>
+                <Terminal className="w-5 h-5" />
+              </div>
+              <div className="text-left flex-1">
+                <p className="font-bold text-sm">Lab Session 1</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">Labs S1, S2, S3 indépendants</p>
+              </div>
+            </button>
             <button
               onClick={() => {
                 setViewMode('packet_tracer');
@@ -3486,7 +4377,7 @@ export default function NetMasterClass() {
             </button>
             <div>
               <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
-                {viewMode === 'packet_tracer' ? 'Packet Tracer – Simulateur réseau' : activeSession.title}
+                {viewMode === 'packet_tracer' ? 'Packet Tracer – Simulateur réseau' : viewMode === 'labs' ? 'Lab Pratique – Session 1' : activeSession.title}
               </h2>
             </div>
           </div>
@@ -3522,6 +4413,10 @@ export default function NetMasterClass() {
             <div className="h-full min-h-[500px]">
               <PacketTracerSection />
             </div>
+          ) : viewMode === 'labs' ? (
+            <div className="h-full min-h-[500px]">
+              <LabsSection lab={sessions[0].lab} />
+            </div>
           ) : (
           <div className="max-w-6xl mx-auto h-full flex flex-col">
             {activeTab === 'theory' && <TheoryPlayer slides={activeSession.slides} lab={activeSession.lab} sessionId={activeSessionId} />}
@@ -3550,6 +4445,16 @@ export default function NetMasterClass() {
                     Passer au Quiz <ChevronRight size={14} />
                   </button>
                 </div>
+                {activeSession.lab.consignes && (
+                  <div className="bg-slate-900/80 border-x border-t border-slate-700 px-6 py-4">
+                    <h4 className="text-white font-bold flex items-center gap-2 mb-3 text-sm uppercase tracking-wider">
+                      <BookOpen className="w-4 h-4 text-amber-400" /> Consignes du lab
+                    </h4>
+                    <div className="max-h-48 overflow-y-auto pr-2 border-l-2 border-slate-700 pl-4">
+                      {activeSession.lab.consignes}
+                    </div>
+                  </div>
+                )}
                 <div className="flex-1 bg-black rounded-b-xl overflow-hidden border border-slate-700 shadow-2xl min-h-[420px]">
                   <TerminalSimulator 
                     scenario={activeSession.lab} 
