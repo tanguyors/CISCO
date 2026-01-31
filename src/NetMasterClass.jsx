@@ -1864,112 +1864,130 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       title: "Lab 1 : Sécurisation et SSH",
       context: "SCÉNARIO : Sécurisez le routeur (nom, console, enable secret, DNS) puis activez SSH (domaine, utilisateur, clé RSA, lignes VTY). Sauvegardez en fin de lab.",
       consignes: (
-        <div className="space-y-8 text-slate-200 text-base leading-relaxed">
+        <div className="space-y-10 text-slate-200 text-base leading-relaxed">
           <div className="bg-blue-900/30 border border-blue-500/40 rounded-xl p-5">
             <p className="text-blue-100 font-semibold text-lg mb-1">Où faire les labs ?</p>
-            <p className="text-blue-200/90">
-              Ces trois labs se réalisent sur <strong>Cisco Packet Tracer</strong>. Utilisez l’onglet <strong>Packet Tracer</strong> dans la barre latérale (simulateur intégré) ou l’application Cisco Packet Tracer sur votre poste. Le terminal ci-dessous sert à vous entraîner aux commandes avant ou pendant le lab.
+            <p className="text-blue-200/90 text-sm leading-relaxed">
+              Les trois labs ci-dessous se font sur <strong>Cisco Packet Tracer</strong> (onglet Packet Tracer dans la barre latérale ou application sur ton poste). Le terminal en bas de page sert à t’entraîner aux commandes avant ou pendant le lab.
             </p>
           </div>
 
-          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6">
-            <h4 className="text-emerald-400 font-bold text-lg mb-3 pb-2 border-b border-slate-600">LAB S1 – Configuration initiale (NovaTech)</h4>
-            <p className="mb-4 text-slate-300">Préparer un mini-réseau local pour le client NovaTech : équipements identifiés, sécurisés, sauvegardés sur TFTP.</p>
-            <p className="text-slate-400 text-sm font-semibold mb-2">Infrastructure à placer dans Packet Tracer</p>
-            <ul className="list-disc list-inside space-y-2 mb-4 ml-2 text-slate-300">
-              <li>1 Routeur (à renommer <strong>R-Nova</strong>)</li>
-              <li>2 Switchs (<strong>SW-Entrée</strong>, <strong>SW-Bureau</strong>)</li>
-              <li>1 Serveur TFTP (<strong>Srv-TFTP</strong>)</li>
-              <li>1 PC Technicien (<strong>Tech-PC</strong>)</li>
-            </ul>
-            <p className="text-slate-400 text-sm font-semibold mb-2">Câblage</p>
-            <p className="mb-4 text-slate-300">Connecter les switches au routeur. Brancher le serveur TFTP et le PC Tech sur l’un des switches.</p>
-            <p className="text-slate-400 text-sm font-semibold mb-2">Sur le routeur</p>
-            <ol className="timeline-consignes space-y-2 text-slate-300">
-              <li>Renommer l’équipement</li>
-              <li>Donner une adresse IP dans le réseau 192.168.10.0/24</li>
-              <li>Désactiver la résolution DNS</li>
-              <li>Sécuriser l’accès console (mot de passe) et l’accès privilégié (enable secret)</li>
-              <li>Activer l’enregistrement de la configuration</li>
-            </ol>
-            <p className="text-slate-400 text-sm font-semibold mt-4 mb-2">Sur chaque switch</p>
-            <ol className="timeline-consignes space-y-2 text-slate-300">
-              <li>Affecter un nom correspondant à sa localisation</li>
-              <li>Configurer une IP sur l’interface VLAN 1 (même réseau que le routeur)</li>
-              <li>Configurer un mot de passe console</li>
-              <li>Sauvegarder la configuration</li>
-              <li>Depuis un switch, tester la sauvegarde vers le serveur TFTP</li>
-            </ol>
-            <p className="text-slate-400 text-sm font-semibold mt-4 mb-2">Sur le serveur TFTP</p>
-            <ol className="timeline-consignes space-y-2 text-slate-300">
-              <li>Donner une adresse IP dans le réseau</li>
-              <li>Activer le service TFTP</li>
-              <li>Vérifier que le routeur et les switches peuvent envoyer leurs configs vers le serveur</li>
-            </ol>
-            <p className="text-amber-300/90 text-sm mt-4">Recommandations : utiliser <code className="text-emerald-400 font-mono bg-slate-900/50 px-1 rounded">show</code> pour valider ; sauvegarder régulièrement (local + TFTP) ; tester le ping depuis le PC Tech.</p>
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-6">
+            <div>
+              <h4 className="text-emerald-400 font-bold text-lg mb-1">LAB S1 – Configuration initiale (NovaTech)</h4>
+              <p className="text-slate-400 text-sm">Objectif : construire un petit réseau local, nommer les équipements, les sécuriser et sauvegarder les configs sur un serveur TFTP.</p>
+            </div>
+            <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Matériel à placer</p>
+              <ul className="list-none space-y-1 text-slate-300 text-sm">
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> 1 routeur → à renommer <strong>R-Nova</strong></li>
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> 2 switches → <strong>SW-Entrée</strong>, <strong>SW-Bureau</strong></li>
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> 1 serveur TFTP → <strong>Srv-TFTP</strong></li>
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> 1 PC → <strong>Tech-PC</strong></li>
+              </ul>
+            </div>
+            <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Câblage</p>
+              <p className="text-slate-300 text-sm">Switches reliés au routeur. Serveur TFTP et PC Tech branchés sur un des switches (câble droit).</p>
+            </div>
+            <div className="border-l-2 border-emerald-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Sur le routeur</p>
+              <ol className="timeline-consignes space-y-1.5 text-slate-300 text-sm">
+                <li>Renommer : <strong>R-Nova</strong></li>
+                <li>Donner une IP dans 192.168.10.0/24 (ex. 192.168.10.1)</li>
+                <li>Désactiver la résolution DNS (<code className="text-emerald-400 font-mono text-xs">no ip domain lookup</code>)</li>
+                <li>Mot de passe console + <code className="text-emerald-400 font-mono text-xs">enable secret</code></li>
+                <li>Sauvegarder : <code className="text-emerald-400 font-mono text-xs">copy running-config startup-config</code></li>
+              </ol>
+            </div>
+            <div className="border-l-2 border-emerald-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Sur chaque switch</p>
+              <ol className="timeline-consignes space-y-1.5 text-slate-300 text-sm">
+                <li>Nom : SW-Entrée ou SW-Bureau</li>
+                <li>IP sur <code className="text-emerald-400 font-mono text-xs">interface vlan 1</code> (même réseau que le routeur, ex. .2 et .3)</li>
+                <li>Mot de passe console</li>
+                <li>Sauvegarder en local puis tester une sauvegarde vers le serveur TFTP</li>
+              </ol>
+            </div>
+            <div className="border-l-2 border-emerald-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Sur le serveur TFTP</p>
+              <ol className="timeline-consignes space-y-1.5 text-slate-300 text-sm">
+                <li>IP dans le réseau (ex. 192.168.10.10)</li>
+                <li>Activer le service TFTP (onglet Services)</li>
+                <li>Vérifier : routeur et switches peuvent envoyer leur config vers le serveur</li>
+              </ol>
+            </div>
+            <p className="text-amber-300/90 text-xs border-l-2 border-amber-500/50 pl-3 py-1">Conseil : utilise <code className="text-emerald-400 font-mono">show</code> pour vérifier ; fais un ping depuis Tech-PC vers le routeur en fin de lab.</p>
           </div>
 
-          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6">
-            <h4 className="text-emerald-400 font-bold text-lg mb-3 pb-2 border-b border-slate-600">LAB S2 – Sécurisation SSH (NovaTech)</h4>
-            <p className="mb-4 text-slate-300">Sécuriser l’accès à distance (SSH) sur un routeur et un switch après incidents Telnet.</p>
-            <p className="text-slate-400 text-sm font-semibold mb-2">Infrastructure</p>
-            <ul className="list-disc list-inside space-y-2 mb-4 ml-2 text-slate-300">
-              <li>1 Routeur (<strong>R-Sec</strong>), 1 Switch (<strong>SW-Core</strong>), 1 PC Technicien (<strong>PC-Tech</strong>)</li>
-              <li>Câblage : PC → Switch → Routeur (câble droit entre switch et routeur)</li>
-            </ul>
-            <p className="text-slate-400 text-sm font-semibold mb-2">Sur le routeur (R-Sec)</p>
-            <ol className="timeline-consignes space-y-2 text-slate-300">
-              <li>Renommer l’équipement</li>
-              <li>Donner une IP (ex. 192.168.1.1/24)</li>
-              <li>Créer 2 comptes utilisateurs : un avec privilège 15 (admin), un avec privilège 1 ou 0 (consultation uniquement)</li>
-              <li>Configurer un nom de domaine et générer les clés RSA</li>
-              <li>Sur les lignes VTY : activer uniquement SSH (<code className="text-emerald-400 font-mono text-sm">login local</code>, <code className="text-emerald-400 font-mono text-sm">transport input ssh</code>)</li>
-              <li>Paramètres : timeout 60 s, 3 tentatives max, SSH v2 uniquement</li>
-            </ol>
-            <p className="text-slate-400 text-sm font-semibold mt-4 mb-2">Sur le switch (SW-Core)</p>
-            <ol className="timeline-consignes space-y-2 text-slate-300">
-              <li>Renommer l’équipement</li>
-              <li>Attribuer une IP à l’interface VLAN 1 (ex. 192.168.1.2/24)</li>
-              <li>Créer un utilisateur local avec privilège 15</li>
-              <li>Activer SSH uniquement (comme sur le routeur)</li>
-            </ol>
-            <p className="text-slate-400 text-sm font-semibold mt-4 mb-2">Sur le PC (PC-Tech)</p>
-            <ol className="timeline-consignes space-y-2 text-slate-300">
-              <li>Tester la connexion SSH avec l’utilisateur admin puis avec l’utilisateur restreint</li>
-              <li>Observer les différences de droits</li>
-              <li>Essayer une commande interdite avec le compte restreint (ex. <code className="text-emerald-400 font-mono text-sm">show running-config</code>)</li>
-            </ol>
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-6">
+            <div>
+              <h4 className="text-emerald-400 font-bold text-lg mb-1">LAB S2 – Sécurisation SSH (NovaTech)</h4>
+              <p className="text-slate-400 text-sm">Objectif : remplacer l’accès Telnet par SSH sur un routeur et un switch. Deux comptes : un admin (tout faire), un restreint (consultation seule).</p>
+            </div>
+            <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Matériel</p>
+              <p className="text-slate-300 text-sm">1 routeur <strong>R-Sec</strong>, 1 switch <strong>SW-Core</strong>, 1 PC <strong>PC-Tech</strong>. Câblage : PC → Switch → Routeur (câble droit).</p>
+            </div>
+            <div className="border-l-2 border-blue-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Routeur (R-Sec)</p>
+              <ol className="timeline-consignes space-y-1.5 text-slate-300 text-sm">
+                <li>Nom + IP (ex. 192.168.1.1/24)</li>
+                <li>2 utilisateurs : admin (privilège 15), guest (privilège 1 ou 0)</li>
+                <li>Nom de domaine + génération des clés RSA</li>
+                <li>Lignes VTY : <code className="text-emerald-400 font-mono text-xs">login local</code> + <code className="text-emerald-400 font-mono text-xs">transport input ssh</code> (SSH uniquement)</li>
+                <li>Optionnel : timeout 60 s, 3 tentatives max, SSH v2</li>
+              </ol>
+            </div>
+            <div className="border-l-2 border-blue-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Switch (SW-Core)</p>
+              <ol className="timeline-consignes space-y-1.5 text-slate-300 text-sm">
+                <li>Nom + IP sur interface vlan 1 (ex. 192.168.1.2/24)</li>
+                <li>Utilisateur local privilège 15 + SSH (même principe que le routeur)</li>
+              </ol>
+            </div>
+            <div className="border-l-2 border-blue-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Tests depuis PC-Tech</p>
+              <ol className="timeline-consignes space-y-1.5 text-slate-300 text-sm">
+                <li>Connexion SSH avec le compte admin → tu dois avoir tous les droits</li>
+                <li>Connexion SSH avec le compte restreint → une commande comme <code className="text-emerald-400 font-mono text-xs">show running-config</code> doit être refusée</li>
+              </ol>
+            </div>
           </div>
 
-          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6">
-            <h4 className="text-emerald-400 font-bold text-lg mb-3 pb-2 border-b border-slate-600">LAB S3 – Connexion SSH avec résolution de noms (DNS)</h4>
-            <p className="mb-4 text-slate-300">Rendre les connexions SSH plus lisibles en accédant aux équipements par nom (et non par IP).</p>
-            <p className="text-slate-400 text-sm font-semibold mb-2">Infrastructure</p>
-            <ul className="list-disc list-inside space-y-2 mb-4 ml-2 text-slate-300">
-              <li>1 Routeur (<strong>R-Admin</strong>), 1 Switch (<strong>SW-Core</strong>), 1 Serveur DNS (<strong>Srv-DNS</strong>), 1 PC Technicien (<strong>PC-Tech</strong>)</li>
-            </ul>
-            <p className="text-slate-400 text-sm font-semibold mb-2">Étape 1 – Configuration IP</p>
-            <p className="mb-2 text-slate-300">Attribuer : Routeur 192.168.1.1/24 ; Switch 192.168.1.2/24 (VLAN 1) ; DNS 192.168.1.254/24 ; PC 192.168.1.100/24.</p>
-            <p className="text-slate-400 text-sm font-semibold mb-2">Étape 2 – Switch (SW-Core)</p>
-            <ol className="timeline-consignes space-y-2 text-slate-300 mb-4">
-              <li>Renommer le switch</li>
-              <li>Configurer l’interface VLAN 1 (IP + <code className="text-emerald-400 font-mono text-sm">no shutdown</code>)</li>
-              <li>Définir une passerelle par défaut (le routeur)</li>
-              <li>Activer SSH : hostname, ip domain-name, utilisateur, clé RSA, lignes VTY avec SSH uniquement</li>
-              <li>Tester le ping depuis le PC vers le switch (par IP)</li>
-            </ol>
-            <p className="text-slate-400 text-sm font-semibold mb-2">Étape 3 – Serveur DNS (Srv-DNS)</p>
-            <ol className="timeline-consignes space-y-2 text-slate-300 mb-4">
-              <li>Activer le service DNS dans l’onglet Services</li>
-              <li>Ajouter une entrée DNS : nom <strong>SW-Core</strong>, IP 192.168.1.2</li>
-              <li>Vérifier que le serveur répond au ping</li>
-            </ol>
-            <p className="text-slate-400 text-sm font-semibold mb-2">Étape 4 – Routeur</p>
-            <p className="mb-2 text-slate-300">Sur le routeur : <code className="text-emerald-400 font-mono bg-slate-900/50 px-1.5 py-0.5 rounded">ip name-server 192.168.1.254</code>. Tester : <code className="text-emerald-400 font-mono bg-slate-900/50 px-1.5 py-0.5 rounded">ping SW-Core</code>.</p>
-            <p className="text-slate-400 text-sm font-semibold mb-2">Étape 5 – SSH par nom</p>
-            <p className="mb-4 text-slate-300">Depuis le PC (Terminal) : <code className="text-emerald-400 font-mono bg-slate-900/50 px-1.5 py-0.5 rounded">ssh -l admin SW-Core</code>. Valider que la connexion s’effectue sans utiliser l’adresse IP ; vérifier les permissions (niveau 15).</p>
-            <p className="text-slate-400 text-sm font-semibold mb-2">Étape 6 (bonus) – Résolution locale</p>
-            <p className="text-slate-300">Supprimer <code className="text-emerald-400 font-mono text-sm">ip name-server</code> ; sur le routeur ajouter <code className="text-emerald-400 font-mono bg-slate-900/50 px-1.5 py-0.5 rounded">ip host SW-Core 192.168.1.2</code> ; retester <code className="text-emerald-400 font-mono text-sm">ssh -l admin SW-Core</code>.</p>
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-6">
+            <div>
+              <h4 className="text-emerald-400 font-bold text-lg mb-1">LAB S3 – SSH par nom (DNS)</h4>
+              <p className="text-slate-400 text-sm">Objectif : te connecter au switch en tapant <code className="text-emerald-400 font-mono text-xs">ssh -l admin SW-Core</code> au lieu de l’IP. Un serveur DNS traduit le nom en adresse.</p>
+            </div>
+            <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Matériel</p>
+              <p className="text-slate-300 text-sm">1 routeur <strong>R-Admin</strong>, 1 switch <strong>SW-Core</strong>, 1 serveur <strong>Srv-DNS</strong>, 1 PC <strong>PC-Tech</strong>.</p>
+            </div>
+            <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Adresses IP (à attribuer à tous)</p>
+              <p className="text-slate-300 text-sm">Routeur 192.168.1.1 ; Switch 192.168.1.2 (VLAN 1) ; DNS 192.168.1.254 ; PC 192.168.1.100. Masque 255.255.255.0. Passerelle du PC et du switch = 192.168.1.1.</p>
+            </div>
+            <div className="border-l-2 border-violet-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">1 – Switch</p>
+              <p className="text-slate-300 text-sm">Nom, interface vlan 1 (IP + <code className="text-emerald-400 font-mono text-xs">no shutdown</code>), passerelle par défaut, SSH activé. Tester : ping depuis le PC vers 192.168.1.2.</p>
+            </div>
+            <div className="border-l-2 border-violet-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">2 – Serveur DNS</p>
+              <p className="text-slate-300 text-sm">Activer le service DNS. Ajouter une entrée : nom <strong>SW-Core</strong>, IP 192.168.1.2.</p>
+            </div>
+            <div className="border-l-2 border-violet-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">3 – Routeur</p>
+              <p className="text-slate-300 text-sm"><code className="text-emerald-400 font-mono text-xs">ip name-server 192.168.1.254</code>. Tester : <code className="text-emerald-400 font-mono text-xs">ping SW-Core</code> → doit répondre.</p>
+            </div>
+            <div className="border-l-2 border-violet-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">4 – SSH par nom</p>
+              <p className="text-slate-300 text-sm">Depuis le PC : <code className="text-emerald-400 font-mono text-xs">ssh -l admin SW-Core</code>. La connexion doit se faire sans taper l’IP. Vérifier que tu as les droits (niveau 15).</p>
+            </div>
+            <div className="border-l-2 border-slate-500/50 pl-4">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">5 – Bonus (résolution locale)</p>
+              <p className="text-slate-300 text-sm">Enlever <code className="text-emerald-400 font-mono text-xs">ip name-server</code>. Sur le routeur : <code className="text-emerald-400 font-mono text-xs">ip host SW-Core 192.168.1.2</code>. Retester <code className="text-emerald-400 font-mono text-xs">ssh -l admin SW-Core</code>.</p>
+            </div>
           </div>
         </div>
       ),
@@ -2044,25 +2062,120 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
     slides: [
       {
         type: 'intro',
-        title: "Introduction aux VLANs",
-        content: `Séparer les équipes (ex : Administration et Commerciale) sur un même switch en créant des VLANs. On apprend : création de VLANs, attribution des ports à un VLAN, création d'une IP de management par VLAN, et connexion SSH depuis une machine du VLAN 1 et une autre du VLAN 2.`
+        title: "Session 2 : VLAN – Calée sur les labs",
+        content: `Imagine une petite entreprise : au 1er étage, le bureau Administration (compta, RH). Au 2e étage, le bureau Commercial (ventes). Un seul switch au sous-sol relie tout le monde. Sans VLAN, tout le monde est dans le même « réseau » : les commerciaux voient les broadcasts de l’admin et inversement. Avec des VLANs, on sépare logiquement : un réseau pour l’admin, un pour le commercial, sur le même switch. Cette session vous montre comment faire : créer les VLANs, brancher les bons PC sur les bons ports, donner une IP au switch pour s’y connecter en SSH, et tester. En Séance 1 : créer les VLANs, attribuer les ports, vérifier (show vlan brief, ping). Séance 2 : trunks, VLAN autorisés, VLAN natif. Objectif : maîtriser création de VLANs, attribution des ports et sécurisation des trunks.`
+      },
+      {
+        type: 'rich_text',
+        title: "Qu'est-ce qu'un VLAN ?",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Un <strong className="text-blue-400">VLAN</strong>, c’est comme créer <strong>plusieurs petits réseaux</strong> à l’intérieur d’un seul switch. Tous les câbles arrivent au même switch, mais le switch sait : « ces ports = réseau Admin », « ces ports = réseau Commercial ». Les deux groupes ne se voient pas (pas de ping entre eux) tant qu’on n’ajoute pas un routeur.
+            </p>
+            <div className="bg-amber-900/20 rounded-xl p-5 border border-amber-600/40">
+              <h4 className="text-amber-300 font-bold mb-2">Exemple concret</h4>
+              <p className="text-slate-300 text-sm">Entreprise NovaTech : 1 switch, 8 ports. Ports 1–2 = PC du service Admin. Ports 3–4 = PC du service Commercial. Sans VLAN : tout le monde reçoit les mêmes messages (broadcasts). Avec VLAN 10 (Admin) et VLAN 20 (Commercial) : les PC Admin ne reçoivent que le trafic Admin, les PC Commercial idem. Comme si tu avais deux switches séparés, mais en un seul boîtier.</p>
+            </div>
+            <div className="bg-slate-800 rounded-xl p-5 border border-slate-700">
+              <h4 className="text-blue-400 font-bold mb-3">Pourquoi utiliser des VLANs ?</h4>
+              <ul className="list-none space-y-2 text-slate-300 text-sm">
+                <li className="flex gap-2 items-start"><span className="text-emerald-400 shrink-0">•</span> <strong>Sécurité</strong> : les invités (Wi‑Fi) ne sont pas dans le même VLAN que la compta → moins de risques.</li>
+                <li className="flex gap-2 items-start"><span className="text-emerald-400 shrink-0">•</span> <strong>Moins de bruit</strong> : moins de broadcasts pour tout le monde → réseau plus calme.</li>
+                <li className="flex gap-2 items-start"><span className="text-emerald-400 shrink-0">•</span> <strong>Flexibilité</strong> : Marie passe de Admin à Commercial ? On change le port de VLAN, pas le câble.</li>
+                <li className="flex gap-2 items-start"><span className="text-emerald-400 shrink-0">•</span> <strong>Gestion</strong> : tu peux te connecter en SSH au switch depuis le VLAN Admin ou Commercial si tu mets une IP sur chaque.</li>
+              </ul>
+            </div>
+            <ProTip>En une phrase : un VLAN = un groupe de ports qui forment un réseau à part. Le trafic d’un VLAN ne sort pas vers les ports d’un autre VLAN (sans routeur).</ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "VLAN vs réseau physique",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Sans VLAN, ton switch = <strong>un seul grand réseau</strong>. Dès qu’un PC envoie un broadcast (ex. « qui a l’IP 192.168.1.5 ? »), tous les autres PC branchés sur le switch le reçoivent. Avec des VLANs, tu découpes en plusieurs petits réseaux : le broadcast du VLAN 10 ne va pas dans le VLAN 20.
+            </p>
+            <div className="bg-amber-900/20 rounded-xl p-5 border border-amber-600/40">
+              <h4 className="text-amber-300 font-bold mb-2">Exemple concret</h4>
+              <p className="text-slate-300 text-sm">Même immeuble, un switch pour tout le monde. <strong>Sans VLAN</strong> : le PC de la compta envoie un broadcast → le PC des ventes le reçoit aussi. Inutile et parfois gênant. <strong>Avec VLANs</strong> : le broadcast de la compta reste entre les PC du VLAN Admin ; le VLAN Commercial ne le voit pas. C’est plus propre et plus sécurisé.</p>
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-slate-800 rounded-xl p-5 border border-slate-600">
+                <h4 className="text-amber-400 font-bold mb-2">Sans VLAN</h4>
+                <p className="text-slate-400 text-sm">Un seul réseau. Tout le monde reçoit les mêmes messages. Pas d’isolation. Pour « séparer » Admin et Commercial, il faudrait deux switches et recâbler.</p>
+              </div>
+              <div className="bg-slate-800 rounded-xl p-5 border border-emerald-600/50">
+                <h4 className="text-emerald-400 font-bold mb-2">Avec VLANs</h4>
+                <p className="text-slate-400 text-sm">Plusieurs petits réseaux sur le même switch. Admin et Commercial sont isolés. Pour déplacer un PC d’équipe, tu changes juste le VLAN du port (une commande), pas le câble.</p>
+              </div>
+            </div>
+            <DangerZone>Deux PC dans des VLANs différents ne peuvent pas se ping. Exemple : PC Admin (VLAN 10) ping le PC Commercial (VLAN 20) → pas de réponse. C’est normal : sans routeur (ou switch couche 3), l’isolation est totale.</DangerZone>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "VLAN 1 par défaut",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Quand tu sors un switch Cisco de la boîte, <strong className="text-blue-400">tous les ports sont déjà dans le VLAN 1</strong>. Tu n’as rien à faire pour ça. On garde le VLAN 1 ; on s’en sert souvent pour l’administration (mettre une IP sur le switch avec <code className="bg-black/40 px-1 rounded">interface vlan 1</code> pour SSH ou ping). Ensuite on crée d’autres VLANs (10, 20, …) pour les équipes et on met les bons ports dedans.
+            </p>
+            <div className="bg-amber-900/20 rounded-xl p-5 border border-amber-600/40">
+              <h4 className="text-amber-300 font-bold mb-2">Exemple concret</h4>
+              <p className="text-slate-300 text-sm">Switch neuf : ports 1 à 24 = VLAN 1. Tu crées VLAN 10 (Admin) et VLAN 20 (Commercial). Tu mets les ports 1–2 dans le VLAN 10, les ports 3–4 dans le VLAN 20. Les ports 5–24 restent en VLAN 1 tant que tu ne les assignes pas. Pour vérifier : <code className="bg-black/40 px-1 rounded text-emerald-400">show vlan brief</code> → tu vois la liste des VLANs et quel port est dans quel VLAN.</p>
+            </div>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+              <p className="text-slate-400 text-sm">En résumé : ports non utilisés ou « par défaut » = VLAN 1. Ports des PC Admin = VLAN 10. Ports des PC Commercial = VLAN 20. Tu ne supprimes jamais le VLAN 1.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Ce que tu feras en lab (Séance 1)",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Le <strong>Lab Séance 1</strong> reprend exactement les étapes ci-dessous : câblage, création des VLANs, attribution des ports, puis vérifications.
+            </p>
+            <div className="bg-slate-800 rounded-xl p-5 border border-slate-700 space-y-4">
+              <p className="text-slate-300 text-sm"><strong>Étape 1 – Câblage :</strong> Un switch, PC Admin sur deux ports (ex. 1 et 2), PC Commercial sur deux autres (ex. 3 et 4).</p>
+              <p className="text-slate-300 text-sm"><strong>Étape 2 – Créer les VLANs :</strong> VLAN 10 nommé Administration, VLAN 20 nommé Commercial (<code className="text-emerald-400 font-mono text-xs">vlan 10</code> + <code className="text-emerald-400 font-mono text-xs">name Administration</code> ; idem pour 20 / Commercial).</p>
+              <p className="text-slate-300 text-sm"><strong>Étape 3 – Attribuer les ports :</strong> Ports PC Admin → VLAN 10, ports PC Commercial → VLAN 20. Chaque port en mode <strong>access</strong> (<code className="text-emerald-400 font-mono text-xs">switchport mode access</code> puis <code className="text-emerald-400 font-mono text-xs">switchport access vlan 10</code> ou <code className="text-emerald-400 font-mono text-xs">20</code>).</p>
+              <p className="text-slate-300 text-sm"><strong>Étape 4 – Vérifier :</strong> <code className="text-emerald-400 font-mono text-xs">show vlan brief</code> → VLAN 10 et 20 avec les bons ports. Ping : PC Admin ↔ PC Admin = OK ; PC Admin ↔ PC Commercial = pas de réponse (normal).</p>
+            </div>
+            <ProTip>Compétences visées : création de VLANs, ports en mode access, vérification de la segmentation.</ProTip>
+          </div>
+        )
       },
       {
         type: 'rich_text',
         title: "Création de VLANs",
         content: (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <p className="text-slate-200 leading-relaxed text-lg">
-              Un <strong className="text-blue-400">VLAN</strong> permet de séparer logiquement les équipes sur un même switch (ex : VLAN 10 Administration, VLAN 20 Commercial).
+              Tu es en mode configuration sur le switch. Tu vas créer deux VLANs : un pour l’Administration (numéro 10), un pour le Commercial (numéro 20). Tu leur donnes un <strong>nom</strong> pour les reconnaître facilement dans <code className="bg-black/40 px-1 rounded">show vlan brief</code>. Le numéro compte pour le switch ; le nom, c’est pour toi.
             </p>
+            <div className="bg-amber-900/20 rounded-xl p-5 border border-amber-600/40">
+              <h4 className="text-amber-300 font-bold mb-2">Exemple concret</h4>
+              <p className="text-slate-300 text-sm">NovaTech : on veut séparer Admin et Commercial. On crée VLAN 10 nommé « Administration » et VLAN 20 nommé « Commercial ». Après ça, le switch connaît deux réseaux logiques ; les ports ne sont pas encore assignés (on le fait à l’étape suivante).</p>
+            </div>
             <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-              <p className="text-emerald-400 font-bold mb-2">Créer les VLANs :</p>
-              <HumanCommand cmd="vlan 10" human="Créer le VLAN 10 (Administration)." />
-              <HumanCommand cmd="name Administration" human="Nommer le VLAN 10." />
-              <HumanCommand cmd="vlan 20" human="Créer le VLAN 20 (Commercial)." />
+              <p className="text-emerald-400 font-bold mb-2">Commandes à taper (dans l’ordre) :</p>
+              <HumanCommand cmd="vlan 10" human="Créer le VLAN 10. Le switch ouvre le sous-mode (config-vlan)#." />
+              <HumanCommand cmd="name Administration" human="Donner un nom au VLAN 10 pour le reconnaître." />
+              <HumanCommand cmd="exit" human="Sortir du VLAN 10 (ou taper directement vlan 20)." />
+              <HumanCommand cmd="vlan 20" human="Créer le VLAN 20." />
               <HumanCommand cmd="name Commercial" human="Nommer le VLAN 20." />
             </div>
-            <ProTip>Vérification : <code className="bg-black/40 px-1 rounded">show vlan brief</code></ProTip>
+            <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
+              <p className="text-slate-300 text-sm"><strong>Pourquoi 10 et 20 ?</strong> On utilise souvent 10, 20, 30… pour laisser de la place (ex. VLAN 11 pour un sous-groupe Admin). Tu peux aussi utiliser 2 et 3 : ça marche pareil.</p>
+            </div>
+            <ProTip>Après ces commandes, tape <code className="bg-black/40 px-1 rounded">show vlan brief</code>. Tu dois voir VLAN 10 (Administration) et VLAN 20 (Commercial). Les ports sont encore vides ou en VLAN 1 ; on les assigne à l’étape suivante.</ProTip>
           </div>
         )
       },
@@ -2070,50 +2183,142 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
         type: 'rich_text',
         title: "Attribution des ports à un VLAN",
         content: (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <p className="text-slate-200 leading-relaxed text-lg">
-              Associez les ports où sont branchés les PC Administration au VLAN 10, et les PC Commercial au VLAN 20. Forcez les ports en mode <strong>access</strong>.
+              Les VLANs sont créés, mais les ports ne sont pas encore dedans. Là, tu dis au switch : « Le port 1 et le port 2 = VLAN 10 (Admin). Le port 3 et le port 4 = VLAN 20 (Commercial). » Les ports où tu branches des PC sont en <strong>mode accès (access)</strong> : un port = un seul VLAN. Avec <code className="bg-black/40 px-1 rounded">interface range</code>, tu configures plusieurs ports d’un coup.
             </p>
-            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-              <HumanCommand cmd="interface range fa0/1 - 2" human="Sélectionner les ports 1 et 2 (PC Admin)." />
-              <HumanCommand cmd="switchport mode access" human="Port en mode accès (un seul VLAN)." />
-              <HumanCommand cmd="switchport access vlan 10" human="Attribuer au VLAN 10." />
-              <HumanCommand cmd="interface range fa0/3 - 4" human="Ports 3 et 4 (PC Commercial)." />
-              <HumanCommand cmd="switchport mode access" human="Port en mode accès." />
-              <HumanCommand cmd="switchport access vlan 20" human="Attribuer au VLAN 20." />
+            <div className="bg-amber-900/20 rounded-xl p-5 border border-amber-600/40">
+              <h4 className="text-amber-300 font-bold mb-2">Exemple concret</h4>
+              <p className="text-slate-300 text-sm">NovaTech : PC de Marie et Pierre (Admin) branchés sur les ports 1 et 2. PC de Sophie et Lucas (Commercial) sur les ports 3 et 4. Tu mets les ports 1–2 dans le VLAN 10, les ports 3–4 dans le VLAN 20. Résultat : Marie peut ping Pierre (même VLAN). Sophie peut ping Lucas (même VLAN). Marie ne peut pas ping Sophie (VLAN différent) tant qu’il n’y a pas de routeur.</p>
             </div>
-            <DangerZone>Entre deux PC du même VLAN → ping OK. Entre VLAN différents → pas de communication (sans routage).</DangerZone>
-          </div>
-        )
-      },
-      {
-        type: 'rich_text',
-        title: "IP de Management par VLAN",
-        content: (
-          <div className="space-y-4">
-            <p className="text-slate-200 leading-relaxed text-lg">
-              Pour gérer le switch à distance (SSH), donnez une <strong className="text-blue-400">IP de management</strong> à chaque VLAN (interface vlan 1, interface vlan 10, etc.).
-            </p>
             <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-              <HumanCommand cmd="interface vlan 1" human="Interface de management VLAN 1." />
-              <HumanCommand cmd="ip address 192.168.1.2 255.255.255.0" human="IP du switch (ex. 192.168.1.2/24)." />
-              <HumanCommand cmd="no shutdown" human="Activer l'interface." />
-              <p className="text-slate-400 text-sm mt-2">Optionnel : <code className="bg-black/40 px-1 rounded">interface vlan 10</code> + <code className="bg-black/40 px-1 rounded">ip address 192.168.10.1 255.255.255.0</code> pour une IP de management par VLAN.</p>
+              <p className="text-emerald-400 font-bold mb-2">Commandes (ports 1–2 = Admin, 3–4 = Commercial) :</p>
+              <HumanCommand cmd="interface range fa0/1 - 2" human="Choisir les ports 1 et 2. Les prochaines commandes s’appliquent aux deux." />
+              <HumanCommand cmd="switchport mode access" human="Mode accès = un seul VLAN par port (pour les PC)." />
+              <HumanCommand cmd="switchport access vlan 10" human="Mettre ces deux ports dans le VLAN 10 (Admin)." />
+              <HumanCommand cmd="exit" human="Quitter la plage de ports." />
+              <HumanCommand cmd="interface range fa0/3 - 4" human="Choisir les ports 3 et 4." />
+              <HumanCommand cmd="switchport mode access" human="Mode accès." />
+              <HumanCommand cmd="switchport access vlan 20" human="Mettre ces ports dans le VLAN 20 (Commercial)." />
             </div>
-            <ProTip>Une machine du VLAN 1 pourra SSH vers 192.168.1.2 ; une machine du VLAN 10 vers 192.168.10.1 (si configuré).</ProTip>
-          </div>
-        )
-      },
-      {
-        type: 'rich_text',
-        title: "Connexion SSH depuis VLAN 1 et VLAN 2",
-        content: (
-          <div className="space-y-4">
-            <p className="text-slate-200 leading-relaxed text-lg">
-              Après avoir activé SSH sur le switch (hostname, ip domain-name, username, crypto key, line vty, transport input ssh), testez une connexion SSH depuis une machine du <strong>VLAN 1</strong> puis depuis une machine du <strong>VLAN 2</strong> (ou VLAN 10).
-            </p>
             <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
-              <p className="text-blue-200 text-sm">Depuis le PC : <code className="bg-black/40 px-1 rounded">ssh -l admin 192.168.1.2</code> (ou l’IP de management du VLAN concerné). Vérifiez les droits (niveau 15).</p>
+              <p className="text-slate-300 text-sm"><strong>Résultat attendu :</strong> Marie (port 1) ping Pierre (port 2) → OK. Sophie (port 3) ping Lucas (port 4) → OK. Marie ping Sophie → pas de réponse (VLAN différent). C’est normal.</p>
+            </div>
+            <DangerZone>Même VLAN = ils peuvent se ping. VLAN différent = pas de ping sans routeur. L’isolation, c’est voulu.</DangerZone>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Ce que tu feras en lab (Séance 2) : Trunk",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              En <strong>Lab Séance 2</strong>, tu auras un ou deux switch(s) avec des VLANs déjà créés. Si deux switches : le lien entre eux doit être en <strong className="text-blue-400">trunk</strong> pour transporter plusieurs VLANs (étiquetés 802.1Q). Un port trunk = un seul câble qui transporte VLAN 10, 20, etc.
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+              <p className="text-emerald-400 font-bold mb-2">Commandes (port vers l'autre switch, ex. fa0/24) :</p>
+              <HumanCommand cmd="interface fa0/24" human="Choisir le port qui relie l'autre switch." />
+              <HumanCommand cmd="switchport mode trunk" human="Activer le mode trunk : le port transporte plusieurs VLANs avec des étiquettes 802.1Q." />
+            </div>
+            <ProTip>Ne branche pas un PC sur un port trunk. Réserve le trunk pour le lien switch–switch (ou switch–routeur).</ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "VLAN autorisés sur le trunk (Séance 2)",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Par défaut, un trunk transporte <strong>tous les VLANs</strong> (1 à 4094). Pour la sécurité, on restreint aux VLANs utiles : <code className="bg-black/40 px-1 rounded">switchport trunk allowed vlan 10,20</code>. Les VLANs non listés sont interdits sur le trunk.
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+              <HumanCommand cmd="switchport trunk allowed vlan 10,20" human="Autoriser uniquement les VLAN 10 et 20 sur ce trunk. Les autres VLANs ne passent pas." />
+            </div>
+            <p className="text-slate-400 text-sm">Vérification : <code className="text-emerald-400 font-mono">show interfaces trunk</code> → tu vois le port, le mode trunk et la liste des VLANs autorisés.</p>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "VLAN natif (Séance 2, optionnel)",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Sur un trunk, le <strong className="text-blue-400">VLAN natif</strong> est celui dont les trames circulent <strong>sans étiquette</strong> 802.1Q (pour compatibilité). Par défaut c'est le VLAN 1. Pour des raisons de sécurité, on peut le changer vers un VLAN dédié (ex. 999) : <code className="bg-black/40 px-1 rounded">switchport trunk native vlan 999</code>. Les deux extrémités du trunk doivent avoir le même VLAN natif.
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+              <HumanCommand cmd="switchport trunk native vlan 999" human="Définir le VLAN natif sur 999 (hors VLAN 1). À configurer des deux côtés du trunk." />
+            </div>
+            <ProTip>Dans le lab Séance 2, configure le VLAN natif et les VLAN autorisés si le PDF le demande. Vérification : <code className="bg-black/40 px-1 rounded">show interfaces trunk</code>.</ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Pour aller plus loin (optionnel) : IP de Management par VLAN",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Un switch n’a <strong>pas d’IP sur les câbles</strong> (contrairement au routeur). Pour te connecter en SSH ou faire un ping depuis ton PC, il faut lui donner une <strong className="text-blue-400">IP</strong>. Cette IP se met sur une <strong>interface virtuelle</strong> : <code className="bg-black/40 px-1 rounded">interface vlan 1</code> (ou vlan 10, etc.). C’est comme une « adresse du switch » pour l’administration.
+            </p>
+            <div className="bg-amber-900/20 rounded-xl p-5 border border-amber-600/40">
+              <h4 className="text-amber-300 font-bold mb-2">Exemple concret</h4>
+              <p className="text-slate-300 text-sm">Tu es au bureau, ton PC est en 192.168.1.10 (VLAN 1). Tu veux te connecter en SSH au switch. Il faut que le switch ait une IP dans le même réseau, par ex. 192.168.1.2. Tu la mets sur <code className="bg-black/40 px-1 rounded text-emerald-400">interface vlan 1</code>. Ensuite, depuis ton PC : <code className="bg-black/40 px-1 rounded text-emerald-400">ping 192.168.1.2</code> puis <code className="bg-black/40 px-1 rounded text-emerald-400">ssh -l admin 192.168.1.2</code>. Si tu veux aussi te connecter depuis un PC du VLAN 10, tu mets une autre IP sur <code className="bg-black/40 px-1 rounded text-emerald-400">interface vlan 10</code> (ex. 192.168.10.1).</p>
+            </div>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+              <p className="text-emerald-400 font-bold mb-2">Commandes (ex. réseau 192.168.1.0/24, switch en .2) :</p>
+              <HumanCommand cmd="interface vlan 1" human="Ouvrir l’interface virtuelle du VLAN 1 (management)." />
+              <HumanCommand cmd="ip address 192.168.1.2 255.255.255.0" human="Donner l’IP 192.168.1.2 au switch." />
+              <HumanCommand cmd="no shutdown" human="Activer l’interface (sinon elle reste down)." />
+              <p className="text-slate-400 text-sm mt-3">Optionnel : si tu veux te connecter depuis le VLAN 10, ajoute <code className="bg-black/40 px-1 rounded">interface vlan 10</code> + <code className="bg-black/40 px-1 rounded">ip address 192.168.10.1 255.255.255.0</code> + <code className="bg-black/40 px-1 rounded">no shutdown</code>.</p>
+            </div>
+            <ProTip>PC en 192.168.1.x → SSH vers 192.168.1.2. PC en 192.168.10.x → SSH vers 192.168.10.1 (si tu as configuré interface vlan 10). Si le switch doit joindre un autre réseau (ex. TFTP), ajoute <code className="bg-black/40 px-1 rounded">ip default-gateway</code>.</ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Pour aller plus loin (optionnel) : Connexion SSH depuis VLAN 1 et VLAN 2",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              SSH est déjà activé sur le switch (domaine, utilisateur, clé RSA, lignes VTY). Tu peux te connecter depuis n’importe quel PC <strong>qui est dans le même réseau qu’une IP du switch</strong>. Depuis un PC du VLAN 1, tu utilises l’IP du VLAN 1 ; depuis un PC du VLAN 10, l’IP du VLAN 10 (si tu l’as configurée).
+            </p>
+            <div className="bg-amber-900/20 rounded-xl p-5 border border-amber-600/40">
+              <h4 className="text-amber-300 font-bold mb-2">Exemple concret</h4>
+              <p className="text-slate-300 text-sm">Marie (Admin) est sur le VLAN 1, IP 192.168.1.10. Le switch a 192.168.1.2 sur interface vlan 1. Marie ouvre son terminal et tape : <code className="bg-black/40 px-1 rounded text-emerald-400">ssh -l admin 192.168.1.2</code>. Elle entre son mot de passe → elle est sur le switch. Sophie (Commercial) est sur le VLAN 10, IP 192.168.10.20. Si le switch a 192.168.10.1 sur interface vlan 10, Sophie tape : <code className="bg-black/40 px-1 rounded text-emerald-400">ssh -l admin 192.168.10.1</code>. Chacune se connecte à la bonne IP selon son VLAN.</p>
+            </div>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+              <p className="text-slate-400 text-sm mb-2">Depuis un PC du VLAN 1 (ex. 192.168.1.10) :</p>
+              <p className="font-mono text-emerald-400 bg-black/40 rounded px-3 py-2 text-sm">ssh -l admin 192.168.1.2</p>
+              <p className="text-slate-400 text-sm mt-3 mb-2">Depuis un PC du VLAN 10 (ex. 192.168.10.20), si le switch a 192.168.10.1 sur vlan 10 :</p>
+              <p className="font-mono text-emerald-400 bg-black/40 rounded px-3 py-2 text-sm">ssh -l admin 192.168.10.1</p>
+            </div>
+            <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/30">
+              <p className="text-blue-200 text-sm"><strong>Vérification :</strong> une fois connecté, tu vois le prompt du switch (ex. SW-Core#). Tape <code className="bg-black/40 px-1 rounded">show users</code> pour voir les sessions. Avec un compte privilege 15, tu as tous les droits.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Résumé : étapes de configuration VLAN",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Voici l’ordre à suivre pour configurer un switch avec VLANs et pouvoir te connecter en SSH. Exemple : tu viens d’installer un switch pour NovaTech, Admin et Commercial doivent être séparés.
+            </p>
+            <Timeline steps={[
+              "Séance 1 – Créer les VLANs : vlan 10 + name Administration, vlan 20 + name Commercial. Vérifier avec show vlan brief.",
+              "Séance 1 – Attribuer les ports : interface range fa0/1-2 → switchport mode access → switchport access vlan 10 ; puis fa0/3-4 → vlan 20. Vérifier : show vlan brief, ping entre PC même VLAN = OK, VLAN différent = pas de réponse.",
+              "Séance 2 – Trunk : sur le port vers l'autre switch (ex. fa0/24), interface fa0/24 → switchport mode trunk. Vérifier : show interfaces trunk.",
+              "Séance 2 – VLAN autorisés : switchport trunk allowed vlan 10,20 pour restreindre le trunk aux VLANs utiles. Optionnel : switchport trunk native vlan 999 pour changer le VLAN natif (hors VLAN 1).",
+              "Optionnel – IP de management : interface vlan 1 → ip address 192.168.1.2 255.255.255.0 → no shutdown. SSH : depuis un PC du même réseau, ssh -l admin 192.168.1.2.",
+              ]} />
+            <div className="bg-amber-900/20 rounded-xl p-4 border border-amber-600/40">
+              <p className="text-slate-300 text-sm"><strong>En cas d’oubli :</strong> un port sur lequel tu n’as rien fait reste dans le VLAN 1. Pour « déplacer » un PC d’équipe (ex. Marie passe de Admin à Commercial), tu changes juste le VLAN du port avec <code className="bg-black/40 px-1 rounded text-emerald-400">switchport access vlan 20</code>, pas besoin de recâbler.</p>
             </div>
           </div>
         )
@@ -2122,9 +2327,14 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
         type: 'deep_dive',
         title: "Pour les curieux : Détails des commandes VLAN",
         items: [
-          { summary: "vlan 10 puis name Administration", details: "En mode config globale, 'vlan 10' crée le VLAN 10 et ouvre le sous-mode config-vlan. La commande 'name Administration' lui donne un nom lisible. Faire 'exit' pour sortir." },
-          { summary: "interface range fa0/1 - 2", details: "Sélectionne plusieurs ports en une fois (1 et 2). Le prompt devient (config-if-range)#. Toutes les commandes suivantes s'appliquent aux deux ports." },
-          { summary: "switchport mode access vs trunk", details: "En mode access, le port n'appartient qu'à un seul VLAN (celui des PC). En mode trunk, le port transporte plusieurs VLANs étiquetés (lien inter-switch)." }
+          { summary: "vlan 10 puis name Administration", details: "Tu tapes vlan 10 → le switch crée le VLAN 10 et passe en mode (config-vlan)#. Ensuite name Administration donne un nom pour le reconnaître dans show vlan brief. exit pour sortir. Le numéro 10 compte pour le switch ; le nom, c'est pour toi. Exemple : vlan 20 + name Commercial pour le second VLAN." },
+          { summary: "interface range fa0/1 - 2", details: "Tu choisis plusieurs ports d'un coup (1 et 2). Le prompt devient (config-if-range)#. Tout ce que tu tapes après (switchport mode access, switchport access vlan 10) s'applique aux deux ports. Plus rapide que de configurer le port 1, puis le port 2, un par un." },
+          { summary: "switchport mode access vs trunk", details: "Access = le port est pour un seul VLAN (un PC, une imprimante). Un port = un VLAN. Trunk = le port relie deux switches et transporte plusieurs VLANs (étiquetés 802.1Q). Ne branche pas un PC sur un port trunk ; réserve le trunk pour le lien switch–switch ou switch–routeur." },
+          { summary: "interface vlan 1 (SVI)", details: "C'est l'interface virtuelle du switch pour le VLAN 1. C'est là qu'on met l'IP du switch (ip address + no shutdown). Le switch n'a pas d'IP sur les câbles (fa0/1, fa0/2…) ; l'SVI sert pour SSH, ping, TFTP. Exemple : interface vlan 1 → ip address 192.168.1.2 255.255.255.0 → no shutdown." },
+          { summary: "show vlan brief", details: "Affiche la liste des VLANs (numéro, nom) et quels ports sont dans quel VLAN. Après avoir créé les VLANs et assigné les ports, tape show vlan brief pour vérifier : tu dois voir VLAN 10 avec les ports 1–2, VLAN 20 avec les ports 3–4 (ou selon ta config)." },
+          { summary: "switchport mode trunk", details: "Sur le port qui relie deux switches, cette commande active le mode trunk (802.1Q) : le port transporte plusieurs VLANs avec des étiquettes. Ne branche pas un PC sur un port trunk ; réserve le trunk pour le lien switch–switch ou switch–routeur." },
+          { summary: "switchport trunk allowed vlan 10,20", details: "Par défaut, tous les VLANs (1-4094) sont autorisés sur le trunk. Cette commande restreint à 10 et 20 : plus sécurisé et évite de propager des VLANs inutiles. Vérification : show interfaces trunk." },
+          { summary: "switchport trunk native vlan 999", details: "Le VLAN natif est celui dont les trames circulent sans étiquette 802.1Q sur le trunk. Par défaut c'est le VLAN 1. Pour la sécurité, on peut le changer vers un VLAN dédié (ex. 999). À configurer des deux côtés du trunk." }
         ]
       },
       {
@@ -2139,7 +2349,9 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
           { q: "Quelle commande crée le VLAN 10 ?", options: ["create vlan 10", "vlan 10", "switchport vlan 10"], a: 1 },
           { q: "Pour attribuer un port au VLAN 10, on utilise :", options: ["vlan 10 access", "switchport access vlan 10", "port vlan 10"], a: 1 },
           { q: "Comment donner une IP de management à un switch ?", options: ["Sur une interface physique", "Sur interface vlan 1 avec ip address et no shutdown", "Impossible"], a: 1 },
-          { q: "Entre deux PC de VLANs différents (sans routage), le ping :", options: ["Fonctionne", "Ne fonctionne pas (isolation VLAN)", "Fonctionne si même switch"], a: 1 }
+          { q: "Entre deux PC de VLANs différents (sans routage), le ping :", options: ["Fonctionne", "Ne fonctionne pas (isolation VLAN)", "Fonctionne si même switch"], a: 1 },
+          { q: "Quelle commande active le mode trunk sur un port ?", options: ["trunk on", "switchport mode trunk", "port trunk"], a: 1 },
+          { q: "Que fait switchport trunk allowed vlan 10,20 ?", options: ["Autorise tous les VLANs", "Autorise uniquement les VLAN 10 et 20 sur le trunk", "Désactive le trunk"], a: 1 }
         ]
       },
       {
@@ -2151,7 +2363,10 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
           { cmd: "name Administration", desc: "Nommer le VLAN 10" },
           { cmd: "interface range fa0/1 - 2", desc: "Sélectionner les ports PC Admin" },
           { cmd: "switchport mode access", desc: "Port en mode accès" },
-          { cmd: "switchport access vlan 10", desc: "Attribuer au VLAN 10" }
+          { cmd: "switchport access vlan 10", desc: "Attribuer au VLAN 10" },
+          { cmd: "interface fa0/24", desc: "Port trunk vers l'autre switch" },
+          { cmd: "switchport mode trunk", desc: "Activer le mode trunk" },
+          { cmd: "switchport trunk allowed vlan 10,20", desc: "VLAN autorisés sur le trunk (Séance 2)" }
         ]
       },
       {
@@ -2163,6 +2378,8 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
           { q: "name Administration", a: "Nommer le VLAN (Administration)" },
           { q: "switchport mode access", a: "Port en mode accès" },
           { q: "switchport access vlan 10", a: "Attribuer le port au VLAN 10" },
+          { q: "switchport mode trunk", a: "Activer le mode trunk sur le port" },
+          { q: "switchport trunk allowed vlan 10,20", a: "Autoriser uniquement VLAN 10 et 20 sur le trunk" },
           { q: "interface vlan 1", a: "Interface de management VLAN 1" }
         ]
       },
@@ -2174,6 +2391,69 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
     lab: {
       title: "Lab 2 : Introduction VLAN",
       context: "SCÉNARIO : Séparer Administration (VLAN 10) et Commercial (VLAN 20) sur un switch. Créer les VLANs, attribuer les ports, configurer l'IP de management (interface vlan 1), puis tester SSH depuis une machine VLAN 1 et une machine VLAN 2.",
+      consignes: (
+        <div className="space-y-10 text-slate-200 text-base leading-relaxed">
+          <div className="bg-blue-900/30 border border-blue-500/40 rounded-xl p-5">
+            <p className="text-blue-100 font-semibold text-lg mb-1">Où faire les labs Session 2 ?</p>
+            <p className="text-blue-200/90 text-sm leading-relaxed">
+              Les deux labs ci-dessous se font sur <strong>Cisco Packet Tracer</strong> (onglet Packet Tracer dans la barre latérale ou application sur ton poste). Le terminal en bas de page sert à t’entraîner aux commandes avant ou pendant le lab.
+            </p>
+          </div>
+
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-6">
+            <div>
+              <h4 className="text-emerald-400 font-bold text-lg mb-1">LAB Session 2 – Séance 1 : Introduction aux VLANs</h4>
+              <p className="text-slate-400 text-sm">Objectif : sur un seul switch, séparer deux équipes (Administration et Commerciale) en créant deux VLANs et en branchant les bons PC sur les bons ports. À la fin, les PC d’une même équipe peuvent se ping ; les PC d’équipes différentes ne peuvent pas.</p>
+            </div>
+            <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Matériel</p>
+              <ul className="list-none space-y-1 text-slate-300 text-sm">
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> 1 switch manageable (ex. 2960)</li>
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> 2 PC Administration</li>
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> 2 PC Commerciale</li>
+              </ul>
+            </div>
+            <div className="border-l-2 border-emerald-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Étape 1 – Câblage</p>
+              <p className="text-slate-300 text-sm">Chaque PC sur un port différent du switch (ex. PC Admin sur ports 1 et 2, PC Commercial sur ports 3 et 4).</p>
+            </div>
+            <div className="border-l-2 border-emerald-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Étape 2 – Créer les VLANs</p>
+              <p className="text-slate-300 text-sm">Sur le switch : VLAN 10 nommé <strong>Administration</strong>, VLAN 20 nommé <strong>Commercial</strong>. Commandes : <code className="text-emerald-400 font-mono text-xs">vlan 10</code> + <code className="text-emerald-400 font-mono text-xs">name Administration</code> ; idem pour 20 / Commercial.</p>
+            </div>
+            <div className="border-l-2 border-emerald-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Étape 3 – Attribuer les ports</p>
+              <p className="text-slate-300 text-sm">Ports des PC Admin → VLAN 10. Ports des PC Commercial → VLAN 20. Mettre chaque port en mode <strong>access</strong> (<code className="text-emerald-400 font-mono text-xs">switchport mode access</code> puis <code className="text-emerald-400 font-mono text-xs">switchport access vlan 10</code> ou <code className="text-emerald-400 font-mono text-xs">20</code>).</p>
+            </div>
+            <div className="border-l-2 border-emerald-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Étape 4 – Vérifier</p>
+              <p className="text-slate-300 text-sm"><code className="text-emerald-400 font-mono text-xs">show vlan brief</code> → tu dois voir VLAN 10 et 20 avec les bons ports. Ping : PC Admin ↔ PC Admin = OK ; PC Admin ↔ PC Commercial = pas de réponse (normal).</p>
+            </div>
+            <p className="text-slate-400 text-xs border-l-2 border-slate-500/50 pl-3 py-1">Compétences : création de VLANs, ports en mode access, vérification de la segmentation.</p>
+          </div>
+
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-6">
+            <div>
+              <h4 className="text-emerald-400 font-bold text-lg mb-1">LAB Session 2 – Séance 2 : VLAN avancés et sécurisation</h4>
+              <p className="text-slate-400 text-sm">Objectif : à partir d’un switch déjà configuré avec des VLANs (ex. Admin / Commercial), appliquer des bonnes pratiques : VLAN natif sur les trunks, restriction des VLANs autorisés, vérification des ports d’accès.</p>
+            </div>
+            <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Matériel typique</p>
+              <p className="text-slate-300 text-sm">1 ou 2 switch(s) avec VLANs déjà créés (ex. VLAN 10, 20). PC branchés par VLAN. Si 2 switches : un lien trunk entre eux.</p>
+            </div>
+            <div className="border-l-2 border-blue-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">À faire (selon le PDF fourni)</p>
+              <ol className="timeline-consignes space-y-1.5 text-slate-300 text-sm">
+                <li><strong>VLAN natif :</strong> Sur les ports trunk, configurer un VLAN natif dédié (hors VLAN 1) si demandé.</li>
+                <li><strong>VLAN autorisés :</strong> Sur le trunk, autoriser uniquement les VLANs utiles : <code className="text-emerald-400 font-mono text-xs">switchport trunk allowed vlan 10,20</code>.</li>
+                <li><strong>Ports d’accès :</strong> Vérifier que les ports vers les PC sont en mode access et dans le bon VLAN (pas de trunk vers un PC).</li>
+                <li><strong>Vérifications :</strong> <code className="text-emerald-400 font-mono text-xs">show interfaces trunk</code> et <code className="text-emerald-400 font-mono text-xs">show vlan brief</code>. Optionnel : <code className="text-emerald-400 font-mono text-xs">switchport nonegotiate</code> sur les ports d’accès.</li>
+              </ol>
+            </div>
+            <p className="text-amber-300/90 text-xs border-l-2 border-amber-500/50 pl-3 py-1">Pour les consignes exactes (étapes, adressage), suivre le PDF « 3 - Introduction Vlan avancés et sécurisation - LAB.pdf ».</p>
+          </div>
+        </div>
+      ),
       initialPrompt: "Switch>",
       tasks: [
         { cmd: "enable", desc: "Mode privilégié" },
@@ -3781,16 +4061,16 @@ const PacketTracerSection = () => {
 };
 
 // --- LAB INDÉPENDANT : Session 1 (consignes + correction) ---
-const LabsSection = ({ lab }) => {
+const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription }) => {
   const [labTab, setLabTab] = useState('consignes'); // 'consignes' | 'correction' | 'correction_lab2'
   return (
     <div className="h-full flex flex-col">
       <div className="bg-slate-800 p-6 rounded-t-xl border border-slate-700 border-b-0">
         <h3 className="font-bold text-white flex items-center gap-2 text-xl">
-          <Terminal className="text-emerald-500 w-5 h-5" /> Lab Pratique – Session 1
+          <Terminal className="text-emerald-500 w-5 h-5" /> Lab Pratique – {sessionLabel}
         </h3>
         <p className="text-slate-300 mt-2 max-w-2xl leading-relaxed">
-          Les trois labs (S1, S2 SSH, S3 DNS) se réalisent sur <strong className="text-blue-300">Cisco Packet Tracer</strong>. Consignes et corrections ci-dessous.
+          {sessionDescription ?? <>Les trois labs (S1, S2 SSH, S3 DNS) se réalisent sur <strong className="text-blue-300">Cisco Packet Tracer</strong>. Consignes et corrections ci-dessous.</>}
         </p>
         <div className="flex flex-wrap gap-2 mt-4 p-1 bg-slate-900/60 rounded-lg border border-slate-700 w-fit">
           <button
@@ -4339,6 +4619,25 @@ export default function NetMasterClass() {
             </button>
             <button
               onClick={() => {
+                setViewMode('labs_s2');
+                if (window.innerWidth < 1024) setSidebarOpen(false);
+              }}
+              className={`w-full p-4 rounded-xl flex items-center gap-3 transition-all border ${
+                viewMode === 'labs_s2'
+                  ? 'bg-blue-600/20 border-blue-500 text-blue-100'
+                  : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-400 hover:border-slate-600'
+              }`}
+            >
+              <div className={`p-2 rounded-lg ${viewMode === 'labs_s2' ? 'bg-blue-600 text-white' : 'bg-slate-800'}`}>
+                <Network className="w-5 h-5" />
+              </div>
+              <div className="text-left flex-1">
+                <p className="font-bold text-sm">Lab Session 2</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">Introduction VLAN, VLAN avancés</p>
+              </div>
+            </button>
+            <button
+              onClick={() => {
                 setViewMode('packet_tracer');
                 if (window.innerWidth < 1024) setSidebarOpen(false);
               }}
@@ -4377,7 +4676,7 @@ export default function NetMasterClass() {
             </button>
             <div>
               <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
-                {viewMode === 'packet_tracer' ? 'Packet Tracer – Simulateur réseau' : viewMode === 'labs' ? 'Lab Pratique – Session 1' : activeSession.title}
+                {viewMode === 'packet_tracer' ? 'Packet Tracer – Simulateur réseau' : viewMode === 'labs' ? 'Lab Pratique – Session 1' : viewMode === 'labs_s2' ? 'Lab Pratique – Session 2' : activeSession.title}
               </h2>
             </div>
           </div>
@@ -4415,7 +4714,11 @@ export default function NetMasterClass() {
             </div>
           ) : viewMode === 'labs' ? (
             <div className="h-full min-h-[500px]">
-              <LabsSection lab={sessions[0].lab} />
+              <LabsSection lab={sessions[0].lab} sessionLabel="Session 1" sessionDescription="Les trois labs (S1, S2, S3) se réalisent sur Cisco Packet Tracer. Consignes et corrections ci-dessous." />
+            </div>
+          ) : viewMode === 'labs_s2' ? (
+            <div className="h-full min-h-[500px]">
+              <LabsSection lab={sessions[1].lab} sessionLabel="Session 2" sessionDescription="Les deux labs (Introduction VLAN, VLAN avancés et sécurisation) se réalisent sur Cisco Packet Tracer. Consignes et corrections ci-dessous." />
             </div>
           ) : (
           <div className="max-w-6xl mx-auto h-full flex flex-col">
