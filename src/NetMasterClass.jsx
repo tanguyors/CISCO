@@ -1483,6 +1483,241 @@ const PrivilegeExplorer = () => {
   );
 };
 
+// --- Bloc commande + explication (lisibilité) ---
+const CmdLine = ({ cmd, children }) => (
+  <div className="flex flex-col sm:flex-row sm:items-start gap-2 py-2 border-b border-slate-700/50 last:border-b-0">
+    <code className="font-mono text-emerald-400 bg-black/40 px-3 py-1.5 rounded text-sm shrink-0 whitespace-nowrap">{cmd}</code>
+    <p className="text-slate-400 text-sm pl-0 sm:pl-2">{children}</p>
+  </div>
+);
+
+// --- CORRECTION DÉTAILLÉE LAB 1 SESSION 2 (Introduction VLAN) ---
+const CorrectionLab1Session2 = () => (
+  <div className="bg-slate-900 rounded-xl border border-slate-700 shadow-xl overflow-hidden">
+    <div className="bg-gradient-to-r from-emerald-900/50 to-blue-900/50 p-5 border-b border-slate-700">
+      <h3 className="text-xl font-bold text-white flex items-center gap-3">
+        <CheckCircle className="text-emerald-400 w-6 h-6" /> Solution Lab 1 Session 2 : Introduction aux VLANs
+      </h3>
+      <p className="text-slate-400 mt-2 text-sm">Commande par commande avec explication.</p>
+    </div>
+
+    <div className="p-5 space-y-6 max-h-[70vh] overflow-y-auto">
+      {/* MATÉRIEL */}
+      <section>
+        <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">🧩 Matériel</h2>
+        <p className="text-slate-300 text-sm">1 switch (2960), 4 PC : PC-Admin1, PC-Admin2, PC-Com1, PC-Com2.</p>
+      </section>
+
+      {/* ÉTAPE 1 — CÂBLAGE */}
+      <section>
+        <h2 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-2">🟦 Étape 1 — Câblage</h2>
+        <p className="text-slate-300 text-sm">Branche chaque PC sur un port du switch (câble droit ou auto). Exemple : PC-Admin1 → Fa0/1, PC-Admin2 → Fa0/2, PC-Com1 → Fa0/3, PC-Com2 → Fa0/4. Vérif : liens 🟢 verts.</p>
+      </section>
+
+      {/* ÉTAPE 2 — IP (PC) */}
+      <section>
+        <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">🟨 Étape 2 — IP sur les PC</h2>
+        <p className="text-slate-300 text-sm mb-2">Sur chaque PC : Desktop → IP Configuration. Même réseau pour tous (pour bien voir l’effet des VLANs). Sur chaque PC : Desktop → IP Configuration.</p>
+        <div className="overflow-x-auto mb-3">
+          <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg overflow-hidden">
+            <thead><tr className="bg-slate-700/50"><th className="p-2 text-left">PC</th><th className="p-2 text-left">IP</th><th className="p-2 text-left">Masque</th></tr></thead>
+            <tbody>
+              <tr className="border-t border-slate-600"><td className="p-2">PC-Admin1</td><td className="p-2 font-mono text-emerald-400">192.168.1.10</td><td className="p-2 font-mono">255.255.255.0</td></tr>
+              <tr className="border-t border-slate-600"><td className="p-2">PC-Admin2</td><td className="p-2 font-mono text-emerald-400">192.168.1.11</td><td className="p-2 font-mono">255.255.255.0</td></tr>
+              <tr className="border-t border-slate-600"><td className="p-2">PC-Com1</td><td className="p-2 font-mono text-emerald-400">192.168.1.20</td><td className="p-2 font-mono">255.255.255.0</td></tr>
+              <tr className="border-t border-slate-600"><td className="p-2">PC-Com2</td><td className="p-2 font-mono text-emerald-400">192.168.1.21</td><td className="p-2 font-mono">255.255.255.0</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="text-amber-300/90 text-xs border-l-2 border-amber-500/50 pl-3 py-1">⚠️ PAS de gateway (pas de routeur dans ce lab). Les VLANs agissent au niveau du switch ; même réseau IP, mais réseaux VLAN séparés.</p>
+      </section>
+
+      {/* ÉTAPE 3 — CRÉER LES VLANs */}
+      <section>
+        <h2 className="text-sm font-bold text-red-400 uppercase tracking-wider mb-2">🟥 Étape 3 — Créer les VLANs (switch, CLI)</h2>
+        <p className="text-slate-300 text-sm mb-3">Ouvre le switch → CLI.</p>
+        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0 mb-4">
+          <CmdLine cmd="enable">Passe en mode privilégié (prompt #).</CmdLine>
+          <CmdLine cmd="configure terminal">Entre en mode configuration globale.</CmdLine>
+          <CmdLine cmd="vlan 10">Crée le VLAN 10. Le switch passe en (config-vlan)#.</CmdLine>
+          <CmdLine cmd="name Administration">Donne le nom Administration au VLAN 10.</CmdLine>
+          <CmdLine cmd="exit">Sort du VLAN 10.</CmdLine>
+          <CmdLine cmd="vlan 20">Crée le VLAN 20.</CmdLine>
+          <CmdLine cmd="name Commercial">Donne le nom Commercial au VLAN 20.</CmdLine>
+          <CmdLine cmd="exit">Sort du VLAN 20.</CmdLine>
+          <CmdLine cmd="show vlan brief">Vérif : tu vois VLAN 10 et 20. Aucun port dedans pour l'instant, c'est normal.</CmdLine>
+        </div>
+        <p className="text-slate-400 text-xs mb-2 hidden"> <code className="text-emerald-400 font-mono">show vlan brief</code> → tu dois voir 10 Administration et 20 Commercial. Pour l’instant aucun port n’est dedans, c’est normal.</p>
+      </section>
+
+      {/* ÉTAPE 4 — ATTRIBUER LES PORTS (commande par commande) */}
+      <section>
+        <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-2">🟩 Étape 4 — Attribuer les ports aux VLANs</h2>
+        <p className="text-slate-300 text-sm mb-2">Ports Admin (1 et 2) → VLAN 10. Ports Commercial (3 et 4) → VLAN 20.</p>
+        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0 mb-3">
+          <CmdLine cmd="interface range fastEthernet0/1 - 2">Sélectionne les ports 1 et 2 (PC Admin).</CmdLine>
+          <CmdLine cmd="switchport mode access">Met les ports en mode accès (un VLAN par port, pour les PC).</CmdLine>
+          <CmdLine cmd="switchport access vlan 10">Assigne ces deux ports au VLAN 10 (Administration).</CmdLine>
+          <CmdLine cmd="exit">Quitte la plage de ports.</CmdLine>
+        </div>
+        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
+          <CmdLine cmd="interface range fastEthernet0/3 - 4">Sélectionne les ports 3 et 4 (PC Commercial).</CmdLine>
+          <CmdLine cmd="switchport mode access">Mode accès.</CmdLine>
+          <CmdLine cmd="switchport access vlan 20">Assigne ces ports au VLAN 20 (Commercial).</CmdLine>
+          <CmdLine cmd="exit">Quitte la plage.</CmdLine>
+          <CmdLine cmd="show vlan brief">Vérif : 10 Administration → Fa0/1, Fa0/2 ; 20 Commercial → Fa0/3, Fa0/4.</CmdLine>
+        </div>
+      </section>
+
+      {/* ÉTAPE 5 & 6 — VÉRIF + PING */}
+      <section>
+        <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-2">🟪 Étape 5 & 6 — Vérification et tests ping</h2>
+        <div className="space-y-3 text-sm">
+          <div className="flex items-start gap-2">
+            <span className="text-emerald-400 font-bold">1.</span>
+            <div><strong>VLAN Administration :</strong> depuis PC-Admin1, <code className="text-emerald-400 font-mono">ping 192.168.1.11</code> → ✅ Réponse OK.</div>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-emerald-400 font-bold">2.</span>
+            <div><strong>VLAN Commercial :</strong> depuis PC-Com1, <code className="text-emerald-400 font-mono">ping 192.168.1.21</code> → ✅ Réponse OK.</div>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="text-red-400 font-bold">3.</span>
+            <div><strong>Entre VLANs :</strong> depuis PC-Admin1, <code className="text-emerald-400 font-mono">ping 192.168.1.20</code> → ❌ Aucune réponse. C’est normal : les VLANs sont isolés.</div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div className="bg-emerald-900/20 border-t border-emerald-500/30 p-4">
+      <p className="text-emerald-400 text-sm font-medium flex items-center gap-2"><CheckCircle className="w-5 h-5" /> Lab complété : VLANs créés, ports assignés, isolation vérifiée.</p>
+    </div>
+  </div>
+);
+
+// --- CORRECTION DÉTAILLÉE LAB 2 SESSION 2 (VLAN avancés, trunk, VLAN natif) ---
+const CorrectionLab2Session2 = () => (
+  <div className="bg-slate-900 rounded-xl border border-slate-700 shadow-xl overflow-hidden">
+    <div className="bg-gradient-to-r from-blue-900/50 to-emerald-900/50 p-5 border-b border-slate-700">
+      <h3 className="text-xl font-bold text-white flex items-center gap-3">
+        <CheckCircle className="text-blue-400 w-6 h-6" /> Solution Lab 2 Session 2 : VLAN avancés et sécurisation
+      </h3>
+      <p className="text-slate-400 mt-2 text-sm">Trunk, VLAN natif 99, VLANs autorisés 10 et 20. Commande par commande avec explication.</p>
+    </div>
+
+    <div className="p-5 space-y-6 max-h-[70vh] overflow-y-auto">
+      {/* PLAN DU LAB */}
+      <section>
+        <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">🧩 Plan du lab</h2>
+        <ul className="text-slate-300 text-sm list-disc pl-5 space-y-1">
+          <li>Vérifier VLANs existants</li>
+          <li>Créer un VLAN natif dédié (VLAN 99)</li>
+          <li>Configurer le lien TRUNK entre switches</li>
+          <li>Restreindre les VLANs autorisés sur le trunk (10, 20 seulement)</li>
+          <li>Vérifier les ports PC (access + bon VLAN, pas trunk)</li>
+          <li>Vérifier avec les commandes show</li>
+        </ul>
+      </section>
+
+      {/* ÉTAPE 0 — CÂBLAGE */}
+      <section>
+        <h2 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-2">🟦 Étape 0 — Câblage</h2>
+        <p className="text-slate-300 text-sm mb-2">PC Admin sur ports access (ex. Fa0/1–2). PC Commercial sur ports access (ex. Fa0/3–4). Lien entre switches sur un port dédié (ex. Fa0/24 ↔ Fa0/24) = TRUNK.</p>
+      </section>
+
+      {/* 1) VÉRIFIER L'ÉTAT ACTUEL */}
+      <section>
+        <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">1) Vérifier l'état actuel (avant de toucher)</h2>
+        <p className="text-slate-300 text-sm mb-2">Sur le switch (pas routeur) :</p>
+        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
+          <CmdLine cmd="enable">Passe en mode admin (#) pour pouvoir vérifier/configurer.</CmdLine>
+          <CmdLine cmd="show vlan brief">Affiche les VLANs existants (10, 20…), quels ports sont dedans. Tu dois voir VLAN 10 et 20, avec leurs ports PC.</CmdLine>
+        </div>
+      </section>
+
+      {/* 2) CRÉER VLAN 99 NATIF */}
+      <section>
+        <h2 className="text-sm font-bold text-red-400 uppercase tracking-wider mb-2">2) Créer un VLAN natif dédié (VLAN 99)</h2>
+        <p className="text-slate-300 text-sm mb-2">Le VLAN natif par défaut est VLAN 1 (pas recommandé). On met un VLAN natif « neutre » (99) pour éviter des problèmes. Sur chaque switch :</p>
+        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
+          <CmdLine cmd="configure terminal">Entre en mode config.</CmdLine>
+          <CmdLine cmd="vlan 99">Crée le VLAN 99.</CmdLine>
+          <CmdLine cmd="name Native">Donne un nom lisible.</CmdLine>
+          <CmdLine cmd="exit">Retour au niveau config général.</CmdLine>
+        </div>
+      </section>
+
+      {/* 3) CONFIGURER LE PORT TRUNK */}
+      <section>
+        <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-2">3) Configurer le port TRUNK (ex. Fa0/24)</h2>
+        <p className="text-slate-300 text-sm mb-2">Fais-le sur SW1 et SW2 sur le port qui relie les deux switches.</p>
+        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
+          <CmdLine cmd="interface FastEthernet0/24">Sélectionne le port trunk.</CmdLine>
+          <CmdLine cmd="switchport mode trunk">Force le port en trunk (il transporte plusieurs VLANs).</CmdLine>
+          <CmdLine cmd="switchport trunk native vlan 99">Définit VLAN 99 comme VLAN natif (au lieu de VLAN 1).</CmdLine>
+          <CmdLine cmd="switchport trunk allowed vlan 10,20">Autorise uniquement VLAN 10 et 20 sur ce trunk (bonne pratique sécurité).</CmdLine>
+          <CmdLine cmd="switchport nonegotiate">Désactive la négociation automatique (DTP). Sécurité + évite qu'un équipement force un trunk « par surprise ».</CmdLine>
+          <CmdLine cmd="exit">Quitte l'interface.</CmdLine>
+        </div>
+      </section>
+
+      {/* 4) PORTS PC (ACCESS) */}
+      <section>
+        <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-2">4) Vérifier / sécuriser les ports PC (ACCESS)</h2>
+        <p className="text-slate-300 text-sm mb-2">Un port vers un PC doit être : access, dans le bon VLAN, jamais trunk.</p>
+        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0 mb-3">
+          <CmdLine cmd="interface range FastEthernet0/1 - 2">PC Admin (Fa0/1-2 → VLAN 10).</CmdLine>
+          <CmdLine cmd="switchport mode access">Mode accès.</CmdLine>
+          <CmdLine cmd="switchport access vlan 10">VLAN 10.</CmdLine>
+          <CmdLine cmd="switchport nonegotiate">Désactive DTP.</CmdLine>
+          <CmdLine cmd="exit">Quitte la plage.</CmdLine>
+        </div>
+        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
+          <CmdLine cmd="interface range FastEthernet0/3 - 4">PC Commercial (Fa0/3-4 → VLAN 20).</CmdLine>
+          <CmdLine cmd="switchport mode access">Mode accès.</CmdLine>
+          <CmdLine cmd="switchport access vlan 20">VLAN 20.</CmdLine>
+          <CmdLine cmd="switchport nonegotiate">Désactive DTP.</CmdLine>
+          <CmdLine cmd="exit">Quitte la plage.</CmdLine>
+        </div>
+      </section>
+
+      {/* 5) VÉRIFICATIONS */}
+      <section>
+        <h2 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-2">5) Vérifications (commandes « preuves » du lab)</h2>
+        <p className="text-slate-300 text-sm mb-2"><strong>A) VLANs + ports :</strong></p>
+        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0 mb-3">
+          <CmdLine cmd="end">Retour au mode privilégié.</CmdLine>
+          <CmdLine cmd="show vlan brief">Tu dois voir : VLAN 10 (ports Admin), VLAN 20 (ports Commercial), VLAN 99 (souvent aucun port access).</CmdLine>
+        </div>
+        <p className="text-slate-300 text-sm mb-2"><strong>B) Trunk actif :</strong></p>
+        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0 mb-3">
+          <CmdLine cmd="show interfaces trunk">Tu dois voir : Fa0/24 en trunk, Native VLAN = 99, Allowed VLANs = 10,20. Si rien : un seul switch ou lien trunk non branché.</CmdLine>
+        </div>
+        <p className="text-slate-300 text-sm mb-2"><strong>C) Port PC (static access) — ex. Fa0/1 :</strong></p>
+        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0 mb-3">
+          <CmdLine cmd="show interfaces FastEthernet0/1 switchport">Tu dois lire : Administrative Mode: static access, Operational Mode: static access, Access Mode VLAN: 10.</CmdLine>
+        </div>
+        <p className="text-slate-300 text-sm mb-2"><strong>Port trunk Fa0/24 :</strong></p>
+        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
+          <CmdLine cmd="show interfaces FastEthernet0/24 switchport">Tu dois lire : Administrative Mode: trunk, Trunking Native Mode VLAN: 99, Trunking VLANs Enabled: 10,20.</CmdLine>
+        </div>
+      </section>
+
+      {/* 6) SAUVEGARDER */}
+      <section>
+        <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">6) Sauvegarder (toujours)</h2>
+        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
+          <CmdLine cmd="copy running-config startup-config">Sauvegarde permanente (sinon perdu au redémarrage).</CmdLine>
+        </div>
+      </section>
+    </div>
+
+    <div className="bg-blue-900/20 border-t border-blue-500/30 p-4">
+      <p className="text-blue-300 text-sm font-medium flex items-center gap-2"><CheckCircle className="w-5 h-5" /> Résultat final : ports PC en access + bon VLAN (10 ou 20) ; trunk inter-switch : trunk, native VLAN 99, allowed VLANs 10,20. Vérif via show vlan brief + show interfaces trunk + show interfaces … switchport.</p>
+    </div>
+  </div>
+);
+
 // --- DONNÉES DE COURS (théorie + lab + quiz) ---
 
 const sessions = [
@@ -1829,6 +2064,23 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
         title: "Flux de Connexion SSH (5 Étapes)"
       },
       {
+        type: 'rich_text',
+        title: "Dépannage SSH",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Pour diagnostiquer une connexion SSH qui échoue ou vérifier le statut SSH sur l'équipement, utilise ces commandes en mode privilégié (#).
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3">
+              <HumanCommand cmd="terminal monitor" human="Activer l'affichage des messages de debug en SSH sur la session courante (console ou Telnet). Sans ça, certains debugs ne s'affichent pas." />
+              <HumanCommand cmd="show ip ssh" human="Affiche le statut SSH : version (1 ou 2), timeout, nombre de tentatives d'authentification. Vérifie que SSH est bien activé." />
+              <HumanCommand cmd="show ssh" human="Affiche les sessions SSH actives (connexions en cours, utilisateurs connectés). Utile pour voir qui est loggé." />
+            </div>
+            <ProTip>Si la connexion SSH échoue : vérifier <code className="bg-black/40 px-1 rounded">show ip ssh</code> (SSH activé ?), que le domaine et les clés RSA sont configurés, et que les lignes VTY ont <code className="bg-black/40 px-1 rounded">transport input ssh</code> et <code className="bg-black/40 px-1 rounded">login local</code>.</ProTip>
+          </div>
+        )
+      },
+      {
         type: 'flashcards',
         title: "Révision Complète : Toutes les Commandes",
         mode: 'command_to_definition',
@@ -2136,6 +2388,87 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       },
       {
         type: 'rich_text',
+        title: "Plage des VLAN",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Les numéros de VLAN sont répartis en plages normalisées. Le <strong className="text-blue-400">nombre maximum</strong> de VLANs dépend du switch (64, 128, 1024 ou 4096 selon le modèle).
+            </p>
+            <div className="bg-slate-800 rounded-xl p-5 border border-slate-700 space-y-2">
+              <p className="text-slate-300 text-sm"><strong>VLAN 1</strong> = VLAN par défaut (tous les ports à l’usine).</p>
+              <p className="text-slate-300 text-sm"><strong>2–1001</strong> = VLANs Ethernet normaux (ceux qu’on crée en lab).</p>
+              <p className="text-slate-300 text-sm"><strong>1002–1005</strong> = FDDI / Token Ring (legacy, réservés).</p>
+              <p className="text-slate-300 text-sm"><strong>1006–4094</strong> = plage étendue (selon logiciel).</p>
+              <p className="text-slate-300 text-sm"><strong>0 et 4095</strong> = réservés aux systèmes, invisibles en config.</p>
+            </div>
+            <ProTip>En lab tu utilises en général 10, 20, 99… dans la plage 2–1001. Le nom (<code className="bg-black/40 px-1 rounded">name</code>) est pour l’affichage ; le numéro est utilisé par le protocole (ex. 802.1Q).</ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Appartenance à un VLAN (autres modes)",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              En lab on assigne un port à un VLAN via le switch (<strong>mode access</strong>). En environnement réel, l’appartenance peut aussi se faire par :
+            </p>
+            <ul className="list-none space-y-2 text-slate-300 text-sm">
+              <li className="flex gap-2 items-start"><span className="text-emerald-400 shrink-0">•</span> <strong>Switch (mode access)</strong> : un port = un VLAN, configuré manuellement (ce qu’on fait en lab).</li>
+              <li className="flex gap-2 items-start"><span className="text-emerald-400 shrink-0">•</span> <strong>VMPS</strong> (VLAN Membership Policy Server) : le VLAN est attribué selon l’<strong>adresse MAC</strong> du poste connecté.</li>
+              <li className="flex gap-2 items-start"><span className="text-emerald-400 shrink-0">•</span> <strong>CDP</strong> (Cisco Discovery Protocol) : un poste IP détecté (ex. téléphone IP) peut avoir un VLAN <strong>voice</strong> + un VLAN <strong>data</strong> (voir DATA/VOIP).</li>
+              <li className="flex gap-2 items-start"><span className="text-emerald-400 shrink-0">•</span> <strong>802.1X</strong> (TACACS+ / RADIUS) : le serveur d’authentification indique à quel VLAN placer l’utilisateur après connexion.</li>
+            </ul>
+            <p className="text-slate-400 text-sm">Le nombre max de VLANs supportés dépend du switch (64, 128, 1024, 4096).</p>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "VLAN, sous-réseau et dépannage",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Les machines d’un <strong>même VLAN</strong> doivent être dans le <strong>même sous-réseau IP</strong>. Sinon le routage ne fonctionne pas comme prévu.
+            </p>
+            <p className="text-slate-300 text-sm">
+              Si le trafic VLAN est <strong>lent</strong>, les causes possibles sont : <strong>collision domain</strong> (carte réseau défaillante), <strong>broadcast domain</strong> (CPU, boucle), <strong>inter-VLAN / mismatch</strong> (mauvaise config trunk ou native). Une collision peut venir de congestions ou d’un mismatch (ex. VLAN natif différent de part et d’autre du trunk).
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-2">
+              <p className="text-emerald-400 font-bold mb-2">Commandes utiles</p>
+              <HumanCommand cmd="show vlan" human="Liste des VLANs et des ports assignés." />
+              <HumanCommand cmd="show cdp neighbors" human="Voisins CDP (équipements connectés)." />
+              <p className="text-slate-400 text-sm mt-2">En mode config : <code className="text-emerald-400 font-mono">vlan 50</code> crée le VLAN ; <code className="text-emerald-400 font-mono">no vlan 50</code> le supprime. <code className="text-emerald-400 font-mono">name DATA</code> ou <code className="text-emerald-400 font-mono">name FINANCE</code> modifie le nom. La commande <strong>exit</strong> en (config-vlan)# enregistre le VLAN en base avant de sortir.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "DATA / VOIP (voice vlan)",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Sur un même port (ex. téléphone IP + PC derrière), on peut avoir <strong>deux VLANs</strong> : un pour la <strong>voix</strong> (prioritaire) et un pour les <strong>données</strong>. <strong>CDP</strong> doit être activé pour que le switch différencie les trames et priorise la voix.
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-2">
+              <p className="text-emerald-400 font-bold mb-2">Exemple : VLAN 10 = VoIP, VLAN 20 = data</p>
+              <HumanCommand cmd="vlan 10" human="Créer le VLAN voix." />
+              <HumanCommand cmd="name voip" human="Nommer le VLAN." />
+              <HumanCommand cmd="exit" human="Enregistrer en base (add to database)." />
+              <HumanCommand cmd="vlan 20" human="Créer le VLAN data." />
+              <HumanCommand cmd="name data" human="Nommer le VLAN." />
+              <HumanCommand cmd="exit" human="Sortir." />
+              <HumanCommand cmd="interface fastEthernet 0/1" human="Port vers le téléphone (et PC en aval)." />
+              <HumanCommand cmd="switchport voice vlan 10" human="VLAN voix (prioritaire)." />
+              <HumanCommand cmd="switchport access vlan 20" human="VLAN données (trafic PC)." />
+            </div>
+            <ProTip>Un téléphone IP marque ses trames ; le switch les envoie dans le VLAN voice. Le PC est en VLAN data. CDP permet au switch de reconnaître le téléphone.</ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
         title: "Ce que tu feras en lab (Séance 1)",
         content: (
           <div className="space-y-6">
@@ -2210,48 +2543,129 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       },
       {
         type: 'rich_text',
-        title: "Ce que tu feras en lab (Séance 2) : Trunk",
+        title: "Cours Trunk – Introduction",
         content: (
           <div className="space-y-6">
             <p className="text-slate-200 leading-relaxed text-lg">
-              En <strong>Lab Séance 2</strong>, tu auras un ou deux switch(s) avec des VLANs déjà créés. Si deux switches : le lien entre eux doit être en <strong className="text-blue-400">trunk</strong> pour transporter plusieurs VLANs (étiquetés 802.1Q). Un port trunk = un seul câble qui transporte VLAN 10, 20, etc.
+              L’appellation <strong className="text-blue-400">trunk</strong> est réservée à Cisco. Chez HP, « trunk » signifie agrégat de liens (ce que Cisco appelle EtherChannel). Ici on parle du trunk Cisco : un seul câble entre deux switches qui transporte <strong>plusieurs VLANs</strong> (10, 20, etc.). Sans trunk, il faudrait un câble par VLAN : ingérable.
             </p>
-            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-              <p className="text-emerald-400 font-bold mb-2">Commandes (port vers l'autre switch, ex. fa0/24) :</p>
-              <HumanCommand cmd="interface fa0/24" human="Choisir le port qui relie l'autre switch." />
-              <HumanCommand cmd="switchport mode trunk" human="Activer le mode trunk : le port transporte plusieurs VLANs avec des étiquettes 802.1Q." />
-            </div>
-            <ProTip>Ne branche pas un PC sur un port trunk. Réserve le trunk pour le lien switch–switch (ou switch–routeur).</ProTip>
+            <p className="text-slate-300 text-sm">
+              Comment le switch sait à quel VLAN appartient chaque trame ? C’est là que le trunk intervient : il fait transiter plusieurs VLANs sur un seul lien en <strong>incluant un tag (étiquette) du VLAN dans la trame</strong> — c’est le protocole <strong>802.1Q</strong>.
+            </p>
+            <ProTip>Un port trunk = pour le lien switch–switch (ou switch–routeur). Ne branche jamais un PC sur un port trunk.</ProTip>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "VLAN autorisés sur le trunk (Séance 2)",
+        title: "802.1Q – L'étiquette (tag)",
         content: (
           <div className="space-y-6">
             <p className="text-slate-200 leading-relaxed text-lg">
-              Par défaut, un trunk transporte <strong>tous les VLANs</strong> (1 à 4094). Pour la sécurité, on restreint aux VLANs utiles : <code className="bg-black/40 px-1 rounded">switchport trunk allowed vlan 10,20</code>. Les VLANs non listés sont interdits sur le trunk.
+              Le switch ajoute une <strong className="text-blue-400">étiquette de 4 octets</strong> dans la trame. Le plus important : le <strong>numéro du VLAN</strong> (12 bits, jusqu'à 4094 VLANs). L'autre switch lit ce numéro et envoie la trame dans le bon VLAN.
             </p>
-            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-              <HumanCommand cmd="switchport trunk allowed vlan 10,20" human="Autoriser uniquement les VLAN 10 et 20 sur ce trunk. Les autres VLANs ne passent pas." />
+            <div className="bg-slate-800 rounded-xl p-5 border border-slate-700 space-y-3">
+              <p className="text-slate-300 text-sm"><strong>Ethertype</strong> = identifie la trame 802.1Q.</p>
+              <p className="text-slate-300 text-sm"><strong>Priorité</strong> = classe le trafic (QoS).</p>
+              <p className="text-slate-300 text-sm"><strong>CFI (flag)</strong> = compatible Ethernet / Token Ring.</p>
+              <p className="text-slate-300 text-sm"><strong>VLAN ID</strong> = identifiant du VLAN sur <strong>12 bits</strong> (0–4095 ; en pratique 1–4094).</p>
             </div>
-            <p className="text-slate-400 text-sm">Vérification : <code className="text-emerald-400 font-mono">show interfaces trunk</code> → tu vois le port, le mode trunk et la liste des VLANs autorisés.</p>
+            <p className="text-slate-400 text-sm">C’est ce TAG qui permet au switch de l’autre côté du trunk de savoir dans quel VLAN envoyer la trame.</p>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "VLAN natif (Séance 2, optionnel)",
+        title: "802.1Q (dot1q) vs ISL",
         content: (
           <div className="space-y-6">
             <p className="text-slate-200 leading-relaxed text-lg">
-              Sur un trunk, le <strong className="text-blue-400">VLAN natif</strong> est celui dont les trames circulent <strong>sans étiquette</strong> 802.1Q (pour compatibilité). Par défaut c'est le VLAN 1. Pour des raisons de sécurité, on peut le changer vers un VLAN dédié (ex. 999) : <code className="bg-black/40 px-1 rounded">switchport trunk native vlan 999</code>. Les deux extrémités du trunk doivent avoir le même VLAN natif.
+              <strong className="text-blue-400">ISL</strong> (Inter-Switch Link) est un protocole Cisco qui <strong>encapsule</strong> toute la trame pour la différencier par VLAN. Aujourd’hui on utilise surtout <strong>802.1Q</strong> (dot1q), standard et interopérable. Sur les switches récents, l’encapsulation se configure avec <code className="bg-black/40 px-1 rounded">switchport trunk encapsulation dot1q</code> (ou <code className="bg-black/40 px-1 rounded">isl</code> sur les vieux modèles).
+            </p>
+            <ProTip>En lab, tu utiliseras en général <strong>dot1q</strong> (802.1Q).</ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Limiter les VLANs sur le trunk",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Par défaut, un trunk transporte <strong>tous les VLANs</strong> (1–4094). On peut <strong>optimiser la bande passante</strong> et la sécurité en n’autorisant que les VLANs communs entre les deux switches : <code className="bg-black/40 px-1 rounded">switchport trunk allowed vlan 10,20</code>. Les VLANs présents d’un seul côté ne sont plus propagés sur le trunk.
             </p>
             <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-              <HumanCommand cmd="switchport trunk native vlan 999" human="Définir le VLAN natif sur 999 (hors VLAN 1). À configurer des deux côtés du trunk." />
+              <HumanCommand cmd="switchport trunk allowed vlan 10,20" human="Sur ce trunk : uniquement les VLAN 10 et 20. Les autres ne passent pas." />
+              <p className="text-slate-400 text-xs mt-2">Exemples : <code className="text-emerald-400 font-mono">10,20</code> (liste), <code className="text-emerald-400 font-mono">1-5</code> (plage).</p>
             </div>
-            <ProTip>Dans le lab Séance 2, configure le VLAN natif et les VLAN autorisés si le PDF le demande. Vérification : <code className="bg-black/40 px-1 rounded">show interfaces trunk</code>.</ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Configurer un trunk (commandes)",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              <strong>Vérifier :</strong> <code className="bg-black/40 px-1 rounded">show interfaces trunk</code> → tu vois les ports en trunk, les VLANs autorisés et le VLAN natif.
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+              <p className="text-emerald-400 font-bold mb-2">À faire sur le port qui relie l'autre switch (ex. fa0/24) :</p>
+              <HumanCommand cmd="interface fa0/24" human="Choisir le port." />
+              <HumanCommand cmd="switchport mode trunk" human="Activer le trunk : ce port transporte plusieurs VLANs avec des étiquettes." />
+              <HumanCommand cmd="switchport trunk allowed vlan 10,20" human="(Optionnel) N'autoriser que les VLAN 10 et 20." />
+            </div>
+            <p className="text-slate-400 text-sm">Sur certains modèles : <code className="text-emerald-400 font-mono">switchport trunk encapsulation dot1q</code> avant <code className="text-emerald-400 font-mono">switchport mode trunk</code>. Puis <code className="text-emerald-400 font-mono">no shutdown</code> si tu as fait <code className="text-emerald-400 font-mono">shutdown</code> avant.</p>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Rappel : VLAN autorisés (Séance 2)",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Pour limiter ce qui passe sur le trunk : <code className="bg-black/40 px-1 rounded">switchport trunk allowed vlan 10,20</code>. Seuls les VLAN 10 et 20 sont autorisés. Vérif avec <code className="bg-black/40 px-1 rounded">show interfaces trunk</code>.
+            </p>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "VLAN natif – à quoi ça sert ?",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Sur un trunk, chaque VLAN <strong>sauf un</strong> a un <strong>tag</strong> inséré dans sa trame (802.1Q). Le VLAN <strong className="text-blue-400">natif</strong> est celui dont les trames circulent <strong>sans tag</strong> (pour compatibilité avec des équipements anciens ou des hubs).
+            </p>
+            <ul className="list-none space-y-2 text-slate-300 text-sm">
+              <li>• Un utilisateur <strong>hors du VLAN natif</strong> a un tag dans sa trame.</li>
+              <li>• Avec un <strong>hub</strong>, les PC reliés ne peuvent communiquer qu’en natif avec d’autres équipements (le hub ne comprend pas les trames taguées).</li>
+              <li>• Un utilisateur dans le <strong>VLAN natif</strong> ne comprend pas une trame taguée.</li>
+            </ul>
+            <p className="text-slate-300 text-sm">
+              <strong>But du VLAN natif :</strong> séparer la <strong>data</strong> (autres VLANs, tagués) du <strong>management</strong> (natif : CDP, DTP, VTP, STP, PagP). Par défaut le VLAN natif est le VLAN 1.
+            </p>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Configurer le VLAN natif (Séance 2)",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Le VLAN natif est configuré <strong>sur un segment à la fois</strong> (le trunk le plus souvent). En changeant le VLAN natif de 1 à 999, le VLAN 1 n’est plus natif — on ne peut en avoir qu’un seul. La trame du VLAN 1 est alors <strong>taguée</strong>. Un PC connecté à un hub ne reçoit que les trames non taguées (natif).
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+              <p className="text-emerald-400 font-bold mb-2">Créer le VLAN dédié puis l’appliquer au trunk (des deux côtés) :</p>
+              <HumanCommand cmd="vlan 999" human="Créer le VLAN 999 (ou autre numéro dédié)." />
+              <HumanCommand cmd="name NATIF" human="Nommer le VLAN natif (ex. NATIF)." />
+              <HumanCommand cmd="exit" human="Sortir du mode vlan." />
+              <HumanCommand cmd="interface fa0/24" human="Port trunk (ex. fa0/24)." />
+              <HumanCommand cmd="switchport trunk native vlan 999" human="Définir le VLAN natif sur 999. À faire des deux côtés du trunk." />
+            </div>
+            <DangerZone>Même réglage <strong>des deux côtés</strong> du trunk. Sinon les deux switches ne se comprennent pas pour les trames sans tag.</DangerZone>
           </div>
         )
       },
@@ -2334,7 +2748,9 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
           { summary: "show vlan brief", details: "Affiche la liste des VLANs (numéro, nom) et quels ports sont dans quel VLAN. Après avoir créé les VLANs et assigné les ports, tape show vlan brief pour vérifier : tu dois voir VLAN 10 avec les ports 1–2, VLAN 20 avec les ports 3–4 (ou selon ta config)." },
           { summary: "switchport mode trunk", details: "Sur le port qui relie deux switches, cette commande active le mode trunk (802.1Q) : le port transporte plusieurs VLANs avec des étiquettes. Ne branche pas un PC sur un port trunk ; réserve le trunk pour le lien switch–switch ou switch–routeur." },
           { summary: "switchport trunk allowed vlan 10,20", details: "Par défaut, tous les VLANs (1-4094) sont autorisés sur le trunk. Cette commande restreint à 10 et 20 : plus sécurisé et évite de propager des VLANs inutiles. Vérification : show interfaces trunk." },
-          { summary: "switchport trunk native vlan 999", details: "Le VLAN natif est celui dont les trames circulent sans étiquette 802.1Q sur le trunk. Par défaut c'est le VLAN 1. Pour la sécurité, on peut le changer vers un VLAN dédié (ex. 999). À configurer des deux côtés du trunk." }
+          { summary: "switchport trunk native vlan 999", details: "Le VLAN natif est celui dont les trames circulent sans étiquette 802.1Q sur le trunk. Par défaut c'est le VLAN 1. Pour la sécurité, on peut le changer vers un VLAN dédié (ex. 999). À configurer des deux côtés du trunk." },
+          { summary: "switchport trunk encapsulation dot1q / isl", details: "Sur certains switches Cisco, il faut choisir l'encapsulation : dot1q (802.1Q, standard) ou isl (Cisco, encapsule la trame). Sur les modèles récents, dot1q est souvent par défaut." },
+          { summary: "show interfaces trunk", details: "Affiche les ports en mode trunk, l'encapsulation, les VLANs autorisés et le VLAN natif. Utilise cette commande pour vérifier la config trunk après show vlan et show interfaces ... switchport." }
         ]
       },
       {
@@ -2351,7 +2767,9 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
           { q: "Comment donner une IP de management à un switch ?", options: ["Sur une interface physique", "Sur interface vlan 1 avec ip address et no shutdown", "Impossible"], a: 1 },
           { q: "Entre deux PC de VLANs différents (sans routage), le ping :", options: ["Fonctionne", "Ne fonctionne pas (isolation VLAN)", "Fonctionne si même switch"], a: 1 },
           { q: "Quelle commande active le mode trunk sur un port ?", options: ["trunk on", "switchport mode trunk", "port trunk"], a: 1 },
-          { q: "Que fait switchport trunk allowed vlan 10,20 ?", options: ["Autorise tous les VLANs", "Autorise uniquement les VLAN 10 et 20 sur le trunk", "Désactive le trunk"], a: 1 }
+          { q: "Que fait switchport trunk allowed vlan 10,20 ?", options: ["Autorise tous les VLANs", "Autorise uniquement les VLAN 10 et 20 sur le trunk", "Désactive le trunk"], a: 1 },
+          { q: "Sur un trunk, le VLAN natif est le VLAN dont les trames circulent :", options: ["Avec un tag 802.1Q", "Sans étiquette (sans tag)", "Uniquement en ISL"], a: 1 },
+          { q: "Quel protocole utilise un TAG de 4 octets pour identifier le VLAN dans la trame ?", options: ["ISL", "802.1Q (dot1q)", "CDP"], a: 1 }
         ]
       },
       {
@@ -2365,8 +2783,10 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
           { cmd: "switchport mode access", desc: "Port en mode accès" },
           { cmd: "switchport access vlan 10", desc: "Attribuer au VLAN 10" },
           { cmd: "interface fa0/24", desc: "Port trunk vers l'autre switch" },
+          { cmd: "switchport trunk encapsulation dot1q", desc: "Encapsulation 802.1Q (si nécessaire)" },
           { cmd: "switchport mode trunk", desc: "Activer le mode trunk" },
-          { cmd: "switchport trunk allowed vlan 10,20", desc: "VLAN autorisés sur le trunk (Séance 2)" }
+          { cmd: "switchport trunk allowed vlan 10,20", desc: "VLAN autorisés sur le trunk" },
+          { cmd: "switchport trunk native vlan 999", desc: "VLAN natif (des deux côtés)" }
         ]
       },
       {
@@ -2380,6 +2800,8 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
           { q: "switchport access vlan 10", a: "Attribuer le port au VLAN 10" },
           { q: "switchport mode trunk", a: "Activer le mode trunk sur le port" },
           { q: "switchport trunk allowed vlan 10,20", a: "Autoriser uniquement VLAN 10 et 20 sur le trunk" },
+          { q: "switchport trunk native vlan 999", a: "Définir le VLAN natif (des deux côtés du trunk)" },
+          { q: "switchport trunk encapsulation dot1q", a: "Encapsulation 802.1Q sur le trunk" },
           { q: "interface vlan 1", a: "Interface de management VLAN 1" }
         ]
       },
@@ -2454,6 +2876,8 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
           </div>
         </div>
       ),
+      solutionContent: <CorrectionLab1Session2 />,
+      solutionContentLab2: <CorrectionLab2Session2 />,
       initialPrompt: "Switch>",
       tasks: [
         { cmd: "enable", desc: "Mode privilégié" },
@@ -2519,6 +2943,21 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       },
       {
         type: 'rich_text',
+        title: "Contexte : Switch, Routeur et Routage Inter-VLAN",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Les <strong className="text-blue-400">switches</strong> sont des équipements de couche 2 : ils lisent la trame pour l’acheminer, sans changer d’adresse. Avec un <strong>routeur</strong>, le PC envoie un broadcast ARP pour connaître l’adresse MAC du destinataire ; le routeur <strong>bloque les broadcast</strong> et transmet <strong>sa propre MAC</strong> : l’adresse MAC destination change à chaque saut routeur.
+            </p>
+            <p className="text-slate-300 text-sm">
+              L’intérêt du routage inter-VLAN est de faire communiquer des machines dans des <strong>VLANs et sous-réseaux différents</strong>. La limite classique est le <strong>nombre de connexions physiques</strong> du routeur vers le switch (un câble par VLAN). C’est là qu’intervient le <strong>Router-on-a-Stick</strong> : un seul lien physique (trunk) + des sous-interfaces (une par VLAN) sur le routeur.
+            </p>
+            <ProTip>Un lien physique minimum en FastEthernet (ou supérieur) est recommandé pour le Router-on-a-Stick, car tout le trafic inter-VLAN passe par ce lien.</ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
         title: "Configuration du Trunk",
         content: (
           <div className="space-y-4">
@@ -2550,6 +2989,26 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
               <HumanCommand cmd="ip address 192.168.20.1 255.255.255.0" human="Passerelle VLAN 20." />
             </div>
             <ProTip>PC VLAN 10 : 192.168.10.X/24 ; PC VLAN 20 : 192.168.20.X/24. Le routeur fait le routage entre VLANs.</ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Inconvénients et Dépannage Router-on-a-Stick",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              <strong>Inconvénients :</strong> Tous les broadcast (et tout le trafic inter-VLAN) passent par le <strong>même lien physique</strong> entre le routeur et le switch. Un lien minimum en <strong>FastEthernet</strong> (ou supérieur) est nécessaire. La communication peut être <strong>ralentie</strong> par une différence de bande passante ou de duplex entre le routeur et le switch.
+            </p>
+            <p className="text-slate-300 text-sm font-bold">Troubleshooting (vérifications utiles) :</p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-2">
+              <HumanCommand cmd="show interfaces" human="Statut des interfaces (up/down, bp, duplex)." />
+              <HumanCommand cmd="show interfaces status" human="Résumé : statut et mode (ex. « Routed » sur le routeur)." />
+              <HumanCommand cmd="show ip route" human="Table de routage (passerelles par VLAN)." />
+              <HumanCommand cmd="show interfaces &lt;port&gt; switchport" human="Sur le switch : mode admin/op, encapsulation, VLAN natif. Sur le routeur : pas d’infos couche 2 (port routé)." />
+              <HumanCommand cmd="show interfaces trunk" human="Ports en trunk, VLANs autorisés, VLAN natif." />
+            </div>
+            <ProTip>En cas de problème inter-VLAN : vérifier que les sous-interfaces ont bien une IP par VLAN, que le trunk est actif et que les VLANs autorisés incluent ceux utilisés.</ProTip>
           </div>
         )
       },
@@ -2618,6 +3077,99 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
     lab: {
       title: "Lab 3 : Trunk et Communication Inter-VLANs",
       context: "SCÉNARIO : Relier deux switches par trunk, créer VLAN 10 et 20 sur chaque switch, configurer les ports accès, le trunk, et le Router-on-a-Stick pour que les VLANs communiquent.",
+      consignes: (
+        <div className="space-y-10 text-slate-200 text-base leading-relaxed">
+          <div className="bg-blue-900/30 border border-blue-500/40 rounded-xl p-5">
+            <p className="text-blue-100 font-semibold text-lg mb-1">Lab Pratique – Séance 2 : Trunks et Communication Inter-VLANs</p>
+            <p className="text-blue-200/90 text-sm leading-relaxed">
+              Thème : <strong>Relier plusieurs VLANs via trunks et permettre leur communication</strong>. Vous travaillez pour la société <strong>NetCom</strong>. Elle possède plusieurs départements (VLANs) qui doivent être accessibles sur plusieurs switches et pouvoir communiquer via un routeur. Mission : configurer les trunks et réaliser un routage inter-VLAN (Router-on-a-Stick).
+            </p>
+          </div>
+
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+            <h4 className="text-emerald-400 font-bold text-lg">Infrastructure à déployer (Cisco Packet Tracer)</h4>
+            <ul className="list-none space-y-1 text-slate-300 text-sm">
+              <li className="flex gap-2"><span className="text-emerald-400">•</span> 2 switches : <strong>SW-Core</strong> et <strong>SW-Dist</strong></li>
+              <li className="flex gap-2"><span className="text-emerald-400">•</span> 1 routeur : <strong>R-Core</strong></li>
+              <li className="flex gap-2"><span className="text-emerald-400">•</span> 2 PCs par VLAN (Administration + Commercial)</li>
+            </ul>
+          </div>
+
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-6">
+            <h4 className="text-amber-400 font-bold text-lg">Étape 1 – Câblage</h4>
+            <ul className="list-none space-y-2 text-slate-300 text-sm">
+              <li className="flex gap-2"><span className="text-amber-400 font-bold">•</span> Relier les deux switches entre eux via un lien trunk (<code className="text-emerald-400 font-mono">fa0/24</code>).</li>
+              <li className="flex gap-2"><span className="text-amber-400 font-bold">•</span> Relier le routeur au switch principal (SW-Core) sur <code className="text-emerald-400 font-mono">fa0/1</code>.</li>
+              <li className="flex gap-2"><span className="text-amber-400 font-bold">•</span> Brancher les PC sur les ports restants.</li>
+            </ul>
+          </div>
+
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+            <h4 className="text-amber-400 font-bold text-lg">Étape 2 – Création des VLANs</h4>
+            <p className="text-slate-300 text-sm">Créer sur <strong>chaque switch</strong> :</p>
+            <ul className="list-none space-y-1 text-slate-300 text-sm">
+              <li className="flex gap-2"><span className="text-emerald-400">•</span> VLAN 10 : Administration</li>
+              <li className="flex gap-2"><span className="text-emerald-400">•</span> VLAN 20 : Commercial</li>
+            </ul>
+          </div>
+
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+            <h4 className="text-amber-400 font-bold text-lg">Étape 3 – Configuration des ports</h4>
+            <ul className="list-none space-y-2 text-slate-300 text-sm">
+              <li className="flex gap-2"><span className="text-amber-400 font-bold">•</span> Ports des PC Administration → mode accès, VLAN 10.</li>
+              <li className="flex gap-2"><span className="text-amber-400 font-bold">•</span> Ports des PC Commercial → mode accès, VLAN 20.</li>
+              <li className="flex gap-2"><span className="text-amber-400 font-bold">•</span> Port reliant les deux switches (fa0/24) → trunk.</li>
+            </ul>
+          </div>
+
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+            <h4 className="text-amber-400 font-bold text-lg">Étape 4 – Configuration du Trunk</h4>
+            <p className="text-slate-300 text-sm">Sur l’interface inter-switch (fa0/24) sur chaque switch :</p>
+            <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700 font-mono text-emerald-400 text-sm space-y-1">
+              <p>switchport mode trunk</p>
+              <p className="text-slate-400 text-xs mt-2">Facultatif : autoriser uniquement les VLANs nécessaires.</p>
+              <p>switchport trunk allowed vlan 10,20</p>
+            </div>
+          </div>
+
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+            <h4 className="text-amber-400 font-bold text-lg">Étape 5 – Configuration du Router-on-a-Stick</h4>
+            <p className="text-slate-300 text-sm">Sur le routeur (R-Core) :</p>
+            <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700 font-mono text-emerald-400 text-sm space-y-1">
+              <p>interface g0/0.10</p>
+              <p>encapsulation dot1Q 10</p>
+              <p>ip address 192.168.10.1 255.255.255.0</p>
+              <p className="mt-3">interface g0/0.20</p>
+              <p>encapsulation dot1Q 20</p>
+              <p>ip address 192.168.20.1 255.255.255.0</p>
+            </div>
+          </div>
+
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+            <h4 className="text-amber-400 font-bold text-lg">Étape 6 – Tests et validation</h4>
+            <p className="text-slate-300 text-sm">Attribuer aux PC des IP dans les plages correspondantes :</p>
+            <ul className="list-none space-y-1 text-slate-300 text-sm">
+              <li className="flex gap-2"><span className="text-emerald-400">•</span> VLAN 10 : <code className="text-emerald-400 font-mono">192.168.10.X</code> /24 (passerelle 192.168.10.1)</li>
+              <li className="flex gap-2"><span className="text-emerald-400">•</span> VLAN 20 : <code className="text-emerald-400 font-mono">192.168.20.X</code> /24 (passerelle 192.168.20.1)</li>
+            </ul>
+            <p className="text-slate-300 text-sm mt-3">Tester :</p>
+            <ul className="list-none space-y-1 text-slate-300 text-sm">
+              <li className="flex gap-2"><span className="text-amber-400">•</span> Ping entre deux PC du même VLAN</li>
+              <li className="flex gap-2"><span className="text-amber-400">•</span> Ping entre deux PC de VLANs différents (grâce au routeur)</li>
+            </ul>
+          </div>
+
+          <div className="bg-emerald-900/20 border border-emerald-500/40 rounded-xl p-5">
+            <h4 className="text-emerald-400 font-bold text-lg mb-2">Compétences travaillées</h4>
+            <ul className="list-none space-y-1 text-slate-300 text-sm">
+              <li className="flex gap-2"><span className="text-emerald-400">•</span> Configuration de trunk entre switches</li>
+              <li className="flex gap-2"><span className="text-emerald-400">•</span> Routage inter-VLAN (Router-on-a-Stick)</li>
+              <li className="flex gap-2"><span className="text-emerald-400">•</span> Vérification de la segmentation et de l’interconnexion réseau</li>
+            </ul>
+            <p className="text-slate-400 text-sm mt-3">Ce lab montre comment relier logiquement plusieurs VLANs et permettre leur communication de manière professionnelle dans un réseau d’entreprise.</p>
+          </div>
+        </div>
+      ),
       initialPrompt: "Switch>",
       tasks: [
         { cmd: "enable", desc: "Mode privilégié" },
@@ -2682,6 +3234,7 @@ const TheoryPlayer = ({ slides, lab }) => {
       case 'flashcards':
         return <FlashCards cards={s.cards} mode={s.mode} />;
       case 'lab_correction':
+        if (lab && lab.solutionContent) return lab.solutionContent;
         return <LabCorrection scenario={lab || s.scenario} />;
       case 'ssh_configurator':
         return <SSHConfigurator />;
@@ -4060,9 +4613,10 @@ const PacketTracerSection = () => {
   );
 };
 
-// --- LAB INDÉPENDANT : Session 1 (consignes + correction) ---
-const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription }) => {
+// --- LAB INDÉPENDANT : Session 1 ou 2 (consignes + corrections) ---
+const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sessionId = 1 }) => {
   const [labTab, setLabTab] = useState('consignes'); // 'consignes' | 'correction' | 'correction_lab2'
+  const isSession2 = sessionId === 2;
   return (
     <div className="h-full flex flex-col">
       <div className="bg-slate-800 p-6 rounded-t-xl border border-slate-700 border-b-0">
@@ -4083,20 +4637,20 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription }) =>
             onClick={() => setLabTab('correction')}
             className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
           >
-            <CheckCircle className="w-4 h-4" /> Correction Lab 1
+            <CheckCircle className="w-4 h-4" /> {isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
           </button>
           <button
             onClick={() => setLabTab('correction_lab2')}
             className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab2' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
           >
-            <CheckCircle className="w-4 h-4" /> Correction Lab 2
+            <CheckCircle className="w-4 h-4" /> {isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
           </button>
         </div>
       </div>
       {labTab === 'consignes' && lab.consignes && (
         <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl px-6 py-5 overflow-y-auto">
           <h4 className="text-white font-bold flex items-center gap-2 mb-4 text-base">
-            <BookOpen className="w-5 h-5 text-amber-400" /> Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer
+            <BookOpen className="w-5 h-5 text-amber-400" /> {isSession2 ? 'Consignes des deux labs Session 2' : 'Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer'}
           </h4>
           <div className="pr-4 space-y-1 text-slate-300">
             {lab.consignes}
@@ -4106,14 +4660,19 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription }) =>
       {labTab === 'correction' && (
         <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            <LabCorrectionSection />
+            {isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSection />}
           </div>
         </div>
       )}
       {labTab === 'correction_lab2' && (
         <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            <LabCorrectionSection2 />
+            {isSession2 ? (lab.solutionContentLab2 || (
+              <div className="max-w-2xl mx-auto bg-slate-800/50 border border-slate-600 rounded-xl p-8 text-center">
+                <h3 className="text-xl font-bold text-blue-400 mb-3">Correction Lab 2 – VLAN avancés et sécurisation</h3>
+                <p className="text-slate-400">Trunk, VLAN autorisés, VLAN natif. Pour les consignes et la correction détaillée, suivre le PDF « 3 - Introduction Vlan avancés et sécurisation - LAB.pdf ».</p>
+              </div>
+            )) : <LabCorrectionSection2 />}
           </div>
         </div>
       )}
@@ -4638,6 +5197,25 @@ export default function NetMasterClass() {
             </button>
             <button
               onClick={() => {
+                setViewMode('labs_s3');
+                if (window.innerWidth < 1024) setSidebarOpen(false);
+              }}
+              className={`w-full p-4 rounded-xl flex items-center gap-3 transition-all border ${
+                viewMode === 'labs_s3'
+                  ? 'bg-blue-600/20 border-blue-500 text-blue-100'
+                  : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-400 hover:border-slate-600'
+              }`}
+            >
+              <div className={`p-2 rounded-lg ${viewMode === 'labs_s3' ? 'bg-blue-600 text-white' : 'bg-slate-800'}`}>
+                <Link className="w-5 h-5" />
+              </div>
+              <div className="text-left flex-1">
+                <p className="font-bold text-sm">Lab Session 3</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">Trunk et routage inter-VLAN</p>
+              </div>
+            </button>
+            <button
+              onClick={() => {
                 setViewMode('packet_tracer');
                 if (window.innerWidth < 1024) setSidebarOpen(false);
               }}
@@ -4676,7 +5254,7 @@ export default function NetMasterClass() {
             </button>
             <div>
               <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
-                {viewMode === 'packet_tracer' ? 'Packet Tracer – Simulateur réseau' : viewMode === 'labs' ? 'Lab Pratique – Session 1' : viewMode === 'labs_s2' ? 'Lab Pratique – Session 2' : activeSession.title}
+                {viewMode === 'packet_tracer' ? 'Packet Tracer – Simulateur réseau' : viewMode === 'labs' ? 'Lab Pratique – Session 1' : viewMode === 'labs_s2' ? 'Lab Pratique – Session 2' : viewMode === 'labs_s3' ? 'Lab Pratique – Session 3' : activeSession.title}
               </h2>
             </div>
           </div>
@@ -4714,11 +5292,15 @@ export default function NetMasterClass() {
             </div>
           ) : viewMode === 'labs' ? (
             <div className="h-full min-h-[500px]">
-              <LabsSection lab={sessions[0].lab} sessionLabel="Session 1" sessionDescription="Les trois labs (S1, S2, S3) se réalisent sur Cisco Packet Tracer. Consignes et corrections ci-dessous." />
+              <LabsSection lab={sessions[0].lab} sessionLabel="Session 1" sessionDescription="Les trois labs (S1, S2, S3) se réalisent sur Cisco Packet Tracer. Consignes et corrections ci-dessous." sessionId={1} />
             </div>
           ) : viewMode === 'labs_s2' ? (
             <div className="h-full min-h-[500px]">
-              <LabsSection lab={sessions[1].lab} sessionLabel="Session 2" sessionDescription="Les deux labs (Introduction VLAN, VLAN avancés et sécurisation) se réalisent sur Cisco Packet Tracer. Consignes et corrections ci-dessous." />
+              <LabsSection lab={sessions[1].lab} sessionLabel="Session 2" sessionDescription="Les deux labs (Introduction VLAN, VLAN avancés et sécurisation) se réalisent sur Cisco Packet Tracer. Consignes et corrections ci-dessous." sessionId={2} />
+            </div>
+          ) : viewMode === 'labs_s3' ? (
+            <div className="h-full min-h-[500px]">
+              <LabsSection lab={sessions[2].lab} sessionLabel="Session 3" sessionDescription="Lab Trunk et routage inter-VLAN (Router-on-a-Stick) sur Cisco Packet Tracer. Consignes ci-dessous." sessionId={3} />
             </div>
           ) : (
           <div className="max-w-6xl mx-auto h-full flex flex-col">
