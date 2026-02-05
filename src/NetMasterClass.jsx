@@ -5265,8 +5265,7 @@ export default function NetMasterClass() {
               {[
                 { id: 'theory', label: 'Théorie & Concepts', icon: BookOpen },
                 { id: 'lab', label: 'Lab Pratique', icon: Terminal },
-                { id: 'quiz', label: 'Validation', icon: Award },
-                { id: 'stats', label: 'Statistiques', icon: BarChart3 }
+                { id: 'quiz', label: 'Validation', icon: Award }
               ].map(tab => (
                 <button
                   key={tab.id}
@@ -5306,12 +5305,6 @@ export default function NetMasterClass() {
           ) : (
           <div className="max-w-6xl mx-auto h-full flex flex-col">
             {activeTab === 'theory' && <TheoryPlayer slides={activeSession.slides} lab={activeSession.lab} sessionId={activeSessionId} />}
-
-            {activeTab === 'stats' && (
-              <div className="max-w-7xl mx-auto w-full pb-12">
-                <StatsDashboard stats={stats} sessions={sessions} onReset={resetStats} />
-              </div>
-            )}
 
             {activeTab === 'lab' && (
               <div className="h-full flex flex-col">
