@@ -2115,7 +2115,7 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
     lab: {
       title: "Lab 1 : Sécurisation et SSH",
       context: "SCÉNARIO : Sécurisez le routeur (nom, console, enable secret, DNS) puis activez SSH (domaine, utilisateur, clé RSA, lignes VTY). Sauvegardez en fin de lab.",
-      consignes: (
+      /* consignes: (
         <div className="space-y-10 text-slate-200 text-base leading-relaxed">
           <div className="bg-blue-900/30 border border-blue-500/40 rounded-xl p-5">
             <p className="text-blue-100 font-semibold text-lg mb-1">Où faire les labs ?</p>
@@ -2242,7 +2242,8 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
             </div>
           </div>
         </div>
-      ),
+      ), */
+      consignes: null, // Consignes supprimées
       initialPrompt: "Router>",
       tasks: [
         { cmd: "enable", desc: "Passer en mode privilégié" },
@@ -2813,7 +2814,7 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
     lab: {
       title: "Lab 2 : Introduction VLAN",
       context: "SCÉNARIO : Séparer Administration (VLAN 10) et Commercial (VLAN 20) sur un switch. Créer les VLANs, attribuer les ports, configurer l'IP de management (interface vlan 1), puis tester SSH depuis une machine VLAN 1 et une machine VLAN 2.",
-      consignes: (
+      /* consignes: (
         <div className="space-y-10 text-slate-200 text-base leading-relaxed">
           <div className="bg-blue-900/30 border border-blue-500/40 rounded-xl p-5">
             <p className="text-blue-100 font-semibold text-lg mb-1">Où faire les labs Session 2 ?</p>
@@ -2875,7 +2876,8 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
             <p className="text-amber-300/90 text-xs border-l-2 border-amber-500/50 pl-3 py-1">Pour les consignes exactes (étapes, adressage), suivre le PDF « 3 - Introduction Vlan avancés et sécurisation - LAB.pdf ».</p>
           </div>
         </div>
-      ),
+      ), */
+      consignes: null, // Consignes supprimées
       solutionContent: <CorrectionLab1Session2 />,
       solutionContentLab2: <CorrectionLab2Session2 />,
       initialPrompt: "Switch>",
@@ -3077,7 +3079,7 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
     lab: {
       title: "Lab 3 : Trunk et Communication Inter-VLANs",
       context: "SCÉNARIO : Relier deux switches par trunk, créer VLAN 10 et 20 sur chaque switch, configurer les ports accès, le trunk, et le Router-on-a-Stick pour que les VLANs communiquent.",
-      consignes: (
+      /* consignes: (
         <div className="space-y-10 text-slate-200 text-base leading-relaxed">
           <div className="bg-blue-900/30 border border-blue-500/40 rounded-xl p-5">
             <p className="text-blue-100 font-semibold text-lg mb-1">Lab Pratique – Séance 2 : Trunks et Communication Inter-VLANs</p>
@@ -3169,7 +3171,8 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
             <p className="text-slate-400 text-sm mt-3">Ce lab montre comment relier logiquement plusieurs VLANs et permettre leur communication de manière professionnelle dans un réseau d’entreprise.</p>
           </div>
         </div>
-      ),
+      ), */
+      consignes: null, // Consignes supprimées
       initialPrompt: "Switch>",
       tasks: [
         { cmd: "enable", desc: "Mode privilégié" },
@@ -3447,7 +3450,7 @@ const TerminalSimulator = ({ scenario, sessionId, onCommand, onLabComplete }) =>
         <div ref={bottomRef} />
       </div>
 
-      <div className="bg-slate-900/80 p-3 border-t border-slate-700">
+      <div className="bg-slate-900/80 p-3 border-t border-slate-700 max-h-[180px] overflow-y-auto">
         <p className="text-xs text-slate-500 mb-2 font-bold uppercase tracking-wider">
           Liste des commandes à passer :
         </p>
@@ -4615,7 +4618,7 @@ const PacketTracerSection = () => {
 
 // --- LAB INDÉPENDANT : Session 1 ou 2 (consignes + corrections) ---
 const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sessionId = 1 }) => {
-  const [labTab, setLabTab] = useState('consignes'); // 'consignes' | 'correction' | 'correction_lab2'
+  const [labTab, setLabTab] = useState('correction'); // 'consignes' | 'correction' | 'correction_lab2'
   const isSession2 = sessionId === 2;
   return (
     <div className="h-full flex flex-col">
@@ -4624,15 +4627,17 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
           <Terminal className="text-emerald-500 w-5 h-5" /> Lab Pratique – {sessionLabel}
         </h3>
         <p className="text-slate-300 mt-2 max-w-2xl leading-relaxed">
-          {sessionDescription ?? <>Les trois labs (S1, S2 SSH, S3 DNS) se réalisent sur <strong className="text-blue-300">Cisco Packet Tracer</strong>. Consignes et corrections ci-dessous.</>}
+          {sessionDescription ?? <>Les trois labs (S1, S2 SSH, S3 DNS) se réalisent sur <strong className="text-blue-300">Cisco Packet Tracer</strong>. Consultez les corrections ci-dessous.</>}
         </p>
         <div className="flex flex-wrap gap-2 mt-4 p-1 bg-slate-900/60 rounded-lg border border-slate-700 w-fit">
-          <button
-            onClick={() => setLabTab('consignes')}
-            className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'consignes' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
-          >
-            <BookOpen className="w-4 h-4" /> Consignes
-          </button>
+          {lab.consignes && (
+            <button
+              onClick={() => setLabTab('consignes')}
+              className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'consignes' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+            >
+              <BookOpen className="w-4 h-4" /> Consignes
+            </button>
+          )}
           <button
             onClick={() => setLabTab('correction')}
             className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
@@ -4641,7 +4646,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
           </button>
           <button
             onClick={() => setLabTab('correction_lab2')}
-            className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab2' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+            className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab2' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
           >
             <CheckCircle className="w-4 h-4" /> {isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
           </button>
@@ -5215,22 +5220,18 @@ export default function NetMasterClass() {
               </div>
             </button>
             <button
-              onClick={() => {
-                setViewMode('packet_tracer');
-                if (window.innerWidth < 1024) setSidebarOpen(false);
-              }}
-              className={`w-full p-4 rounded-xl flex items-center gap-3 transition-all border ${
-                viewMode === 'packet_tracer'
-                  ? 'bg-blue-600/20 border-blue-500 text-blue-100'
-                  : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-400 hover:border-slate-600'
-              }`}
+              disabled
+              className="w-full p-4 rounded-xl flex items-center gap-3 transition-all border bg-slate-900/50 border-slate-800/50 text-slate-600 cursor-not-allowed opacity-60"
             >
-              <div className={`p-2 rounded-lg ${viewMode === 'packet_tracer' ? 'bg-blue-600 text-white' : 'bg-slate-800'}`}>
+              <div className="p-2 rounded-lg bg-slate-800/50">
                 <Layout className="w-5 h-5" />
               </div>
               <div className="text-left flex-1">
-                <p className="font-bold text-sm">Packet Tracer</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">Simulateur réseau</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-bold text-sm">Packet Tracer</p>
+                  <span className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 rounded-full text-[10px] font-bold text-amber-400 uppercase">Soon</span>
+                </div>
+                <p className="text-[10px] text-slate-600 mt-0.5">Simulateur réseau</p>
               </div>
             </button>
           </div>
