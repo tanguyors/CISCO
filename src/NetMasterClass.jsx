@@ -2129,8 +2129,8 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       }
     ],
     lab: {
-      title: "Lab 1 : Sécurisation et SSH",
-      context: "SCÉNARIO : Sécurisez le routeur (nom, console, enable secret, DNS) puis activez SSH (domaine, utilisateur, clé RSA, lignes VTY). Sauvegardez en fin de lab.",
+      title: "Mémo des Commandes – Session 1",
+      context: "Retrouvez ici toutes les commandes vues dans le cours sur la sécurisation et SSH : navigation CLI, configuration de base, mots de passe, activation SSH, utilisateurs et sauvegarde.",
       /* consignes: (
         <div className="space-y-10 text-slate-200 text-base leading-relaxed">
           <div className="bg-blue-900/30 border border-blue-500/40 rounded-xl p-5">
@@ -2836,8 +2836,8 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       }
     ],
     lab: {
-      title: "Lab 2 : Introduction VLAN",
-      context: "SCÉNARIO : Séparer Administration (VLAN 10) et Commercial (VLAN 20) sur un switch. Créer les VLANs, attribuer les ports, configurer l'IP de management (interface vlan 1), puis tester SSH depuis une machine VLAN 1 et une machine VLAN 2.",
+      title: "Mémo des Commandes – Session 2",
+      context: "Retrouvez ici toutes les commandes vues dans le cours sur les VLANs : création de VLANs, attribution de ports, configuration de l'interface de management et vérification.",
       /* consignes: (
         <div className="space-y-10 text-slate-200 text-base leading-relaxed">
           <div className="bg-blue-900/30 border border-blue-500/40 rounded-xl p-5">
@@ -3109,8 +3109,8 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       }
     ],
     lab: {
-      title: "Lab 3 : Trunk et Communication Inter-VLANs",
-      context: "SCÉNARIO : Relier deux switches par trunk, créer VLAN 10 et 20 sur chaque switch, configurer les ports accès, le trunk, et le Router-on-a-Stick pour que les VLANs communiquent.",
+      title: "Mémo des Commandes – Session 3",
+      context: "Retrouvez ici toutes les commandes vues dans le cours sur les trunks et le routage inter-VLAN : configuration trunk, VLANs autorisés, VLAN natif, sous-interfaces et Router-on-a-Stick.",
       /* consignes: (
         <div className="space-y-10 text-slate-200 text-base leading-relaxed">
           <div className="bg-blue-900/30 border border-blue-500/40 rounded-xl p-5">
@@ -3353,6 +3353,108 @@ const TheoryPlayer = ({ slides, lab }) => {
         >
           {currentSlide === slides.length - 1 ? 'Terminer' : 'Suivant'} <ChevronRight size={16} />
         </button>
+      </div>
+    </div>
+  );
+};
+
+// --- DONNÉES : LISTES DE COMMANDES PAR SESSION ---
+
+const session1Commands = [
+  { command: "enable", description: "Passer en mode privilégié (de '>' vers '#')", syntax: "enable" },
+  { command: "configure terminal", description: "Entrer en mode configuration globale", syntax: "configure terminal" },
+  { command: "hostname", description: "Changer le nom de l'équipement", syntax: "hostname [nom]" },
+  { command: "line console 0", description: "Configurer l'accès console physique", syntax: "line console 0" },
+  { command: "password", description: "Définir un mot de passe", syntax: "password [mot_de_passe]" },
+  { command: "login", description: "Activer la demande de mot de passe à la connexion", syntax: "login" },
+  { command: "enable secret", description: "Définir le mot de passe privilégié (chiffré MD5)", syntax: "enable secret [mot_de_passe]" },
+  { command: "no ip domain lookup", description: "Désactiver la résolution DNS pour éviter les délais", syntax: "no ip domain lookup" },
+  { command: "service password-encryption", description: "Masquer les mots de passe en clair dans la config", syntax: "service password-encryption" },
+  { command: "copy running-config startup-config", description: "Sauvegarder la configuration en NVRAM", syntax: "copy running-config startup-config" },
+  { command: "show running-config", description: "Afficher la configuration active (en RAM)", syntax: "show running-config" },
+  { command: "show startup-config", description: "Afficher la configuration sauvegardée (en NVRAM)", syntax: "show startup-config" },
+  { command: "ip domain-name", description: "Définir le nom de domaine (requis pour SSH)", syntax: "ip domain-name [domaine]" },
+  { command: "username", description: "Créer un utilisateur local avec privilèges", syntax: "username [nom] privilege [niveau] secret [mdp]" },
+  { command: "crypto key generate rsa", description: "Générer les clés RSA pour activer SSH", syntax: "crypto key generate rsa" },
+  { command: "line vty 0 4", description: "Configurer les lignes VTY (accès distant)", syntax: "line vty 0 4" },
+  { command: "transport input ssh", description: "Autoriser uniquement SSH (bloquer Telnet)", syntax: "transport input ssh" },
+  { command: "login local", description: "Utiliser la base de données locale pour l'authentification", syntax: "login local" },
+  { command: "ip ssh version 2", description: "Forcer SSH version 2 (plus sécurisé)", syntax: "ip ssh version 2" }
+];
+
+const session2Commands = [
+  { command: "vlan", description: "Créer un VLAN", syntax: "vlan [id]" },
+  { command: "name", description: "Nommer le VLAN (en mode config-vlan)", syntax: "name [nom_vlan]" },
+  { command: "interface vlan", description: "Configurer l'interface de management d'un VLAN", syntax: "interface vlan [id]" },
+  { command: "ip address", description: "Attribuer une adresse IP et un masque", syntax: "ip address [ip] [masque]" },
+  { command: "no shutdown", description: "Activer l'interface", syntax: "no shutdown" },
+  { command: "interface", description: "Sélectionner une interface", syntax: "interface [type] [numéro]" },
+  { command: "switchport mode access", description: "Configurer le port en mode accès (pour un PC)", syntax: "switchport mode access" },
+  { command: "switchport access vlan", description: "Attribuer le port à un VLAN spécifique", syntax: "switchport access vlan [id]" },
+  { command: "show vlan brief", description: "Afficher la liste des VLANs et leurs ports", syntax: "show vlan brief" },
+  { command: "show interfaces status", description: "Afficher le statut de toutes les interfaces", syntax: "show interfaces status" }
+];
+
+const session3Commands = [
+  { command: "switchport mode trunk", description: "Activer le mode trunk sur le port (transporte plusieurs VLANs)", syntax: "switchport mode trunk" },
+  { command: "switchport trunk allowed vlan", description: "Restreindre les VLANs autorisés sur le trunk", syntax: "switchport trunk allowed vlan [liste]" },
+  { command: "switchport trunk native vlan", description: "Définir le VLAN natif du trunk", syntax: "switchport trunk native vlan [id]" },
+  { command: "interface", description: "Créer une sous-interface (Router-on-a-Stick)", syntax: "interface [type][numéro].[sous-id]" },
+  { command: "encapsulation dot1Q", description: "Définir l'encapsulation 802.1Q pour un VLAN", syntax: "encapsulation dot1Q [vlan_id]" },
+  { command: "show interfaces trunk", description: "Afficher les ports trunk et les VLANs autorisés", syntax: "show interfaces trunk" },
+  { command: "show ip route", description: "Afficher la table de routage", syntax: "show ip route" }
+];
+
+// --- LISTE PÉDAGOGIQUE DES COMMANDES ---
+
+const CommandsLearningList = ({ commands }) => {
+  return (
+    <div className="flex flex-col h-full bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl overflow-hidden border border-slate-700 shadow-2xl">
+      <div className="bg-slate-800 p-4 border-b border-slate-700">
+        <h3 className="text-white font-bold flex items-center gap-2">
+          <BookOpen className="w-5 h-5 text-blue-400" /> 
+          Commandes à apprendre
+        </h3>
+        <p className="text-slate-400 text-sm mt-1">
+          Liste des commandes utilisées dans la partie théorie
+        </p>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {commands.map((cmd, idx) => (
+          <div
+            key={idx}
+            className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 hover:bg-slate-800/70 transition-all"
+          >
+            <div className="flex items-start gap-3">
+              <div className="bg-blue-500/20 text-blue-400 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold text-sm">
+                {idx + 1}
+              </div>
+              <div className="flex-1">
+                <div className="font-mono text-emerald-400 font-bold text-base mb-2">
+                  {cmd.command}
+                </div>
+                <div className="text-slate-300 text-sm leading-relaxed">
+                  {cmd.description}
+                </div>
+                {cmd.syntax && (
+                  <div className="mt-2 pt-2 border-t border-slate-700">
+                    <span className="text-xs text-slate-500 uppercase tracking-wider">Syntaxe complète :</span>
+                    <div className="font-mono text-amber-400 text-sm mt-1">
+                      {cmd.syntax}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-slate-800/50 p-4 border-t border-slate-700">
+        <p className="text-slate-400 text-xs text-center">
+          💡 Astuce : Pratiquez ces commandes dans Cisco Packet Tracer
+        </p>
       </div>
     </div>
   );
@@ -5287,7 +5389,7 @@ export default function NetMasterClass() {
             </button>
             <div>
               <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
-                {viewMode === 'packet_tracer' ? 'Packet Tracer – Simulateur réseau' : viewMode === 'labs' ? 'Lab Pratique – Session 1' : viewMode === 'labs_s2' ? 'Lab Pratique – Session 2' : viewMode === 'labs_s3' ? 'Lab Pratique – Session 3' : activeSession.title}
+                {viewMode === 'packet_tracer' ? 'Packet Tracer – Simulateur réseau' : viewMode === 'labs' ? 'Mémo Commandes – Session 1' : viewMode === 'labs_s2' ? 'Mémo Commandes – Session 2' : viewMode === 'labs_s3' ? 'Mémo Commandes – Session 3' : activeSession.title}
               </h2>
             </div>
           </div>
@@ -5296,7 +5398,7 @@ export default function NetMasterClass() {
             <div className="flex bg-slate-800 p-1 rounded-lg border border-slate-700 w-full md:w-auto overflow-x-auto">
               {[
                 { id: 'theory', label: 'Théorie & Concepts', icon: BookOpen },
-                { id: 'lab', label: 'Lab Pratique', icon: Terminal },
+                { id: 'lab', label: 'Mémo Commandes', icon: BookOpen },
                 { id: 'quiz', label: 'Validation', icon: Award }
               ].map(tab => (
                 <button
@@ -5366,12 +5468,14 @@ export default function NetMasterClass() {
                     </div>
                   </div>
                 )}
-                <div className="flex-1 bg-black rounded-b-xl overflow-hidden border border-slate-700 shadow-2xl min-h-[420px]">
-                  <TerminalSimulator 
-                    scenario={activeSession.lab} 
-                    sessionId={activeSessionId}
-                    onCommand={addCommand}
-                    onLabComplete={addLabAttempt}
+                <div className="flex-1 rounded-b-xl overflow-hidden border border-slate-700 shadow-2xl min-h-[420px]">
+                  <CommandsLearningList 
+                    commands={
+                      activeSessionId === 1 ? session1Commands :
+                      activeSessionId === 2 ? session2Commands :
+                      activeSessionId === 3 ? session3Commands :
+                      []
+                    }
                   />
                 </div>
               </div>
