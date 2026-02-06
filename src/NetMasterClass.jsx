@@ -1771,13 +1771,14 @@ Un routeur n'a pas d'écran, pas de souris, pas de fenêtres. On lui parle en CL
 
 Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne fera rien.
 
-À la fin de cette session, vous serez capable de :
-• Naviguer entre les différents modes du CLI Cisco (utilisateur, privilégié, configuration)
-• Sécuriser un équipement réseau (mots de passe console et enable)
-• Configurer et activer SSH pour un accès distant sécurisé
-• Créer des utilisateurs avec différents niveaux de privilèges
-• Sauvegarder vos configurations sur NVRAM et serveur TFTP
-• Maîtriser les commandes show essentielles pour diagnostiquer un réseau`
+🎯 À la fin de cette session, vous serez capable de :
+
+✅ Naviguer entre les différents modes du CLI Cisco (utilisateur, privilégié, configuration)
+🔒 Sécuriser un équipement réseau (mots de passe console et enable)
+🔐 Configurer et activer SSH pour un accès distant sécurisé
+👤 Créer des utilisateurs avec différents niveaux de privilèges
+💾 Sauvegarder vos configurations sur NVRAM et serveur TFTP
+🔍 Maîtriser les commandes show essentielles pour diagnostiquer un réseau`
       },
       {
         type: 'mode_explorer',
@@ -2069,13 +2070,14 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
         title: "Partie 2 : Connexion sécurisée (SSH)",
         content: `Après avoir sécurisé l'accès local (console, enable), on sécurise l'accès à distance avec SSH. SSH chiffre toute la conversation avec l'équipement (mots de passe, commandes).
 
-À la fin de cette partie, vous serez capable de :
-• Comprendre la différence entre Telnet (non sécurisé) et SSH (chiffré)
-• Générer des clés RSA pour activer SSH sur un équipement Cisco
-• Configurer un nom de domaine requis pour SSH
-• Créer des utilisateurs locaux avec authentification
-• Restreindre les lignes VTY pour accepter uniquement SSH
-• Tester une connexion SSH depuis un PC ou un autre équipement`
+🎯 À la fin de cette partie, vous serez capable de :
+
+🔓 Comprendre la différence entre Telnet (non sécurisé) et SSH (chiffré)
+🔑 Générer des clés RSA pour activer SSH sur un équipement Cisco
+🌐 Configurer un nom de domaine requis pour SSH
+👥 Créer des utilisateurs locaux avec authentification
+🚪 Restreindre les lignes VTY pour accepter uniquement SSH
+🧪 Tester une connexion SSH depuis un PC ou un autre équipement`
       },
       {
         type: 'rich_text',
@@ -2368,13 +2370,14 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
         title: "Session 2 : VLAN – Calée sur les labs",
         content: `Imagine une petite entreprise : au 1er étage, le bureau Administration (compta, RH). Au 2e étage, le bureau Commercial (ventes). Un seul switch au sous-sol relie tout le monde. Sans VLAN, tout le monde est dans le même « réseau » : les commerciaux voient les broadcasts de l’admin et inversement. Avec des VLANs, on sépare logiquement : un réseau pour l’admin, un pour le commercial, sur le même switch. Cette session vous montre comment faire : créer les VLANs, brancher les bons PC sur les bons ports, donner une IP au switch pour s’y connecter en SSH, et tester. En Séance 1 : créer les VLANs, attribuer les ports, vérifier (show vlan brief, ping). Séance 2 : trunks, VLAN autorisés, VLAN natif. Objectif : maîtriser création de VLANs, attribution des ports et sécurisation des trunks.
 
-À la fin de cette session, vous serez capable de :
-• Créer et nommer des VLANs sur un switch (VLAN 10, 20, etc.)
-• Attribuer des ports spécifiques à un VLAN en mode access
-• Configurer une interface de management (interface VLAN 1) avec une adresse IP
-• Vérifier la configuration des VLANs avec show vlan brief
-• Comprendre l'isolation du trafic entre différents VLANs
-• Tester la connectivité entre machines d'un même VLAN et l'isolation inter-VLAN`
+🎯 À la fin de cette session, vous serez capable de :
+
+🏗️ Créer et nommer des VLANs sur un switch (VLAN 10, 20, etc.)
+🔌 Attribuer des ports spécifiques à un VLAN en mode access
+🖥️ Configurer une interface de management (interface VLAN 1) avec une adresse IP
+🔍 Vérifier la configuration des VLANs avec show vlan brief
+🛡️ Comprendre l'isolation du trafic entre différents VLANs
+🧪 Tester la connectivité entre machines d'un même VLAN et l'isolation inter-VLAN`
       },
       {
         type: 'rich_text',
@@ -3000,13 +3003,14 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
         title: "Trunk et Communication Inter-VLANs",
         content: `Relier plusieurs VLANs via des trunks entre switches et permettre leur communication via un routeur (Router-on-a-Stick). On aborde : configuration du trunk, VLAN autorisés / non autorisés, et routage inter-VLAN.
 
-À la fin de cette session, vous serez capable de :
-• Configurer un port trunk entre plusieurs switches pour transporter plusieurs VLANs
-• Restreindre les VLANs autorisés sur un trunk pour plus de sécurité
-• Définir et comprendre le rôle du VLAN natif sur un trunk
-• Mettre en place le routage inter-VLAN avec la technique Router-on-a-Stick
-• Créer des sous-interfaces sur un routeur (une par VLAN) avec encapsulation 802.1Q
-• Permettre la communication entre machines de VLANs différents via le routeur`
+🎯 À la fin de cette session, vous serez capable de :
+
+🔗 Configurer un port trunk entre plusieurs switches pour transporter plusieurs VLANs
+🔐 Restreindre les VLANs autorisés sur un trunk pour plus de sécurité
+🏷️ Définir et comprendre le rôle du VLAN natif sur un trunk
+🚀 Mettre en place le routage inter-VLAN avec la technique Router-on-a-Stick
+🔀 Créer des sous-interfaces sur un routeur (une par VLAN) avec encapsulation 802.1Q
+🌉 Permettre la communication entre machines de VLANs différents via le routeur`
       },
       {
         type: 'rich_text',
@@ -5524,6 +5528,30 @@ export default function NetMasterClass() {
                 <p className="text-[10px] text-slate-600 mt-0.5">À venir</p>
               </div>
             </button>
+          </div>
+
+          {/* Info Pratique */}
+          <div className="mt-6 pt-4 border-t border-slate-800 space-y-2">
+            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Info Pratique</p>
+            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-lg bg-blue-500/20">
+                  <MessageCircle className="w-5 h-5 text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-slate-300 text-sm font-bold mb-1">Canal Webex</p>
+                  <a 
+                    href="mailto:formation@net-academy.eu"
+                    className="text-blue-400 hover:text-blue-300 text-xs font-mono transition-colors underline decoration-dotted"
+                  >
+                    formation@net-academy.eu
+                  </a>
+                  <p className="text-slate-500 text-xs mt-2">
+                    Pour toute question ou support technique
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
