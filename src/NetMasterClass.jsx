@@ -5921,6 +5921,54 @@ export default function NetMasterClass() {
           <div className="mb-4 pb-3 border-b border-slate-800">
             <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Programme</p>
           </div>
+
+          {/* Info Pratique */}
+          <div className="mb-6 pb-4 border-b border-slate-800 space-y-2">
+            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Info Pratique</p>
+            <div className="space-y-3">
+              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-blue-500/20">
+                    <MessageCircle className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-slate-300 text-sm font-bold mb-1">Canal Webex</p>
+                    <a 
+                      href="mailto:formation@net-academy.eu"
+                      className="text-blue-400 hover:text-blue-300 text-xs font-mono transition-colors underline decoration-dotted"
+                    >
+                      formation@net-academy.eu
+                    </a>
+                    <p className="text-slate-500 text-xs mt-2">
+                      Pour toute question ou support technique
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-purple-500/20">
+                    <Video className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-slate-300 text-sm font-bold mb-1">Réunion Zoom</p>
+                    <a 
+                      href="https://us06web.zoom.us/j/89070136941?pwd=Xh1bOFpuW3I5iQnFbjxcvjZWsGU8Mk.1"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-400 hover:text-purple-300 text-xs font-mono transition-colors underline decoration-dotted break-all"
+                    >
+                      Rejoindre la réunion Zoom
+                    </a>
+                    <p className="text-slate-500 text-xs mt-2">
+                      Lien de connexion pour les sessions en ligne
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {weeks.map((week) => (
             <div key={week.id} className="mb-2">
               <button
@@ -6121,53 +6169,6 @@ export default function NetMasterClass() {
                 <p className="text-[10px] text-slate-600 mt-0.5">À venir</p>
               </div>
             </button>
-          </div>
-
-          {/* Info Pratique */}
-          <div className="mt-6 pt-4 border-t border-slate-800 space-y-2">
-            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Info Pratique</p>
-            <div className="space-y-3">
-              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-blue-500/20">
-                    <MessageCircle className="w-5 h-5 text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-slate-300 text-sm font-bold mb-1">Canal Webex</p>
-                    <a 
-                      href="mailto:formation@net-academy.eu"
-                      className="text-blue-400 hover:text-blue-300 text-xs font-mono transition-colors underline decoration-dotted"
-                    >
-                      formation@net-academy.eu
-                    </a>
-                    <p className="text-slate-500 text-xs mt-2">
-                      Pour toute question ou support technique
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-purple-500/20">
-                    <Video className="w-5 h-5 text-purple-400" />
-                  </div>
-                  <div>
-                    <p className="text-slate-300 text-sm font-bold mb-1">Réunion Zoom</p>
-                    <a 
-                      href="https://us06web.zoom.us/j/89070136941?pwd=Xh1bOFpuW3I5iQnFbjxcvjZWsGU8Mk.1"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-purple-400 hover:text-purple-300 text-xs font-mono transition-colors underline decoration-dotted break-all"
-                    >
-                      Rejoindre la réunion Zoom
-                    </a>
-                    <p className="text-slate-500 text-xs mt-2">
-                      Lien de connexion pour les sessions en ligne
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
