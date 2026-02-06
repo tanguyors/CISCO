@@ -4,7 +4,7 @@ import {
   ChevronRight, ChevronLeft, Lock, Shield, 
   Cpu, RotateCcw, Menu, X, Globe,
   Clock, Save, Power, AlertCircle, Eye, AlertTriangle, Lightbulb, HardDrive, Microscope, Router as RouterIcon, Network, ArrowUpDown, Monitor, Command, MessageCircle, HelpCircle,
-  BarChart3, TrendingUp, History, Target, Zap, Activity, Send, Key, User, Layout, Plus, Trash2, Link, Server
+  BarChart3, TrendingUp, History, Target, Zap, Activity, Send, Key, User, Layout, Plus, Trash2, Link, Server, Video
 } from 'lucide-react';
 
 // --- COMPOSANTS UI UTILITAIRES ---
@@ -6126,22 +6126,45 @@ export default function NetMasterClass() {
           {/* Info Pratique */}
           <div className="mt-6 pt-4 border-t border-slate-800 space-y-2">
             <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Info Pratique</p>
-            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-blue-500/20">
-                  <MessageCircle className="w-5 h-5 text-blue-400" />
+            <div className="space-y-3">
+              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-blue-500/20">
+                    <MessageCircle className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-slate-300 text-sm font-bold mb-1">Canal Webex</p>
+                    <a 
+                      href="mailto:formation@net-academy.eu"
+                      className="text-blue-400 hover:text-blue-300 text-xs font-mono transition-colors underline decoration-dotted"
+                    >
+                      formation@net-academy.eu
+                    </a>
+                    <p className="text-slate-500 text-xs mt-2">
+                      Pour toute question ou support technique
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-slate-300 text-sm font-bold mb-1">Canal Webex</p>
-                  <a 
-                    href="mailto:formation@net-academy.eu"
-                    className="text-blue-400 hover:text-blue-300 text-xs font-mono transition-colors underline decoration-dotted"
-                  >
-                    formation@net-academy.eu
-                  </a>
-                  <p className="text-slate-500 text-xs mt-2">
-                    Pour toute question ou support technique
-                  </p>
+              </div>
+              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-purple-500/20">
+                    <Video className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-slate-300 text-sm font-bold mb-1">Réunion Zoom</p>
+                    <a 
+                      href="https://us06web.zoom.us/j/89070136941?pwd=Xh1bOFpuW3I5iQnFbjxcvjZWsGU8Mk.1"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-purple-400 hover:text-purple-300 text-xs font-mono transition-colors underline decoration-dotted break-all"
+                    >
+                      Rejoindre la réunion Zoom
+                    </a>
+                    <p className="text-slate-500 text-xs mt-2">
+                      Lien de connexion pour les sessions en ligne
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
