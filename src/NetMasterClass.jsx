@@ -1491,17 +1491,52 @@ const CmdLine = ({ cmd, children }) => (
   </div>
 );
 
+// --- Composant pédagogique : Commande détaillée ---
+const CommandStep = ({ number, command, why, result, prompt }) => (
+  <div className="bg-slate-800/40 border border-slate-700 rounded-xl p-5 hover:bg-slate-800/60 transition-all">
+    <div className="flex items-start gap-4">
+      <div className="bg-blue-500/20 text-blue-400 rounded-full w-10 h-10 flex items-center justify-center flex-shrink-0 font-bold text-lg">
+        {number}
+      </div>
+      <div className="flex-1 space-y-3">
+        {/* Commande */}
+        <div>
+          <p className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-1">Commande</p>
+          <div className="bg-black/60 rounded-lg p-3 font-mono">
+            {prompt && <span className="text-slate-500">{prompt} </span>}
+            <span className="text-emerald-400 font-bold">{command}</span>
+          </div>
+        </div>
+        
+        {/* Pourquoi */}
+        <div>
+          <p className="text-xs text-amber-400 uppercase tracking-wider font-bold mb-1.5">💡 Pourquoi cette commande ?</p>
+          <p className="text-slate-300 text-sm leading-relaxed">{why}</p>
+        </div>
+        
+        {/* Résultat */}
+        {result && (
+          <div>
+            <p className="text-xs text-emerald-400 uppercase tracking-wider font-bold mb-1.5">✓ Résultat attendu</p>
+            <p className="text-slate-400 text-sm leading-relaxed">{result}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+);
+
 // --- CORRECTION DÉTAILLÉE LAB 1 SESSION 2 (Introduction VLAN) ---
 const CorrectionLab1Session2 = () => (
-  <div className="bg-slate-900 rounded-xl border border-slate-700 shadow-xl overflow-hidden">
-    <div className="bg-gradient-to-r from-emerald-900/50 to-blue-900/50 p-5 border-b border-slate-700">
-      <h3 className="text-xl font-bold text-white flex items-center gap-3">
-        <CheckCircle className="text-emerald-400 w-6 h-6" /> Solution Lab 1 Session 2 : Introduction aux VLANs
-      </h3>
-      <p className="text-slate-400 mt-2 text-sm">Commande par commande avec explication.</p>
+  <div className="max-w-5xl mx-auto space-y-8 pb-16">
+    <div className="bg-gradient-to-br from-emerald-900/30 to-blue-900/20 border border-emerald-500/40 rounded-2xl p-8">
+      <h1 className="text-3xl font-bold text-white flex items-center gap-3 mb-3">
+        <CheckCircle className="w-10 h-10 text-emerald-400 flex-shrink-0" /> Correction Lab 1 : Introduction aux VLANs
+      </h1>
+      <p className="text-emerald-100/90 text-lg leading-relaxed">Création de VLANs sur un switch et attribution des ports - Commande par commande avec explications détaillées.</p>
     </div>
 
-    <div className="p-5 space-y-6 max-h-[70vh] overflow-y-auto">
+    <div className="space-y-6">
       {/* MATÉRIEL */}
       <section>
         <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">🧩 Matériel</h2>
@@ -2131,7 +2166,7 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
     lab: {
       title: "Mémo des Commandes – Session 1",
       context: "Retrouvez ici toutes les commandes vues dans le cours sur la sécurisation et SSH : navigation CLI, configuration de base, mots de passe, activation SSH, utilisateurs et sauvegarde.",
-      /* consignes: (
+      consignes: (
         <div className="space-y-10 text-slate-200 text-base leading-relaxed">
           <div className="bg-blue-900/30 border border-blue-500/40 rounded-xl p-5">
             <p className="text-blue-100 font-semibold text-lg mb-1">Où faire les labs ?</p>
@@ -2258,8 +2293,7 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
             </div>
           </div>
         </div>
-      ), */
-      consignes: null, // Consignes supprimées
+      ),
       initialPrompt: "Router>",
       tasks: [
         { cmd: "enable", desc: "Passer en mode privilégié" },
@@ -2838,7 +2872,7 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
     lab: {
       title: "Mémo des Commandes – Session 2",
       context: "Retrouvez ici toutes les commandes vues dans le cours sur les VLANs : création de VLANs, attribution de ports, configuration de l'interface de management et vérification.",
-      /* consignes: (
+      consignes: (
         <div className="space-y-10 text-slate-200 text-base leading-relaxed">
           <div className="bg-blue-900/30 border border-blue-500/40 rounded-xl p-5">
             <p className="text-blue-100 font-semibold text-lg mb-1">Où faire les labs Session 2 ?</p>
@@ -2900,8 +2934,7 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
             <p className="text-amber-300/90 text-xs border-l-2 border-amber-500/50 pl-3 py-1">Pour les consignes exactes (étapes, adressage), suivre le PDF « 3 - Introduction Vlan avancés et sécurisation - LAB.pdf ».</p>
           </div>
         </div>
-      ), */
-      consignes: null, // Consignes supprimées
+      ),
       solutionContent: <CorrectionLab1Session2 />,
       solutionContentLab2: <CorrectionLab2Session2 />,
       initialPrompt: "Switch>",
@@ -3111,7 +3144,7 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
     lab: {
       title: "Mémo des Commandes – Session 3",
       context: "Retrouvez ici toutes les commandes vues dans le cours sur les trunks et le routage inter-VLAN : configuration trunk, VLANs autorisés, VLAN natif, sous-interfaces et Router-on-a-Stick.",
-      /* consignes: (
+      consignes: (
         <div className="space-y-10 text-slate-200 text-base leading-relaxed">
           <div className="bg-blue-900/30 border border-blue-500/40 rounded-xl p-5">
             <p className="text-blue-100 font-semibold text-lg mb-1">Lab Pratique – Séance 2 : Trunks et Communication Inter-VLANs</p>
@@ -3203,8 +3236,7 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
             <p className="text-slate-400 text-sm mt-3">Ce lab montre comment relier logiquement plusieurs VLANs et permettre leur communication de manière professionnelle dans un réseau d’entreprise.</p>
           </div>
         </div>
-      ), */
-      consignes: null, // Consignes supprimées
+      ),
       initialPrompt: "Switch>",
       tasks: [
         { cmd: "enable", desc: "Mode privilégié" },
@@ -4754,6 +4786,7 @@ const PacketTracerSection = () => {
 const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sessionId = 1 }) => {
   const [labTab, setLabTab] = useState('correction'); // 'consignes' | 'correction' | 'correction_lab2'
   const isSession2 = sessionId === 2;
+  const isSession3 = sessionId === 3;
   return (
     <div className="h-full flex flex-col">
       <div className="bg-slate-800 p-6 rounded-t-xl border border-slate-700 border-b-0">
@@ -4776,20 +4809,22 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
             onClick={() => setLabTab('correction')}
             className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
           >
-            <CheckCircle className="w-4 h-4" /> {isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
+            <CheckCircle className="w-4 h-4" /> {isSession3 ? 'Correction' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
           </button>
-          <button
-            onClick={() => setLabTab('correction_lab2')}
-            className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab2' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
-          >
-            <CheckCircle className="w-4 h-4" /> {isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
-          </button>
+          {!isSession3 && (
+            <button
+              onClick={() => setLabTab('correction_lab2')}
+              className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab2' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+            >
+              <CheckCircle className="w-4 h-4" /> {isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
+            </button>
+          )}
         </div>
       </div>
       {labTab === 'consignes' && lab.consignes && (
         <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl px-6 py-5 overflow-y-auto">
           <h4 className="text-white font-bold flex items-center gap-2 mb-4 text-base">
-            <BookOpen className="w-5 h-5 text-amber-400" /> {isSession2 ? 'Consignes des deux labs Session 2' : 'Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer'}
+            <BookOpen className="w-5 h-5 text-amber-400" /> {isSession3 ? 'Consignes du lab – à réaliser sur Cisco Packet Tracer' : isSession2 ? 'Consignes des deux labs Session 2' : 'Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer'}
           </h4>
           <div className="pr-4 space-y-1 text-slate-300">
             {lab.consignes}
@@ -5187,6 +5222,38 @@ end</code></pre>
   </div>
 );
 
+// --- STRUCTURE DES SEMAINES ---
+const weeks = [
+  {
+    id: 1,
+    title: "Semaine 1",
+    subtitle: "Administration Cisco, SSH & VLAN",
+    sessions: [1, 2, 3],
+    available: true
+  },
+  {
+    id: 2,
+    title: "Semaine 2",
+    subtitle: "À venir",
+    sessions: [],
+    available: false
+  },
+  {
+    id: 3,
+    title: "Semaine 3",
+    subtitle: "À venir",
+    sessions: [],
+    available: false
+  },
+  {
+    id: 4,
+    title: "Semaine 4",
+    subtitle: "À venir",
+    sessions: [],
+    available: false
+  }
+];
+
 // --- MAIN APP : THÉORIE + LAB + QUIZ ---
 
 export default function NetMasterClass() {
@@ -5196,6 +5263,8 @@ export default function NetMasterClass() {
   const [completedSessions, setCompletedSessions] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [quizScore, setQuizScore] = useState(null);
+  const [expandedWeek, setExpandedWeek] = useState(1);
+  const [expandedLabWeek, setExpandedLabWeek] = useState(1);
   
   // Système de statistiques
   const { stats, addTime, addCommand, addQuizAttempt, addLabAttempt, resetStats } = useStats();
@@ -5234,7 +5303,7 @@ export default function NetMasterClass() {
             <Globe className="text-blue-500" /> NetAcademy
           </h1>
           <p className="text-xs text-slate-500 mt-1 uppercase tracking-wide font-bold">
-            Semaine 1 : Administration Cisco, SSH & VLAN
+            Formation Réseau Cisco
           </p>
 
           <div className="mt-6 bg-slate-800/60 p-4 rounded-xl border border-slate-700">
@@ -5253,119 +5322,206 @@ export default function NetMasterClass() {
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           <div className="mb-4 pb-3 border-b border-slate-800">
-            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Sessions</p>
+            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Programme</p>
           </div>
-          {sessions.map((session) => (
-            <button
-              key={session.id}
-              onClick={() => {
-                setViewMode('sessions');
-                setActiveSessionId(session.id);
-                setActiveTab('theory');
-                setQuizScore(null);
-                if (window.innerWidth < 1024) setSidebarOpen(false);
-              }}
-              className={`w-full p-4 rounded-xl flex items-start space-x-3 transition-all border group ${
-                activeSessionId === session.id
-                  ? 'bg-blue-600/10 border-blue-500 text-blue-100 shadow-lg shadow-blue-900/20'
-                  : completedSessions.includes(session.id)
-                    ? 'bg-emerald-900/10 border-emerald-900/40 text-emerald-400'
-                    : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-400 hover:border-slate-600'
-              }`}
-            >
-              <div
-                className={`p-2 rounded-lg mt-0.5 transition-colors ${
-                  activeSessionId === session.id
-                    ? 'bg-blue-600 text-white'
-                    : completedSessions.includes(session.id)
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-slate-800 group-hover:bg-slate-700'
+          {weeks.map((week) => (
+            <div key={week.id} className="mb-2">
+              <button
+                onClick={() => week.available && setExpandedWeek(expandedWeek === week.id ? null : week.id)}
+                className={`w-full p-3 rounded-xl flex items-center justify-between transition-all border ${
+                  week.available
+                    ? expandedWeek === week.id
+                      ? 'bg-blue-600/10 border-blue-500/50 text-blue-100'
+                      : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-300 hover:border-slate-600'
+                    : 'bg-slate-900/50 border-slate-800/50 text-slate-600 cursor-not-allowed opacity-60'
                 }`}
+                disabled={!week.available}
               >
-                {completedSessions.includes(session.id) ? <CheckCircle size={18} /> : session.icon}
-              </div>
-              <div className="text-left flex-1">
-                <p className="font-bold text-sm leading-tight">{session.title}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-[10px] flex items-center gap-1 bg-slate-950 px-2 py-0.5 rounded text-slate-500 border border-slate-800 font-mono">
-                    <Clock size={10} /> {session.duration}
-                  </span>
+                <div className="text-left flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="font-bold text-sm">{week.title}</p>
+                    {!week.available && (
+                      <span className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 rounded-full text-[9px] font-bold text-amber-400 uppercase">Soon</span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-0.5">{week.subtitle}</p>
                 </div>
-              </div>
-            </button>
+                {week.available && (
+                  <ChevronRight className={`w-4 h-4 transition-transform ${expandedWeek === week.id ? 'rotate-90' : ''}`} />
+                )}
+              </button>
+              
+              {expandedWeek === week.id && week.available && (
+                <div className="mt-2 ml-3 space-y-2 border-l-2 border-slate-800 pl-3">
+                  {week.sessions.map((sessionId) => {
+                    const session = sessions.find(s => s.id === sessionId);
+                    if (!session) return null;
+                    return (
+                      <button
+                        key={session.id}
+                        onClick={() => {
+                          setViewMode('sessions');
+                          setActiveSessionId(session.id);
+                          setActiveTab('theory');
+                          setQuizScore(null);
+                          if (window.innerWidth < 1024) setSidebarOpen(false);
+                        }}
+                        className={`w-full p-3 rounded-lg flex items-start space-x-3 transition-all border group ${
+                          activeSessionId === session.id
+                            ? 'bg-blue-600/10 border-blue-500 text-blue-100'
+                            : completedSessions.includes(session.id)
+                              ? 'bg-emerald-900/10 border-emerald-900/40 text-emerald-400'
+                              : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-400 hover:border-slate-600'
+                        }`}
+                      >
+                        <div
+                          className={`p-2 rounded-lg transition-colors ${
+                            activeSessionId === session.id
+                              ? 'bg-blue-600 text-white'
+                              : completedSessions.includes(session.id)
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-slate-800 group-hover:bg-slate-700'
+                          }`}
+                        >
+                          {completedSessions.includes(session.id) ? <CheckCircle size={16} /> : session.icon}
+                        </div>
+                        <div className="text-left flex-1">
+                          <p className="font-bold text-xs leading-tight">{session.title}</p>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className="text-[9px] flex items-center gap-1 bg-slate-950 px-1.5 py-0.5 rounded text-slate-500 border border-slate-800 font-mono">
+                              <Clock size={9} /> {session.duration}
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           ))}
           <div className="mt-6 pt-4 border-t border-slate-800 space-y-2">
-            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Outils</p>
-            <button
-              onClick={() => {
-                setViewMode('labs');
-                if (window.innerWidth < 1024) setSidebarOpen(false);
-              }}
-              className={`w-full p-4 rounded-xl flex items-center gap-3 transition-all border ${
-                viewMode === 'labs'
-                  ? 'bg-blue-600/20 border-blue-500 text-blue-100'
-                  : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-400 hover:border-slate-600'
-              }`}
-            >
-              <div className={`p-2 rounded-lg ${viewMode === 'labs' ? 'bg-blue-600 text-white' : 'bg-slate-800'}`}>
-                <Terminal className="w-5 h-5" />
-              </div>
-              <div className="text-left flex-1">
-                <p className="font-bold text-sm">Lab Session 1</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">Labs S1, S2, S3 indépendants</p>
-              </div>
-            </button>
-            <button
-              onClick={() => {
-                setViewMode('labs_s2');
-                if (window.innerWidth < 1024) setSidebarOpen(false);
-              }}
-              className={`w-full p-4 rounded-xl flex items-center gap-3 transition-all border ${
-                viewMode === 'labs_s2'
-                  ? 'bg-blue-600/20 border-blue-500 text-blue-100'
-                  : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-400 hover:border-slate-600'
-              }`}
-            >
-              <div className={`p-2 rounded-lg ${viewMode === 'labs_s2' ? 'bg-blue-600 text-white' : 'bg-slate-800'}`}>
-                <Network className="w-5 h-5" />
-              </div>
-              <div className="text-left flex-1">
-                <p className="font-bold text-sm">Lab Session 2</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">Introduction VLAN, VLAN avancés</p>
-              </div>
-            </button>
-            <button
-              onClick={() => {
-                setViewMode('labs_s3');
-                if (window.innerWidth < 1024) setSidebarOpen(false);
-              }}
-              className={`w-full p-4 rounded-xl flex items-center gap-3 transition-all border ${
-                viewMode === 'labs_s3'
-                  ? 'bg-blue-600/20 border-blue-500 text-blue-100'
-                  : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-400 hover:border-slate-600'
-              }`}
-            >
-              <div className={`p-2 rounded-lg ${viewMode === 'labs_s3' ? 'bg-blue-600 text-white' : 'bg-slate-800'}`}>
-                <Link className="w-5 h-5" />
-              </div>
-              <div className="text-left flex-1">
-                <p className="font-bold text-sm">Lab Session 3</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">Trunk et routage inter-VLAN</p>
-              </div>
-            </button>
+            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Labs Pratiques</p>
+            
+            {/* Semaine 1 - Labs disponibles */}
+            <div className="mb-2">
+              <button
+                onClick={() => setExpandedLabWeek(expandedLabWeek === 1 ? null : 1)}
+                className={`w-full p-3 rounded-xl flex items-center justify-between transition-all border ${
+                  expandedLabWeek === 1
+                    ? 'bg-blue-600/10 border-blue-500/50 text-blue-100'
+                    : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-300 hover:border-slate-600'
+                }`}
+              >
+                <div className="text-left flex-1">
+                  <p className="font-bold text-sm">Semaine 1</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">3 labs disponibles</p>
+                </div>
+                <ChevronRight className={`w-4 h-4 transition-transform ${expandedLabWeek === 1 ? 'rotate-90' : ''}`} />
+              </button>
+              
+              {expandedLabWeek === 1 && (
+                <div className="mt-2 ml-3 space-y-2 border-l-2 border-slate-800 pl-3">
+                  <button
+                    onClick={() => {
+                      setViewMode('labs');
+                      if (window.innerWidth < 1024) setSidebarOpen(false);
+                    }}
+                    className={`w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs ${
+                      viewMode === 'labs'
+                        ? 'bg-blue-600/20 border-blue-500 text-blue-100'
+                        : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-400 hover:border-slate-600'
+                    }`}
+                  >
+                    <div className={`p-1.5 rounded ${viewMode === 'labs' ? 'bg-blue-600 text-white' : 'bg-slate-800'}`}>
+                      <Terminal className="w-4 h-4" />
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className="font-bold">Lab Session 1</p>
+                      <p className="text-[9px] text-slate-500">Labs S1, S2, S3</p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setViewMode('labs_s2');
+                      if (window.innerWidth < 1024) setSidebarOpen(false);
+                    }}
+                    className={`w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs ${
+                      viewMode === 'labs_s2'
+                        ? 'bg-blue-600/20 border-blue-500 text-blue-100'
+                        : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-400 hover:border-slate-600'
+                    }`}
+                  >
+                    <div className={`p-1.5 rounded ${viewMode === 'labs_s2' ? 'bg-blue-600 text-white' : 'bg-slate-800'}`}>
+                      <Network className="w-4 h-4" />
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className="font-bold">Lab Session 2</p>
+                      <p className="text-[9px] text-slate-500">VLAN, VLAN avancés</p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setViewMode('labs_s3');
+                      if (window.innerWidth < 1024) setSidebarOpen(false);
+                    }}
+                    className={`w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs ${
+                      viewMode === 'labs_s3'
+                        ? 'bg-blue-600/20 border-blue-500 text-blue-100'
+                        : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-400 hover:border-slate-600'
+                    }`}
+                  >
+                    <div className={`p-1.5 rounded ${viewMode === 'labs_s3' ? 'bg-blue-600 text-white' : 'bg-slate-800'}`}>
+                      <Link className="w-4 h-4" />
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className="font-bold">Lab Session 3</p>
+                      <p className="text-[9px] text-slate-500">Trunk et inter-VLAN</p>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Semaine 2 - Coming Soon */}
             <button
               disabled
-              className="w-full p-4 rounded-xl flex items-center gap-3 transition-all border bg-slate-900/50 border-slate-800/50 text-slate-600 cursor-not-allowed opacity-60"
+              className="w-full p-3 rounded-xl flex items-center justify-between transition-all border bg-slate-900/50 border-slate-800/50 text-slate-600 cursor-not-allowed opacity-60"
             >
-              <div className="p-2 rounded-lg bg-slate-800/50">
-                <Layout className="w-5 h-5" />
-              </div>
               <div className="text-left flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="font-bold text-sm">Packet Tracer</p>
-                  <span className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 rounded-full text-[10px] font-bold text-amber-400 uppercase">Soon</span>
+                  <p className="font-bold text-sm">Semaine 2</p>
+                  <span className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 rounded-full text-[9px] font-bold text-amber-400 uppercase">Soon</span>
                 </div>
-                <p className="text-[10px] text-slate-600 mt-0.5">Simulateur réseau</p>
+                <p className="text-[10px] text-slate-600 mt-0.5">À venir</p>
+              </div>
+            </button>
+
+            {/* Semaine 3 - Coming Soon */}
+            <button
+              disabled
+              className="w-full p-3 rounded-xl flex items-center justify-between transition-all border bg-slate-900/50 border-slate-800/50 text-slate-600 cursor-not-allowed opacity-60"
+            >
+              <div className="text-left flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="font-bold text-sm">Semaine 3</p>
+                  <span className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 rounded-full text-[9px] font-bold text-amber-400 uppercase">Soon</span>
+                </div>
+                <p className="text-[10px] text-slate-600 mt-0.5">À venir</p>
+              </div>
+            </button>
+
+            {/* Semaine 4 - Coming Soon */}
+            <button
+              disabled
+              className="w-full p-3 rounded-xl flex items-center justify-between transition-all border bg-slate-900/50 border-slate-800/50 text-slate-600 cursor-not-allowed opacity-60"
+            >
+              <div className="text-left flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="font-bold text-sm">Semaine 4</p>
+                  <span className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 rounded-full text-[9px] font-bold text-amber-400 uppercase">Soon</span>
+                </div>
+                <p className="text-[10px] text-slate-600 mt-0.5">À venir</p>
               </div>
             </button>
           </div>
