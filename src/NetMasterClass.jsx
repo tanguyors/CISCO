@@ -5605,6 +5605,98 @@ const LabCorrectionSection = () => (
       <p className="text-slate-300 mb-3 leading-relaxed">Tape <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">show ip interface brief</code>. Tu dois voir :</p>
       <p className="text-slate-300 font-mono text-sm bg-slate-900/50 rounded-lg px-4 py-3 mb-4">GigabitEthernet0/0  192.168.10.1  YES  manual  up  up</p>
       <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-1">✅ Si l’interface est <strong>up up</strong> avec 192.168.10.1, le routeur est prêt. Le lien vers le switch devrait être vert.</p>
+      
+      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">4.7 Sécuriser le routeur (mots de passe)</h3>
+      <p className="text-slate-300 mb-6 leading-relaxed">Par défaut, n'importe qui peut accéder au routeur sans mot de passe. Il faut sécuriser l'accès console et le mode privilégié.</p>
+      
+      <div className="space-y-4 mb-6">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Nova(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">enable secret cisco123</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Définir le mot de passe pour accéder au mode privilégié (mode #). Ce mot de passe est chiffré (hashé MD5) et sécurisé. Remplace "cisco123" par un mot de passe fort.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Nova(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">line console 0</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Configurer l'accès console physique (le port console du routeur). Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">R-Nova(config-line)#</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Nova(config-line)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">password console123</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Définir le mot de passe pour l'accès console. Remplace "console123" par un mot de passe fort. Ce mot de passe sera demandé lors de la connexion via le câble console.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Nova(config-line)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">login</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Activer la demande de mot de passe à la connexion. <strong>Sans cette commande, le mot de passe ne sera pas demandé !</strong> Cette commande active réellement l'authentification console.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Nova(config-line)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">exit</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir du mode configuration de ligne et revenir au mode configuration globale. Le prompt redevient <code className="bg-slate-800 px-1 rounded text-xs">R-Nova(config)#</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Nova(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">end</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir du mode configuration et revenir au mode privilégié. Le prompt redevient <code className="bg-slate-800 px-1 rounded text-xs">R-Nova#</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Nova#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">copy running-config startup-config</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sauvegarder la configuration dans la NVRAM. Sans cette commande, les mots de passe seront perdus lors du redémarrage du routeur.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="bg-blue-500/10 border-l-4 border-blue-500/50 rounded-r-lg p-4 mb-6">
+        <h4 className="text-blue-400 font-bold flex items-center gap-2 mb-2 text-sm">
+          <span>💡</span> Pourquoi deux mots de passe ?
+        </h4>
+        <div className="text-slate-300 text-sm leading-relaxed space-y-2">
+          <p>
+            <strong>Mot de passe console :</strong> Protège l'accès physique au routeur via le câble console (port physique). C'est le premier niveau de sécurité.
+          </p>
+          <p>
+            <strong>Enable secret :</strong> Protège l'accès au mode privilégié (#) où tu peux modifier la configuration. Même si quelqu'un accède au routeur, il ne pourra pas faire de modifications sans ce mot de passe.
+          </p>
+          <p className="text-emerald-300/90 font-medium mt-2">
+            ✅ <strong>Important :</strong> Utilise toujours <code className="bg-slate-800 px-1 rounded text-xs">enable secret</code> plutôt que <code className="bg-slate-800 px-1 rounded text-xs">enable password</code>, car le secret est chiffré et plus sécurisé.
+          </p>
+        </div>
+      </div>
     </section>
 
     <section className="bg-slate-800/50 border border-amber-500/30 rounded-2xl p-8">
