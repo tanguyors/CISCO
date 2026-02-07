@@ -5554,10 +5554,47 @@ const LabCorrectionSection = () => (
       </ul>
       <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">4.5 Donner une IP et activer le port</h3>
       <p className="text-slate-300 mb-4 leading-relaxed">IP <strong>192.168.10.1</strong> sur l’interface GigabitEthernet0/0, puis <strong>no shutdown</strong> pour activer le port.</p>
-      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto mb-6"><code>interface gigabitEthernet0/0
-ip address 192.168.10.1 255.255.255.0
-no shutdown
-end</code></pre>
+      <div className="space-y-4 mb-6">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Nova(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">interface gigabitEthernet0/0</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sélectionner l'interface GigabitEthernet0/0 qui est connectée au switch. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">R-Nova(config-if)#</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Nova(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">ip address 192.168.10.1 255.255.255.0</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Attribuer l'adresse IP 192.168.10.1 avec le masque de sous-réseau 255.255.255.0 (équivalent à /24). Cette IP sera la passerelle du réseau pour tous les équipements.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Nova(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">no shutdown</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Activer le port. Par défaut, les ports des routeurs sont désactivés (shutdown). Cette commande les active. Le lien vers le switch devrait passer au vert après quelques secondes.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Nova(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">end</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir du mode configuration et revenir au mode privilégié. Le prompt redevient <code className="bg-slate-800 px-1 rounded text-xs">R-Nova#</code>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
       <ul className="list-none space-y-3 ml-0 text-slate-300 mb-6">
         <li className="flex gap-3 items-start"><span className="text-emerald-400 shrink-0">•</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">interface gigabitEthernet0/0</code> — config de l’interface.</li>
         <li className="flex gap-3 items-start"><span className="text-emerald-400 shrink-0">•</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">ip address …</code> — IP et masque 192.168.10.0/24.</li>
@@ -5580,6 +5617,32 @@ end</code></pre>
         <li className="flex gap-3"><span className="font-bold text-emerald-400/90 shrink-0">2-</span> <strong>Subnet Mask</strong> : 255.255.255.0</li>
         <li className="flex gap-3"><span className="font-bold text-emerald-400/90 shrink-0">3-</span> <strong>Default Gateway</strong> : 192.168.10.1</li>
       </ul>
+      
+      <div className="bg-blue-500/10 border-l-4 border-blue-500/50 rounded-r-lg p-4 mb-6">
+        <h4 className="text-blue-400 font-bold flex items-center gap-2 mb-2 text-sm">
+          <span>💡</span> Qu'est-ce que la passerelle par défaut (Default Gateway) ?
+        </h4>
+        <div className="text-slate-300 text-sm leading-relaxed space-y-2">
+          <p>
+            La <strong>passerelle par défaut</strong> (ou <strong>gateway</strong>) est l'adresse IP du routeur qui sert de <strong>point de sortie</strong> pour tous les trafics destinés à des réseaux différents du réseau local.
+          </p>
+          <p>
+            <strong>Dans ce lab :</strong> Le PC (192.168.10.20) est sur le réseau 192.168.10.0/24. La passerelle 192.168.10.1 correspond à l'interface du routeur R-Nova connectée au même réseau.
+          </p>
+          <p>
+            <strong>Pourquoi c'est important ?</strong>
+          </p>
+          <ul className="list-disc list-inside ml-2 space-y-1 text-slate-300">
+            <li>Sans passerelle, le PC ne peut communiquer qu'avec les autres appareils sur son propre réseau (192.168.10.x).</li>
+            <li>Avec la passerelle, le PC peut envoyer des paquets vers d'autres réseaux (ex. Internet, autres VLANs, etc.).</li>
+            <li>Quand le PC veut joindre une adresse hors de son réseau, il envoie le paquet à la passerelle, qui le route vers la destination.</li>
+          </ul>
+          <p className="text-emerald-300/90 font-medium mt-3">
+            💡 <strong>Analogie :</strong> La passerelle est comme la porte de sortie de ton quartier. Pour aller ailleurs, tu dois passer par cette porte !
+          </p>
+        </div>
+      </div>
+      
       <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">5.2 Test (ping)</h3>
       <p className="text-slate-300 mb-3 leading-relaxed">Tech-PC → <strong>Desktop</strong> → <strong>Command Prompt</strong>. Tape :</p>
       <p className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-4">ping 192.168.10.1</p>
@@ -5591,30 +5654,213 @@ end</code></pre>
       <h2 className="text-xl font-bold text-blue-400 mb-6">🟦 Étape 6 — Configuration des switches</h2>
       <p className="text-slate-300 mb-6 leading-relaxed">Un switch n’a <strong>pas besoin d’IP pour faire circuler les trames</strong>. Pour l’<strong>administrer à distance</strong> (SSH, TFTP), il doit avoir une IP et une passerelle. On configure <strong>VLAN 1</strong> (management) et <strong>ip default-gateway</strong> vers le routeur.</p>
       <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">6.1 Sur SW-Entrée</h3>
-      <p className="text-slate-300 mb-4 leading-relaxed">Clique sur <strong>SW-Entrée</strong> → <strong>CLI</strong>. Tape <code className="bg-slate-900 px-1 rounded font-mono text-sm">no</code> si demandé, puis :</p>
-      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto mb-6"><code>enable
-configure terminal
-hostname SW-Entree
-interface vlan 1
-ip address 192.168.10.2 255.255.255.0
-no shutdown
-exit
-ip default-gateway 192.168.10.1
-end
-copy running-config startup-config</code></pre>
-      <p className="text-slate-400 mb-6 leading-relaxed text-sm">Rappel : <code className="bg-slate-900 px-1 rounded font-mono text-sm">interface vlan 1</code> = management ; <code className="bg-slate-900 px-1 rounded font-mono text-sm">copy running-config startup-config</code> = sauvegarde en NVRAM.</p>
+      <p className="text-slate-300 mb-6 leading-relaxed">Clique sur <strong>SW-Entrée</strong> → <strong>CLI</strong>. Tape <code className="bg-slate-900 px-1 rounded font-mono text-sm">no</code> si demandé, puis :</p>
+      
+      <div className="space-y-4 mb-6">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Switch&gt;</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">enable</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Passer en mode privilégié pour avoir accès aux commandes de configuration. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">Switch#</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Switch#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">configure terminal</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Entrer en mode configuration globale. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">Switch(config)#</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Switch(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">hostname SW-Entree</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Renommer le switch pour l'identifier facilement. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">SW-Entree(config)#</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Entree(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">interface vlan 1</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Ouvrir l'interface virtuelle du VLAN 1 (interface de management). Sur un switch, on configure l'IP sur une interface virtuelle (SVI - Switch Virtual Interface) et non sur un port physique. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">SW-Entree(config-if)#</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Entree(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">ip address 192.168.10.2 255.255.255.0</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Attribuer l'adresse IP 192.168.10.2 avec le masque 255.255.255.0 au switch. Cette IP permet de l'administrer à distance (SSH, ping, TFTP).</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Entree(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">no shutdown</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Activer l'interface VLAN 1. Par défaut, les interfaces virtuelles peuvent être désactivées. Cette commande les active.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Entree(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">exit</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir du mode interface et revenir au mode configuration globale. Le prompt redevient <code className="bg-slate-800 px-1 rounded text-xs">SW-Entree(config)#</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Entree(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">ip default-gateway 192.168.10.1</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Configurer la passerelle par défaut du switch vers le routeur (192.168.10.1). Cette commande permet au switch de communiquer avec des réseaux différents du sien (ex. pour envoyer des sauvegardes TFTP vers un serveur sur un autre réseau).</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Entree(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">end</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir du mode configuration et revenir au mode privilégié. Le prompt redevient <code className="bg-slate-800 px-1 rounded text-xs">SW-Entree#</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Entree#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">copy running-config startup-config</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sauvegarder la configuration dans la NVRAM (mémoire non volatile). Sans cette commande, la configuration sera perdue lors du redémarrage du switch. Tu peux aussi utiliser <code className="bg-slate-800 px-1 rounded text-xs">wr</code> (write) comme raccourci.</p>
+            </div>
+          </div>
+        </div>
+      </div>
       <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">6.2 Sur SW-Bureau</h3>
-      <p className="text-slate-300 mb-4 leading-relaxed">Même principe : IP <strong>192.168.10.3</strong> sur VLAN 1, même masque, même passerelle 192.168.10.1. Puis sauvegarde.</p>
-      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto mb-4"><code>enable
-configure terminal
-hostname SW-Bureau
-interface vlan 1
-ip address 192.168.10.3 255.255.255.0
-no shutdown
-exit
-ip default-gateway 192.168.10.1
-end
-copy running-config startup-config</code></pre>
+      <p className="text-slate-300 mb-6 leading-relaxed">Même principe : IP <strong>192.168.10.3</strong> sur VLAN 1, même masque, même passerelle 192.168.10.1. Puis sauvegarde.</p>
+      
+      <div className="space-y-4 mb-6">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Switch&gt;</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">enable</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Passer en mode privilégié. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">Switch#</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Switch#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">configure terminal</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Entrer en mode configuration globale. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">Switch(config)#</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Switch(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">hostname SW-Bureau</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Renommer le switch. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">SW-Bureau(config)#</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Bureau(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">interface vlan 1</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Ouvrir l'interface virtuelle du VLAN 1 (management). Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">SW-Bureau(config-if)#</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Bureau(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">ip address 192.168.10.3 255.255.255.0</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Attribuer l'adresse IP 192.168.10.3 avec le masque 255.255.255.0 au switch SW-Bureau.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Bureau(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">no shutdown</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Activer l'interface VLAN 1.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Bureau(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">exit</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir du mode interface. Le prompt redevient <code className="bg-slate-800 px-1 rounded text-xs">SW-Bureau(config)#</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Bureau(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">ip default-gateway 192.168.10.1</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Configurer la passerelle par défaut vers le routeur (192.168.10.1).</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Bureau(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">end</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir du mode configuration. Le prompt redevient <code className="bg-slate-800 px-1 rounded text-xs">SW-Bureau#</code>.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Bureau#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">copy running-config startup-config</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sauvegarder la configuration dans la NVRAM pour qu'elle persiste après le redémarrage.</p>
+            </div>
+          </div>
+        </div>
+      </div>
       <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-1">✅ Après les deux switches : chaque équipement a un nom, une IP dans 192.168.10.0/24, et les configs sont sauvegardées en local.</p>
     </section>
 
@@ -6259,16 +6505,6 @@ export default function NetMasterClass() {
                     Passer au Quiz <ChevronRight size={14} />
                   </button>
                 </div>
-                {activeSession.lab.consignes && (
-                  <div className="bg-slate-900/80 border-x border-t border-slate-700 px-6 py-4">
-                    <h4 className="text-white font-bold flex items-center gap-2 mb-3 text-sm uppercase tracking-wider">
-                      <BookOpen className="w-4 h-4 text-amber-400" /> Consignes du lab
-                    </h4>
-                    <div className="max-h-48 overflow-y-auto pr-2 border-l-2 border-slate-700 pl-4">
-                      {activeSession.lab.consignes}
-                    </div>
-                  </div>
-                )}
                 <div className="flex-1 rounded-b-xl overflow-hidden border border-slate-700 shadow-2xl min-h-[420px]">
                   <CommandsLearningList 
                     commands={
