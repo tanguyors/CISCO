@@ -6139,6 +6139,7 @@ const LabCorrectionSection2 = () => (
 
     <section id="lab2ssh-ip" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-blue-400 mb-6">Étape 2 — Adresses IP (obligatoire pour SSH)</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">SSH se connecte à une <strong>adresse IP</strong>. Si le routeur et le switch n'ont pas d'IP, impossible de les joindre à distance. Le PC doit aussi être dans le même réseau (192.168.1.0/24) pour atteindre ces équipements.</p>
       <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">2A) Routeur R-Sec : IP 192.168.1.1/24</h3>
       <p className="text-slate-300 mb-6 leading-relaxed">Sur <strong>R-Sec</strong> → CLI :</p>
       <div className="space-y-4 mb-6">
@@ -6147,7 +6148,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Router&gt;</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">enable</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Passer en mode privilégié (admin). Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">Router#</code>.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">En mode utilisateur (prompt <code className="bg-slate-800 px-1 rounded text-xs">&gt;</code>), tu ne peux que consulter. <strong>enable</strong> te donne les droits d’administration : tu peux modifier la config, redémarrer, etc. Le # indique le mode privilégié.</p>
             </div>
           </div>
         </div>
@@ -6156,7 +6157,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Router#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">configure terminal</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Entrer en mode configuration globale. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">Router(config)#</code>.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">C’est le mode où tu modifies la configuration (IP, hostname, mots de passe…). Tant que tu es en <code className="bg-slate-800 px-1 rounded text-xs">(config)#</code>, chaque commande est enregistrée dans la config en cours (running-config). Raccourci possible : <code className="bg-slate-800 px-1 rounded text-xs">conf t</code>.</p>
             </div>
           </div>
         </div>
@@ -6165,7 +6166,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Router(config)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">hostname R-Sec</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Renommer le routeur. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">R-Sec(config)#</code>.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Un nom clair permet d’identifier l’équipement dans un réseau avec plusieurs routeurs. Utile pour les logs et quand on se connecte en SSH : tu sais tout de suite sur quel appareil tu es.</p>
             </div>
           </div>
         </div>
@@ -6174,7 +6175,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">interface gigabitEthernet0/0</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Sélectionner l'interface connectée au switch. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">R-Sec(config-if)#</code>.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0"><strong>GigabitEthernet0/0</strong> est le port physique branché au switch. Sur un routeur, chaque interface a une IP dans un réseau différent. Ici, g0/0 sera dans le réseau 192.168.1.0/24, celui du lab.</p>
             </div>
           </div>
         </div>
@@ -6183,7 +6184,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config-if)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">ip address 192.168.1.1 255.255.255.0</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Attribuer l'IP de gestion et la passerelle. Cette IP servira pour les connexions SSH.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">192.168.1.1 sera la <strong>passerelle</strong> du réseau pour le PC et le switch, et l’adresse à laquelle tu te connecteras en SSH. Sans IP sur l’interface, aucune connexion distante n’est possible.</p>
             </div>
           </div>
         </div>
@@ -6192,7 +6193,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config-if)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">no shutdown</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Activer le port. Par défaut les interfaces routeur sont désactivées. Le lien doit passer au vert.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Par défaut, les interfaces Cisco sont en <strong>shutdown</strong> (désactivées). <code className="bg-slate-800 px-1 rounded text-xs">no shutdown</code> les active. Le câble doit passer au vert dans Packet Tracer après quelques secondes.</p>
             </div>
           </div>
         </div>
@@ -6225,7 +6226,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Switch&gt;</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">enable</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Passer en mode privilégié. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">Switch#</code>.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Comme sur le routeur, le mode <code className="bg-slate-800 px-1 rounded text-xs">&gt;</code> est limité en lecture seule. <strong>enable</strong> ouvre l'accès aux commandes de configuration du switch.</p>
             </div>
           </div>
         </div>
@@ -6234,7 +6235,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Switch#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">configure terminal</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Entrer en mode configuration globale. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">Switch(config)#</code>.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Mode configuration globale : tu peux définir le hostname, les VLANs, l'IP de management… nécessaire pour toutes les étapes suivantes du switch.</p>
             </div>
           </div>
         </div>
@@ -6243,7 +6244,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Switch(config)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">hostname SW-Core</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Renommer le switch. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">SW-Core(config)#</code>.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Même principe que sur le routeur : un nom explicite évite les confusions quand tu gères plusieurs équipements (ex. SW-Core, SW-Dist, SW-Entrée).</p>
             </div>
           </div>
         </div>
@@ -6252,7 +6253,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">interface vlan 1</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Ouvrir l'interface virtuelle VLAN 1 (SVI). Sur un switch, l'IP se configure sur une interface virtuelle, pas sur un port physique.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Un switch est un appareil <strong>couche 2</strong> : il n’a pas d’IP sur les ports. L’IP de management se met sur une <strong>SVI</strong> (Switch Virtual Interface), ici VLAN 1. C’est cette IP que tu utiliseras pour SSH ou ping.</p>
             </div>
           </div>
         </div>
@@ -6261,7 +6262,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">ip address 192.168.1.2 255.255.255.0</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Attribuer l'IP de management du switch pour SSH, ping et TFTP.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">192.168.1.2 permet d’administrer le switch à distance : SSH, ping pour tester la connectivité, TFTP pour sauvegarder la config. Elle doit être dans le même réseau que le routeur (192.168.1.0/24).</p>
             </div>
           </div>
         </div>
@@ -6270,7 +6271,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">no shutdown</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Activer l'interface VLAN 1. Par défaut elle peut être désactivée.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Comme pour une interface physique, la SVI peut être en shutdown. <strong>no shutdown</strong> l'active pour que le switch soit joignable via son IP 192.168.1.2.</p>
             </div>
           </div>
         </div>
@@ -6288,7 +6289,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">ip default-gateway 192.168.1.1</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Configurer la passerelle vers le routeur. Permet au switch de communiquer avec d'autres réseaux (SSH, TFTP).</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Le switch doit savoir où envoyer le trafic destiné à d’autres réseaux (ex. un serveur TFTP). La passerelle 192.168.1.1 (le routeur) indique la « porte de sortie ». Sans elle, le switch ne peut communiquer qu’avec les appareils du réseau 192.168.1.x.</p>
             </div>
           </div>
         </div>
@@ -6306,15 +6307,16 @@ const LabCorrectionSection2 = () => (
       <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-2 mb-8">✅ Attendu : Vlan1 192.168.1.2 up up</p>
 
       <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">2C) PC-Tech : IP 192.168.1.10/24</h3>
-      <p className="text-slate-300 mb-6 leading-relaxed">Sur <strong>PC-Tech</strong> → Desktop → IP Configuration : IP <strong>192.168.1.10</strong>, Mask <strong>255.255.255.0</strong>, Gateway <strong>192.168.1.1</strong>.</p>
+      <p className="text-slate-300 mb-6 leading-relaxed">Sur <strong>PC-Tech</strong> → Desktop → IP Configuration : IP <strong>192.168.1.10</strong>, Mask <strong>255.255.255.0</strong>, Gateway <strong>192.168.1.1</strong>. La passerelle est indispensable : c'est par elle que le PC envoie les paquets vers le routeur et le switch pour SSH.</p>
       <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">Test ping (OBLIGATOIRE avant SSH)</h3>
-      <p className="text-slate-300 mb-4 leading-relaxed">PC-Tech → Command Prompt :</p>
-      <p className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-6 leading-relaxed">ping 192.168.1.1<br />ping 192.168.1.2</p>
-      <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-2">✅ Si les 2 répondent → on peut faire SSH.</p>
+      <p className="text-slate-300 mb-4 leading-relaxed">Avant de tester SSH, vérifie que la couche 3 fonctionne. PC-Tech → Command Prompt :</p>
+      <p className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-4 leading-relaxed">ping 192.168.1.1<br />ping 192.168.1.2</p>
+      <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-2">✅ Si les 2 répondent → la connectivité IP est OK. Tu peux passer à la configuration SSH.</p>
     </section>
 
     <section id="lab2ssh-users" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-blue-400 mb-6">Étape 3 — Créer les comptes locaux (SSH = login local)</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">SSH demande un <strong>identifiant et un mot de passe</strong>. Au lieu d'un mot de passe unique (enable), on crée des utilisateurs locaux : chacun a son propre compte et ses droits (admin = tout, guest = limité).</p>
       <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">3A) Sur le routeur R-Sec (2 comptes)</h3>
       <div className="space-y-4 mb-6">
         <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
@@ -6331,7 +6333,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">username admin privilege 15 secret Admin123</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Créer l'utilisateur admin avec tous les droits (privilege 15). Le mot de passe est chiffré (secret).</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0"><strong>privilege 15</strong> = niveau maximum (équivalent à enable). <strong>secret</strong> chiffre le mot de passe (contrairement à <code className="bg-slate-800 px-1 rounded text-xs">password</code>). Cet utilisateur sera demandé lors de la connexion SSH.</p>
             </div>
           </div>
         </div>
@@ -6340,7 +6342,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">username guest privilege 1 secret Guest123</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Créer l'utilisateur guest avec droits limités (privilege 1).</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0"><strong>privilege 1</strong> = mode utilisateur uniquement : peu de commandes, pas de modification de config. Idéal pour un accès restreint (consultation, tests limités).</p>
             </div>
           </div>
         </div>
@@ -6390,6 +6392,7 @@ const LabCorrectionSection2 = () => (
 
     <section id="lab2ssh-ssh" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-blue-400 mb-6">Étape 4 — Activer SSH (domaine + clés RSA + SSH v2)</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">Par défaut, Cisco utilise Telnet (non chiffré). SSH chiffre toute la session. Pour l'activer, il faut générer une paire de clés RSA ; cela nécessite un nom de domaine (même fictif).</p>
       <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">4A) Routeur R-Sec</h3>
       <div className="space-y-4 mb-8">
         <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
@@ -6406,7 +6409,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">ip domain-name novatech.local</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Définir un nom de domaine. <strong>Obligatoire</strong> pour générer les clés RSA (SSH nécessite une identité cryptographique).</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">SSH utilise des clés RSA. Cisco a besoin d'un nom de domaine (même factice) pour générer ces clés. Sans cette commande, <code className="bg-slate-800 px-1 rounded text-xs">crypto key generate rsa</code> échouera.</p>
             </div>
           </div>
         </div>
@@ -6415,7 +6418,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">crypto key generate rsa</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Générer les clés RSA. Quand demandé, tape <strong>1024</strong> (ou 2048 si proposé) pour la taille.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Les clés RSA chiffrent la session SSH. Quand le routeur demande la taille (modulus size), tape <strong>1024</strong> (minimum) ou <strong>2048</strong> pour plus de sécurité. En Packet Tracer, 1024 suffit.</p>
             </div>
           </div>
         </div>
@@ -6424,7 +6427,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">ip ssh version 2</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Forcer SSH v2 uniquement (plus sécurisé que v1).</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">SSH v1 a des failles. La v2 est plus robuste. Cette commande empêche les clients d'utiliser l'ancienne version.</p>
             </div>
           </div>
         </div>
@@ -6490,6 +6493,7 @@ const LabCorrectionSection2 = () => (
 
     <section id="lab2ssh-vty" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-blue-400 mb-6">Étape 5 — Sécuriser les lignes VTY (SSH ONLY)</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">Les <strong>lignes VTY</strong> (Virtual Terminal) gèrent les connexions à distance (Telnet, SSH). On les configure pour n'accepter que SSH, avec authentification par utilisateurs locaux et protection anti brute-force.</p>
       <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">5A) Routeur R-Sec</h3>
       <div className="space-y-4 mb-8">
         <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
@@ -6506,7 +6510,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">line vty 0 4</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Configurer les lignes virtuelles (sessions d'accès distant). 0 à 4 = 5 sessions simultanées.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">VTY 0 à 4 = 5 « portes » pour les connexions distantes. Chaque session SSH (ou Telnet) utilise une de ces lignes. On les configure toutes en même temps pour uniformiser la sécurité.</p>
             </div>
           </div>
         </div>
@@ -6515,7 +6519,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config-line)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">login local</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Utiliser les utilisateurs locaux (admin/guest) pour l'authentification.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sans <strong>login local</strong>, le routeur demanderait le mot de passe enable à tous. Avec login local, il demande le login + mot de passe des utilisateurs créés à l'étape 3 (admin, guest).</p>
             </div>
           </div>
         </div>
@@ -6524,7 +6528,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config-line)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">transport input ssh</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Autoriser uniquement SSH. Telnet est interdit (sécurité).</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Par défaut, VTY accepte Telnet (non chiffré). <strong>transport input ssh</strong> désactive Telnet : seules les connexions SSH sont autorisées. Les mots de passe ne transitent plus en clair.</p>
             </div>
           </div>
         </div>
@@ -6533,7 +6537,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config-line)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">exec-timeout 1 0</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Déconnecter après 60 secondes d'inactivité (1 min 0 sec).</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">1 0 = 1 minute et 0 seconde. Si tu restes inactif 60 s, la session se ferme. Évite qu'une session oubliée reste ouverte (risque de sécurité si quelqu'un accède à ton poste).</p>
             </div>
           </div>
         </div>
@@ -6551,7 +6555,7 @@ const LabCorrectionSection2 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">login block-for 60 attempts 3 within 60</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Anti brute-force : 3 essais ratés en 60 s = blocage 60 s.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Protection contre les attaques par dictionnaire : 3 mots de passe incorrects en 60 secondes → blocage de toute tentative de connexion pendant 60 secondes. Ralentit fortement les attaques automatisées.</p>
             </div>
           </div>
         </div>
