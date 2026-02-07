@@ -1536,6 +1536,28 @@ const CorrectionLab1Session2 = () => (
       <p className="text-emerald-100/90 text-lg leading-relaxed">Création de VLANs sur un switch et attribution des ports - Commande par commande avec explications détaillées.</p>
     </div>
 
+    <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border border-slate-600 rounded-xl p-3 mb-8">
+      <p className="text-xs text-slate-400 font-medium mb-2 uppercase tracking-wider">Raccourcis</p>
+      <div className="flex flex-wrap gap-2">
+        {[
+          { id: 'lab1s2-cablage', label: 'Câblage', icon: '🟦' },
+          { id: 'lab1s2-ip', label: 'Config PC', icon: '🟨' },
+          { id: 'lab1s2-vlan', label: 'Créer VLANs', icon: '🟥' },
+          { id: 'lab1s2-ports', label: 'Attribuer ports', icon: '🟩' },
+          { id: 'lab1s2-verif', label: 'Vérif + ping', icon: '🟪' },
+        ].map(({ id, label, icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-sm font-medium transition-colors flex items-center gap-1.5"
+          >
+            <span>{icon}</span> {label}
+          </button>
+        ))}
+      </div>
+    </nav>
+
     <div className="space-y-6">
       {/* MATÉRIEL */}
       <section>
@@ -1544,13 +1566,13 @@ const CorrectionLab1Session2 = () => (
       </section>
 
       {/* ÉTAPE 1 — CÂBLAGE */}
-      <section>
+      <section id="lab1s2-cablage" className="scroll-mt-4">
         <h2 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-2">🟦 Étape 1 — Câblage</h2>
         <p className="text-slate-300 text-sm">Branche chaque PC sur un port du switch (câble droit ou auto). Exemple : PC-Admin1 → Fa0/1, PC-Admin2 → Fa0/2, PC-Com1 → Fa0/3, PC-Com2 → Fa0/4. Vérif : liens 🟢 verts.</p>
       </section>
 
       {/* ÉTAPE 2 — IP (PC) */}
-      <section>
+      <section id="lab1s2-ip" className="scroll-mt-4">
         <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">🟨 Étape 2 — IP sur les PC</h2>
         <p className="text-slate-300 text-sm mb-2">Sur chaque PC : Desktop → IP Configuration. Même réseau pour tous (pour bien voir l’effet des VLANs). Sur chaque PC : Desktop → IP Configuration.</p>
         <div className="overflow-x-auto mb-3">
@@ -1568,7 +1590,7 @@ const CorrectionLab1Session2 = () => (
       </section>
 
       {/* ÉTAPE 3 — CRÉER LES VLANs */}
-      <section>
+      <section id="lab1s2-vlan" className="scroll-mt-4">
         <h2 className="text-sm font-bold text-red-400 uppercase tracking-wider mb-2">🟥 Étape 3 — Créer les VLANs (switch, CLI)</h2>
         <p className="text-slate-300 text-sm mb-3">Ouvre le switch → CLI.</p>
         <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0 mb-4">
@@ -1586,7 +1608,7 @@ const CorrectionLab1Session2 = () => (
       </section>
 
       {/* ÉTAPE 4 — ATTRIBUER LES PORTS (commande par commande) */}
-      <section>
+      <section id="lab1s2-ports" className="scroll-mt-4">
         <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-2">🟩 Étape 4 — Attribuer les ports aux VLANs</h2>
         <p className="text-slate-300 text-sm mb-2">Ports Admin (1 et 2) → VLAN 10. Ports Commercial (3 et 4) → VLAN 20.</p>
         <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0 mb-3">
@@ -1605,7 +1627,7 @@ const CorrectionLab1Session2 = () => (
       </section>
 
       {/* ÉTAPE 5 & 6 — VÉRIF + PING */}
-      <section>
+      <section id="lab1s2-verif" className="scroll-mt-4">
         <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-2">🟪 Étape 5 & 6 — Vérification et tests ping</h2>
         <div className="space-y-3 text-sm">
           <div className="flex items-start gap-2">
@@ -1640,6 +1662,30 @@ const CorrectionLab2Session2 = () => (
       <p className="text-slate-400 mt-2 text-sm">Trunk, VLAN natif 99, VLANs autorisés 10 et 20. Commande par commande avec explication.</p>
     </div>
 
+    <nav className="sticky top-0 z-10 bg-slate-800/95 backdrop-blur border-b border-slate-700 p-3">
+      <p className="text-xs text-slate-400 font-medium mb-2 uppercase tracking-wider">Raccourcis</p>
+      <div className="flex flex-wrap gap-2">
+        {[
+          { id: 'lab2s2-cablage', label: 'Câblage', icon: '🟦' },
+          { id: 'lab2s2-verif', label: 'Vérifier état', icon: '📋' },
+          { id: 'lab2s2-vlan99', label: 'VLAN natif 99', icon: '🔴' },
+          { id: 'lab2s2-trunk', label: 'Config Trunk', icon: '🟩' },
+          { id: 'lab2s2-ports', label: 'Ports PC', icon: '🟪' },
+          { id: 'lab2s2-verifications', label: 'Vérifications', icon: '🔍' },
+          { id: 'lab2s2-save', label: 'Sauvegarder', icon: '💾' },
+        ].map(({ id, label, icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="px-2 py-1 rounded bg-slate-700/80 hover:bg-blue-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
+          >
+            <span>{icon}</span> {label}
+          </button>
+        ))}
+      </div>
+    </nav>
+
     <div className="p-5 space-y-6 max-h-[70vh] overflow-y-auto">
       {/* PLAN DU LAB */}
       <section>
@@ -1655,13 +1701,13 @@ const CorrectionLab2Session2 = () => (
       </section>
 
       {/* ÉTAPE 0 — CÂBLAGE */}
-      <section>
+      <section id="lab2s2-cablage" className="scroll-mt-4">
         <h2 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-2">🟦 Étape 0 — Câblage</h2>
         <p className="text-slate-300 text-sm mb-2">PC Admin sur ports access (ex. Fa0/1–2). PC Commercial sur ports access (ex. Fa0/3–4). Lien entre switches sur un port dédié (ex. Fa0/24 ↔ Fa0/24) = TRUNK.</p>
       </section>
 
       {/* 1) VÉRIFIER L'ÉTAT ACTUEL */}
-      <section>
+      <section id="lab2s2-verif" className="scroll-mt-4">
         <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">1) Vérifier l'état actuel (avant de toucher)</h2>
         <p className="text-slate-300 text-sm mb-2">Sur le switch (pas routeur) :</p>
         <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
@@ -1671,7 +1717,7 @@ const CorrectionLab2Session2 = () => (
       </section>
 
       {/* 2) CRÉER VLAN 99 NATIF */}
-      <section>
+      <section id="lab2s2-vlan99" className="scroll-mt-4">
         <h2 className="text-sm font-bold text-red-400 uppercase tracking-wider mb-2">2) Créer un VLAN natif dédié (VLAN 99)</h2>
         <p className="text-slate-300 text-sm mb-2">Le VLAN natif par défaut est VLAN 1 (pas recommandé). On met un VLAN natif « neutre » (99) pour éviter des problèmes. Sur chaque switch :</p>
         <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
@@ -1683,7 +1729,7 @@ const CorrectionLab2Session2 = () => (
       </section>
 
       {/* 3) CONFIGURER LE PORT TRUNK */}
-      <section>
+      <section id="lab2s2-trunk" className="scroll-mt-4">
         <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-2">3) Configurer le port TRUNK (ex. Fa0/24)</h2>
         <p className="text-slate-300 text-sm mb-2">Fais-le sur SW1 et SW2 sur le port qui relie les deux switches.</p>
         <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
@@ -1697,7 +1743,7 @@ const CorrectionLab2Session2 = () => (
       </section>
 
       {/* 4) PORTS PC (ACCESS) */}
-      <section>
+      <section id="lab2s2-ports" className="scroll-mt-4">
         <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-2">4) Vérifier / sécuriser les ports PC (ACCESS)</h2>
         <p className="text-slate-300 text-sm mb-2">Un port vers un PC doit être : access, dans le bon VLAN, jamais trunk.</p>
         <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0 mb-3">
@@ -1717,7 +1763,7 @@ const CorrectionLab2Session2 = () => (
       </section>
 
       {/* 5) VÉRIFICATIONS */}
-      <section>
+      <section id="lab2s2-verifications" className="scroll-mt-4">
         <h2 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-2">5) Vérifications (commandes « preuves » du lab)</h2>
         <p className="text-slate-300 text-sm mb-2"><strong>A) VLANs + ports :</strong></p>
         <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0 mb-3">
@@ -1739,7 +1785,7 @@ const CorrectionLab2Session2 = () => (
       </section>
 
       {/* 6) SAUVEGARDER */}
-      <section>
+      <section id="lab2s2-save" className="scroll-mt-4">
         <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">6) Sauvegarder (toujours)</h2>
         <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
           <CmdLine cmd="copy running-config startup-config">Sauvegarde permanente (sinon perdu au redémarrage).</CmdLine>
@@ -4868,6 +4914,27 @@ const LabCorrectionSection3 = () => (
       <p className="text-emerald-100/90 text-lg leading-relaxed">Guide pédagogique commande par commande pour comprendre la circulation des données entre différents réseaux virtuels.</p>
     </div>
 
+    <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border border-slate-600 rounded-xl p-3 mb-8">
+      <p className="text-xs text-slate-400 font-medium mb-2 uppercase tracking-wider">Raccourcis</p>
+      <div className="flex flex-wrap gap-2">
+        {[
+          { id: 'lab3-config-vlan', label: 'Config VLANs', icon: '🏷️' },
+          { id: 'lab3-config-trunk', label: 'Config Trunk', icon: '🔗' },
+          { id: 'lab3-config-router', label: 'Config Router (Stick)', icon: '🚀' },
+          { id: 'lab3-config-pc', label: 'Config PC', icon: '✅' },
+        ].map(({ id, label, icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-sm font-medium transition-colors flex items-center gap-1.5"
+          >
+            <span>{icon}</span> {label}
+          </button>
+        ))}
+      </div>
+    </nav>
+
     <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
       <h2 className="text-xl font-bold text-emerald-400 mb-6 flex items-center gap-2">🎯 Introduction au LAB</h2>
       <p className="text-slate-300 mb-6 leading-relaxed">
@@ -4896,7 +4963,7 @@ const LabCorrectionSection3 = () => (
       </ul>
     </section>
 
-    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+    <section id="lab3-config-vlan" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-blue-400 mb-6">🏷️ Étape 2 : Création des VLANs sur les Switches</h2>
       <p className="text-slate-300 mb-6 leading-relaxed">
         Il faut définir les VLANs sur <strong>chaque switch</strong> (SW-Core et SW-Dist) pour qu'ils reconnaissent les étiquettes (tags) des paquets qui circuleront.
@@ -5105,7 +5172,7 @@ const LabCorrectionSection3 = () => (
     </section>
 
     <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
-      <h2 className="text-xl font-bold text-blue-400 mb-6">🔗 Étape 4 : Configuration du Trunk</h2>
+      <h2 id="lab3-config-trunk" className="text-xl font-bold text-blue-400 mb-6 scroll-mt-4">🔗 Étape 4 : Configuration du Trunk</h2>
       <p className="text-slate-300 mb-6 leading-relaxed">
         Pour que les informations des VLAN 10 et 20 passent d'un switch à l'autre via un seul câble, nous devons transformer le lien en <strong>Trunk</strong>. Le trunk ajoute une étiquette <strong>IEEE 802.1Q</strong> à chaque trame pour identifier le VLAN.
       </p>
@@ -5210,7 +5277,7 @@ const LabCorrectionSection3 = () => (
     </section>
 
     <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
-      <h2 className="text-xl font-bold text-blue-400 mb-6">🚀 Étape 5 : Routage Inter-VLAN (Router-on-a-Stick)</h2>
+      <h2 id="lab3-config-router" className="text-xl font-bold text-blue-400 mb-6 scroll-mt-4">🚀 Étape 5 : Routage Inter-VLAN (Router-on-a-Stick)</h2>
       <p className="text-slate-300 mb-6 leading-relaxed">
         C'est l'étape cruciale. Le routeur va servir de "passerelle" entre les deux réseaux. Comme nous n'avons qu'un seul câble physique entre le switch et le routeur, nous créons des <strong>sous-interfaces virtuelles</strong> (une par VLAN).
       </p>
@@ -5345,7 +5412,7 @@ const LabCorrectionSection3 = () => (
     </section>
 
     <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
-      <h2 className="text-xl font-bold text-blue-400 mb-6">✅ Étape 6 : Configuration des PC et Tests</h2>
+      <h2 id="lab3-config-pc" className="text-xl font-bold text-blue-400 mb-6 scroll-mt-4">✅ Étape 6 : Configuration des PC et Tests</h2>
       <p className="text-slate-300 mb-6 leading-relaxed">
         Pour vérifier que tout fonctionne, attribuez des adresses IP statiques aux PC dans Packet Tracer (onglet Desktop → IP Configuration).
       </p>
@@ -5461,6 +5528,28 @@ const LabCorrectionSection = () => (
       <p className="text-emerald-100/90 text-lg leading-relaxed">Réseau local NovaTech : correction complète avec explications à chaque étape.</p>
     </div>
 
+    <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border border-slate-600 rounded-xl p-3 mb-8">
+      <p className="text-xs text-slate-400 font-medium mb-2 uppercase tracking-wider">Raccourcis</p>
+      <div className="flex flex-wrap gap-2">
+        {[
+          { id: 'lab1-config-routeur', label: 'Config routeur', icon: '🧠' },
+          { id: 'lab1-config-pc', label: 'Config PC', icon: '🟨' },
+          { id: 'lab1-config-switch', label: 'Config switch', icon: '🟦' },
+          { id: 'lab1-config-tftp', label: 'Config TFTP', icon: '🟪' },
+          { id: 'lab1-sauvegarde-tftp', label: 'Sauvegarde TFTP', icon: '🟫' },
+        ].map(({ id, label, icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-sm font-medium transition-colors flex items-center gap-1.5"
+          >
+            <span>{icon}</span> {label}
+          </button>
+        ))}
+      </div>
+    </nav>
+
     <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
       <h2 className="text-xl font-bold text-emerald-400 mb-6 flex items-center gap-2">🎯 Objectif final</h2>
       <p className="text-slate-300 mb-6 leading-relaxed">Ce lab vise à créer un petit réseau local pour le client NovaTech. À la fin, tu dois avoir :</p>
@@ -5538,7 +5627,7 @@ const LabCorrectionSection = () => (
       <p className="text-slate-400 leading-relaxed">Sur les switches, l’interface VLAN 1 peut aussi être down par défaut ; on l’active avec <code className="bg-slate-900 px-1 rounded text-emerald-400 font-mono text-sm">no shutdown</code> à l’étape 6.</p>
     </section>
 
-    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+    <section id="lab1-config-routeur" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-blue-400 mb-6">🧠 Étape 4 — Configuration du routeur (R-Nova)</h2>
       <p className="text-slate-300 mb-6 leading-relaxed">Le routeur doit avoir une IP sur son interface connectée au switch (192.168.10.1) et le port doit être activé. C’est la passerelle du réseau.</p>
       <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">4.1 Ouvrir le routeur</h3>
@@ -5699,7 +5788,7 @@ const LabCorrectionSection = () => (
       </div>
     </section>
 
-    <section className="bg-slate-800/50 border border-amber-500/30 rounded-2xl p-8">
+    <section id="lab1-config-pc" className="bg-slate-800/50 border border-amber-500/30 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-amber-400 mb-6">🟨 Étape 5 — IP du PC (test)</h2>
       <p className="text-slate-300 mb-6 leading-relaxed">Le PC doit être dans le <strong>même réseau</strong> que le routeur (192.168.10.0/24) et avoir la <strong>passerelle par défaut</strong> = 192.168.10.1 pour communiquer.</p>
       <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">5.1 Configuration IP du PC</h3>
@@ -5742,7 +5831,7 @@ const LabCorrectionSection = () => (
       <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-1">✅ Si le ping répond → le réseau fonctionne. Tu peux enchaîner sur la config des switches.</p>
     </section>
 
-    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+    <section id="lab1-config-switch" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-blue-400 mb-6">🟦 Étape 6 — Configuration des switches</h2>
       <p className="text-slate-300 mb-6 leading-relaxed">Un switch n’a <strong>pas besoin d’IP pour faire circuler les trames</strong>. Pour l’<strong>administrer à distance</strong> (SSH, TFTP), il doit avoir une IP et une passerelle. On configure <strong>VLAN 1</strong> (management) et <strong>ip default-gateway</strong> vers le routeur.</p>
       <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">6.1 Sur SW-Entrée</h3>
@@ -5956,7 +6045,7 @@ const LabCorrectionSection = () => (
       <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-1">✅ Après les deux switches : chaque équipement a un nom, une IP dans 192.168.10.0/24, et les configs sont sauvegardées en local.</p>
     </section>
 
-    <section className="bg-slate-800/50 border border-violet-500/30 rounded-2xl p-8">
+    <section id="lab1-config-tftp" className="bg-slate-800/50 border border-violet-500/30 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-violet-400 mb-6">🟪 Étape 7 — Serveur TFTP</h2>
       <p className="text-slate-300 mb-6 leading-relaxed">Le serveur TFTP reçoit les fichiers de configuration. Il doit être dans le même réseau (192.168.10.0/24) et le <strong>service TFTP doit être activé</strong>.</p>
       <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">7.1 IP du serveur</h3>
@@ -5971,7 +6060,7 @@ const LabCorrectionSection = () => (
       <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-1">✅ Le serveur est prêt à recevoir les sauvegardes.</p>
     </section>
 
-    <section className="bg-slate-800/50 border border-amber-700/40 rounded-2xl p-8">
+    <section id="lab1-sauvegarde-tftp" className="bg-slate-800/50 border border-amber-700/40 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-amber-300 mb-6">🟫 Étape 8 — Sauvegarde vers TFTP</h2>
       <p className="text-slate-300 mb-6 leading-relaxed">On envoie une copie de la configuration (déjà en NVRAM) vers le serveur TFTP pour avoir une copie centralisée.</p>
       <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">Sur le routeur ou un switch (mode privilégié)</h3>
@@ -6012,7 +6101,31 @@ const LabCorrectionSection2 = () => (
       <p className="text-slate-200/90 text-lg leading-relaxed">LAB S2 de zéro, étape par étape : câblage → IP → users → RSA/SSH → VTY → tests PC.</p>
     </div>
 
-    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+    <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border border-slate-600 rounded-xl p-3 mb-8">
+      <p className="text-xs text-slate-400 font-medium mb-2 uppercase tracking-wider">Raccourcis</p>
+      <div className="flex flex-wrap gap-2">
+        {[
+          { id: 'lab2ssh-cablage', label: 'Câblage', icon: '🔌' },
+          { id: 'lab2ssh-ip', label: 'Config IP', icon: '📡' },
+          { id: 'lab2ssh-users', label: 'Comptes locaux', icon: '👤' },
+          { id: 'lab2ssh-ssh', label: 'Activer SSH', icon: '🔐' },
+          { id: 'lab2ssh-vty', label: 'VTY (SSH only)', icon: '📋' },
+          { id: 'lab2ssh-save', label: 'Sauvegarder', icon: '💾' },
+          { id: 'lab2ssh-tests', label: 'Tests SSH', icon: '✅' },
+        ].map(({ id, label, icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-blue-600/80 text-slate-200 hover:text-white text-sm font-medium transition-colors flex items-center gap-1.5"
+          >
+            <span>{icon}</span> {label}
+          </button>
+        ))}
+      </div>
+    </nav>
+
+    <section id="lab2ssh-cablage" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-blue-400 mb-6">Étape 1 — Câblage (PC → Switch → Routeur)</h2>
       <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">À faire</h3>
       <p className="text-slate-300 mb-6 leading-relaxed">Utilise le câble automatique (⚡) ou <strong>Copper Straight-Through</strong> (vert clair) :</p>
@@ -6024,17 +6137,75 @@ const LabCorrectionSection2 = () => (
       <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-2">Vérif : les liens deviennent 🟢 (ou 🟠 puis 🟢).</p>
     </section>
 
-    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+    <section id="lab2ssh-ip" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-blue-400 mb-6">Étape 2 — Adresses IP (obligatoire pour SSH)</h2>
       <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">2A) Routeur R-Sec : IP 192.168.1.1/24</h3>
       <p className="text-slate-300 mb-6 leading-relaxed">Sur <strong>R-Sec</strong> → CLI :</p>
-      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto mb-6"><code>enable
-configure terminal
-hostname R-Sec
-interface gigabitEthernet0/0
-ip address 192.168.1.1 255.255.255.0
-no shutdown
-end</code></pre>
+      <div className="space-y-4 mb-6">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Router&gt;</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">enable</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Passer en mode privilégié (admin). Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">Router#</code>.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Router#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">configure terminal</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Entrer en mode configuration globale. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">Router(config)#</code>.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Router(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">hostname R-Sec</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Renommer le routeur. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">R-Sec(config)#</code>.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">interface gigabitEthernet0/0</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sélectionner l'interface connectée au switch. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">R-Sec(config-if)#</code>.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">ip address 192.168.1.1 255.255.255.0</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Attribuer l'IP de gestion et la passerelle. Cette IP servira pour les connexions SSH.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">no shutdown</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Activer le port. Par défaut les interfaces routeur sont désactivées. Le lien doit passer au vert.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">end</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir du mode configuration et revenir au mode privilégié.</p>
+            </div>
+          </div>
+        </div>
+      </div>
       <ul className="list-none space-y-4 ml-0 text-slate-300 mb-6 leading-relaxed">
         <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1.5 py-0.5 rounded font-mono text-sm">enable</code> : passe en mode admin (#).</li>
         <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1.5 py-0.5 rounded font-mono text-sm">configure terminal</code> : entre en mode config.</li>
@@ -6048,15 +6219,89 @@ end</code></pre>
 
       <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">2B) Switch SW-Core : IP de gestion 192.168.1.2/24 (VLAN 1)</h3>
       <p className="text-slate-300 mb-6 leading-relaxed">Sur <strong>SW-Core</strong> → CLI. Un switch 2960 n’a pas d’IP sur les ports physiques ; l’IP se met sur <strong>VLAN 1</strong> (SVI) pour l’administration (SSH/ping/TFTP).</p>
-      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto mb-6"><code>enable
-configure terminal
-hostname SW-Core
-interface vlan 1
-ip address 192.168.1.2 255.255.255.0
-no shutdown
-exit
-ip default-gateway 192.168.1.1
-end</code></pre>
+      <div className="space-y-4 mb-6">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Switch&gt;</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">enable</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Passer en mode privilégié. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">Switch#</code>.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Switch#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">configure terminal</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Entrer en mode configuration globale. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">Switch(config)#</code>.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Switch(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">hostname SW-Core</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Renommer le switch. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">SW-Core(config)#</code>.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">interface vlan 1</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Ouvrir l'interface virtuelle VLAN 1 (SVI). Sur un switch, l'IP se configure sur une interface virtuelle, pas sur un port physique.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">ip address 192.168.1.2 255.255.255.0</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Attribuer l'IP de management du switch pour SSH, ping et TFTP.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">no shutdown</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Activer l'interface VLAN 1. Par défaut elle peut être désactivée.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">exit</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir du mode interface et revenir au mode configuration globale.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">ip default-gateway 192.168.1.1</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Configurer la passerelle vers le routeur. Permet au switch de communiquer avec d'autres réseaux (SSH, TFTP).</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">end</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir du mode configuration et revenir au mode privilégié.</p>
+            </div>
+          </div>
+        </div>
+      </div>
       <p className="text-slate-400 mb-3 leading-relaxed">Vérif switch : <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">show ip interface brief</code></p>
       <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-2 mb-8">✅ Attendu : Vlan1 192.168.1.2 up up</p>
 
@@ -6068,57 +6313,258 @@ end</code></pre>
       <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-2">✅ Si les 2 répondent → on peut faire SSH.</p>
     </section>
 
-    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+    <section id="lab2ssh-users" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-blue-400 mb-6">Étape 3 — Créer les comptes locaux (SSH = login local)</h2>
       <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">3A) Sur le routeur R-Sec (2 comptes)</h3>
-      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto mb-6"><code>configure terminal
-username admin privilege 15 secret Admin123
-username guest privilege 1 secret Guest123
-end</code></pre>
-      <ul className="list-none space-y-4 ml-0 text-slate-300 mb-6 leading-relaxed">
-        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <strong>admin</strong> : privilege 15 = tous les droits ; secret = mot de passe chiffré.</li>
-        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <strong>guest</strong> : privilege 1 = droits limités.</li>
-      </ul>
+      <div className="space-y-4 mb-6">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">configure terminal</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Entrer en mode configuration globale.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">username admin privilege 15 secret Admin123</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Créer l'utilisateur admin avec tous les droits (privilege 15). Le mot de passe est chiffré (secret).</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">username guest privilege 1 secret Guest123</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Créer l'utilisateur guest avec droits limités (privilege 1).</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">end</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir du mode configuration.</p>
+            </div>
+          </div>
+        </div>
+      </div>
       <p className="text-slate-400 mb-3 leading-relaxed">Vérif : <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">show running-config | include username</code></p>
       <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">3B) Sur le switch SW-Core (1 compte admin)</h3>
-      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto mb-6"><code>configure terminal
-username admin privilege 15 secret Admin123
-end</code></pre>
+      <div className="space-y-4 mb-6">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">configure terminal</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Entrer en mode configuration globale.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">username admin privilege 15 secret Admin123</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Créer l'utilisateur admin. Le switch a besoin d'un utilisateur local pour <code className="bg-slate-800 px-1 rounded text-xs">login local</code> sur VTY.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">end</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir du mode configuration.</p>
+            </div>
+          </div>
+        </div>
+      </div>
       <p className="text-slate-400 leading-relaxed">Le switch a aussi besoin d’un user local si on fait <code className="bg-slate-900 px-1 rounded font-mono text-sm">login local</code> sur VTY.</p>
     </section>
 
-    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+    <section id="lab2ssh-ssh" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-blue-400 mb-6">Étape 4 — Activer SSH (domaine + clés RSA + SSH v2)</h2>
       <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">4A) Routeur R-Sec</h3>
-      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto mb-6"><code>configure terminal
-ip domain-name novatech.local
-crypto key generate rsa
-ip ssh version 2
-end</code></pre>
-      <ul className="list-none space-y-4 ml-0 text-slate-300 mb-8 leading-relaxed">
-        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">ip domain-name</code> : nécessaire pour générer les clés RSA.</li>
-        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">crypto key generate rsa</code> : quand il demande la taille, tape <strong>1024</strong> (ou 2048 si proposé).</li>
-        <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">ip ssh version 2</code> : force SSH v2 uniquement.</li>
-      </ul>
+      <div className="space-y-4 mb-8">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">configure terminal</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Entrer en mode configuration globale.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">ip domain-name novatech.local</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Définir un nom de domaine. <strong>Obligatoire</strong> pour générer les clés RSA (SSH nécessite une identité cryptographique).</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">crypto key generate rsa</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Générer les clés RSA. Quand demandé, tape <strong>1024</strong> (ou 2048 si proposé) pour la taille.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">ip ssh version 2</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Forcer SSH v2 uniquement (plus sécurisé que v1).</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">end</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir du mode configuration.</p>
+            </div>
+          </div>
+        </div>
+      </div>
       <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">4B) Switch SW-Core</h3>
-      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto"><code>configure terminal
-ip domain-name novatech.local
-crypto key generate rsa
-ip ssh version 2
-end</code></pre>
+      <div className="space-y-4">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">configure terminal</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Entrer en mode configuration globale.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">ip domain-name novatech.local</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Définir le nom de domaine (obligatoire pour les clés RSA).</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">crypto key generate rsa</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Générer les clés RSA. Taper 1024 ou 2048 quand demandé.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">ip ssh version 2</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Forcer SSH v2 uniquement.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">end</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir du mode configuration.</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+    <section id="lab2ssh-vty" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-blue-400 mb-6">Étape 5 — Sécuriser les lignes VTY (SSH ONLY)</h2>
       <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">5A) Routeur R-Sec</h3>
-      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto mb-6"><code>configure terminal
-line vty 0 4
-login local
-transport input ssh
-exec-timeout 1 0
-exit
-login block-for 60 attempts 3 within 60
-end</code></pre>
+      <div className="space-y-4 mb-8">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">configure terminal</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Entrer en mode configuration globale.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">line vty 0 4</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Configurer les lignes virtuelles (sessions d'accès distant). 0 à 4 = 5 sessions simultanées.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config-line)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">login local</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Utiliser les utilisateurs locaux (admin/guest) pour l'authentification.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config-line)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">transport input ssh</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Autoriser uniquement SSH. Telnet est interdit (sécurité).</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config-line)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">exec-timeout 1 0</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Déconnecter après 60 secondes d'inactivité (1 min 0 sec).</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config-line)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">exit</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir du mode line pour appliquer login block-for au niveau config.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">login block-for 60 attempts 3 within 60</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Anti brute-force : 3 essais ratés en 60 s = blocage 60 s.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Sec(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">end</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir du mode configuration.</p>
+            </div>
+          </div>
+        </div>
+      </div>
       <ul className="list-none space-y-4 ml-0 text-slate-300 mb-8 leading-relaxed">
         <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">line vty 0 4</code> : accès distants (sessions).</li>
         <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">login local</code> : utilise les users locaux (admin/guest).</li>
@@ -6127,22 +6573,72 @@ end</code></pre>
         <li className="flex gap-3 items-start"><span className="text-blue-400 shrink-0">→</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">login block-for 60 attempts 3 within 60</code> : anti brute-force (3 essais ratés → blocage 60 s).</li>
       </ul>
       <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">5B) Switch SW-Core</h3>
-      <pre className="bg-black/50 border border-slate-700 rounded-xl p-5 text-emerald-300 font-mono text-sm leading-relaxed overflow-x-auto"><code>configure terminal
-line vty 0 4
-login local
-transport input ssh
-exec-timeout 1 0
-end</code></pre>
+      <div className="space-y-4">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">configure terminal</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Entrer en mode configuration globale.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">line vty 0 4</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Configurer les lignes virtuelles pour l'accès distant.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-line)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">login local</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Utiliser les utilisateurs locaux pour l'authentification.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-line)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">transport input ssh</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Autoriser uniquement SSH.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-line)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">exec-timeout 1 0</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Déconnecter après 60 s d'inactivité.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-line)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">end</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir du mode configuration.</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section className="bg-slate-800/50 border border-amber-500/30 rounded-2xl p-8">
+    <section id="lab2ssh-save" className="bg-slate-800/50 border border-amber-500/30 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-amber-400 mb-6">Étape 6 — Sauvegarder</h2>
       <p className="text-slate-300 mb-6 leading-relaxed">Sur routeur et switch :</p>
       <p className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-6">copy running-config startup-config</p>
       <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-2">➡️ Sauvegarde permanente (sinon tout est perdu au reboot).</p>
     </section>
 
-    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+    <section id="lab2ssh-tests" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-blue-400 mb-6">Étape 7 — Tests SSH depuis PC-Tech</h2>
       <h3 className="text-slate-200 font-bold mb-3 mt-8 border-b border-slate-600 pb-2">7A) SSH admin vers routeur</h3>
       <p className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-6">ssh -l admin 192.168.1.1</p>
