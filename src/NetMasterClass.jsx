@@ -1536,9 +1536,9 @@ const CorrectionLab1Session2 = () => (
       <p className="text-emerald-100/90 text-lg leading-relaxed">Création de VLANs sur un switch et attribution des ports - Commande par commande avec explications détaillées.</p>
     </div>
 
-    <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border border-slate-600 rounded-xl p-3 mb-8">
-      <p className="text-xs text-slate-400 font-medium mb-2 uppercase tracking-wider">Raccourcis</p>
-      <div className="flex flex-wrap gap-2">
+    <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-600 py-2 mb-6">
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
         {[
           { id: 'lab1s2-cablage', label: 'Câblage', icon: '🟦' },
           { id: 'lab1s2-ip', label: 'Config PC', icon: '🟨' },
@@ -1550,9 +1550,9 @@ const CorrectionLab1Session2 = () => (
             key={id}
             type="button"
             onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-            className="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-sm font-medium transition-colors flex items-center gap-1.5"
+            className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
           >
-            <span>{icon}</span> {label}
+            <span className="text-[10px]">{icon}</span> {label}
           </button>
         ))}
       </div>
@@ -1662,9 +1662,9 @@ const CorrectionLab2Session2 = () => (
       <p className="text-slate-400 mt-2 text-sm">Trunk, VLAN natif 99, VLANs autorisés 10 et 20. Commande par commande avec explication.</p>
     </div>
 
-    <nav className="sticky top-0 z-10 bg-slate-800/95 backdrop-blur border-b border-slate-700 p-3">
-      <p className="text-xs text-slate-400 font-medium mb-2 uppercase tracking-wider">Raccourcis</p>
-      <div className="flex flex-wrap gap-2">
+    <nav className="sticky top-0 z-10 bg-slate-800/95 backdrop-blur border-b border-slate-700 py-2">
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
         {[
           { id: 'lab2s2-cablage', label: 'Câblage', icon: '🟦' },
           { id: 'lab2s2-verif', label: 'Vérifier état', icon: '📋' },
@@ -1678,9 +1678,9 @@ const CorrectionLab2Session2 = () => (
             key={id}
             type="button"
             onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-            className="px-2 py-1 rounded bg-slate-700/80 hover:bg-blue-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
+            className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-blue-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
           >
-            <span>{icon}</span> {label}
+            <span className="text-[10px]">{icon}</span> {label}
           </button>
         ))}
       </div>
@@ -2127,10 +2127,270 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       },
       {
         type: 'rich_text',
-        title: "SSH en bref",
+        title: "Pourquoi SSH ? Le Problème de Telnet",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Par défaut, Cisco utilise <strong>Telnet</strong> pour les connexions à distance. Le problème : <strong>tout transite en clair</strong> sur le réseau. Si quelqu'un intercepte le trafic (sniffing), il voit ton mot de passe, tes commandes, tout.
+            </p>
+            <div className="bg-red-500/10 border-l-4 border-red-500 p-4 rounded-r-lg">
+              <p className="text-red-200 font-bold mb-2">🚨 Risques avec Telnet :</p>
+              <ul className="text-red-100/90 text-sm space-y-1 list-disc list-inside">
+                <li>Mots de passe visibles en clair</li>
+                <li>Commandes interceptables</li>
+                <li>Pas d'authentification forte</li>
+                <li>Vulnérable aux attaques "man-in-the-middle"</li>
+              </ul>
+            </div>
+            <p className="text-slate-300 leading-relaxed">
+              <strong>SSH (Secure Shell)</strong> chiffre toute la session : authentification, commandes, réponses. Même si quelqu'un intercepte, il ne peut rien lire. C'est le standard en production.
+            </p>
+            <ProTip>
+              <strong>Règle d'or :</strong> En entreprise, <strong>jamais de Telnet en production</strong>. SSH uniquement. Certaines entreprises bloquent même Telnet au niveau du firewall.
+            </ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Prérequis : IP et Connectivité",
+        content: (
+          <div className="space-y-4">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Avant de configurer SSH, l'équipement doit avoir une <strong>adresse IP</strong> et être joignable depuis le réseau.
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3">
+              <h4 className="text-blue-400 font-bold mb-2">Sur un routeur :</h4>
+              <HumanCommand 
+                cmd="interface gigabitEthernet0/0" 
+                human="Sélectionner l'interface connectée au réseau." 
+                context="Cette interface doit avoir une IP pour être joignable en SSH. Exemple : 192.168.1.1/24."
+              />
+              <HumanCommand 
+                cmd="ip address 192.168.1.1 255.255.255.0" 
+                human="Attribuer l'IP de gestion." 
+                context="C'est cette IP que tu utiliseras pour te connecter en SSH depuis un PC : ssh -l admin 192.168.1.1"
+              />
+              <HumanCommand 
+                cmd="no shutdown" 
+                human="Activer l'interface." 
+                context="Sans cette commande, l'interface reste désactivée et aucune connexion n'est possible."
+              />
+            </div>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3">
+              <h4 className="text-blue-400 font-bold mb-2">Sur un switch :</h4>
+              <HumanCommand 
+                cmd="interface vlan 1" 
+                human="Ouvrir l'interface virtuelle VLAN 1 (SVI)." 
+                context="Un switch n'a pas d'IP sur les ports physiques. L'IP de management se configure sur une interface virtuelle (SVI)."
+              />
+              <HumanCommand 
+                cmd="ip address 192.168.1.2 255.255.255.0" 
+                human="Attribuer l'IP de management." 
+                context="Cette IP permet d'administrer le switch à distance (SSH, ping, TFTP)."
+              />
+              <HumanCommand 
+                cmd="no shutdown" 
+                human="Activer l'interface VLAN 1." 
+                context="Par défaut, la SVI peut être désactivée. Il faut l'activer pour que le switch soit joignable."
+              />
+              <HumanCommand 
+                cmd="ip default-gateway 192.168.1.1" 
+                human="Configurer la passerelle." 
+                context="Permet au switch de communiquer avec d'autres réseaux (ex. pour sauvegarder sur un serveur TFTP distant)."
+              />
+            </div>
+            <DangerZone>
+              <strong>Test obligatoire avant SSH :</strong> Depuis un PC, fais un <code className="text-red-400 font-mono">ping</code> vers l'IP du routeur/switch. Si le ping ne répond pas, SSH ne fonctionnera pas non plus. Vérifie la connectivité IP d'abord.
+            </DangerZone>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Étape 1 : Configurer le Nom de Domaine (Obligatoire)",
+        content: (
+          <div className="space-y-4">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              SSH utilise des <strong>clés cryptographiques RSA</strong> pour chiffrer la session. Pour générer ces clés, Cisco a besoin d'un <strong>nom de domaine</strong> (même fictif).
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3">
+              <HumanCommand 
+                cmd="ip domain-name novatech.local" 
+                human="Définir un nom de domaine (même fictif)." 
+                context="Ce nom est utilisé pour générer l'identité cryptographique. Peut être n'importe quoi (ex. entreprise.local, lab.local). Sans cette commande, crypto key generate rsa échouera."
+              />
+            </div>
+            <p className="text-slate-300 leading-relaxed">
+              <strong>Pourquoi c'est obligatoire ?</strong> Les clés RSA contiennent une identité (hostname + domaine). Cisco utilise cette combinaison pour créer un certificat auto-signé qui authentifie l'équipement lors de la connexion SSH.
+            </p>
+            <ProTip>
+              Le nom de domaine peut être fictif en lab. En production, utilisez le vrai nom de domaine de votre entreprise si vous avez un serveur DNS interne.
+            </ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Étape 2 : Générer les Clés RSA",
+        content: (
+          <div className="space-y-4">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Les <strong>clés RSA</strong> sont une paire de clés cryptographiques (publique + privée) qui chiffrent la session SSH. Sans elles, SSH ne peut pas fonctionner.
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3">
+              <HumanCommand 
+                cmd="crypto key generate rsa" 
+                human="Générer la paire de clés RSA." 
+                context="Quand demandé, tape 1024 (minimum) ou 2048 (recommandé) pour la taille de la clé. Plus la clé est grande, plus c'est sécurisé mais plus c'est lent. En Packet Tracer, 1024 suffit."
+              />
+            </div>
+            <div className="bg-blue-500/10 border-l-4 border-blue-500/50 p-4 rounded-r-lg">
+              <p className="text-blue-200 font-bold mb-2">💡 Comment ça marche ?</p>
+              <ul className="text-blue-100/90 text-sm space-y-2 list-disc list-inside">
+                <li><strong>Clé privée</strong> : reste sur l'équipement, ne doit jamais être partagée</li>
+                <li><strong>Clé publique</strong> : envoyée au client lors de la connexion SSH</li>
+                <li>Le client chiffre les données avec la clé publique</li>
+                <li>Seul l'équipement (avec la clé privée) peut déchiffrer</li>
+                <li>C'est comme un cadenas : la clé publique = cadenas ouvert, la clé privée = la clé unique</li>
+              </ul>
+            </div>
+            <DangerZone>
+              Si tu vois l'erreur <code className="text-red-400 font-mono">% Please define a hostname first</code> ou <code className="text-red-400 font-mono">% Please define a domain-name first</code>, c'est que tu as oublié <code className="text-emerald-400 font-mono">hostname</code> ou <code className="text-emerald-400 font-mono">ip domain-name</code> avant.
+            </DangerZone>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Étape 3 : Forcer SSH Version 2",
+        content: (
+          <div className="space-y-4">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              SSH existe en deux versions : <strong>SSH v1</strong> (ancienne, vulnérable) et <strong>SSH v2</strong> (moderne, sécurisée). Il faut forcer la v2.
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3">
+              <HumanCommand 
+                cmd="ip ssh version 2" 
+                human="Forcer SSH version 2 uniquement." 
+                context="Désactive SSH v1 et n'accepte que la v2. Plus sécurisé, meilleur chiffrement, protection contre certaines attaques."
+              />
+            </div>
+            <p className="text-slate-300 leading-relaxed">
+              <strong>Pourquoi forcer v2 ?</strong> SSH v1 a des failles de sécurité connues. La v2 utilise des algorithmes plus robustes et des mécanismes d'authentification améliorés. C'est le standard aujourd'hui.
+            </p>
+            <ProTip>
+              Tu peux vérifier la version SSH avec <code className="text-emerald-400 font-mono">show ip ssh</code>. Tu devrais voir "SSH Enabled - version 2.0".
+            </ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Étape 4 : Créer les Utilisateurs Locaux",
+        content: (
+          <div className="space-y-4">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              SSH demande un <strong>identifiant et un mot de passe</strong>. Au lieu d'un seul mot de passe enable, on crée des <strong>utilisateurs locaux</strong> : chacun a son compte et ses droits.
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3">
+              <HumanCommand 
+                cmd="username admin privilege 15 secret Admin123" 
+                human="Créer l'utilisateur admin avec tous les droits." 
+                context="privilege 15 = niveau maximum (équivalent à enable). secret = mot de passe chiffré (hashé MD5). Cet utilisateur pourra tout faire après connexion SSH."
+              />
+              <HumanCommand 
+                cmd="username guest privilege 1 secret Guest123" 
+                human="Créer l'utilisateur guest avec droits limités." 
+                context="privilege 1 = mode utilisateur uniquement. Peu de commandes disponibles, pas de modification de config. Idéal pour un accès restreint (consultation, tests limités)."
+              />
+            </div>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
+              <h4 className="text-blue-400 font-bold mb-2">Niveaux de privilège :</h4>
+              <ul className="text-slate-300 text-sm space-y-1 list-disc list-inside">
+                <li><strong>Privilege 0</strong> : Très limité (peu utilisé)</li>
+                <li><strong>Privilege 1</strong> : Mode utilisateur (consultation, tests basiques)</li>
+                <li><strong>Privilege 15</strong> : Mode privilégié (tous les droits, modification de config)</li>
+              </ul>
+            </div>
+            <p className="text-slate-300 leading-relaxed">
+              <strong>Pourquoi plusieurs utilisateurs ?</strong> En entreprise, tu donnes l'accès admin seulement aux administrateurs réseau. Les autres utilisateurs (techniciens, stagiaires) ont un compte limité qui ne peut pas modifier la configuration.
+            </p>
+            <ProTip>
+              Vérifie les utilisateurs créés avec <code className="text-emerald-400 font-mono">show running-config | include username</code>. Tu devrais voir les deux lignes username avec les privilèges.
+            </ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Étape 5 : Configurer les Lignes VTY (SSH Only)",
+        content: (
+          <div className="space-y-4">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Les <strong>lignes VTY</strong> (Virtual Terminal) gèrent les connexions à distance (Telnet, SSH). On les configure pour n'accepter que SSH, avec authentification par utilisateurs locaux.
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3">
+              <HumanCommand 
+                cmd="line vty 0 4" 
+                human="Configurer les lignes virtuelles pour l'accès distant." 
+                context="VTY 0 à 4 = 5 'portes' pour les connexions distantes. Chaque session SSH (ou Telnet) utilise une de ces lignes. On les configure toutes en même temps pour uniformiser la sécurité."
+              />
+              <HumanCommand 
+                cmd="login local" 
+                human="Utiliser les utilisateurs locaux pour l'authentification." 
+                context="Sans login local, le routeur demanderait le mot de passe enable à tous. Avec login local, il demande le login + mot de passe des utilisateurs créés (admin, guest)."
+              />
+              <HumanCommand 
+                cmd="transport input ssh" 
+                human="Autoriser uniquement SSH, interdire Telnet." 
+                context="Par défaut, VTY accepte Telnet (non chiffré). transport input ssh désactive Telnet : seules les connexions SSH sont autorisées. Les mots de passe ne transitent plus en clair."
+              />
+              <HumanCommand 
+                cmd="exec-timeout 1 0" 
+                human="Déconnecter après 60 secondes d'inactivité." 
+                context="1 0 = 1 minute et 0 seconde. Si tu restes inactif 60 s, la session se ferme. Évite qu'une session oubliée reste ouverte (risque de sécurité si quelqu'un accède à ton poste)."
+              />
+            </div>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3">
+              <h4 className="text-blue-400 font-bold mb-2">Optionnel : Protection anti brute-force</h4>
+              <HumanCommand 
+                cmd="exit" 
+                human="Sortir du mode line." 
+                context="Pour appliquer login block-for au niveau config (pas au niveau line)."
+              />
+              <HumanCommand 
+                cmd="login block-for 60 attempts 3 within 60" 
+                human="Protection contre les attaques par dictionnaire." 
+                context="3 mots de passe incorrects en 60 secondes → blocage de toute tentative de connexion pendant 60 secondes. Ralentit fortement les attaques automatisées."
+              />
+            </div>
+            <DangerZone>
+              <strong>Attention :</strong> Si tu oublies <code className="text-red-400 font-mono">login local</code>, le routeur ne demandera pas les utilisateurs locaux et la connexion SSH échouera. Si tu oublies <code className="text-red-400 font-mono">transport input ssh</code>, Telnet sera toujours accepté (non sécurisé).
+            </DangerZone>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "SSH en bref : Résumé des Commandes",
         content: (
           <div className="space-y-4">
             <p className="text-slate-200 leading-relaxed">Pour activer SSH il faut : <strong>hostname</strong> + <strong>ip domain-name</strong> + <strong>username</strong> + <strong>crypto key generate rsa</strong> + <strong>line vty</strong> avec <code className="bg-black/40 px-1 rounded">login local</code> et <code className="bg-black/40 px-1 rounded">transport input ssh</code>.</p>
+            <div className="bg-emerald-500/10 border-l-4 border-emerald-500/50 p-4 rounded-r-lg">
+              <p className="text-emerald-200 font-bold mb-2">📋 Checklist SSH :</p>
+              <ol className="text-emerald-100/90 text-sm space-y-1 list-decimal list-inside">
+                <li>IP configurée sur l'interface (routeur) ou VLAN 1 (switch)</li>
+                <li>hostname configuré</li>
+                <li>ip domain-name configuré</li>
+                <li>Clés RSA générées (crypto key generate rsa)</li>
+                <li>SSH v2 forcé (ip ssh version 2)</li>
+                <li>Utilisateurs locaux créés (username ... privilege ... secret ...)</li>
+                <li>Lignes VTY configurées (login local + transport input ssh)</li>
+                <li>Test ping depuis le PC vers l'IP de l'équipement</li>
+                <li>Test connexion SSH depuis le PC</li>
+              </ol>
+            </div>
             <ProTip>Sur un switch : donner une IP via <code className="bg-black/40 px-1 rounded">interface vlan 1</code> + <code className="bg-black/40 px-1 rounded">ip address</code> + <code className="bg-black/40 px-1 rounded">no shutdown</code> pour pouvoir s'y connecter en SSH.</ProTip>
           </div>
         )
@@ -2161,6 +2421,82 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       {
         type: 'ssh_flow',
         title: "Flux de Connexion SSH (5 Étapes)"
+      },
+      {
+        type: 'rich_text',
+        title: "Comment Fonctionne une Connexion SSH ?",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Quand tu te connectes en SSH, voici ce qui se passe étape par étape :
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-4">
+              <div className="border-l-4 border-blue-500/50 pl-4">
+                <h4 className="text-blue-400 font-bold mb-2">1. Demande de connexion</h4>
+                <p className="text-slate-300 text-sm">Le PC envoie une demande de connexion SSH vers l'IP de l'équipement (ex. <code className="bg-slate-900 px-1 rounded">ssh -l admin 192.168.1.1</code>).</p>
+              </div>
+              <div className="border-l-4 border-blue-500/50 pl-4">
+                <h4 className="text-blue-400 font-bold mb-2">2. Échange des clés</h4>
+                <p className="text-slate-300 text-sm">L'équipement envoie sa clé publique RSA au PC. Le PC vérifie l'identité (première connexion = avertissement, puis acceptation).</p>
+              </div>
+              <div className="border-l-4 border-blue-500/50 pl-4">
+                <h4 className="text-blue-400 font-bold mb-2">3. Chiffrement de la session</h4>
+                <p className="text-slate-300 text-sm">Les deux parties négocient un algorithme de chiffrement (AES, 3DES...) et établissent une session chiffrée.</p>
+              </div>
+              <div className="border-l-4 border-blue-500/50 pl-4">
+                <h4 className="text-blue-400 font-bold mb-2">4. Authentification</h4>
+                <p className="text-slate-300 text-sm">Le PC envoie le login (admin) et le mot de passe, <strong>chiffrés</strong> dans la session sécurisée. L'équipement vérifie avec les utilisateurs locaux.</p>
+              </div>
+              <div className="border-l-4 border-emerald-500/50 pl-4">
+                <h4 className="text-emerald-400 font-bold mb-2">5. Session active</h4>
+                <p className="text-slate-300 text-sm">Une fois authentifié, toutes les commandes et réponses sont chiffrées. Tu es connecté comme si tu étais en console, mais à distance et de manière sécurisée.</p>
+              </div>
+            </div>
+            <ProTip>
+              <strong>Première connexion SSH :</strong> Le PC te demande de confirmer l'identité de l'équipement (fingerprint de la clé). C'est normal ! Tape "yes" pour accepter. Ensuite, cette vérification sera automatique.
+            </ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Tester la Connexion SSH",
+        content: (
+          <div className="space-y-4">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Une fois SSH configuré, teste depuis un PC ou un autre équipement.
+            </p>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3">
+              <h4 className="text-blue-400 font-bold mb-2">Depuis un PC (Command Prompt) :</h4>
+              <HumanCommand 
+                cmd="ssh -l admin 192.168.1.1" 
+                human="Se connecter en SSH avec l'utilisateur admin." 
+                context="-l admin = login avec l'utilisateur admin. Le PC demande ensuite le mot de passe (Admin123). Une fois connecté, tu es en mode utilisateur (>). Tape enable pour passer en mode privilégié."
+              />
+              <HumanCommand 
+                cmd="ssh -l guest 192.168.1.1" 
+                human="Se connecter avec l'utilisateur guest (droits limités)." 
+                context="L'utilisateur guest (privilege 1) a des droits limités. Il peut faire show, ping, mais pas modifier la config. Teste pour voir la différence avec admin."
+              />
+            </div>
+            <div className="bg-slate-800 rounded-lg p-4 border border-slate-700 space-y-3">
+              <h4 className="text-blue-400 font-bold mb-2">Vérifications sur l'équipement :</h4>
+              <HumanCommand 
+                cmd="show ssh" 
+                human="Voir les sessions SSH actives." 
+                context="Affiche qui est connecté en SSH : utilisateur, adresse IP source, durée de connexion. Utile pour surveiller les accès."
+              />
+              <HumanCommand 
+                cmd="show ip ssh" 
+                human="Vérifier le statut SSH." 
+                context="Affiche la version SSH (devrait être 2.0), le timeout, le nombre de tentatives. Confirme que SSH est bien activé et configuré."
+              />
+            </div>
+            <DangerZone>
+              <strong>Si la connexion SSH échoue :</strong> Vérifie dans l'ordre : 1) Ping fonctionne ? 2) IP configurée ? 3) Clés RSA générées ? 4) Utilisateurs locaux créés ? 5) Lignes VTY avec login local + transport input ssh ? 6) SSH v2 activé ?
+            </DangerZone>
+          </div>
+        )
       },
       {
         type: 'rich_text',
@@ -2203,7 +2539,20 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
           { q: "copy running-config tftp:", a: "Sauvegarder la config vers un serveur TFTP" },
           { q: "copy tftp: running-config", a: "Restaurer une config depuis un serveur TFTP" },
           { q: "service password-encryption", a: "Masquer les mots de passe dans la config affichée" },
-          { q: "exit", a: "Sortir du mode actuel et remonter d'un niveau" }
+          { q: "exit", a: "Sortir du mode actuel et remonter d'un niveau" },
+          { q: "ip domain-name <nom>", a: "Définir un nom de domaine (requis pour SSH)" },
+          { q: "crypto key generate rsa", a: "Générer les clés RSA pour SSH" },
+          { q: "ip ssh version 2", a: "Forcer SSH version 2 uniquement (plus sécurisé)" },
+          { q: "username <nom> privilege <niveau> secret <mdp>", a: "Créer un utilisateur local avec niveau de privilège" },
+          { q: "line vty 0 4", a: "Configurer les lignes virtuelles pour accès distant" },
+          { q: "login local", a: "Utiliser les utilisateurs locaux pour authentification SSH" },
+          { q: "transport input ssh", a: "Autoriser uniquement SSH, interdire Telnet" },
+          { q: "exec-timeout <min> <sec>", a: "Déconnecter après inactivité (ex. 1 0 = 60 secondes)" },
+          { q: "login block-for <sec> attempts <nb> within <sec>", a: "Protection anti brute-force (blocage après tentatives)" },
+          { q: "show ip ssh", a: "Afficher le statut SSH (version, timeout, tentatives)" },
+          { q: "show ssh", a: "Afficher les sessions SSH actives (utilisateurs connectés)" },
+          { q: "interface vlan 1", a: "Configurer l'interface virtuelle VLAN 1 (sur switch, pour IP de management)" },
+          { q: "ip default-gateway <ip>", a: "Configurer la passerelle par défaut (sur switch)" }
         ]
       },
       {
@@ -4914,9 +5263,9 @@ const LabCorrectionSection3 = () => (
       <p className="text-emerald-100/90 text-lg leading-relaxed">Guide pédagogique commande par commande pour comprendre la circulation des données entre différents réseaux virtuels.</p>
     </div>
 
-    <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border border-slate-600 rounded-xl p-3 mb-8">
-      <p className="text-xs text-slate-400 font-medium mb-2 uppercase tracking-wider">Raccourcis</p>
-      <div className="flex flex-wrap gap-2">
+    <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-600 py-2 mb-6">
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
         {[
           { id: 'lab3-config-vlan', label: 'Config VLANs', icon: '🏷️' },
           { id: 'lab3-config-trunk', label: 'Config Trunk', icon: '🔗' },
@@ -4927,9 +5276,9 @@ const LabCorrectionSection3 = () => (
             key={id}
             type="button"
             onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-            className="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-sm font-medium transition-colors flex items-center gap-1.5"
+            className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
           >
-            <span>{icon}</span> {label}
+            <span className="text-[10px]">{icon}</span> {label}
           </button>
         ))}
       </div>
@@ -5528,25 +5877,75 @@ const LabCorrectionSection = () => (
       <p className="text-emerald-100/90 text-lg leading-relaxed">Réseau local NovaTech : correction complète avec explications à chaque étape.</p>
     </div>
 
-    <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border border-slate-600 rounded-xl p-3 mb-8">
-      <p className="text-xs text-slate-400 font-medium mb-2 uppercase tracking-wider">Raccourcis</p>
-      <div className="flex flex-wrap gap-2">
-        {[
-          { id: 'lab1-config-routeur', label: 'Config routeur', icon: '🧠' },
-          { id: 'lab1-config-pc', label: 'Config PC', icon: '🟨' },
-          { id: 'lab1-config-switch', label: 'Config switch', icon: '🟦' },
-          { id: 'lab1-config-tftp', label: 'Config TFTP', icon: '🟪' },
-          { id: 'lab1-sauvegarde-tftp', label: 'Sauvegarde TFTP', icon: '🟫' },
-        ].map(({ id, label, icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-            className="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-sm font-medium transition-colors flex items-center gap-1.5"
-          >
-            <span>{icon}</span> {label}
-          </button>
-        ))}
+    <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-600 py-2 mb-6">
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-xs text-slate-500 mr-1">🧠</span>
+          {[
+            { id: 'lab1-routeur-hostname', label: 'Hostname + DNS', icon: '🏷️' },
+            { id: 'lab1-routeur-ip', label: 'IP interface', icon: '📡' },
+            { id: 'lab1-routeur-password', label: 'Mots de passe', icon: '🔒' },
+            { id: 'lab1-routeur-verify', label: 'Vérification', icon: '✅' },
+          ].map(({ id, label, icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
+            >
+              <span className="text-[10px]">{icon}</span> {label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-xs text-slate-500 mr-1">🟨</span>
+          {[
+            { id: 'lab1-pc-ip', label: 'IP + Gateway', icon: '🟨' },
+            { id: 'lab1-pc-ping', label: 'Test ping', icon: '📶' },
+          ].map(({ id, label, icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
+            >
+              <span className="text-[10px]">{icon}</span> {label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-xs text-slate-500 mr-1">🟦</span>
+          {[
+            { id: 'lab1-switch-entree', label: 'SW-Entrée', icon: '🟦' },
+            { id: 'lab1-switch-bureau', label: 'SW-Bureau', icon: '🟦' },
+          ].map(({ id, label, icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
+            >
+              <span className="text-[10px]">{icon}</span> {label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-xs text-slate-500 mr-1">🟪</span>
+          {[
+            { id: 'lab1-config-tftp', label: 'Config TFTP', icon: '🟪' },
+            { id: 'lab1-sauvegarde-tftp', label: 'Sauvegarde', icon: '💾' },
+          ].map(({ id, label, icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
+            >
+              <span className="text-[10px]">{icon}</span> {label}
+            </button>
+          ))}
+        </div>
       </div>
     </nav>
 
@@ -5636,12 +6035,12 @@ const LabCorrectionSection = () => (
       <p className="text-slate-300 mb-6 leading-relaxed">Par défaut tu es en mode utilisateur (prompt <code className="bg-slate-900 px-1 rounded font-mono text-sm">Router&gt;</code>). Tape <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">enable</code> → le prompt devient <code className="bg-slate-900 px-1 rounded font-mono text-sm">Router#</code>.</p>
       <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">4.3 Entrer en configuration</h3>
       <p className="text-slate-300 mb-6 leading-relaxed">Tape <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">configure terminal</code> (ou <code className="bg-slate-900 px-1 rounded font-mono text-sm">conf t</code>). Le prompt devient <code className="bg-slate-900 px-1 rounded font-mono text-sm">Router(config)#</code>.</p>
-      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">4.4 Renommer + bloquer le DNS</h3>
+      <h3 id="lab1-routeur-hostname" className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2 scroll-mt-4">4.4 Renommer + bloquer le DNS</h3>
       <ul className="list-none space-y-4 ml-0 text-slate-300 mb-6">
         <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">1-</span> <code className="bg-slate-900 px-1.5 py-0.5 rounded font-mono text-sm">hostname R-Nova</code> — le prompt devient R-Nova(config)#.</li>
         <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">2-</span> <code className="bg-slate-900 px-1.5 py-0.5 rounded font-mono text-sm">no ip domain-lookup</code> — désactive la résolution DNS (évite les délais en cas de faute de frappe).</li>
       </ul>
-      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">4.5 Donner une IP et activer le port</h3>
+      <h3 id="lab1-routeur-ip" className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2 scroll-mt-4">4.5 Donner une IP et activer le port</h3>
       <p className="text-slate-300 mb-4 leading-relaxed">IP <strong>192.168.10.1</strong> sur l’interface GigabitEthernet0/0, puis <strong>no shutdown</strong> pour activer le port.</p>
       <div className="space-y-4 mb-6">
         <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
@@ -5690,12 +6089,12 @@ const LabCorrectionSection = () => (
         <li className="flex gap-3 items-start"><span className="text-emerald-400 shrink-0">•</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">no shutdown</code> — active le port.</li>
         <li className="flex gap-3 items-start"><span className="text-emerald-400 shrink-0">•</span> <code className="bg-slate-900 px-1 rounded font-mono text-sm">end</code> — sort de la config.</li>
       </ul>
-      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">4.6 Vérifier</h3>
+      <h3 id="lab1-routeur-verify" className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2 scroll-mt-4">4.6 Vérifier</h3>
       <p className="text-slate-300 mb-3 leading-relaxed">Tape <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">show ip interface brief</code>. Tu dois voir :</p>
       <p className="text-slate-300 font-mono text-sm bg-slate-900/50 rounded-lg px-4 py-3 mb-4">GigabitEthernet0/0  192.168.10.1  YES  manual  up  up</p>
       <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-1">✅ Si l’interface est <strong>up up</strong> avec 192.168.10.1, le routeur est prêt. Le lien vers le switch devrait être vert.</p>
       
-      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">4.7 Sécuriser le routeur (mots de passe)</h3>
+      <h3 id="lab1-routeur-password" className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2 scroll-mt-4">4.7 Sécuriser le routeur (mots de passe)</h3>
       <p className="text-slate-300 mb-6 leading-relaxed">Par défaut, n'importe qui peut accéder au routeur sans mot de passe. Il faut sécuriser l'accès console et le mode privilégié.</p>
       
       <div className="space-y-4 mb-6">
@@ -5791,7 +6190,7 @@ const LabCorrectionSection = () => (
     <section id="lab1-config-pc" className="bg-slate-800/50 border border-amber-500/30 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-amber-400 mb-6">🟨 Étape 5 — IP du PC (test)</h2>
       <p className="text-slate-300 mb-6 leading-relaxed">Le PC doit être dans le <strong>même réseau</strong> que le routeur (192.168.10.0/24) et avoir la <strong>passerelle par défaut</strong> = 192.168.10.1 pour communiquer.</p>
-      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">5.1 Configuration IP du PC</h3>
+      <h3 id="lab1-pc-ip" className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2 scroll-mt-4">5.1 Configuration IP du PC</h3>
       <p className="text-slate-300 mb-4 leading-relaxed">Clique sur <strong>Tech-PC</strong> → <strong>Desktop</strong> → <strong>IP Configuration</strong>. Renseigne :</p>
       <ul className="list-none space-y-3 ml-0 text-slate-300 mb-6">
         <li className="flex gap-3"><span className="font-bold text-emerald-400/90 shrink-0">1-</span> <strong>IP Address</strong> : 192.168.10.20</li>
@@ -5824,7 +6223,7 @@ const LabCorrectionSection = () => (
         </div>
       </div>
       
-      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">5.2 Test (ping)</h3>
+      <h3 id="lab1-pc-ping" className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2 scroll-mt-4">5.2 Test (ping)</h3>
       <p className="text-slate-300 mb-3 leading-relaxed">Tech-PC → <strong>Desktop</strong> → <strong>Command Prompt</strong>. Tape :</p>
       <p className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-4">ping 192.168.10.1</p>
       <p className="text-slate-300 mb-4 leading-relaxed">Tu dois voir des réponses du type « Reply from 192.168.10.1: bytes=32 time=1ms TTL=64 ».</p>
@@ -5834,7 +6233,7 @@ const LabCorrectionSection = () => (
     <section id="lab1-config-switch" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-blue-400 mb-6">🟦 Étape 6 — Configuration des switches</h2>
       <p className="text-slate-300 mb-6 leading-relaxed">Un switch n’a <strong>pas besoin d’IP pour faire circuler les trames</strong>. Pour l’<strong>administrer à distance</strong> (SSH, TFTP), il doit avoir une IP et une passerelle. On configure <strong>VLAN 1</strong> (management) et <strong>ip default-gateway</strong> vers le routeur.</p>
-      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">6.1 Sur SW-Entrée</h3>
+      <h3 id="lab1-switch-entree" className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2 scroll-mt-4">6.1 Sur SW-Entrée</h3>
       <p className="text-slate-300 mb-6 leading-relaxed">Clique sur <strong>SW-Entrée</strong> → <strong>CLI</strong>. Tape <code className="bg-slate-900 px-1 rounded font-mono text-sm">no</code> si demandé, puis :</p>
       
       <div className="space-y-4 mb-6">
@@ -5938,7 +6337,7 @@ const LabCorrectionSection = () => (
           </div>
         </div>
       </div>
-      <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2">6.2 Sur SW-Bureau</h3>
+      <h3 id="lab1-switch-bureau" className="text-slate-200 font-bold mb-3 mt-6 border-b border-slate-600 pb-2 scroll-mt-4">6.2 Sur SW-Bureau</h3>
       <p className="text-slate-300 mb-6 leading-relaxed">Même principe : IP <strong>192.168.10.3</strong> sur VLAN 1, même masque, même passerelle 192.168.10.1. Puis sauvegarde.</p>
       
       <div className="space-y-4 mb-6">
@@ -6101,9 +6500,9 @@ const LabCorrectionSection2 = () => (
       <p className="text-slate-200/90 text-lg leading-relaxed">LAB S2 de zéro, étape par étape : câblage → IP → users → RSA/SSH → VTY → tests PC.</p>
     </div>
 
-    <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border border-slate-600 rounded-xl p-3 mb-8">
-      <p className="text-xs text-slate-400 font-medium mb-2 uppercase tracking-wider">Raccourcis</p>
-      <div className="flex flex-wrap gap-2">
+    <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-600 py-2 mb-6">
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
         {[
           { id: 'lab2ssh-cablage', label: 'Câblage', icon: '🔌' },
           { id: 'lab2ssh-ip', label: 'Config IP', icon: '📡' },
@@ -6117,9 +6516,9 @@ const LabCorrectionSection2 = () => (
             key={id}
             type="button"
             onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-            className="px-3 py-1.5 rounded-lg bg-slate-700/80 hover:bg-blue-600/80 text-slate-200 hover:text-white text-sm font-medium transition-colors flex items-center gap-1.5"
+            className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-blue-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
           >
-            <span>{icon}</span> {label}
+            <span className="text-[10px]">{icon}</span> {label}
           </button>
         ))}
       </div>
