@@ -7402,8 +7402,20 @@ export default function NetMasterClass() {
 
   return (
     <div className="flex h-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
+      {/* Overlay pour mobile quand le sommaire est ouvert */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-20 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'w-80 translate-x-0 opacity-100' : 'w-0 -translate-x-full opacity-0'} bg-slate-900 border-r border-slate-800 transition-all duration-300 flex flex-col absolute z-20 h-full lg:relative lg:translate-x-0 lg:opacity-100 ${sidebarOpen ? 'lg:w-80' : 'lg:w-0 lg:-translate-x-full lg:opacity-0'} shadow-2xl`}>
+      <aside className={`transition-all duration-300 flex flex-col h-full shadow-2xl bg-slate-900 border-r border-slate-800 ${
+        sidebarOpen 
+          ? 'w-80 translate-x-0 opacity-100 pointer-events-auto' 
+          : 'w-0 -translate-x-full opacity-0 pointer-events-none'
+      } absolute lg:relative z-30 overflow-hidden`}>
         <div className="p-6 border-b border-slate-800 bg-slate-900">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent flex items-center gap-2">
             <Globe className="text-blue-500" /> NetAcademy
@@ -7684,21 +7696,27 @@ export default function NetMasterClass() {
         <div className="p-3 border-t border-slate-800 text-center text-[11px] text-slate-600">
           v1.0 • Mode "Traduction Humaine" activé
         </div>
-      </div>
+      </aside>
 
       {/* Main */}
       <div className="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-950">
         {/* Header */}
-        <header className="bg-slate-900/90 backdrop-blur border-b border-slate-800 p-4 flex flex-col md:flex-row items-center justify-between z-10 gap-4 shadow-sm">
+        <header className="bg-slate-900/90 backdrop-blur border-b border-slate-800 p-4 flex flex-col md:flex-row items-center justify-between z-20 gap-4 shadow-sm">
           <div className="flex items-center gap-4 w-full md:w-auto">
             <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className={`transition-all p-2.5 rounded-lg flex items-center gap-2 ${
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setSidebarOpen(!sidebarOpen);
+              }}
+              className={`transition-all p-2.5 rounded-lg flex items-center gap-2 relative z-50 ${
                 sidebarOpen 
                   ? 'text-slate-400 hover:text-white hover:bg-slate-800' 
                   : 'text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30'
               }`}
               title={sidebarOpen ? "Masquer le sommaire" : "Afficher le sommaire pour naviguer"}
+              aria-label={sidebarOpen ? "Masquer le sommaire" : "Afficher le sommaire"}
             >
               {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               {!sidebarOpen && <span className="text-xs font-medium hidden sm:inline">Menu</span>}
