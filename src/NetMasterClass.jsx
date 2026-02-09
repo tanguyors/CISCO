@@ -4,8 +4,11 @@ import {
   ChevronRight, ChevronLeft, Lock, Shield, 
   Cpu, RotateCcw, Menu, X, Globe,
   Clock, Save, Power, AlertCircle, Eye, AlertTriangle, Lightbulb, HardDrive, Microscope, Router as RouterIcon, Network, ArrowUpDown, Monitor, Command, MessageCircle, HelpCircle,
-  BarChart3, TrendingUp, History, Target, Zap, Activity, Send, Key, User, Layout, Plus, Trash2, Link, Server, Video
+  BarChart3, TrendingUp, History, Target, Zap, Activity, Send, Key, User, Layout, Plus, Trash2, Link, Server, Video, Calendar
 } from 'lucide-react';
+
+// Constante pour activer/désactiver la section Validation des acquis
+const QUIZ_ENABLED = false; // Mettre à true pour réactiver le quiz et les exercices pratiques
 
 // --- COMPOSANTS UI UTILITAIRES ---
 
@@ -3014,16 +3017,146 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       }
     },
     quiz: [
-      { q: "Quel prompt indique le mode privilégié ?", options: [">", "#", "(config)#"], a: 1 },
-      { q: "Quelle est la différence entre running-config et startup-config ?", options: ["Aucune différence", "running-config est en RAM (actuelle), startup-config est en NVRAM (sauvegardée)", "running-config est sauvegardée, startup-config est temporaire"], a: 1 },
-      { q: "Que fait la commande 'copy running-config startup-config' ?", options: ["Redémarre le routeur", "Sauvegarde la config active dans la NVRAM", "Efface la configuration"], a: 1 },
-      { q: "Que permet de faire la commande 'show version' ?", options: ["Affiche seulement la version IOS", "Affiche la version IOS, le matériel, l'uptime, la mémoire et autres infos système", "Redémarre le routeur"], a: 1 },
-      { q: "Pourquoi utiliser 'enable secret' plutôt que 'enable password' ?", options: ["enable secret est plus rapide", "enable secret est chiffré (hashé MD5), donc plus sécurisé que enable password qui est en clair", "enable password ne fonctionne pas"], a: 1 },
-      { q: "Que se passe-t-il si on oublie de faire 'copy running-config startup-config' après modification ?", options: ["Rien, c'est automatique", "Toutes les modifications seront perdues au redémarrage", "Le routeur plante"], a: 1 },
-      { q: "Que fait la commande 'no ip domain lookup' ?", options: ["Active la recherche DNS", "Désactive la résolution DNS pour éviter les délais lors d'une erreur de commande", "Configure un nom de domaine"], a: 1 },
-      { q: "Pour sécuriser l'accès console, quelles commandes sont nécessaires ?", options: ["Seulement 'password'", "Seulement 'login'", "'line console 0', puis 'password', puis 'login'"], a: 2 },
-      { q: "Quels sont les avantages de l'utilisation du TFTP ?", options: ["Aucun avantage", "Sauvegarde et restauration centralisée des configurations, transfert simple de fichiers entre équipements", "TFTP est plus rapide que la sauvegarde locale"], a: 1 },
-      { q: "Quelle commande permet de sauvegarder la config vers un serveur TFTP ?", options: ["copy startup-config tftp:", "copy running-config tftp:", "save tftp:"], a: 1 }
+      { 
+        q: "Quel prompt indique le mode privilégié ?", 
+        options: [">", "#", "(config)#"], 
+        a: 1,
+        explanation: "Le prompt '#' indique le mode privilégié (enable mode). Le prompt '>' indique le mode utilisateur, et '(config)#' indique le mode configuration globale.",
+        hint: "Pensez aux différents modes Cisco et à leurs prompts respectifs."
+      },
+      { 
+        q: "Quelle est la différence entre running-config et startup-config ?", 
+        options: ["Aucune différence", "running-config est en RAM (actuelle), startup-config est en NVRAM (sauvegardée)", "running-config est sauvegardée, startup-config est temporaire"], 
+        a: 1,
+        explanation: "running-config est la configuration active en RAM, modifiable mais perdue au redémarrage. startup-config est sauvegardée en NVRAM et chargée au démarrage. C'est pourquoi il faut faire 'copy running-config startup-config' pour sauvegarder.",
+        hint: "RAM = temporaire, NVRAM = permanent"
+      },
+      { 
+        q: "Que fait la commande 'copy running-config startup-config' ?", 
+        options: ["Redémarre le routeur", "Sauvegarde la config active dans la NVRAM", "Efface la configuration"], 
+        a: 1,
+        explanation: "Cette commande copie la configuration actuelle (running-config en RAM) vers la configuration de démarrage (startup-config en NVRAM). Sans cette commande, toutes les modifications seront perdues au redémarrage.",
+        hint: "C'est une commande de sauvegarde essentielle"
+      },
+      { 
+        q: "Que permet de faire la commande 'show version' ?", 
+        options: ["Affiche seulement la version IOS", "Affiche la version IOS, le matériel, l'uptime, la mémoire et autres infos système", "Redémarre le routeur"], 
+        a: 1,
+        explanation: "'show version' affiche des informations complètes sur le système : version IOS, modèle matériel, temps de fonctionnement (uptime), quantité de mémoire RAM/NVRAM, et informations sur les fichiers de configuration.",
+        hint: "C'est une commande de diagnostic très utile"
+      },
+      { 
+        q: "Pourquoi utiliser 'enable secret' plutôt que 'enable password' ?", 
+        options: ["enable secret est plus rapide", "enable secret est chiffré (hashé MD5), donc plus sécurisé que enable password qui est en clair", "enable password ne fonctionne pas"], 
+        a: 1,
+        explanation: "'enable secret' utilise un hachage MD5 pour stocker le mot de passe de manière sécurisée, alors que 'enable password' le stocke en clair (ou avec un chiffrement faible). Si les deux sont configurés, 'enable secret' a la priorité.",
+        hint: "Sécurité = chiffrement"
+      },
+      { 
+        q: "Que se passe-t-il si on oublie de faire 'copy running-config startup-config' après modification ?", 
+        options: ["Rien, c'est automatique", "Toutes les modifications seront perdues au redémarrage", "Le routeur plante"], 
+        a: 1,
+        explanation: "Sans sauvegarde, toutes les modifications restent uniquement en RAM. Au redémarrage, le routeur charge la startup-config (ancienne version), et toutes les modifications non sauvegardées sont définitivement perdues.",
+        hint: "RAM = volatile, NVRAM = permanent"
+      },
+      { 
+        q: "Que fait la commande 'no ip domain lookup' ?", 
+        options: ["Active la recherche DNS", "Désactive la résolution DNS pour éviter les délais lors d'une erreur de commande", "Configure un nom de domaine"], 
+        a: 1,
+        explanation: "Par défaut, Cisco essaie de résoudre les noms via DNS quand vous tapez une commande incorrecte. 'no ip domain lookup' désactive cette fonctionnalité, évitant ainsi des délais de 5-10 secondes lors d'erreurs de frappe.",
+        hint: "C'est une optimisation pour éviter les délais"
+      },
+      { 
+        q: "Pour sécuriser l'accès console, quelles commandes sont nécessaires ?", 
+        options: ["Seulement 'password'", "Seulement 'login'", "'line console 0', puis 'password', puis 'login'"], 
+        a: 2,
+        explanation: "Pour sécuriser la console, il faut : 1) Entrer en mode configuration de ligne avec 'line console 0', 2) Définir un mot de passe avec 'password [mot_de_passe]', 3) Activer la demande de mot de passe avec 'login'. Sans 'login', le mot de passe ne sera pas demandé.",
+        hint: "Il faut trois étapes : entrer en mode ligne, définir le mot de passe, activer l'authentification"
+      },
+      { 
+        q: "Quels sont les avantages de l'utilisation du TFTP ?", 
+        options: ["Aucun avantage", "Sauvegarde et restauration centralisée des configurations, transfert simple de fichiers entre équipements", "TFTP est plus rapide que la sauvegarde locale"], 
+        a: 1,
+        explanation: "TFTP (Trivial File Transfer Protocol) permet de centraliser les sauvegardes sur un serveur, de restaurer facilement des configurations, et de transférer des fichiers entre équipements réseau. C'est essentiel pour la gestion de plusieurs équipements.",
+        hint: "Centralisation et gestion de plusieurs équipements"
+      },
+      { 
+        q: "Quelle commande permet de sauvegarder la config vers un serveur TFTP ?", 
+        options: ["copy startup-config tftp:", "copy running-config tftp:", "save tftp:"], 
+        a: 1,
+        explanation: "'copy running-config tftp:' sauvegarde la configuration active (celle en RAM) vers le serveur TFTP. On peut aussi sauvegarder startup-config, mais running-config contient toujours la version la plus récente.",
+        hint: "running-config = configuration actuelle"
+      },
+      { 
+        q: "Dans quel mode faut-il être pour exécuter la commande 'hostname R-Nova' ?", 
+        options: ["Mode utilisateur (>)", "Mode privilégié (#)", "Mode configuration globale (config)#"], 
+        a: 2,
+        explanation: "'hostname' est une commande de configuration, donc elle nécessite d'être en mode configuration globale. Il faut d'abord faire 'enable' puis 'configure terminal' avant de pouvoir renommer l'équipement.",
+        hint: "hostname modifie la configuration"
+      },
+      { 
+        q: "Quelle commande permet de voir toutes les interfaces et leurs adresses IP ?", 
+        options: ["show ip", "show ip interface brief", "show interfaces"], 
+        a: 1,
+        explanation: "'show ip interface brief' affiche un résumé concis de toutes les interfaces avec leur adresse IP, leur statut (up/down) et leur protocole. C'est la commande la plus rapide pour vérifier la configuration IP.",
+        hint: "brief = résumé"
+      },
+      { 
+        q: "Que signifie 'administratively down' dans le statut d'une interface ?", 
+        options: ["L'interface est cassée physiquement", "L'interface a été désactivée manuellement avec 'shutdown'", "L'interface fonctionne normalement"], 
+        a: 1,
+        explanation: "'administratively down' signifie que l'interface a été désactivée manuellement avec la commande 'shutdown'. Pour la réactiver, il faut utiliser 'no shutdown' en mode configuration d'interface.",
+        hint: "administratively = manuellement"
+      },
+      { 
+        q: "Quelle est la différence entre 'enable password' et 'enable secret' si les deux sont configurés ?", 
+        options: ["Les deux sont utilisés", "enable secret a la priorité et est utilisé", "enable password a la priorité"], 
+        a: 1,
+        explanation: "Si les deux commandes sont configurées, 'enable secret' a toujours la priorité. Cisco recommande d'utiliser uniquement 'enable secret' car il est plus sécurisé (chiffrement MD5).",
+        hint: "secret > password en termes de priorité"
+      },
+      { 
+        q: "Pourquoi est-il important de sauvegarder régulièrement les configurations ?", 
+        options: ["C'est une perte de temps", "Pour pouvoir restaurer rapidement en cas de problème ou d'erreur", "Pour améliorer les performances"], 
+        a: 1,
+        explanation: "Les sauvegardes régulières permettent de restaurer rapidement une configuration fonctionnelle en cas d'erreur de configuration, de panne matérielle, ou de remplacement d'équipement. C'est une pratique essentielle en administration réseau.",
+        hint: "Pensez aux scénarios de récupération après incident"
+      },
+      { 
+        q: "Que fait la commande 'show running-config' ?", 
+        options: ["Affiche la configuration sauvegardée", "Affiche la configuration actuelle en RAM", "Redémarre le routeur"], 
+        a: 1,
+        explanation: "'show running-config' affiche la configuration complète actuellement active en RAM. Pour voir la configuration sauvegardée (qui sera chargée au redémarrage), il faut utiliser 'show startup-config'.",
+        hint: "running = en cours d'exécution = actuel"
+      },
+      { 
+        q: "Quelle commande permet de quitter le mode configuration et revenir au mode privilégié ?", 
+        options: ["exit", "quit", "'exit' ou 'end' (les deux fonctionnent)"], 
+        a: 2,
+        explanation: "En mode configuration, 'exit' remonte d'un niveau (ex: de config-if vers config, puis vers #). 'end' ou Ctrl+Z revient directement au mode privilégié (#) depuis n'importe quel sous-mode de configuration.",
+        hint: "end = directement au mode privilégié"
+      },
+      { 
+        q: "Quelle est la commande pour entrer en mode configuration d'interface ?", 
+        options: ["interface g0/0", "config interface g0/0", "enter interface g0/0"], 
+        a: 0,
+        explanation: "Pour configurer une interface, on utilise 'interface [nom_interface]' en mode configuration globale. Par exemple, 'interface gigabitEthernet0/0' ou 'interface g0/0' pour entrer en mode configuration d'interface.",
+        hint: "interface [nom] depuis le mode config"
+      },
+      { 
+        q: "Que fait la commande 'service password-encryption' ?", 
+        options: ["Chiffre tous les mots de passe dans la configuration", "Désactive les mots de passe", "Améliore les performances"], 
+        a: 0,
+        explanation: "'service password-encryption' chiffre tous les mots de passe en clair dans la configuration (comme ceux définis avec 'password'). Cependant, 'enable secret' est toujours préférable car il utilise un chiffrement plus fort (MD5).",
+        hint: "service = service global, password-encryption = chiffrement des mots de passe"
+      },
+      { 
+        q: "Quelle commande permet de voir l'historique des commandes tapées ?", 
+        options: ["show history", "show commands", "history (ou flèche haut)"], 
+        a: 2,
+        explanation: "L'historique des commandes peut être consulté avec la commande 'show history' ou simplement en utilisant la flèche haut du clavier. L'historique est limité à un certain nombre de commandes (par défaut 10).",
+        hint: "history = historique"
+      }
     ]
   },
   {
@@ -4426,15 +4559,581 @@ const LabCorrection = ({ scenario }) => {
   );
 };
 
+// --- EXERCICES PRATIQUES ANIMÉS ---
+
+const PracticeExercises = ({ sessionId }) => {
+  const [currentExercise, setCurrentExercise] = useState(0);
+  
+  if (!sessionId) {
+    return (
+      <div className="text-center py-12">
+        <AlertCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
+        <p className="text-red-400 text-lg">Erreur : session ID manquant.</p>
+      </div>
+    );
+  }
+  
+  const exercises = sessionId === 1 ? [
+    {
+      type: 'terminal_sim',
+      title: 'Simulation de Terminal Cisco',
+      description: 'Tapez les commandes dans le bon ordre pour configurer un routeur',
+      objective: 'Configurer le hostname, le mot de passe enable et sauvegarder',
+      commands: [
+        { cmd: 'enable', prompt: 'Router>', nextPrompt: 'Router#', desc: 'Passer en mode privilégié' },
+        { cmd: 'configure terminal', prompt: 'Router#', nextPrompt: 'Router(config)#', desc: 'Entrer en mode configuration' },
+        { cmd: 'hostname R-Nova', prompt: 'Router(config)#', nextPrompt: 'R-Nova(config)#', desc: 'Renommer le routeur' },
+        { cmd: 'enable secret cisco123', prompt: 'R-Nova(config)#', nextPrompt: 'R-Nova(config)#', desc: 'Définir le mot de passe enable' },
+        { cmd: 'copy running-config startup-config', prompt: 'R-Nova(config)#', nextPrompt: 'R-Nova#', desc: 'Sauvegarder la configuration' }
+      ]
+    },
+    {
+      type: 'command_order',
+      title: 'Mise en Ordre des Commandes',
+      description: 'Réorganisez les commandes dans le bon ordre pour sécuriser l\'accès console',
+      objective: 'Sécuriser l\'accès console avec un mot de passe',
+      commands: [
+        { cmd: 'line console 0', desc: 'Entrer en mode configuration console' },
+        { cmd: 'password cisco', desc: 'Définir le mot de passe console' },
+        { cmd: 'login', desc: 'Activer la demande de mot de passe' },
+        { cmd: 'exit', desc: 'Quitter le mode configuration ligne' }
+      ],
+      correctOrder: [0, 1, 2, 3]
+    },
+    {
+      type: 'fill_config',
+      title: 'Complétion de Configuration',
+      description: 'Complétez la configuration SSH en remplissant les champs manquants',
+      objective: 'Configurer SSH sur un routeur',
+      config: {
+        domainName: { value: '', placeholder: 'Ex: novatech.local', correct: 'novatech.local' },
+        username: { value: '', placeholder: 'Nom d\'utilisateur admin', correct: 'admin' },
+        privilege: { value: '', placeholder: 'Niveau de privilège (0-15)', correct: '15' },
+        rsaBits: { value: '', placeholder: 'Taille des clés RSA (ex: 1024)', correct: '1024' }
+      }
+    },
+    {
+      type: 'troubleshooting',
+      title: 'Dépannage Interactif',
+      description: 'Diagnostiquez et réparez une configuration cassée',
+      objective: 'Trouver et corriger l\'erreur dans la configuration',
+      scenario: 'Le routeur ne peut pas être configuré via SSH. Les utilisateurs locaux existent mais la connexion échoue.',
+      steps: [
+        { action: 'Vérifier la configuration SSH', cmd: 'show ip ssh', expected: 'SSH Enabled' },
+        { action: 'Vérifier les lignes VTY', cmd: 'show running-config | section line vty', expected: 'login local' },
+        { action: 'Corriger la configuration', cmd: 'line vty 0 4\nlogin local', expected: 'Configuration corrigée' }
+      ]
+    }
+  ] : [];
+
+  if (exercises.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Terminal className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+        <p className="text-slate-400 text-lg">Les exercices pratiques pour cette session seront disponibles prochainement.</p>
+      </div>
+    );
+  }
+
+  const exercise = exercises[currentExercise];
+
+  if (!exercise) {
+    return (
+      <div className="text-center py-12">
+        <AlertCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
+        <p className="text-red-400 text-lg">Erreur : exercice non trouvé.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+        <div className="flex items-start gap-3">
+          <Zap className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="text-blue-300 font-semibold mb-1">Exercice {currentExercise + 1} / {exercises.length}</p>
+            <p className="text-blue-200/80 text-sm">{exercise.description}</p>
+          </div>
+        </div>
+      </div>
+
+      {exercise.type === 'terminal_sim' && <TerminalSimulatorPractice exercise={exercise} />}
+      {exercise.type === 'command_order' && <CommandOrderExercise exercise={exercise} />}
+      {exercise.type === 'fill_config' && <FillConfigExercise exercise={exercise} />}
+      {exercise.type === 'troubleshooting' && <TroubleshootingExercise exercise={exercise} />}
+
+      <div className="flex justify-between items-center pt-4 border-t border-slate-800">
+        <button
+          onClick={() => setCurrentExercise(Math.max(0, currentExercise - 1))}
+          disabled={currentExercise === 0}
+          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Précédent
+        </button>
+        <span className="text-slate-400 text-sm">
+          {currentExercise + 1} / {exercises.length}
+        </span>
+        <button
+          onClick={() => setCurrentExercise(Math.min(exercises.length - 1, currentExercise + 1))}
+          disabled={currentExercise === exercises.length - 1}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+        >
+          Suivant
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Simulateur de terminal Cisco animé pour exercices pratiques
+const TerminalSimulatorPractice = ({ exercise }) => {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [userInput, setUserInput] = useState('');
+  const [commandHistory, setCommandHistory] = useState([]);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [feedback, setFeedback] = useState('');
+
+  if (!exercise || !exercise.commands) {
+    return (
+      <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+        <p className="text-red-400">Erreur : données d'exercice manquantes.</p>
+      </div>
+    );
+  }
+
+  // Fonction pour extraire uniquement la commande, en ignorant les prompts
+  const extractCommand = (input) => {
+    let cmd = input.trim();
+    
+    // Supprimer les prompts courants (Router>, Router#, Router(config)#, R-Nova(config)#, etc.)
+    // Patterns: texte (peut contenir des tirets) suivi de > ou #, avec ou sans mode entre parenthèses
+    // Exemples: "Router> ", "Router# ", "Router(config)# ", "R-Nova(config)# ", "Switch>enable"
+    cmd = cmd.replace(/^[A-Za-z0-9-]+(\([A-Za-z0-9-]+\))?[>#]\s*/i, '');
+    
+    // Si la commande commence encore par un prompt (cas où l'utilisateur a tapé plusieurs fois le prompt)
+    cmd = cmd.replace(/^[A-Za-z0-9-]+(\([A-Za-z0-9-]+\))?[>#]\s*/i, '');
+    
+    // Supprimer les espaces en début/fin et les caractères spéciaux de fin de ligne
+    cmd = cmd.trim().replace(/\|$/, ''); // Supprimer le curseur | à la fin si présent
+    
+    return cmd;
+  };
+
+  // Fonction pour vérifier si la commande utilisateur correspond à la commande attendue
+  // (en ignorant les arguments après la commande de base)
+  const commandsMatch = (userCmd, expectedCmd) => {
+    const userParts = userCmd.trim().split(/\s+/).filter(p => p.length > 0);
+    const expectedParts = expectedCmd.trim().split(/\s+/).filter(p => p.length > 0);
+    
+    if (userParts.length === 0) return false;
+    
+    // Déterminer combien de mots de la commande attendue sont nécessaires pour la validation
+    // Commandes qui nécessitent 2 mots : "configure terminal", "enable secret"
+    // Commandes qui nécessitent seulement 1 mot : "enable", "hostname", "copy"
+    
+    let wordsToCheck = 1; // Par défaut, vérifier seulement le premier mot
+    
+    // Si la commande attendue commence par "configure terminal", vérifier 2 mots
+    if (expectedParts[0] === 'configure' && expectedParts[1] === 'terminal') {
+      wordsToCheck = 2;
+    }
+    // Si la commande attendue commence par "enable secret", vérifier 2 mots
+    else if (expectedParts[0] === 'enable' && expectedParts[1] === 'secret') {
+      wordsToCheck = 2;
+    }
+    // Pour toutes les autres commandes (enable seul, hostname, copy, etc.), vérifier seulement 1 mot
+    
+    // Vérifier que l'utilisateur a tapé au moins le nombre de mots requis
+    if (userParts.length < wordsToCheck) {
+      return false;
+    }
+    
+    // Comparer les mots requis
+    for (let i = 0; i < wordsToCheck; i++) {
+      if (userParts[i] !== expectedParts[i]) {
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
+  const handleCommand = (cmd) => {
+    if (currentStep >= exercise.commands.length) {
+      setFeedback('✅ Toutes les commandes ont été exécutées avec succès !');
+      return;
+    }
+
+    const expectedCmd = exercise.commands[currentStep].cmd;
+    // Extraire uniquement la commande de l'input utilisateur
+    const userCommand = extractCommand(cmd);
+    
+    // Comparer uniquement la commande de base (sans les arguments)
+    if (commandsMatch(userCommand, expectedCmd)) {
+      setIsAnimating(true);
+      // Stocker uniquement la commande dans l'historique (sans le prompt)
+      setCommandHistory([...commandHistory, { cmd: userCommand, prompt: exercise.commands[currentStep].prompt, correct: true }]);
+      
+      setTimeout(() => {
+        setCurrentStep(currentStep + 1);
+        setUserInput('');
+        setIsAnimating(false);
+        if (currentStep + 1 >= exercise.commands.length) {
+          setFeedback('🎉 Excellent ! Configuration complète.');
+        }
+      }, 800);
+    } else {
+      setFeedback('❌ Commande incorrecte. Essayez : ' + expectedCmd);
+      setTimeout(() => setFeedback(''), 3000);
+    }
+  };
+
+  const currentPrompt = currentStep < exercise.commands.length 
+    ? exercise.commands[currentStep].prompt 
+    : exercise.commands[exercise.commands.length - 1].nextPrompt;
+
+  return (
+    <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 space-y-4">
+      <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 min-h-[300px] font-mono text-sm">
+        <div className="space-y-2 mb-4">
+          {commandHistory.map((item, idx) => (
+            <div key={idx} className="flex items-start gap-2">
+              <span className="text-green-400">{item.prompt}</span>
+              <span className="text-white">{item.cmd}</span>
+              {item.correct && <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5" />}
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-green-400">{currentPrompt}</span>
+          <input
+            type="text"
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleCommand(userInput)}
+            className="flex-1 bg-transparent text-white outline-none"
+            placeholder={currentStep < exercise.commands.length ? exercise.commands[currentStep].desc : 'Configuration terminée'}
+            disabled={currentStep >= exercise.commands.length}
+            autoFocus
+          />
+        </div>
+        {isAnimating && (
+          <div className="mt-2 text-blue-400 animate-pulse">
+            Exécution...
+          </div>
+        )}
+        {feedback && (
+          <div className={`mt-4 p-3 rounded-lg ${feedback.includes('✅') || feedback.includes('🎉') ? 'bg-emerald-900/30 border border-emerald-500/50 text-emerald-300' : 'bg-red-900/30 border border-red-500/50 text-red-300'}`}>
+            {feedback}
+          </div>
+        )}
+      </div>
+      <div className="bg-slate-900/50 rounded-lg p-4">
+        <p className="text-slate-300 text-sm font-semibold mb-2">Objectif :</p>
+        <p className="text-slate-400 text-sm">{exercise.objective}</p>
+        {currentStep < exercise.commands.length && (
+          <p className="text-blue-400 text-xs mt-2">
+            💡 Indice : {exercise.commands[currentStep].desc}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Exercice de mise en ordre de commandes
+const CommandOrderExercise = ({ exercise }) => {
+  const [selectedCommands, setSelectedCommands] = useState([]);
+  const [availableCommands, setAvailableCommands] = useState(exercise?.commands ? [...exercise.commands] : []);
+  const [feedback, setFeedback] = useState('');
+
+  if (!exercise || !exercise.commands) {
+    return (
+      <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+        <p className="text-red-400">Erreur : données d'exercice manquantes.</p>
+      </div>
+    );
+  }
+
+  const handleCommandClick = (cmd, index, source) => {
+    if (source === 'available') {
+      setSelectedCommands([...selectedCommands, { cmd, index }]);
+      setAvailableCommands(availableCommands.filter((_, i) => i !== index));
+    } else {
+      setAvailableCommands([...availableCommands, cmd]);
+      setSelectedCommands(selectedCommands.filter((_, i) => i !== index));
+    }
+    setFeedback('');
+  };
+
+  const validateOrder = () => {
+    const userOrder = selectedCommands.map(c => c.index);
+    const isCorrect = JSON.stringify(userOrder) === JSON.stringify(exercise.correctOrder);
+    
+    if (isCorrect) {
+      setFeedback('✅ Parfait ! L\'ordre des commandes est correct.');
+    } else {
+      setFeedback('❌ L\'ordre n\'est pas correct. Réessayez !');
+    }
+  };
+
+  const reset = () => {
+    setSelectedCommands([]);
+    setAvailableCommands([...exercise.commands]);
+    setFeedback('');
+  };
+
+  return (
+    <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 space-y-6">
+      <div className="bg-slate-900/50 rounded-lg p-4">
+        <p className="text-slate-300 text-sm font-semibold mb-2">Objectif :</p>
+        <p className="text-slate-400 text-sm">{exercise.objective}</p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <div>
+          <h4 className="text-slate-300 font-semibold mb-3">Commandes disponibles</h4>
+          <div className="space-y-2 min-h-[200px]">
+            {availableCommands.map((cmd, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleCommandClick(cmd, exercise.commands.indexOf(cmd), 'available')}
+                className="w-full p-3 bg-slate-700 hover:bg-slate-600 text-left rounded-lg border border-slate-600 hover:border-blue-500 transition-all text-sm text-slate-200"
+              >
+                <code className="text-emerald-400">{cmd.cmd}</code>
+                <p className="text-slate-400 text-xs mt-1">{cmd.desc}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h4 className="text-slate-300 font-semibold mb-3">Votre ordre</h4>
+          <div className="space-y-2 min-h-[200px]">
+            {selectedCommands.map((item, idx) => (
+              <div
+                key={idx}
+                className="p-3 bg-blue-900/30 border border-blue-500/50 rounded-lg flex items-center justify-between"
+              >
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-blue-400 text-xs font-bold w-6">{idx + 1}.</span>
+                    <code className="text-emerald-400 text-sm">{item.cmd.cmd}</code>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-1 ml-8">{item.cmd.desc}</p>
+                </div>
+                <button
+                  onClick={() => handleCommandClick(item.cmd, item.index, 'selected')}
+                  className="text-red-400 hover:text-red-300"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {feedback && (
+        <div className={`p-4 rounded-lg ${feedback.includes('✅') ? 'bg-emerald-900/30 border border-emerald-500/50 text-emerald-300' : 'bg-red-900/30 border border-red-500/50 text-red-300'}`}>
+          {feedback}
+        </div>
+      )}
+
+      <div className="flex gap-3">
+        <button
+          onClick={validateOrder}
+          disabled={selectedCommands.length !== exercise.commands.length}
+          className="flex-1 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        >
+          Valider l'ordre
+        </button>
+        <button
+          onClick={reset}
+          className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-all"
+        >
+          Réinitialiser
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Exercice de complétion de configuration
+const FillConfigExercise = ({ exercise }) => {
+  const [config, setConfig] = useState({});
+  const [feedback, setFeedback] = useState({});
+  const [completed, setCompleted] = useState(false);
+
+  if (!exercise || !exercise.config) {
+    return (
+      <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+        <p className="text-red-400">Erreur : données d'exercice manquantes.</p>
+      </div>
+    );
+  }
+
+  const handleChange = (key, value) => {
+    setConfig({ ...config, [key]: value });
+    setFeedback({ ...feedback, [key]: '' });
+  };
+
+  const validate = () => {
+    const newFeedback = {};
+    let allCorrect = true;
+
+    Object.keys(exercise.config).forEach(key => {
+      if (config[key]?.toLowerCase() === exercise.config[key].correct.toLowerCase()) {
+        newFeedback[key] = 'correct';
+      } else {
+        newFeedback[key] = 'incorrect';
+        allCorrect = false;
+      }
+    });
+
+    setFeedback(newFeedback);
+    if (allCorrect) {
+      setCompleted(true);
+    }
+  };
+
+  return (
+    <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 space-y-6">
+      <div className="bg-slate-900/50 rounded-lg p-4">
+        <p className="text-slate-300 text-sm font-semibold mb-2">Objectif :</p>
+        <p className="text-slate-400 text-sm">{exercise.objective}</p>
+      </div>
+
+      <div className="space-y-4">
+        {Object.keys(exercise.config).map((key) => (
+          <div key={key}>
+            <label className="block text-slate-300 font-medium mb-2 capitalize">
+              {key.replace(/([A-Z])/g, ' $1').trim()}
+            </label>
+            <input
+              type="text"
+              value={config[key] || ''}
+              onChange={(e) => handleChange(key, e.target.value)}
+              placeholder={exercise.config[key].placeholder}
+              className={`w-full p-3 bg-slate-900 border rounded-lg text-white placeholder-slate-500 focus:outline-none ${
+                feedback[key] === 'correct' ? 'border-emerald-500' : feedback[key] === 'incorrect' ? 'border-red-500' : 'border-slate-700'
+              }`}
+            />
+            {feedback[key] === 'correct' && (
+              <p className="text-emerald-400 text-xs mt-1">✅ Correct</p>
+            )}
+            {feedback[key] === 'incorrect' && (
+              <p className="text-red-400 text-xs mt-1">❌ Incorrect. Réessayez.</p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {completed ? (
+        <div className="bg-emerald-900/30 border border-emerald-500/50 rounded-lg p-4 text-emerald-300">
+          ✅ Configuration complète et correcte !
+        </div>
+      ) : (
+        <button
+          onClick={validate}
+          className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg transition-all"
+        >
+          Valider la configuration
+        </button>
+      )}
+    </div>
+  );
+};
+
+// Exercice de dépannage interactif
+const TroubleshootingExercise = ({ exercise }) => {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [diagnosis, setDiagnosis] = useState('');
+  const [showSolution, setShowSolution] = useState(false);
+
+  if (!exercise || !exercise.steps) {
+    return (
+      <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+        <p className="text-red-400">Erreur : données d'exercice manquantes.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 space-y-6">
+      <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
+        <h4 className="text-red-300 font-semibold mb-2">Scénario de Dépannage</h4>
+        <p className="text-slate-300 text-sm">{exercise.scenario}</p>
+      </div>
+
+      <div className="space-y-4">
+        {exercise.steps.map((step, idx) => (
+          <div key={idx} className={`p-4 rounded-lg border ${
+            idx <= currentStep ? 'bg-slate-900/50 border-blue-500/50' : 'bg-slate-900/20 border-slate-700'
+          }`}>
+            <div className="flex items-start gap-3">
+              <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                idx < currentStep ? 'bg-emerald-600 text-white' : idx === currentStep ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-400'
+              }`}>
+                {idx < currentStep ? '✓' : idx + 1}
+              </span>
+              <div className="flex-1">
+                <p className="text-white font-semibold mb-2">{step.action}</p>
+                <code className="text-emerald-400 text-sm bg-slate-950 px-2 py-1 rounded block">{step.cmd}</code>
+                {idx === currentStep && (
+                  <button
+                    onClick={() => setCurrentStep(idx + 1)}
+                    className="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition-all"
+                  >
+                    Exécuter cette commande
+                  </button>
+                )}
+                {idx < currentStep && (
+                  <p className="text-emerald-400 text-xs mt-2">✓ {step.expected}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {currentStep >= exercise.steps.length && (
+        <div className="bg-emerald-900/30 border border-emerald-500/50 rounded-lg p-4">
+          <p className="text-emerald-300 font-semibold mb-2">✅ Problème résolu !</p>
+          <p className="text-slate-300 text-sm">Vous avez diagnostiqué et corrigé le problème avec succès.</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // --- QUIZ ---
 
 const QuizForm = ({ questions, onSubmit, sessionId, onQuizComplete }) => {
   const [answers, setAnswers] = useState({});
   const [quizStartTime] = useState(Date.now());
+  const [showResults, setShowResults] = useState(false);
+  const [results, setResults] = useState({});
 
   const handleValidate = () => {
     let score = 0;
-    questions.forEach((q, i) => { if (answers[i] === q.a) score++; });
+    const detailedResults = {};
+    
+    questions.forEach((q, i) => {
+      const isCorrect = answers[i] === q.a;
+      if (isCorrect) score++;
+      detailedResults[i] = {
+        correct: isCorrect,
+        explanation: q.explanation || (isCorrect ? "Bonne réponse !" : `La bonne réponse était : ${q.options[q.a]}`)
+      };
+    });
+    
+    setResults(detailedResults);
+    setShowResults(true);
+    
     const timeSpent = Math.floor((Date.now() - quizStartTime) / 1000);
     
     // Tracker le quiz
@@ -4445,52 +5144,194 @@ const QuizForm = ({ questions, onSubmit, sessionId, onQuizComplete }) => {
     onSubmit(score);
   };
 
+  const resetQuiz = () => {
+    setAnswers({});
+    setShowResults(false);
+    setResults({});
+    onSubmit(null);
+  };
+
   return (
     <div className="space-y-6">
-      {questions.map((q, idx) => (
-        <div key={idx} className="space-y-4">
-          <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
-            <p className="font-bold text-base md:text-lg text-white mb-4 flex gap-3">
-              <span className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0">
-                {idx + 1}
-              </span>
-              {q.q}
-            </p>
-            <div className="space-y-3 pl-10">
-              {q.options.map((opt, optIdx) => (
-                <label 
-                  key={optIdx}
-                  className={`flex items-center p-3 rounded-lg border cursor-pointer transition-all text-sm ${
-                    answers[idx] === optIdx 
-                      ? 'bg-blue-600/20 border-blue-500 text-blue-100 shadow-md' 
-                      : 'border-slate-700 hover:bg-slate-700 text-slate-300'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name={`q-${idx}`}
-                    className="hidden"
-                    onChange={() => setAnswers({ ...answers, [idx]: optIdx })}
-                  />
-                  <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center transition-colors ${
-                    answers[idx] === optIdx ? 'border-blue-500' : 'border-slate-500'
-                  }`}>
-                    {answers[idx] === optIdx && <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />}
-                  </div>
-                  {opt}
-                </label>
-              ))}
+      {!showResults && (
+        <>
+          <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <Lightbulb className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-blue-300 font-semibold mb-1">Conseil pour réussir</p>
+                <p className="text-blue-200/80 text-sm">
+                  Lisez attentivement chaque question. Les explications détaillées vous aideront à comprendre les concepts clés après validation.
+                </p>
+              </div>
             </div>
           </div>
+
+          {questions.map((q, idx) => (
+            <div key={idx} className="space-y-4">
+              <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+                <div className="flex items-start gap-4 mb-4">
+                  <span className="bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center text-base font-bold flex-shrink-0 shadow-md">
+                    {idx + 1}
+                  </span>
+                  <div className="flex-1">
+                    <p className="font-bold text-lg md:text-xl text-white mb-2 leading-relaxed">
+                      {q.q}
+                    </p>
+                    {q.hint && (
+                      <div className="bg-amber-900/20 border-l-4 border-amber-500/50 pl-3 py-2 mt-3 rounded-r">
+                        <p className="text-amber-300 text-sm flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4" />
+                          <span className="font-medium">Indice :</span> {q.hint}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2.5 pl-14">
+                  {q.options.map((opt, optIdx) => (
+                    <label 
+                      key={optIdx}
+                      className={`flex items-start p-4 rounded-lg border cursor-pointer transition-all ${
+                        answers[idx] === optIdx 
+                          ? 'bg-blue-600/20 border-blue-500 text-blue-100 shadow-md' 
+                          : 'border-slate-700 hover:bg-slate-700/50 text-slate-300 hover:border-slate-600'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name={`q-${idx}`}
+                        className="hidden"
+                        checked={answers[idx] === optIdx}
+                        onChange={() => setAnswers({ ...answers, [idx]: optIdx })}
+                      />
+                      <div className={`w-5 h-5 rounded-full border-2 mr-3 mt-0.5 flex items-center justify-center transition-colors flex-shrink-0 ${
+                        answers[idx] === optIdx ? 'border-blue-500 bg-blue-500/20' : 'border-slate-500'
+                      }`}>
+                        {answers[idx] === optIdx && <div className="w-2.5 h-2.5 rounded-full bg-blue-500" />}
+                      </div>
+                      <span className="flex-1 text-sm leading-relaxed">{opt}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+          
+          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 flex items-center justify-between">
+            <div className="text-slate-400 text-sm">
+              <span className="font-semibold text-slate-300">{Object.keys(answers).length}</span> / {questions.length} questions répondues
+            </div>
+            <button
+              onClick={handleValidate}
+              disabled={Object.keys(answers).length < questions.length}
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-900/30 flex items-center gap-2"
+            >
+              <CheckCircle className="w-5 h-5" />
+              Valider mes réponses
+            </button>
+          </div>
+        </>
+      )}
+
+      {showResults && (
+        <div className="space-y-6">
+          <div className={`rounded-xl p-6 border-2 ${
+            Object.values(results).filter(r => r.correct).length === questions.length
+              ? 'bg-emerald-900/30 border-emerald-500/50'
+              : Object.values(results).filter(r => r.correct).length >= questions.length * 0.7
+              ? 'bg-yellow-900/30 border-yellow-500/50'
+              : 'bg-red-900/30 border-red-500/50'
+          }`}>
+            <div className="flex items-center gap-4 mb-4">
+              {Object.values(results).filter(r => r.correct).length === questions.length ? (
+                <CheckCircle className="w-12 h-12 text-emerald-400" />
+              ) : (
+                <AlertCircle className="w-12 h-12 text-yellow-400" />
+              )}
+              <div>
+                <h3 className="text-2xl font-bold text-white mb-1">
+                  Résultat : {Object.values(results).filter(r => r.correct).length} / {questions.length}
+                </h3>
+                <p className="text-slate-300">
+                  {Object.values(results).filter(r => r.correct).length === questions.length
+                    ? "Excellent ! Vous maîtrisez parfaitement ce module."
+                    : Object.values(results).filter(r => r.correct).length >= questions.length * 0.7
+                    ? "Bien joué ! Quelques révisions vous permettront de perfectionner vos connaissances."
+                    : "Continuez à réviser. Consultez les explications ci-dessous pour mieux comprendre."}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {questions.map((q, idx) => {
+            const result = results[idx];
+            return (
+              <div key={idx} className={`bg-slate-800 p-6 rounded-xl border-2 ${
+                result.correct ? 'border-emerald-500/50 bg-emerald-900/10' : 'border-red-500/50 bg-red-900/10'
+              }`}>
+                <div className="flex items-start gap-4 mb-3">
+                  {result.correct ? (
+                    <CheckCircle className="w-6 h-6 text-emerald-400 flex-shrink-0 mt-1" />
+                  ) : (
+                    <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-1" />
+                  )}
+                  <div className="flex-1">
+                    <p className="font-bold text-lg text-white mb-2">{q.q}</p>
+                    <div className="space-y-2 mb-4">
+                      {q.options.map((opt, optIdx) => (
+                        <div
+                          key={optIdx}
+                          className={`p-3 rounded-lg border ${
+                            optIdx === q.a
+                              ? 'bg-emerald-900/30 border-emerald-500 text-emerald-200'
+                              : answers[idx] === optIdx && !result.correct
+                              ? 'bg-red-900/30 border-red-500 text-red-200'
+                              : 'bg-slate-900/50 border-slate-700 text-slate-400'
+                          }`}
+                        >
+                          {optIdx === q.a && <span className="font-semibold">✓ </span>}
+                          {answers[idx] === optIdx && !result.correct && <span className="font-semibold">✗ </span>}
+                          {opt}
+                        </div>
+                      ))}
+                    </div>
+                    <div className={`mt-4 p-4 rounded-lg border-l-4 ${
+                      result.correct
+                        ? 'bg-emerald-900/20 border-emerald-500'
+                        : 'bg-blue-900/20 border-blue-500'
+                    }`}>
+                      <p className="text-sm font-semibold text-slate-200 mb-1">
+                        {result.correct ? '✅ Explication :' : '💡 Pourquoi cette réponse ?'}
+                      </p>
+                      <p className="text-slate-300 text-sm leading-relaxed">
+                        {result.explanation}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          <div className="flex gap-4">
+            <button
+              onClick={resetQuiz}
+              className="flex-1 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-all"
+            >
+              Recommencer le quiz
+            </button>
+            {Object.values(results).filter(r => r.correct).length === questions.length && (
+              <button
+                onClick={() => onSubmit(Object.values(results).filter(r => r.correct).length)}
+                className="flex-1 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold rounded-lg transition-all shadow-lg"
+              >
+                Continuer
+              </button>
+            )}
+          </div>
         </div>
-      ))}
-      <button
-        onClick={handleValidate}
-        disabled={Object.keys(answers).length < questions.length}
-        className="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold text-lg rounded-xl disabled:opacity-50 transition-all shadow-lg shadow-blue-900/30 mt-6"
-      >
-        Valider mes réponses
-      </button>
+      )}
     </div>
   );
 };
@@ -7374,6 +8215,8 @@ export default function NetMasterClass() {
   const [expandedReplay, setExpandedReplay] = useState(false);
   const [replayWeek, setReplayWeek] = useState(1); // Semaine sélectionnée pour les replays (1-4)
   const [replaySession, setReplaySession] = useState(1); // Session sélectionnée pour les replays (1-3)
+  const [replayMode, setReplayMode] = useState('sessions'); // 'sessions' | 'reunion' - Mode de replay sélectionné
+  const [videoCoverVisible, setVideoCoverVisible] = useState(true); // État pour afficher/masquer la couverture vidéo
   
   // Système de statistiques
   const { stats, addTime, addCommand, addQuizAttempt, addLabAttempt, resetStats } = useStats();
@@ -7766,19 +8609,29 @@ export default function NetMasterClass() {
               {[
                 { id: 'theory', label: 'Théorie & Concepts', icon: BookOpen },
                 { id: 'lab', label: 'Mémo Commandes', icon: BookOpen },
-                { id: 'quiz', label: 'Validation', icon: Award }
+                { id: 'quiz', label: 'Validation', icon: Award, disabled: !QUIZ_ENABLED }
               ].map(tab => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 md:flex-none flex items-center justify-center px-4 py-2 rounded-md text-xs md:text-sm font-medium transition-all whitespace-nowrap ${
-                    activeTab === tab.id
+                  onClick={() => {
+                    if (!tab.disabled) {
+                      setActiveTab(tab.id);
+                    }
+                  }}
+                  disabled={tab.disabled}
+                  className={`flex-1 md:flex-none flex items-center justify-center px-4 py-2 rounded-md text-xs md:text-sm font-medium transition-all whitespace-nowrap relative ${
+                    tab.disabled
+                      ? 'text-slate-600 cursor-not-allowed opacity-60'
+                      : activeTab === tab.id
                       ? 'bg-blue-600 text-white shadow-sm'
                       : 'text-slate-400 hover:text-white hover:bg-slate-700'
                   }`}
                 >
                   <tab.icon className="w-4 h-4 mr-1.5" />
                   <span>{tab.label}</span>
+                  {tab.disabled && (
+                    <span className="ml-1.5 px-1.5 py-0.5 bg-amber-500/20 border border-amber-500/40 rounded-full text-[9px] font-bold text-amber-400 uppercase">Soon</span>
+                  )}
                 </button>
               ))}
             </div>
@@ -7816,18 +8669,31 @@ export default function NetMasterClass() {
                     </p>
                   </div>
 
-                  {/* Onglets Semaines */}
+                  {/* Onglets Semaines + Réunion d'information */}
                   <div className="p-4 border-b border-slate-800 bg-slate-800/50">
                     <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => {
+                          setReplayMode('reunion');
+                        }}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          replayMode === 'reunion'
+                            ? 'bg-purple-600 text-white shadow-sm'
+                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        }`}
+                      >
+                        Réunion d'information
+                      </button>
                       {[1, 2, 3, 4].map((week) => (
                         <button
                           key={week}
                           onClick={() => {
+                            setReplayMode('sessions');
                             setReplayWeek(week);
                             setReplaySession(1); // Réinitialiser à la session 1 quand on change de semaine
                           }}
                           className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                            replayWeek === week
+                            replayMode === 'sessions' && replayWeek === week
                               ? 'bg-purple-600 text-white shadow-sm'
                               : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                           }`}
@@ -7838,62 +8704,109 @@ export default function NetMasterClass() {
                     </div>
                   </div>
 
-                  {/* Onglets Sessions */}
-                  <div className="p-4 border-b border-slate-800 bg-slate-800/30">
-                    <div className="flex flex-wrap gap-2">
-                      {[1, 2, 3].map((session) => (
-                        <button
-                          key={session}
-                          onClick={() => setReplaySession(session)}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                            replaySession === session
-                              ? 'bg-purple-500 text-white shadow-sm'
-                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                          }`}
-                        >
-                          Session {session}
-                        </button>
-                      ))}
+                  {/* Onglets Sessions - Affichés seulement en mode sessions */}
+                  {replayMode === 'sessions' && (
+                    <div className="p-4 border-b border-slate-800 bg-slate-800/30">
+                      <div className="flex flex-wrap gap-2">
+                        {[1, 2, 3].map((session) => (
+                          <button
+                            key={session}
+                            onClick={() => setReplaySession(session)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                              replaySession === session
+                                ? 'bg-purple-500 text-white shadow-sm'
+                                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                            }`}
+                          >
+                            Session {session}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <div className="p-6 md:p-8">
                     <div className="space-y-6">
-                      {/* En-tête de la semaine et session sélectionnées */}
-                      <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
-                        <h4 className="text-lg font-bold text-purple-300">
-                          Semaine {replayWeek} - Session {replaySession}
-                        </h4>
-                        <p className="text-slate-400 text-sm mt-1">
-                          Replay des sessions en direct de cette formation
-                        </p>
-                      </div>
+                      {replayMode === 'reunion' ? (
+                        /* Mode Réunion d'information */
+                        <>
+                          <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
+                            <h4 className="text-lg font-bold text-purple-300">
+                              Réunion d'information
+                            </h4>
+                            <p className="text-slate-400 text-sm mt-1">
+                              Replay de la réunion d'information de la formation
+                            </p>
+                          </div>
 
-                      {/* Zone de contenu pour les vidéos */}
-                      <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
-                        <p className="text-slate-300 text-center">
-                          Les replays des sessions en direct seront disponibles ici prochainement.
-                        </p>
-                        <p className="text-slate-500 text-sm text-center mt-4">
-                          Semaine {replayWeek} - Session {replaySession}
-                        </p>
-                      </div>
-                      
-                      {/* Zone pour ajouter les vidéos de replay */}
-                      {/* Exemple de structure pour une vidéo :
-                      <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
-                        <h4 className="text-lg font-bold text-white mb-3">Replay - Semaine {replayWeek} Session {replaySession} - [Date]</h4>
-                        <div className="aspect-video bg-slate-900 rounded-lg flex items-center justify-center">
-                          <iframe 
-                            className="w-full h-full rounded-lg"
-                            src="[URL_VIDEO]"
-                            title={`Replay Semaine ${replayWeek} Session ${replaySession}`}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                        </div>
-                      </div>
-                      */}
+                          <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
+                            <p className="text-slate-300 text-center">
+                              Le replay de la réunion d'information sera disponible ici prochainement.
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        /* Mode Sessions normales */
+                        <>
+                          <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
+                            <h4 className="text-lg font-bold text-purple-300">
+                              Semaine {replayWeek} - Session {replaySession}
+                            </h4>
+                            <p className="text-slate-400 text-sm mt-1">
+                              Replay des sessions en direct de cette formation
+                            </p>
+                          </div>
+
+                          {/* Zone de contenu pour les vidéos */}
+                          {replayWeek === 1 && replaySession === 1 ? (
+                            <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
+                              <h4 className="text-lg font-bold text-white mb-4">Replay - Semaine 1 - Session 1</h4>
+                              <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden relative">
+                                <video 
+                                  ref={(video) => {
+                                    if (video) {
+                                      video.addEventListener('play', () => setVideoCoverVisible(false));
+                                      video.addEventListener('pause', () => setVideoCoverVisible(true));
+                                    }
+                                  }}
+                                  className="w-full h-full"
+                                  controls
+                                  preload="metadata"
+                                  onClick={() => setVideoCoverVisible(false)}
+                                >
+                                  <source src="/S1S1.mp4" type="video/mp4" />
+                                  Votre navigateur ne supporte pas la lecture de vidéos HTML5.
+                                </video>
+                                {/* Couverture de la vidéo */}
+                                {videoCoverVisible && (
+                                  <div 
+                                    className="absolute inset-0 bg-gradient-to-br from-purple-900/90 via-slate-900/95 to-slate-900 flex items-center justify-center cursor-pointer transition-opacity duration-300 z-10"
+                                    onClick={() => setVideoCoverVisible(false)}
+                                  >
+                                    <div className="text-center p-8">
+                                      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-purple-500/20 border-4 border-purple-400/50 mb-6">
+                                        <Video className="w-10 h-10 text-purple-400" />
+                                      </div>
+                                      <p className="text-white text-2xl font-bold mb-2">Semaine 1 - Session 1</p>
+                                      <p className="text-slate-300 text-lg">Replay de la formation</p>
+                                      <p className="text-slate-400 text-sm mt-4">Cliquez pour lire la vidéo</p>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
+                              <p className="text-slate-300 text-center">
+                                Les replays des sessions en direct seront disponibles ici prochainement.
+                              </p>
+                              <p className="text-slate-500 text-sm text-center mt-4">
+                                Semaine {replayWeek} - Session {replaySession}
+                              </p>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -7914,12 +8827,14 @@ export default function NetMasterClass() {
                       {activeSession.lab.context}
                     </p>
                   </div>
-                  <button
-                    onClick={() => setActiveTab('quiz')}
-                    className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded text-xs md:text-sm text-slate-200 transition-colors flex items-center gap-1.5"
-                  >
-                    Passer au Quiz <ChevronRight size={14} />
-                  </button>
+                  {QUIZ_ENABLED && (
+                    <button
+                      onClick={() => setActiveTab('quiz')}
+                      className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded text-xs md:text-sm text-slate-200 transition-colors flex items-center gap-1.5"
+                    >
+                      Passer au Quiz <ChevronRight size={14} />
+                    </button>
+                  )}
                 </div>
                 <div className="flex-1 rounded-b-xl overflow-hidden border border-slate-700 shadow-2xl min-h-[420px]">
                   <CommandsLearningList 
@@ -7935,15 +8850,48 @@ export default function NetMasterClass() {
             )}
 
             {activeTab === 'quiz' && viewMode === 'sessions' && (
-              <div className="max-w-3xl mx-auto w-full pb-12">
-                <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
-                  <div className="p-8 border-b border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800">
-                    <h3 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                      <Award className="text-yellow-500 w-7 h-7" /> Validation des acquis
-                    </h3>
-                    <p className="text-slate-400 mt-2">
-                      Prouvez votre maîtrise du module {activeSession.id}.
-                    </p>
+              <div className="max-w-5xl mx-auto w-full pb-12">
+                {QUIZ_ENABLED ? (
+                  <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+                    <div className="p-8 border-b border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800">
+                      <h3 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                        <Award className="text-yellow-500 w-7 h-7" /> Validation des acquis
+                      </h3>
+                      <p className="text-slate-400 mt-2">
+                        Prouvez votre maîtrise du module {activeSession.id} avec des quiz et exercices pratiques.
+                      </p>
+                    </div>
+
+                  {/* Onglets Quiz / Exercices */}
+                  <div className="p-4 border-b border-slate-800 bg-slate-800/50">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setQuizScore(null);
+                        }}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                          quizScore === null || (typeof quizScore === 'number')
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        }`}
+                      >
+                        <BookOpen className="w-4 h-4" />
+                        Quiz Théorique
+                      </button>
+                      <button
+                        onClick={() => {
+                          setQuizScore('practice');
+                        }}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                          quizScore === 'practice'
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                        }`}
+                      >
+                        <Terminal className="w-4 h-4" />
+                        Exercices Pratiques
+                      </button>
+                    </div>
                   </div>
 
                   <div className="p-6 md:p-8">
@@ -7959,39 +8907,78 @@ export default function NetMasterClass() {
                           }
                         }}
                       />
+                    ) : quizScore === 'practice' ? (
+                      <PracticeExercises sessionId={activeSessionId} />
                     ) : (
-                      <div className="text-center py-10">
-                        <div className="text-6xl md:text-7xl mb-4">
-                          {quizScore === activeSession.quiz.length ? '🎓' : '📚'}
+                      <div className="text-center py-8">
+                        <div className={`inline-flex items-center justify-center w-24 h-24 rounded-full mb-6 ${
+                          quizScore === activeSession.quiz.length 
+                            ? 'bg-emerald-900/30 border-4 border-emerald-500' 
+                            : quizScore >= activeSession.quiz.length * 0.7
+                            ? 'bg-yellow-900/30 border-4 border-yellow-500'
+                            : 'bg-red-900/30 border-4 border-red-500'
+                        }`}>
+                          <div className="text-5xl">
+                            {quizScore === activeSession.quiz.length ? '🎓' : quizScore >= activeSession.quiz.length * 0.7 ? '📚' : '📖'}
+                          </div>
                         </div>
-                        <h4 className="text-2xl font-bold text-white mb-2">
-                          Score :{' '}
-                          <span className={quizScore === activeSession.quiz.length ? 'text-emerald-400' : 'text-yellow-400'}>
+                        <h4 className="text-3xl font-bold text-white mb-3">
+                          Score final :{' '}
+                          <span className={quizScore === activeSession.quiz.length ? 'text-emerald-400' : quizScore >= activeSession.quiz.length * 0.7 ? 'text-yellow-400' : 'text-red-400'}>
                             {quizScore} / {activeSession.quiz.length}
                           </span>
                         </h4>
-                        <p className="text-slate-400 mb-6">
+                        <div className={`inline-block px-4 py-2 rounded-lg mb-6 ${
+                          quizScore === activeSession.quiz.length 
+                            ? 'bg-emerald-900/30 text-emerald-300 border border-emerald-500/50' 
+                            : quizScore >= activeSession.quiz.length * 0.7
+                            ? 'bg-yellow-900/30 text-yellow-300 border border-yellow-500/50'
+                            : 'bg-red-900/30 text-red-300 border border-red-500/50'
+                        }`}>
+                          <p className="font-semibold">
+                            {quizScore === activeSession.quiz.length
+                              ? "✅ Excellent ! Module validé avec succès"
+                              : quizScore >= activeSession.quiz.length * 0.7
+                              ? "⚠️ Bien joué ! Quelques révisions recommandées"
+                              : "❌ Continuez à réviser avant de continuer"}
+                          </p>
+                        </div>
+                        <p className="text-slate-400 mb-8 max-w-2xl mx-auto leading-relaxed">
                           {quizScore === activeSession.quiz.length
-                            ? "Félicitations ! Vous avez validé ce module."
-                            : "Quelques erreurs, reprenez la théorie puis réessayez."}
+                            ? "Félicitations ! Vous maîtrisez parfaitement les concepts de cette session. Vous pouvez passer au module suivant."
+                            : quizScore >= activeSession.quiz.length * 0.7
+                            ? "Vous avez de bonnes bases ! Consultez les explications détaillées dans le quiz pour améliorer vos connaissances avant de continuer."
+                            : "Prenez le temps de revoir la théorie et les explications du quiz. Une bonne compréhension des concepts de base est essentielle pour la suite."}
                         </p>
-                        <div className="flex justify-center gap-4">
+                        <div className="flex flex-col sm:flex-row justify-center gap-4">
                           <button
                             onClick={() => setQuizScore(null)}
-                            className="px-6 py-2 rounded-xl bg-slate-800 text-white hover:bg-slate-700 font-medium transition-colors border border-slate-700 text-sm"
+                            className="px-6 py-3 rounded-xl bg-slate-800 text-white hover:bg-slate-700 font-semibold transition-colors border border-slate-700 flex items-center justify-center gap-2"
                           >
-                            Réessayer
+                            <RotateCcw className="w-4 h-4" />
+                            Réessayer le quiz
                           </button>
-                          {activeSessionId < sessions.length && quizScore === activeSession.quiz.length && (
+                          <button
+                            onClick={() => {
+                              setActiveTab('theory');
+                              setQuizScore(null);
+                            }}
+                            className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold transition-colors flex items-center justify-center gap-2"
+                          >
+                            <BookOpen className="w-4 h-4" />
+                            Revoir la théorie
+                          </button>
+                          {activeSessionId < sessions.length && typeof quizScore === 'number' && quizScore === activeSession.quiz.length && (
                             <button
                               onClick={() => {
                                 setActiveSessionId(id => id + 1);
                                 setActiveTab('theory');
                                 setQuizScore(null);
                               }}
-                              className="px-6 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold shadow-lg shadow-emerald-900/30 transition-all text-sm"
+                              className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold shadow-lg shadow-emerald-900/30 transition-all flex items-center justify-center gap-2"
                             >
-                              Module suivant <ChevronRight className="inline ml-1" size={14} />
+                              Module suivant
+                              <ChevronRight className="w-4 h-4" />
                             </button>
                           )}
                         </div>
@@ -7999,6 +8986,28 @@ export default function NetMasterClass() {
                     )}
                   </div>
                 </div>
+                ) : (
+                  // Message "Bientôt disponible" quand le quiz est désactivé
+                  <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+                    <div className="p-12 text-center">
+                      <div className="inline-flex items-center justify-center w-24 h-24 rounded-full mb-6 bg-amber-900/30 border-4 border-amber-500">
+                        <Award className="w-12 h-12 text-amber-400" />
+                      </div>
+                      <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 flex items-center justify-center gap-3">
+                        <Award className="text-yellow-500 w-7 h-7" /> Validation des acquis
+                      </h3>
+                      <div className="inline-block px-4 py-2 rounded-lg mb-6 bg-amber-900/30 text-amber-300 border border-amber-500/50">
+                        <p className="font-semibold text-lg">Bientôt disponible</p>
+                      </div>
+                      <p className="text-slate-400 mb-8 max-w-2xl mx-auto leading-relaxed text-lg">
+                        La section de validation des acquis (quiz théorique et exercices pratiques) sera disponible prochainement.
+                      </p>
+                      <p className="text-slate-500 text-sm">
+                        Cette fonctionnalité est en cours de développement et sera activée dans une prochaine mise à jour.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
