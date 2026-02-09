@@ -1833,6 +1833,278 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       },
       {
         type: 'rich_text',
+        title: "Commandes Disponibles dans Chaque Mode",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg mb-6">
+              Chaque mode a ses propres commandes. Voici quelques commandes importantes que vous pouvez utiliser dans chaque mode :
+            </p>
+
+            {/* Mode Utilisateur */}
+            <div className="bg-slate-800/60 border-l-4 border-blue-500 rounded-lg p-6">
+              <h3 className="text-xl font-bold text-blue-400 mb-4 flex items-center gap-2">
+                <span>Router&gt;</span> Mode Utilisateur
+              </h3>
+              <p className="text-slate-300 mb-4 italic">"Je peux juste observer, pas toucher."</p>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-400 text-sm mb-3 font-medium">Commandes disponibles :</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">ping &lt;ip&gt;</code>
+                    <span className="text-slate-300 text-xs">Tester la connectivité</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">traceroute &lt;ip&gt;</code>
+                    <span className="text-slate-300 text-xs">Tracer le chemin réseau</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">telnet &lt;ip&gt;</code>
+                    <span className="text-slate-300 text-xs">Connexion Telnet</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">ssh -l &lt;user&gt; &lt;ip&gt;</code>
+                    <span className="text-slate-300 text-xs">Connexion SSH</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">enable</code>
+                    <span className="text-slate-300 text-xs">Passer en mode privilégié</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">show version</code>
+                    <span className="text-slate-300 text-xs">Version IOS et matériel</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">show clock</code>
+                    <span className="text-slate-300 text-xs">Afficher l'heure</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">show history</code>
+                    <span className="text-slate-300 text-xs">Historique des commandes</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">exit</code>
+                    <span className="text-slate-300 text-xs">Se déconnecter</span>
+                  </div>
+                </div>
+                <DangerZone className="mt-4">
+                  <strong>Limitations :</strong> Pas de modification de configuration, pas de redémarrage, consultation uniquement.
+                </DangerZone>
+              </div>
+            </div>
+
+            {/* Mode Privilégié */}
+            <div className="bg-slate-800/60 border-l-4 border-emerald-500 rounded-lg p-6">
+              <h3 className="text-xl font-bold text-emerald-400 mb-4 flex items-center gap-2">
+                <span>Router#</span> Mode Privilégié
+              </h3>
+              <p className="text-slate-300 mb-4 italic">"J'ai les clés mais je ne modifie pas encore."</p>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-400 text-sm mb-3 font-medium">Commandes disponibles :</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">show running-config</code>
+                    <span className="text-slate-300 text-xs">Config actuelle (RAM)</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">show startup-config</code>
+                    <span className="text-slate-300 text-xs">Config sauvegardée (NVRAM)</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">show ip interface brief</code>
+                    <span className="text-slate-300 text-xs">État des interfaces</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">show ip ssh</code>
+                    <span className="text-slate-300 text-xs">Statut SSH</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">show ssh</code>
+                    <span className="text-slate-300 text-xs">Sessions SSH actives</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">show users</code>
+                    <span className="text-slate-300 text-xs">Utilisateurs connectés</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">reload</code>
+                    <span className="text-slate-300 text-xs">Redémarrer l'équipement</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">copy run start</code>
+                    <span className="text-slate-300 text-xs">Sauvegarder la config</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">copy run tftp:</code>
+                    <span className="text-slate-300 text-xs">Sauvegarder vers TFTP</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">configure terminal</code>
+                    <span className="text-slate-300 text-xs">Entrer en mode config</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">disable</code>
+                    <span className="text-slate-300 text-xs">Retour mode utilisateur</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">clear line vty 0</code>
+                    <span className="text-slate-300 text-xs">Déconnecter une session</span>
+                  </div>
+                </div>
+                <ProTip className="mt-4">
+                  <strong>Capacités :</strong> Diagnostic complet, redémarrage, sauvegarde/restauration, mais pas encore de modification de configuration.
+                </ProTip>
+              </div>
+            </div>
+
+            {/* Mode Configuration */}
+            <div className="bg-slate-800/60 border-l-4 border-amber-500 rounded-lg p-6">
+              <h3 className="text-xl font-bold text-amber-400 mb-4 flex items-center gap-2">
+                <span>Router(config)#</span> Mode Configuration
+              </h3>
+              <p className="text-slate-300 mb-4 italic">"Je modifie la configuration de l'équipement."</p>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-400 text-sm mb-3 font-medium">Commandes principales :</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm mb-4">
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">hostname &lt;nom&gt;</code>
+                    <span className="text-slate-300 text-xs">Changer le nom</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">ip domain-name &lt;nom&gt;</code>
+                    <span className="text-slate-300 text-xs">Nom de domaine (SSH)</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">username &lt;nom&gt; privilege &lt;n&gt; secret &lt;mdp&gt;</code>
+                    <span className="text-slate-300 text-xs">Créer utilisateur</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">enable secret &lt;mdp&gt;</code>
+                    <span className="text-slate-300 text-xs">Mot de passe privilégié</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">line console 0</code>
+                    <span className="text-slate-300 text-xs">Config console</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">line vty 0 4</code>
+                    <span className="text-slate-300 text-xs">Config SSH/Telnet</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">interface &lt;type&gt;&lt;num&gt;</code>
+                    <span className="text-slate-300 text-xs">Config interface</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">no ip domain-lookup</code>
+                    <span className="text-slate-300 text-xs">Désactiver DNS</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">ip ssh version 2</code>
+                    <span className="text-slate-300 text-xs">Forcer SSH v2</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">crypto key generate rsa</code>
+                    <span className="text-slate-300 text-xs">Générer clés RSA</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">exit</code>
+                    <span className="text-slate-300 text-xs">Remonter d'un niveau</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <code className="text-emerald-400 font-mono shrink-0">end</code>
+                    <span className="text-slate-300 text-xs">Retour mode privilégié</span>
+                  </div>
+                </div>
+
+                {/* Sous-modes */}
+                <div className="mt-4 pt-4 border-t border-slate-700">
+                  <p className="text-slate-400 text-sm mb-3 font-medium">Sous-modes de Configuration :</p>
+                  
+                  <div className="bg-slate-800/50 rounded-lg p-3 mb-3 border border-slate-600">
+                    <p className="text-amber-300 font-mono text-xs mb-2">Router(config-if)#</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                      <div><code className="text-emerald-400">ip address &lt;ip&gt; &lt;masque&gt;</code> <span className="text-slate-400">→ Attribuer IP</span></div>
+                      <div><code className="text-emerald-400">no shutdown</code> <span className="text-slate-400">→ Activer interface</span></div>
+                      <div><code className="text-emerald-400">shutdown</code> <span className="text-slate-400">→ Désactiver interface</span></div>
+                      <div><code className="text-emerald-400">description &lt;texte&gt;</code> <span className="text-slate-400">→ Description</span></div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600">
+                    <p className="text-amber-300 font-mono text-xs mb-2">Router(config-line)#</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                      <div><code className="text-emerald-400">password &lt;mdp&gt;</code> <span className="text-slate-400">→ Mot de passe</span></div>
+                      <div><code className="text-emerald-400">login</code> <span className="text-slate-400">→ Activer auth</span></div>
+                      <div><code className="text-emerald-400">login local</code> <span className="text-slate-400">→ Auth utilisateurs locaux</span></div>
+                      <div><code className="text-emerald-400">transport input ssh</code> <span className="text-slate-400">→ SSH uniquement</span></div>
+                      <div><code className="text-emerald-400">exec-timeout &lt;min&gt; &lt;sec&gt;</code> <span className="text-slate-400">→ Timeout</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <ProTip className="mt-4">
+                  <strong>Important :</strong> Toutes les modifications sont en RAM (running-config) jusqu'à sauvegarde avec <code className="text-emerald-400 font-mono">copy running-config startup-config</code>.
+                </ProTip>
+              </div>
+            </div>
+
+            {/* Navigation */}
+            <div className="bg-gradient-to-r from-slate-800/60 to-slate-700/60 rounded-lg p-6 border border-slate-600">
+              <h3 className="text-lg font-bold text-white mb-4">🔄 Navigation entre les Modes</h3>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <div className="space-y-2 text-sm font-mono text-slate-300">
+                  <div className="flex items-center gap-2">
+                    <span className="text-blue-400">Router&gt;</span>
+                    <span className="text-slate-500">→</span>
+                    <code className="text-emerald-400">enable</code>
+                    <span className="text-slate-500">→</span>
+                    <span className="text-emerald-400">Router#</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-emerald-400">Router#</span>
+                    <span className="text-slate-500">→</span>
+                    <code className="text-emerald-400">configure terminal</code>
+                    <span className="text-slate-500">→</span>
+                    <span className="text-amber-400">Router(config)#</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-amber-400">Router(config)#</span>
+                    <span className="text-slate-500">→</span>
+                    <code className="text-emerald-400">interface g0/0</code>
+                    <span className="text-slate-500">→</span>
+                    <span className="text-amber-300">Router(config-if)#</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-amber-300">Router(config-if)#</span>
+                    <span className="text-slate-500">→</span>
+                    <code className="text-emerald-400">exit</code>
+                    <span className="text-slate-500">→</span>
+                    <span className="text-amber-400">Router(config)#</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-amber-400">Router(config)#</span>
+                    <span className="text-slate-500">→</span>
+                    <code className="text-emerald-400">end</code>
+                    <span className="text-slate-500">→</span>
+                    <span className="text-emerald-400">Router#</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-emerald-400">Router#</span>
+                    <span className="text-slate-500">→</span>
+                    <code className="text-emerald-400">disable</code>
+                    <span className="text-slate-500">→</span>
+                    <span className="text-blue-400">Router&gt;</span>
+                  </div>
+                </div>
+                <ProTip className="mt-4">
+                  <strong>Astuce :</strong> Utilisez <code className="text-emerald-400 font-mono">?</code> après une commande pour voir les options disponibles. Utilisez <strong>Tab</strong> pour l'auto-complétion.
+                </ProTip>
+              </div>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
         title: "Navigation entre les Modes",
         content: (
           <div className="space-y-4">
@@ -7131,7 +7403,7 @@ export default function NetMasterClass() {
   return (
     <div className="flex h-screen bg-slate-950 text-slate-100 font-sans overflow-hidden">
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'w-80 translate-x-0' : 'w-0 -translate-x-full opacity-0'} bg-slate-900 border-r border-slate-800 transition-all duration-300 flex flex-col absolute z-20 h-full lg:relative lg:translate-x-0 lg:w-80 lg:opacity-100 shadow-2xl`}>
+      <div className={`${sidebarOpen ? 'w-80 translate-x-0 opacity-100' : 'w-0 -translate-x-full opacity-0'} bg-slate-900 border-r border-slate-800 transition-all duration-300 flex flex-col absolute z-20 h-full lg:relative lg:translate-x-0 lg:opacity-100 ${sidebarOpen ? 'lg:w-80' : 'lg:w-0 lg:-translate-x-full lg:opacity-0'} shadow-2xl`}>
         <div className="p-6 border-b border-slate-800 bg-slate-900">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent flex items-center gap-2">
             <Globe className="text-blue-500" /> NetAcademy
@@ -7421,9 +7693,10 @@ export default function NetMasterClass() {
           <div className="flex items-center gap-4 w-full md:w-auto">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden text-slate-400 hover:text-white transition-colors"
+              className="text-slate-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-slate-800"
+              title={sidebarOpen ? "Masquer le sommaire" : "Afficher le sommaire"}
             >
-              {sidebarOpen ? <X /> : <Menu />}
+              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
             <div>
               <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
