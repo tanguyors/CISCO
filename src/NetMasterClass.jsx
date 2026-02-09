@@ -7693,10 +7693,15 @@ export default function NetMasterClass() {
           <div className="flex items-center gap-4 w-full md:w-auto">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="text-slate-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-slate-800"
-              title={sidebarOpen ? "Masquer le sommaire" : "Afficher le sommaire"}
+              className={`transition-all p-2.5 rounded-lg flex items-center gap-2 ${
+                sidebarOpen 
+                  ? 'text-slate-400 hover:text-white hover:bg-slate-800' 
+                  : 'text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30'
+              }`}
+              title={sidebarOpen ? "Masquer le sommaire" : "Afficher le sommaire pour naviguer"}
             >
               {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {!sidebarOpen && <span className="text-xs font-medium hidden sm:inline">Menu</span>}
             </button>
             <div>
               <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
