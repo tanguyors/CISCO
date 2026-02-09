@@ -7363,7 +7363,7 @@ const weeks = [
 // --- MAIN APP : THÉORIE + LAB + QUIZ ---
 
 export default function NetMasterClass() {
-  const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer' | 'labs'
+  const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer' | 'labs' | 'labs_s2' | 'labs_s3' | 'replay'
   const [activeSessionId, setActiveSessionId] = useState(1);
   const [activeTab, setActiveTab] = useState('theory');
   const [completedSessions, setCompletedSessions] = useState([]);
@@ -7371,6 +7371,9 @@ export default function NetMasterClass() {
   const [quizScore, setQuizScore] = useState(null);
   const [expandedWeek, setExpandedWeek] = useState(1);
   const [expandedLabWeek, setExpandedLabWeek] = useState(1);
+  const [expandedReplay, setExpandedReplay] = useState(false);
+  const [replayWeek, setReplayWeek] = useState(1); // Semaine sélectionnée pour les replays (1-4)
+  const [replaySession, setReplaySession] = useState(1); // Session sélectionnée pour les replays (1-3)
   
   // Système de statistiques
   const { stats, addTime, addCommand, addQuizAttempt, addLabAttempt, resetStats } = useStats();
@@ -7691,6 +7694,36 @@ export default function NetMasterClass() {
               </div>
             </button>
           </div>
+
+          {/* Section Replay Session */}
+          <div className="mt-6 pt-4 border-t border-slate-800 space-y-2">
+            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Replay Session</p>
+            <button
+              onClick={() => {
+                setExpandedReplay(!expandedReplay);
+                if (!expandedReplay) {
+                  setViewMode('replay');
+                  if (window.innerWidth < 1024) setSidebarOpen(false);
+                }
+              }}
+              className={`w-full p-3 rounded-xl flex items-center justify-between transition-all border ${
+                expandedReplay && viewMode === 'replay'
+                  ? 'bg-purple-600/10 border-purple-500/50 text-purple-100'
+                  : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-300 hover:border-slate-600'
+              }`}
+            >
+              <div className="text-left flex-1 flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${expandedReplay && viewMode === 'replay' ? 'bg-purple-600 text-white' : 'bg-slate-800'}`}>
+                  <Video className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="font-bold text-sm">Replay Session</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Sessions en direct</p>
+                </div>
+              </div>
+              <ChevronRight className={`w-4 h-4 transition-transform ${expandedReplay ? 'rotate-90' : ''}`} />
+            </button>
+          </div>
         </div>
 
         <div className="p-3 border-t border-slate-800 text-center text-[11px] text-slate-600">
@@ -7723,7 +7756,7 @@ export default function NetMasterClass() {
             </button>
             <div>
               <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
-                {viewMode === 'packet_tracer' ? 'Packet Tracer – Simulateur réseau' : viewMode === 'labs' ? 'Mémo Commandes – Session 1' : viewMode === 'labs_s2' ? 'Mémo Commandes – Session 2' : viewMode === 'labs_s3' ? 'Mémo Commandes – Session 3' : activeSession.title}
+                {viewMode === 'packet_tracer' ? 'Packet Tracer – Simulateur réseau' : viewMode === 'labs' ? 'Mémo Commandes – Session 1' : viewMode === 'labs_s2' ? 'Mémo Commandes – Session 2' : viewMode === 'labs_s3' ? 'Mémo Commandes – Session 3' : viewMode === 'replay' ? 'Replay Session' : activeSession.title}
               </h2>
             </div>
           </div>
@@ -7769,6 +7802,102 @@ export default function NetMasterClass() {
           ) : viewMode === 'labs_s3' ? (
             <div className="h-full min-h-[500px]">
               <LabsSection lab={sessions[2].lab} sessionLabel="Session 3" sessionDescription="Lab Trunk et routage inter-VLAN (Router-on-a-Stick) sur Cisco Packet Tracer. Consignes ci-dessous." sessionId={3} />
+            </div>
+          ) : viewMode === 'replay' ? (
+            <div className="h-full min-h-[500px]">
+              <div className="max-w-5xl mx-auto w-full pb-12">
+                <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+                  <div className="p-8 border-b border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800">
+                    <h3 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                      <Video className="text-purple-500 w-7 h-7" /> Replay Session
+                    </h3>
+                    <p className="text-slate-400 mt-2">
+                      Revoyez les sessions en direct (live) des formations.
+                    </p>
+                  </div>
+
+                  {/* Onglets Semaines */}
+                  <div className="p-4 border-b border-slate-800 bg-slate-800/50">
+                    <div className="flex flex-wrap gap-2">
+                      {[1, 2, 3, 4].map((week) => (
+                        <button
+                          key={week}
+                          onClick={() => {
+                            setReplayWeek(week);
+                            setReplaySession(1); // Réinitialiser à la session 1 quand on change de semaine
+                          }}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            replayWeek === week
+                              ? 'bg-purple-600 text-white shadow-sm'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          }`}
+                        >
+                          Semaine {week}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Onglets Sessions */}
+                  <div className="p-4 border-b border-slate-800 bg-slate-800/30">
+                    <div className="flex flex-wrap gap-2">
+                      {[1, 2, 3].map((session) => (
+                        <button
+                          key={session}
+                          onClick={() => setReplaySession(session)}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            replaySession === session
+                              ? 'bg-purple-500 text-white shadow-sm'
+                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          }`}
+                        >
+                          Session {session}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="p-6 md:p-8">
+                    <div className="space-y-6">
+                      {/* En-tête de la semaine et session sélectionnées */}
+                      <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
+                        <h4 className="text-lg font-bold text-purple-300">
+                          Semaine {replayWeek} - Session {replaySession}
+                        </h4>
+                        <p className="text-slate-400 text-sm mt-1">
+                          Replay des sessions en direct de cette formation
+                        </p>
+                      </div>
+
+                      {/* Zone de contenu pour les vidéos */}
+                      <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
+                        <p className="text-slate-300 text-center">
+                          Les replays des sessions en direct seront disponibles ici prochainement.
+                        </p>
+                        <p className="text-slate-500 text-sm text-center mt-4">
+                          Semaine {replayWeek} - Session {replaySession}
+                        </p>
+                      </div>
+                      
+                      {/* Zone pour ajouter les vidéos de replay */}
+                      {/* Exemple de structure pour une vidéo :
+                      <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
+                        <h4 className="text-lg font-bold text-white mb-3">Replay - Semaine {replayWeek} Session {replaySession} - [Date]</h4>
+                        <div className="aspect-video bg-slate-900 rounded-lg flex items-center justify-center">
+                          <iframe 
+                            className="w-full h-full rounded-lg"
+                            src="[URL_VIDEO]"
+                            title={`Replay Semaine ${replayWeek} Session ${replaySession}`}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                      </div>
+                      */}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
           <div className="max-w-6xl mx-auto h-full flex flex-col">
