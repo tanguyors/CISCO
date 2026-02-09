@@ -7455,10 +7455,10 @@ export default function NetMasterClass() {
                   <div>
                     <p className="text-slate-300 text-sm font-bold mb-1">Canal Webex</p>
                     <a 
-                      href="mailto:formation@net-academy.eu"
+                      href="mailto:training@net-academy.eu"
                       className="text-blue-400 hover:text-blue-300 text-xs font-mono transition-colors underline decoration-dotted"
                     >
-                      formation@net-academy.eu
+                      training@net-academy.eu
                     </a>
                     <p className="text-slate-500 text-xs mt-2">
                       Pour toute question ou support technique
