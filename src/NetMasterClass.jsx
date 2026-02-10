@@ -8212,6 +8212,14 @@ const VIDEO_URLS = {
   // Ajoutez d'autres vidéos ici au fur et à mesure
 };
 
+// Debug: afficher les URLs chargées (à retirer en production)
+if (import.meta.env.DEV) {
+  console.log('URLs vidéos:', {
+    s1s1: VIDEO_URLS.s1s1,
+    reunion: VIDEO_URLS.reunion
+  });
+}
+
 export default function NetMasterClass() {
   const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer' | 'labs' | 'labs_s2' | 'labs_s3' | 'replay'
   const [activeSessionId, setActiveSessionId] = useState(1);
@@ -8225,7 +8233,8 @@ export default function NetMasterClass() {
   const [replayWeek, setReplayWeek] = useState(1); // Semaine sélectionnée pour les replays (1-4)
   const [replaySession, setReplaySession] = useState(1); // Session sélectionnée pour les replays (1-3)
   const [replayMode, setReplayMode] = useState('sessions'); // 'sessions' | 'reunion' - Mode de replay sélectionné
-  const [videoCoverVisible, setVideoCoverVisible] = useState(true); // État pour afficher/masquer la couverture vidéo
+  const [videoCoverVisibleS1S1, setVideoCoverVisibleS1S1] = useState(true); // État pour afficher/masquer la couverture vidéo S1S1
+  const [videoCoverVisibleReunion, setVideoCoverVisibleReunion] = useState(true); // État pour afficher/masquer la couverture vidéo Réunion
   
   // Système de statistiques
   const { stats, addTime, addCommand, addQuizAttempt, addLabAttempt, resetStats } = useStats();
@@ -8754,8 +8763,8 @@ export default function NetMasterClass() {
                               <video 
                                 ref={(video) => {
                                   if (video) {
-                                    video.addEventListener('play', () => setVideoCoverVisible(false));
-                                    video.addEventListener('pause', () => setVideoCoverVisible(true));
+                                    video.addEventListener('play', () => setVideoCoverVisibleReunion(false));
+                                    video.addEventListener('pause', () => setVideoCoverVisibleReunion(true));
                                     video.addEventListener('error', (e) => {
                                       console.error('Erreur de chargement vidéo:', e);
                                       const errorMsg = video.parentElement?.querySelector('.video-error');
@@ -8768,7 +8777,7 @@ export default function NetMasterClass() {
                                 className="w-full h-full"
                                 controls
                                 preload="metadata"
-                                onClick={() => setVideoCoverVisible(false)}
+                                onClick={() => setVideoCoverVisibleReunion(false)}
                                 onError={(e) => {
                                   console.error('Erreur vidéo:', e);
                                 }}
@@ -8790,7 +8799,7 @@ export default function NetMasterClass() {
                                 </div>
                               </div>
                               {/* Couverture de la vidéo */}
-                              {videoCoverVisible && (
+                              {videoCoverVisibleReunion && (
                                 <div 
                                   className="absolute inset-0 bg-gradient-to-br from-purple-900/90 via-slate-900/95 to-slate-900 flex items-center justify-center cursor-pointer transition-opacity duration-300 z-10"
                                   onClick={() => setVideoCoverVisible(false)}
@@ -8828,8 +8837,8 @@ export default function NetMasterClass() {
                                 <video 
                                   ref={(video) => {
                                     if (video) {
-                                      video.addEventListener('play', () => setVideoCoverVisible(false));
-                                      video.addEventListener('pause', () => setVideoCoverVisible(true));
+                                      video.addEventListener('play', () => setVideoCoverVisibleS1S1(false));
+                                      video.addEventListener('pause', () => setVideoCoverVisibleS1S1(true));
                                       video.addEventListener('error', (e) => {
                                         console.error('Erreur de chargement vidéo:', e);
                                         // Afficher un message d'erreur si la vidéo ne charge pas
@@ -8843,7 +8852,7 @@ export default function NetMasterClass() {
                                   className="w-full h-full"
                                   controls
                                   preload="metadata"
-                                  onClick={() => setVideoCoverVisible(false)}
+                                  onClick={() => setVideoCoverVisibleS1S1(false)}
                                   onError={(e) => {
                                     console.error('Erreur vidéo:', e);
                                   }}
@@ -8865,7 +8874,7 @@ export default function NetMasterClass() {
                                   </div>
                                 </div>
                                 {/* Couverture de la vidéo */}
-                                {videoCoverVisible && (
+                                {videoCoverVisibleS1S1 && (
                                   <div 
                                     className="absolute inset-0 bg-gradient-to-br from-purple-900/90 via-slate-900/95 to-slate-900 flex items-center justify-center cursor-pointer transition-opacity duration-300 z-10"
                                     onClick={() => setVideoCoverVisible(false)}
