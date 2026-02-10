@@ -8203,25 +8203,8 @@ const weeks = [
 
 // --- MAIN APP : THÉORIE + LAB + QUIZ ---
 
-// Configuration des URLs de vidéos (Cloudflare R2 ou autre CDN)
-const VIDEO_URLS = {
-  // Semaine 1 - Session 1
-  s1s1: import.meta.env.VITE_VIDEO_S1S1_URL || 'https://pub-xxxxx.r2.dev/S1S1.mp4',
-  // Réunion d'information
-  reunion: import.meta.env.VITE_VIDEO_REUNION_URL || 'https://pub-xxxxx.r2.dev/reunioninf.mp4',
-  // Ajoutez d'autres vidéos ici au fur et à mesure
-};
-
-// Debug: afficher les URLs chargées
-console.log('URLs vidéos chargées:', {
-  s1s1: VIDEO_URLS.s1s1,
-  reunion: VIDEO_URLS.reunion,
-  env_s1s1: import.meta.env.VITE_VIDEO_S1S1_URL,
-  env_reunion: import.meta.env.VITE_VIDEO_REUNION_URL
-});
-
 export default function NetMasterClass() {
-  const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer' | 'labs' | 'labs_s2' | 'labs_s3' | 'replay'
+  const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer' | 'labs' | 'labs_s2' | 'labs_s3'
   const [activeSessionId, setActiveSessionId] = useState(1);
   const [activeTab, setActiveTab] = useState('theory');
   const [completedSessions, setCompletedSessions] = useState([]);
@@ -8229,26 +8212,6 @@ export default function NetMasterClass() {
   const [quizScore, setQuizScore] = useState(null);
   const [expandedWeek, setExpandedWeek] = useState(1);
   const [expandedLabWeek, setExpandedLabWeek] = useState(1);
-  const [expandedReplay, setExpandedReplay] = useState(false);
-  const [replayWeek, setReplayWeek] = useState(1); // Semaine sélectionnée pour les replays (1-4)
-  const [replaySession, setReplaySession] = useState(1); // Session sélectionnée pour les replays (1-3)
-  const [replayMode, setReplayMode] = useState('sessions'); // 'sessions' | 'reunion' - Mode de replay sélectionné
-  const [videoCoverVisibleS1S1, setVideoCoverVisibleS1S1] = useState(true); // État pour afficher/masquer la couverture vidéo S1S1
-  const [videoCoverVisibleReunion, setVideoCoverVisibleReunion] = useState(true); // État pour afficher/masquer la couverture vidéo Réunion
-  const videoReunionRef = useRef(null);
-  const videoS1S1Ref = useRef(null);
-  
-  // Forcer le rechargement de la vidéo quand on change de mode
-  useEffect(() => {
-    if (replayMode === 'reunion' && videoReunionRef.current) {
-      videoReunionRef.current.load();
-      console.log('🔄 RÉUNION - Vidéo rechargée:', VIDEO_URLS.reunion);
-    } else if (replayMode === 'sessions' && replayWeek === 1 && replaySession === 1 && videoS1S1Ref.current) {
-      videoS1S1Ref.current.load();
-      console.log('🔄 S1S1 - Vidéo rechargée:', VIDEO_URLS.s1s1);
-    }
-  }, [replayMode, replayWeek, replaySession]);
-  
   // Système de statistiques
   const { stats, addTime, addCommand, addQuizAttempt, addLabAttempt, resetStats } = useStats();
   
@@ -8569,35 +8532,6 @@ export default function NetMasterClass() {
             </button>
           </div>
 
-          {/* Section Replay Session */}
-          <div className="mt-6 pt-4 border-t border-slate-800 space-y-2">
-            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Replay Session</p>
-            <button
-              onClick={() => {
-                setExpandedReplay(!expandedReplay);
-                if (!expandedReplay) {
-                  setViewMode('replay');
-                  if (window.innerWidth < 1024) setSidebarOpen(false);
-                }
-              }}
-              className={`w-full p-3 rounded-xl flex items-center justify-between transition-all border ${
-                expandedReplay && viewMode === 'replay'
-                  ? 'bg-purple-600/10 border-purple-500/50 text-purple-100'
-                  : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-300 hover:border-slate-600'
-              }`}
-            >
-              <div className="text-left flex-1 flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${expandedReplay && viewMode === 'replay' ? 'bg-purple-600 text-white' : 'bg-slate-800'}`}>
-                  <Video className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="font-bold text-sm">Replay Session</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">Sessions en direct</p>
-                </div>
-              </div>
-              <ChevronRight className={`w-4 h-4 transition-transform ${expandedReplay ? 'rotate-90' : ''}`} />
-            </button>
-          </div>
         </div>
 
         <div className="p-3 border-t border-slate-800 text-center text-[11px] text-slate-600">
@@ -8630,7 +8564,7 @@ export default function NetMasterClass() {
             </button>
             <div>
               <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
-                {viewMode === 'packet_tracer' ? 'Packet Tracer – Simulateur réseau' : viewMode === 'labs' ? 'Mémo Commandes – Session 1' : viewMode === 'labs_s2' ? 'Mémo Commandes – Session 2' : viewMode === 'labs_s3' ? 'Mémo Commandes – Session 3' : viewMode === 'replay' ? 'Replay Session' : activeSession.title}
+                {viewMode === 'packet_tracer' ? 'Packet Tracer – Simulateur réseau' : viewMode === 'labs' ? 'Mémo Commandes – Session 1' : viewMode === 'labs_s2' ? 'Mémo Commandes – Session 2' : viewMode === 'labs_s3' ? 'Mémo Commandes – Session 3' : activeSession.title}
               </h2>
             </div>
           </div>
@@ -8686,252 +8620,6 @@ export default function NetMasterClass() {
           ) : viewMode === 'labs_s3' ? (
             <div className="h-full min-h-[500px]">
               <LabsSection lab={sessions[2].lab} sessionLabel="Session 3" sessionDescription="Lab Trunk et routage inter-VLAN (Router-on-a-Stick) sur Cisco Packet Tracer. Consignes ci-dessous." sessionId={3} />
-            </div>
-          ) : viewMode === 'replay' ? (
-            <div className="h-full min-h-[500px]">
-              <div className="max-w-5xl mx-auto w-full pb-12">
-                <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
-                  <div className="p-8 border-b border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800">
-                    <h3 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
-                      <Video className="text-purple-500 w-7 h-7" /> Replay Session
-                    </h3>
-                    <p className="text-slate-400 mt-2">
-                      Revoyez les sessions en direct (live) des formations.
-                    </p>
-                  </div>
-
-                  {/* Onglets Semaines + Réunion d'information */}
-                  <div className="p-4 border-b border-slate-800 bg-slate-800/50">
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        onClick={() => {
-                          setReplayMode('reunion');
-                        }}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                          replayMode === 'reunion'
-                            ? 'bg-purple-600 text-white shadow-sm'
-                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                        }`}
-                      >
-                        Réunion d'information
-                      </button>
-                      {[1, 2, 3, 4].map((week) => (
-                        <button
-                          key={week}
-                          onClick={() => {
-                            setReplayMode('sessions');
-                            setReplayWeek(week);
-                            setReplaySession(1); // Réinitialiser à la session 1 quand on change de semaine
-                          }}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                            replayMode === 'sessions' && replayWeek === week
-                              ? 'bg-purple-600 text-white shadow-sm'
-                              : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                          }`}
-                        >
-                          Semaine {week}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Onglets Sessions - Affichés seulement en mode sessions */}
-                  {replayMode === 'sessions' && (
-                    <div className="p-4 border-b border-slate-800 bg-slate-800/30">
-                      <div className="flex flex-wrap gap-2">
-                        {[1, 2, 3].map((session) => (
-                          <button
-                            key={session}
-                            onClick={() => setReplaySession(session)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                              replaySession === session
-                                ? 'bg-purple-500 text-white shadow-sm'
-                                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                            }`}
-                          >
-                            Session {session}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="p-6 md:p-8">
-                    <div className="space-y-6">
-                      {replayMode === 'reunion' ? (
-                        /* Mode Réunion d'information */
-                        <>
-                          <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
-                            <h4 className="text-lg font-bold text-purple-300">
-                              Réunion d'information
-                            </h4>
-                            <p className="text-slate-400 text-sm mt-1">
-                              Replay de la réunion d'information de la formation
-                            </p>
-                          </div>
-
-                          <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
-                            <h4 className="text-lg font-bold text-white mb-4">Replay - Réunion d'information</h4>
-                            {console.log('🔵 RÉUNION - URL utilisée:', VIDEO_URLS.reunion)}
-                            <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden relative">
-                              <video 
-                                key="video-reunion"
-                                ref={(video) => {
-                                  videoReunionRef.current = video;
-                                  if (video) {
-                                    console.log('🔵 RÉUNION - Élément vidéo créé avec URL:', VIDEO_URLS.reunion);
-                                    // Forcer la mise à jour de la source
-                                    video.load();
-                                    video.addEventListener('play', () => setVideoCoverVisibleReunion(false));
-                                    video.addEventListener('pause', () => setVideoCoverVisibleReunion(true));
-                                    video.addEventListener('error', (e) => {
-                                      console.error('Erreur de chargement vidéo RÉUNION:', e, VIDEO_URLS.reunion);
-                                      const errorMsg = video.parentElement?.querySelector('.video-error');
-                                      if (errorMsg) {
-                                        errorMsg.classList.remove('hidden');
-                                      }
-                                    });
-                                  }
-                                }}
-                                className="w-full h-full"
-                                controls
-                                preload="metadata"
-                                onClick={() => setVideoCoverVisibleReunion(false)}
-                                onError={(e) => {
-                                  console.error('Erreur vidéo RÉUNION:', e, VIDEO_URLS.reunion);
-                                }}
-                              >
-                                <source key="source-reunion" src={VIDEO_URLS.reunion} type="video/mp4" />
-                                Votre navigateur ne supporte pas la lecture de vidéos HTML5.
-                              </video>
-                              {/* Message d'erreur si la vidéo ne charge pas */}
-                              <div className="video-error hidden absolute inset-0 bg-slate-900/95 flex items-center justify-center z-20">
-                                <div className="text-center p-8">
-                                  <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-                                  <p className="text-white text-xl font-bold mb-2">Vidéo non disponible</p>
-                                  <p className="text-slate-300 text-sm">
-                                    La vidéo est en cours de chargement ou n'est pas disponible pour le moment.
-                                  </p>
-                                  <p className="text-slate-400 text-xs mt-4">
-                                    Si le problème persiste, contactez le support technique.
-                                  </p>
-                                </div>
-                              </div>
-                              {/* Couverture de la vidéo */}
-                              {videoCoverVisibleReunion && (
-                                <div 
-                                  className="absolute inset-0 bg-gradient-to-br from-purple-900/90 via-slate-900/95 to-slate-900 flex items-center justify-center cursor-pointer transition-opacity duration-300 z-10"
-                                  onClick={() => setVideoCoverVisibleReunion(false)}
-                                >
-                                  <div className="text-center p-8">
-                                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-purple-500/20 border-4 border-purple-400/50 mb-6">
-                                      <Video className="w-10 h-10 text-purple-400" />
-                                    </div>
-                                    <p className="text-white text-2xl font-bold mb-2">Réunion d'information</p>
-                                    <p className="text-slate-300 text-lg">Replay de la formation</p>
-                                    <p className="text-slate-400 text-sm mt-4">Cliquez pour lire la vidéo</p>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        /* Mode Sessions normales */
-                        <>
-                          <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
-                            <h4 className="text-lg font-bold text-purple-300">
-                              Semaine {replayWeek} - Session {replaySession}
-                            </h4>
-                            <p className="text-slate-400 text-sm mt-1">
-                              Replay des sessions en direct de cette formation
-                            </p>
-                          </div>
-
-                          {/* Zone de contenu pour les vidéos */}
-                          {replayWeek === 1 && replaySession === 1 ? (
-                            <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
-                              <h4 className="text-lg font-bold text-white mb-4">Replay - Semaine 1 - Session 1</h4>
-                              {console.log('🟢 S1S1 - URL utilisée:', VIDEO_URLS.s1s1)}
-                              <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden relative">
-                                <video 
-                                  key="video-s1s1"
-                                  ref={(video) => {
-                                    videoS1S1Ref.current = video;
-                                    if (video) {
-                                      console.log('🟢 S1S1 - Élément vidéo créé avec URL:', VIDEO_URLS.s1s1);
-                                      // Forcer la mise à jour de la source
-                                      video.load();
-                                      video.addEventListener('play', () => setVideoCoverVisibleS1S1(false));
-                                      video.addEventListener('pause', () => setVideoCoverVisibleS1S1(true));
-                                      video.addEventListener('error', (e) => {
-                                        console.error('Erreur de chargement vidéo S1S1:', e, VIDEO_URLS.s1s1);
-                                        // Afficher un message d'erreur si la vidéo ne charge pas
-                                        const errorMsg = video.parentElement?.querySelector('.video-error');
-                                        if (errorMsg) {
-                                          errorMsg.classList.remove('hidden');
-                                        }
-                                      });
-                                    }
-                                  }}
-                                  className="w-full h-full"
-                                  controls
-                                  preload="metadata"
-                                  onClick={() => setVideoCoverVisibleS1S1(false)}
-                                  onError={(e) => {
-                                    console.error('Erreur vidéo S1S1:', e, VIDEO_URLS.s1s1);
-                                  }}
-                                >
-                                  <source key="source-s1s1" src={VIDEO_URLS.s1s1} type="video/mp4" />
-                                  Votre navigateur ne supporte pas la lecture de vidéos HTML5.
-                                </video>
-                                {/* Message d'erreur si la vidéo ne charge pas */}
-                                <div className="video-error hidden absolute inset-0 bg-slate-900/95 flex items-center justify-center z-20">
-                                  <div className="text-center p-8">
-                                    <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-                                    <p className="text-white text-xl font-bold mb-2">Vidéo non disponible</p>
-                                    <p className="text-slate-300 text-sm">
-                                      La vidéo est en cours de chargement ou n'est pas disponible pour le moment.
-                                    </p>
-                                    <p className="text-slate-400 text-xs mt-4">
-                                      Si le problème persiste, contactez le support technique.
-                                    </p>
-                                  </div>
-                                </div>
-                                {/* Couverture de la vidéo */}
-                                {videoCoverVisibleS1S1 && (
-                                  <div 
-                                    className="absolute inset-0 bg-gradient-to-br from-purple-900/90 via-slate-900/95 to-slate-900 flex items-center justify-center cursor-pointer transition-opacity duration-300 z-10"
-                                    onClick={() => setVideoCoverVisibleS1S1(false)}
-                                  >
-                                    <div className="text-center p-8">
-                                      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-purple-500/20 border-4 border-purple-400/50 mb-6">
-                                        <Video className="w-10 h-10 text-purple-400" />
-                                      </div>
-                                      <p className="text-white text-2xl font-bold mb-2">Semaine 1 - Session 1</p>
-                                      <p className="text-slate-300 text-lg">Replay de la formation</p>
-                                      <p className="text-slate-400 text-sm mt-4">Cliquez pour lire la vidéo</p>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
-                              <p className="text-slate-300 text-center">
-                                Les replays des sessions en direct seront disponibles ici prochainement.
-                              </p>
-                              <p className="text-slate-500 text-sm text-center mt-4">
-                                Semaine {replayWeek} - Session {replaySession}
-                              </p>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           ) : (
           <div className="max-w-6xl mx-auto h-full flex flex-col">
