@@ -8212,13 +8212,13 @@ const VIDEO_URLS = {
   // Ajoutez d'autres vidéos ici au fur et à mesure
 };
 
-// Debug: afficher les URLs chargées (à retirer en production)
-if (import.meta.env.DEV) {
-  console.log('URLs vidéos:', {
-    s1s1: VIDEO_URLS.s1s1,
-    reunion: VIDEO_URLS.reunion
-  });
-}
+// Debug: afficher les URLs chargées
+console.log('URLs vidéos chargées:', {
+  s1s1: VIDEO_URLS.s1s1,
+  reunion: VIDEO_URLS.reunion,
+  env_s1s1: import.meta.env.VITE_VIDEO_S1S1_URL,
+  env_reunion: import.meta.env.VITE_VIDEO_REUNION_URL
+});
 
 export default function NetMasterClass() {
   const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer' | 'labs' | 'labs_s2' | 'labs_s3' | 'replay'
@@ -8759,14 +8759,16 @@ export default function NetMasterClass() {
 
                           <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
                             <h4 className="text-lg font-bold text-white mb-4">Replay - Réunion d'information</h4>
+                            {console.log('🔵 RÉUNION - URL utilisée:', VIDEO_URLS.reunion)}
                             <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden relative">
                               <video 
                                 ref={(video) => {
                                   if (video) {
+                                    console.log('🔵 RÉUNION - Élément vidéo créé avec URL:', VIDEO_URLS.reunion);
                                     video.addEventListener('play', () => setVideoCoverVisibleReunion(false));
                                     video.addEventListener('pause', () => setVideoCoverVisibleReunion(true));
                                     video.addEventListener('error', (e) => {
-                                      console.error('Erreur de chargement vidéo:', e);
+                                      console.error('Erreur de chargement vidéo RÉUNION:', e, VIDEO_URLS.reunion);
                                       const errorMsg = video.parentElement?.querySelector('.video-error');
                                       if (errorMsg) {
                                         errorMsg.classList.remove('hidden');
@@ -8779,7 +8781,7 @@ export default function NetMasterClass() {
                                 preload="metadata"
                                 onClick={() => setVideoCoverVisibleReunion(false)}
                                 onError={(e) => {
-                                  console.error('Erreur vidéo:', e);
+                                  console.error('Erreur vidéo RÉUNION:', e, VIDEO_URLS.reunion);
                                 }}
                               >
                                 <source src={VIDEO_URLS.reunion} type="video/mp4" />
@@ -8833,14 +8835,16 @@ export default function NetMasterClass() {
                           {replayWeek === 1 && replaySession === 1 ? (
                             <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
                               <h4 className="text-lg font-bold text-white mb-4">Replay - Semaine 1 - Session 1</h4>
+                              {console.log('🟢 S1S1 - URL utilisée:', VIDEO_URLS.s1s1)}
                               <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden relative">
                                 <video 
                                   ref={(video) => {
                                     if (video) {
+                                      console.log('🟢 S1S1 - Élément vidéo créé avec URL:', VIDEO_URLS.s1s1);
                                       video.addEventListener('play', () => setVideoCoverVisibleS1S1(false));
                                       video.addEventListener('pause', () => setVideoCoverVisibleS1S1(true));
                                       video.addEventListener('error', (e) => {
-                                        console.error('Erreur de chargement vidéo:', e);
+                                        console.error('Erreur de chargement vidéo S1S1:', e, VIDEO_URLS.s1s1);
                                         // Afficher un message d'erreur si la vidéo ne charge pas
                                         const errorMsg = video.parentElement?.querySelector('.video-error');
                                         if (errorMsg) {
@@ -8854,7 +8858,7 @@ export default function NetMasterClass() {
                                   preload="metadata"
                                   onClick={() => setVideoCoverVisibleS1S1(false)}
                                   onError={(e) => {
-                                    console.error('Erreur vidéo:', e);
+                                    console.error('Erreur vidéo S1S1:', e, VIDEO_URLS.s1s1);
                                   }}
                                 >
                                   <source src={VIDEO_URLS.s1s1} type="video/mp4" />
