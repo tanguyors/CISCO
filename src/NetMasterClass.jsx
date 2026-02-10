@@ -8235,6 +8235,19 @@ export default function NetMasterClass() {
   const [replayMode, setReplayMode] = useState('sessions'); // 'sessions' | 'reunion' - Mode de replay sélectionné
   const [videoCoverVisibleS1S1, setVideoCoverVisibleS1S1] = useState(true); // État pour afficher/masquer la couverture vidéo S1S1
   const [videoCoverVisibleReunion, setVideoCoverVisibleReunion] = useState(true); // État pour afficher/masquer la couverture vidéo Réunion
+  const videoReunionRef = useRef(null);
+  const videoS1S1Ref = useRef(null);
+  
+  // Forcer le rechargement de la vidéo quand on change de mode
+  useEffect(() => {
+    if (replayMode === 'reunion' && videoReunionRef.current) {
+      videoReunionRef.current.load();
+      console.log('🔄 RÉUNION - Vidéo rechargée:', VIDEO_URLS.reunion);
+    } else if (replayMode === 'sessions' && replayWeek === 1 && replaySession === 1 && videoS1S1Ref.current) {
+      videoS1S1Ref.current.load();
+      console.log('🔄 S1S1 - Vidéo rechargée:', VIDEO_URLS.s1s1);
+    }
+  }, [replayMode, replayWeek, replaySession]);
   
   // Système de statistiques
   const { stats, addTime, addCommand, addQuizAttempt, addLabAttempt, resetStats } = useStats();
@@ -8762,9 +8775,13 @@ export default function NetMasterClass() {
                             {console.log('🔵 RÉUNION - URL utilisée:', VIDEO_URLS.reunion)}
                             <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden relative">
                               <video 
+                                key="video-reunion"
                                 ref={(video) => {
+                                  videoReunionRef.current = video;
                                   if (video) {
                                     console.log('🔵 RÉUNION - Élément vidéo créé avec URL:', VIDEO_URLS.reunion);
+                                    // Forcer la mise à jour de la source
+                                    video.load();
                                     video.addEventListener('play', () => setVideoCoverVisibleReunion(false));
                                     video.addEventListener('pause', () => setVideoCoverVisibleReunion(true));
                                     video.addEventListener('error', (e) => {
@@ -8784,7 +8801,7 @@ export default function NetMasterClass() {
                                   console.error('Erreur vidéo RÉUNION:', e, VIDEO_URLS.reunion);
                                 }}
                               >
-                                <source src={VIDEO_URLS.reunion} type="video/mp4" />
+                                <source key="source-reunion" src={VIDEO_URLS.reunion} type="video/mp4" />
                                 Votre navigateur ne supporte pas la lecture de vidéos HTML5.
                               </video>
                               {/* Message d'erreur si la vidéo ne charge pas */}
@@ -8838,9 +8855,13 @@ export default function NetMasterClass() {
                               {console.log('🟢 S1S1 - URL utilisée:', VIDEO_URLS.s1s1)}
                               <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden relative">
                                 <video 
+                                  key="video-s1s1"
                                   ref={(video) => {
+                                    videoS1S1Ref.current = video;
                                     if (video) {
                                       console.log('🟢 S1S1 - Élément vidéo créé avec URL:', VIDEO_URLS.s1s1);
+                                      // Forcer la mise à jour de la source
+                                      video.load();
                                       video.addEventListener('play', () => setVideoCoverVisibleS1S1(false));
                                       video.addEventListener('pause', () => setVideoCoverVisibleS1S1(true));
                                       video.addEventListener('error', (e) => {
@@ -8861,7 +8882,7 @@ export default function NetMasterClass() {
                                     console.error('Erreur vidéo S1S1:', e, VIDEO_URLS.s1s1);
                                   }}
                                 >
-                                  <source src={VIDEO_URLS.s1s1} type="video/mp4" />
+                                  <source key="source-s1s1" src={VIDEO_URLS.s1s1} type="video/mp4" />
                                   Votre navigateur ne supporte pas la lecture de vidéos HTML5.
                                 </video>
                                 {/* Message d'erreur si la vidéo ne charge pas */}
