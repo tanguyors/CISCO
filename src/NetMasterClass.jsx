@@ -8802,7 +8802,7 @@ export default function NetMasterClass() {
                               {videoCoverVisibleReunion && (
                                 <div 
                                   className="absolute inset-0 bg-gradient-to-br from-purple-900/90 via-slate-900/95 to-slate-900 flex items-center justify-center cursor-pointer transition-opacity duration-300 z-10"
-                                  onClick={() => setVideoCoverVisible(false)}
+                                  onClick={() => setVideoCoverVisibleReunion(false)}
                                 >
                                   <div className="text-center p-8">
                                     <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-purple-500/20 border-4 border-purple-400/50 mb-6">
@@ -8877,7 +8877,7 @@ export default function NetMasterClass() {
                                 {videoCoverVisibleS1S1 && (
                                   <div 
                                     className="absolute inset-0 bg-gradient-to-br from-purple-900/90 via-slate-900/95 to-slate-900 flex items-center justify-center cursor-pointer transition-opacity duration-300 z-10"
-                                    onClick={() => setVideoCoverVisible(false)}
+                                    onClick={() => setVideoCoverVisibleS1S1(false)}
                                   >
                                     <div className="text-center p-8">
                                       <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-purple-500/20 border-4 border-purple-400/50 mb-6">
