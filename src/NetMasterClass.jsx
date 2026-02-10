@@ -8203,6 +8203,15 @@ const weeks = [
 
 // --- MAIN APP : THÉORIE + LAB + QUIZ ---
 
+// Configuration des URLs de vidéos (Cloudflare R2 ou autre CDN)
+const VIDEO_URLS = {
+  // Semaine 1 - Session 1
+  s1s1: import.meta.env.VITE_VIDEO_S1S1_URL || 'https://pub-xxxxx.r2.dev/S1S1.mp4',
+  // Réunion d'information
+  reunion: import.meta.env.VITE_VIDEO_REUNION_URL || 'https://pub-xxxxx.r2.dev/reunioninf.mp4',
+  // Ajoutez d'autres vidéos ici au fur et à mesure
+};
+
 export default function NetMasterClass() {
   const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer' | 'labs' | 'labs_s2' | 'labs_s3' | 'replay'
   const [activeSessionId, setActiveSessionId] = useState(1);
@@ -8740,9 +8749,63 @@ export default function NetMasterClass() {
                           </div>
 
                           <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
-                            <p className="text-slate-300 text-center">
-                              Le replay de la réunion d'information sera disponible ici prochainement.
-                            </p>
+                            <h4 className="text-lg font-bold text-white mb-4">Replay - Réunion d'information</h4>
+                            <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden relative">
+                              <video 
+                                ref={(video) => {
+                                  if (video) {
+                                    video.addEventListener('play', () => setVideoCoverVisible(false));
+                                    video.addEventListener('pause', () => setVideoCoverVisible(true));
+                                    video.addEventListener('error', (e) => {
+                                      console.error('Erreur de chargement vidéo:', e);
+                                      const errorMsg = video.parentElement?.querySelector('.video-error');
+                                      if (errorMsg) {
+                                        errorMsg.classList.remove('hidden');
+                                      }
+                                    });
+                                  }
+                                }}
+                                className="w-full h-full"
+                                controls
+                                preload="metadata"
+                                onClick={() => setVideoCoverVisible(false)}
+                                onError={(e) => {
+                                  console.error('Erreur vidéo:', e);
+                                }}
+                              >
+                                <source src={VIDEO_URLS.reunion} type="video/mp4" />
+                                Votre navigateur ne supporte pas la lecture de vidéos HTML5.
+                              </video>
+                              {/* Message d'erreur si la vidéo ne charge pas */}
+                              <div className="video-error hidden absolute inset-0 bg-slate-900/95 flex items-center justify-center z-20">
+                                <div className="text-center p-8">
+                                  <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+                                  <p className="text-white text-xl font-bold mb-2">Vidéo non disponible</p>
+                                  <p className="text-slate-300 text-sm">
+                                    La vidéo est en cours de chargement ou n'est pas disponible pour le moment.
+                                  </p>
+                                  <p className="text-slate-400 text-xs mt-4">
+                                    Si le problème persiste, contactez le support technique.
+                                  </p>
+                                </div>
+                              </div>
+                              {/* Couverture de la vidéo */}
+                              {videoCoverVisible && (
+                                <div 
+                                  className="absolute inset-0 bg-gradient-to-br from-purple-900/90 via-slate-900/95 to-slate-900 flex items-center justify-center cursor-pointer transition-opacity duration-300 z-10"
+                                  onClick={() => setVideoCoverVisible(false)}
+                                >
+                                  <div className="text-center p-8">
+                                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-purple-500/20 border-4 border-purple-400/50 mb-6">
+                                      <Video className="w-10 h-10 text-purple-400" />
+                                    </div>
+                                    <p className="text-white text-2xl font-bold mb-2">Réunion d'information</p>
+                                    <p className="text-slate-300 text-lg">Replay de la formation</p>
+                                    <p className="text-slate-400 text-sm mt-4">Cliquez pour lire la vidéo</p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </>
                       ) : (
@@ -8767,16 +8830,40 @@ export default function NetMasterClass() {
                                     if (video) {
                                       video.addEventListener('play', () => setVideoCoverVisible(false));
                                       video.addEventListener('pause', () => setVideoCoverVisible(true));
+                                      video.addEventListener('error', (e) => {
+                                        console.error('Erreur de chargement vidéo:', e);
+                                        // Afficher un message d'erreur si la vidéo ne charge pas
+                                        const errorMsg = video.parentElement?.querySelector('.video-error');
+                                        if (errorMsg) {
+                                          errorMsg.classList.remove('hidden');
+                                        }
+                                      });
                                     }
                                   }}
                                   className="w-full h-full"
                                   controls
                                   preload="metadata"
                                   onClick={() => setVideoCoverVisible(false)}
+                                  onError={(e) => {
+                                    console.error('Erreur vidéo:', e);
+                                  }}
                                 >
-                                  <source src="/S1S1.mp4" type="video/mp4" />
+                                  <source src={VIDEO_URLS.s1s1} type="video/mp4" />
                                   Votre navigateur ne supporte pas la lecture de vidéos HTML5.
                                 </video>
+                                {/* Message d'erreur si la vidéo ne charge pas */}
+                                <div className="video-error hidden absolute inset-0 bg-slate-900/95 flex items-center justify-center z-20">
+                                  <div className="text-center p-8">
+                                    <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+                                    <p className="text-white text-xl font-bold mb-2">Vidéo non disponible</p>
+                                    <p className="text-slate-300 text-sm">
+                                      La vidéo est en cours de chargement ou n'est pas disponible pour le moment.
+                                    </p>
+                                    <p className="text-slate-400 text-xs mt-4">
+                                      Si le problème persiste, contactez le support technique.
+                                    </p>
+                                  </div>
+                                </div>
                                 {/* Couverture de la vidéo */}
                                 {videoCoverVisible && (
                                   <div 

@@ -2,6 +2,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "devCommand": "npm run dev",
-  "installCommand": "npm install",
+  "installCommand": "npm install && (git lfs install || true) && (git lfs pull || echo 'Git LFS non disponible, fichiers vidéo non récupérés')",
   "framework": "vite"
 }
