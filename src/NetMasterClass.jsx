@@ -1723,6 +1723,75 @@ const CorrectionLab2Session2 = () => (
         </ul>
       </section>
 
+      {/* TABLE D'ADRESSAGE IP */}
+      <section>
+        <h2 className="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-3">📋 Table d'adressage IP</h2>
+        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 overflow-x-auto">
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-slate-700/80 border-b border-slate-600">
+                <th className="text-left py-2 px-3 text-slate-200 font-semibold">Équipement</th>
+                <th className="text-left py-2 px-3 text-slate-200 font-semibold">Interface</th>
+                <th className="text-left py-2 px-3 text-slate-200 font-semibold">Adresse IP</th>
+                <th className="text-left py-2 px-3 text-slate-200 font-semibold">Masque</th>
+                <th className="text-left py-2 px-3 text-slate-200 font-semibold">VLAN</th>
+              </tr>
+            </thead>
+            <tbody className="text-slate-200">
+              <tr className="border-b border-slate-700/50">
+                <td className="py-2 px-3">SW1</td>
+                <td className="py-2 px-3">VLAN 99 (SVI)</td>
+                <td className="py-2 px-3 font-mono text-emerald-400">192.168.99.2</td>
+                <td className="py-2 px-3 font-mono">255.255.255.0</td>
+                <td className="py-2 px-3">99</td>
+              </tr>
+              <tr className="border-b border-slate-700/50">
+                <td className="py-2 px-3">SW2</td>
+                <td className="py-2 px-3">VLAN 99 (SVI)</td>
+                <td className="py-2 px-3 font-mono text-emerald-400">192.168.99.3</td>
+                <td className="py-2 px-3 font-mono">255.255.255.0</td>
+                <td className="py-2 px-3">99</td>
+              </tr>
+              <tr className="border-b border-slate-700/50">
+                <td className="py-2 px-3">PC Admin</td>
+                <td className="py-2 px-3">NIC</td>
+                <td className="py-2 px-3 font-mono text-emerald-400">192.168.99.10</td>
+                <td className="py-2 px-3 font-mono">255.255.255.0</td>
+                <td className="py-2 px-3">99</td>
+              </tr>
+              <tr className="border-b border-slate-700/50">
+                <td className="py-2 px-3">PC Administration 1</td>
+                <td className="py-2 px-3">NIC</td>
+                <td className="py-2 px-3 font-mono text-blue-400">192.168.10.10</td>
+                <td className="py-2 px-3 font-mono">255.255.255.0</td>
+                <td className="py-2 px-3">10</td>
+              </tr>
+              <tr className="border-b border-slate-700/50">
+                <td className="py-2 px-3">PC Administration 2</td>
+                <td className="py-2 px-3">NIC</td>
+                <td className="py-2 px-3 font-mono text-blue-400">192.168.10.11</td>
+                <td className="py-2 px-3 font-mono">255.255.255.0</td>
+                <td className="py-2 px-3">10</td>
+              </tr>
+              <tr className="border-b border-slate-700/50">
+                <td className="py-2 px-3">PC Commerciale 1</td>
+                <td className="py-2 px-3">NIC</td>
+                <td className="py-2 px-3 font-mono text-purple-400">192.168.20.10</td>
+                <td className="py-2 px-3 font-mono">255.255.255.0</td>
+                <td className="py-2 px-3">20</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-3">PC Commerciale 2</td>
+                <td className="py-2 px-3">NIC</td>
+                <td className="py-2 px-3 font-mono text-purple-400">192.168.20.11</td>
+                <td className="py-2 px-3 font-mono">255.255.255.0</td>
+                <td className="py-2 px-3">20</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       {/* ÉTAPE 0 — CONFIGURATION DE BASE PACKET TRACER */}
       <section id="lab2s2-etape0" className="scroll-mt-4">
         <h2 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-3">Étape 0 — Configuration de base dans Packet Tracer</h2>
@@ -1843,14 +1912,51 @@ const CorrectionLab2Session2 = () => (
         </div>
         
         <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4">
-          <h3 className="text-emerald-400 font-bold text-base mb-2">D) Config IP du PC Admin (dans Packet Tracer)</h3>
-          <p className="text-slate-300 text-sm mb-2">Sur le PC Admin : <strong>Desktop → IP Configuration</strong></p>
-          <ul className="text-slate-300 text-sm space-y-1 list-disc pl-5">
-            <li><strong>IP :</strong> 192.168.99.10</li>
-            <li><strong>Mask :</strong> 255.255.255.0</li>
-            <li><strong>Gateway :</strong> (optionnel si pas de routeur, laisse vide pour ce LAB)</li>
-          </ul>
-          <p className="text-slate-400 text-xs mt-2 italic">👉 Le but du LAB est surtout le ping vers les IP VLAN 99 des switches.</p>
+          <h3 className="text-emerald-400 font-bold text-base mb-2">D) Config IP des PC (dans Packet Tracer)</h3>
+          <p className="text-slate-300 text-sm mb-3">Sur chaque PC : <strong>Desktop → IP Configuration</strong></p>
+          
+          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 mb-3">
+            <p className="text-emerald-400 font-bold text-sm mb-2">PC Admin (VLAN 99) :</p>
+            <ul className="text-slate-300 text-sm space-y-1 list-disc pl-5">
+              <li><strong>IP :</strong> 192.168.99.10</li>
+              <li><strong>Mask :</strong> 255.255.255.0</li>
+              <li><strong>Gateway :</strong> (optionnel si pas de routeur, laisse vide pour ce LAB)</li>
+            </ul>
+          </div>
+
+          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 mb-3">
+            <p className="text-blue-400 font-bold text-sm mb-2">PC Administration 1 (VLAN 10) :</p>
+            <ul className="text-slate-300 text-sm space-y-1 list-disc pl-5">
+              <li><strong>IP :</strong> 192.168.10.10</li>
+              <li><strong>Mask :</strong> 255.255.255.0</li>
+            </ul>
+          </div>
+
+          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 mb-3">
+            <p className="text-blue-400 font-bold text-sm mb-2">PC Administration 2 (VLAN 10) :</p>
+            <ul className="text-slate-300 text-sm space-y-1 list-disc pl-5">
+              <li><strong>IP :</strong> 192.168.10.11</li>
+              <li><strong>Mask :</strong> 255.255.255.0</li>
+            </ul>
+          </div>
+
+          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 mb-3">
+            <p className="text-purple-400 font-bold text-sm mb-2">PC Commerciale 1 (VLAN 20) :</p>
+            <ul className="text-slate-300 text-sm space-y-1 list-disc pl-5">
+              <li><strong>IP :</strong> 192.168.20.10</li>
+              <li><strong>Mask :</strong> 255.255.255.0</li>
+            </ul>
+          </div>
+
+          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600">
+            <p className="text-purple-400 font-bold text-sm mb-2">PC Commerciale 2 (VLAN 20) :</p>
+            <ul className="text-slate-300 text-sm space-y-1 list-disc pl-5">
+              <li><strong>IP :</strong> 192.168.20.11</li>
+              <li><strong>Mask :</strong> 255.255.255.0</li>
+            </ul>
+          </div>
+
+          <p className="text-slate-400 text-xs mt-3 italic">👉 Le but du LAB est surtout le ping vers les IP VLAN 99 des switches depuis le PC Admin, et la communication entre PC du même VLAN.</p>
         </div>
       </section>
 
@@ -3842,8 +3948,76 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
                 <li className="flex gap-2"><span className="text-emerald-400">•</span> 2 switches manageables (ex. 2960) - SW1 et SW2</li>
                 <li className="flex gap-2"><span className="text-emerald-400">•</span> 2 PC Administration (VLAN 10)</li>
                 <li className="flex gap-2"><span className="text-emerald-400">•</span> 2 PC Commerciale (VLAN 20)</li>
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> 1 PC Admin (VLAN 99 - management)</li>
                 <li className="flex gap-2"><span className="text-emerald-400">•</span> VLANs 10 et 20 déjà créés sur les switches</li>
               </ul>
+            </div>
+            <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-3">Table d'adressage IP</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm border-collapse">
+                  <thead>
+                    <tr className="bg-slate-800/80 border-b border-slate-600">
+                      <th className="text-left py-2 px-3 text-slate-300 font-semibold">Équipement</th>
+                      <th className="text-left py-2 px-3 text-slate-300 font-semibold">Interface</th>
+                      <th className="text-left py-2 px-3 text-slate-300 font-semibold">Adresse IP</th>
+                      <th className="text-left py-2 px-3 text-slate-300 font-semibold">Masque</th>
+                      <th className="text-left py-2 px-3 text-slate-300 font-semibold">VLAN</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-slate-200">
+                    <tr className="border-b border-slate-700/50">
+                      <td className="py-2 px-3">SW1</td>
+                      <td className="py-2 px-3">VLAN 99 (SVI)</td>
+                      <td className="py-2 px-3 font-mono text-emerald-400">192.168.99.2</td>
+                      <td className="py-2 px-3 font-mono">255.255.255.0</td>
+                      <td className="py-2 px-3">99</td>
+                    </tr>
+                    <tr className="border-b border-slate-700/50">
+                      <td className="py-2 px-3">SW2</td>
+                      <td className="py-2 px-3">VLAN 99 (SVI)</td>
+                      <td className="py-2 px-3 font-mono text-emerald-400">192.168.99.3</td>
+                      <td className="py-2 px-3 font-mono">255.255.255.0</td>
+                      <td className="py-2 px-3">99</td>
+                    </tr>
+                    <tr className="border-b border-slate-700/50">
+                      <td className="py-2 px-3">PC Admin</td>
+                      <td className="py-2 px-3">NIC</td>
+                      <td className="py-2 px-3 font-mono text-emerald-400">192.168.99.10</td>
+                      <td className="py-2 px-3 font-mono">255.255.255.0</td>
+                      <td className="py-2 px-3">99</td>
+                    </tr>
+                    <tr className="border-b border-slate-700/50">
+                      <td className="py-2 px-3">PC Administration 1</td>
+                      <td className="py-2 px-3">NIC</td>
+                      <td className="py-2 px-3 font-mono text-blue-400">192.168.10.10</td>
+                      <td className="py-2 px-3 font-mono">255.255.255.0</td>
+                      <td className="py-2 px-3">10</td>
+                    </tr>
+                    <tr className="border-b border-slate-700/50">
+                      <td className="py-2 px-3">PC Administration 2</td>
+                      <td className="py-2 px-3">NIC</td>
+                      <td className="py-2 px-3 font-mono text-blue-400">192.168.10.11</td>
+                      <td className="py-2 px-3 font-mono">255.255.255.0</td>
+                      <td className="py-2 px-3">10</td>
+                    </tr>
+                    <tr className="border-b border-slate-700/50">
+                      <td className="py-2 px-3">PC Commerciale 1</td>
+                      <td className="py-2 px-3">NIC</td>
+                      <td className="py-2 px-3 font-mono text-purple-400">192.168.20.10</td>
+                      <td className="py-2 px-3 font-mono">255.255.255.0</td>
+                      <td className="py-2 px-3">20</td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-3">PC Commerciale 2</td>
+                      <td className="py-2 px-3">NIC</td>
+                      <td className="py-2 px-3 font-mono text-purple-400">192.168.20.11</td>
+                      <td className="py-2 px-3 font-mono">255.255.255.0</td>
+                      <td className="py-2 px-3">20</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
             <div className="border-l-2 border-blue-500/50 pl-4 space-y-2">
               <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Étape 0 – Câblage</p>
