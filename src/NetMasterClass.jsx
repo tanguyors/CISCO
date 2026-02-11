@@ -1801,6 +1801,7 @@ const CorrectionLab2Session2 = () => (
           <p className="text-slate-300 text-sm mb-3">Dans Packet Tracer, ajoute les équipements suivants :</p>
           <ul className="text-slate-300 text-sm space-y-2 list-disc pl-5 mb-3">
             <li><strong>2 Switches manageables</strong> (ex: 2960) : <strong>SW1</strong> et <strong>SW2</strong></li>
+            <li><strong>1 PC Admin</strong> (pour le VLAN 99 - management)</li>
             <li><strong>2 PC Administration</strong> (pour le VLAN 10)</li>
             <li><strong>2 PC Commerciale</strong> (pour le VLAN 20)</li>
           </ul>
@@ -1812,14 +1813,18 @@ const CorrectionLab2Session2 = () => (
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-2">
             <div className="flex items-start gap-2">
               <span className="text-emerald-400 font-bold shrink-0">1.</span>
-              <span className="text-slate-300 text-sm"><strong>PC Administration → SW1</strong><br />Connecte les 2 PC Administration aux ports access de SW1 (ex: Fa0/1-2).</span>
+              <span className="text-slate-300 text-sm"><strong>PC Admin → SW1</strong><br />Connecte le PC Admin à un port access de SW1 (ex: Fa0/5). Ce PC sera utilisé pour l'administration réseau via le VLAN 99.</span>
             </div>
             <div className="flex items-start gap-2">
               <span className="text-emerald-400 font-bold shrink-0">2.</span>
-              <span className="text-slate-300 text-sm"><strong>PC Commerciale → SW1</strong><br />Connecte les 2 PC Commerciale aux ports access de SW1 (ex: Fa0/3-4).</span>
+              <span className="text-slate-300 text-sm"><strong>PC Administration → SW1</strong><br />Connecte les 2 PC Administration aux ports access de SW1 (ex: Fa0/1-2).</span>
             </div>
             <div className="flex items-start gap-2">
               <span className="text-emerald-400 font-bold shrink-0">3.</span>
+              <span className="text-slate-300 text-sm"><strong>PC Commerciale → SW1</strong><br />Connecte les 2 PC Commerciale aux ports access de SW1 (ex: Fa0/3-4).</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-emerald-400 font-bold shrink-0">4.</span>
               <span className="text-slate-300 text-sm"><strong>SW1 ↔ SW2</strong><br />Connecte un port FastEthernet de SW1 (ex: Fa0/24) au port correspondant de SW2 (ex: Fa0/24). Ce sera le lien trunk entre les deux switches.</span>
             </div>
           </div>
@@ -1854,12 +1859,17 @@ const CorrectionLab2Session2 = () => (
             <CmdLine cmd="switchport mode access">➡️ Mode access.</CmdLine>
             <CmdLine cmd="switchport access vlan 20">➡️ Met ces ports dans le VLAN 20.</CmdLine>
             <CmdLine cmd="exit">➡️ Retour config global.</CmdLine>
+            <CmdLine cmd="interface fastEthernet0/5">➡️ Sélectionne le port du PC Admin (ex: Fa0/5).</CmdLine>
+            <CmdLine cmd="switchport mode access">➡️ Mode access.</CmdLine>
+            <CmdLine cmd="switchport access vlan 99">➡️ Met ce port dans le VLAN 99 (sera créé à l'Étape 1).</CmdLine>
+            <CmdLine cmd="exit">➡️ Retour config global.</CmdLine>
           </div>
-          <p className="text-slate-400 text-xs italic">👉 Fais pareil sur SW2 si tu as des PC connectés dessus.</p>
+          <p className="text-slate-400 text-xs italic">👉 Note : Le VLAN 99 n'existe pas encore, mais on prépare le port. Le VLAN 99 sera créé à l'Étape 1.</p>
+          <p className="text-slate-400 text-xs italic mt-2">👉 Fais pareil sur SW2 si tu as des PC connectés dessus.</p>
           <p className="text-slate-300 text-sm mt-3"><strong>✅ À ce stade, tu as :</strong></p>
           <ul className="text-slate-300 text-sm space-y-1 list-disc pl-5 mt-2">
             <li>VLANs 10 et 20 créés sur SW1 et SW2</li>
-            <li>Les ports PC assignés aux bons VLANs</li>
+            <li>Les ports PC assignés aux bons VLANs (10, 20, et 99 pour le PC Admin)</li>
             <li>Le lien trunk entre SW1 et SW2 (pas encore configuré, mais câblé)</li>
           </ul>
           <p className="text-slate-400 text-xs mt-2 italic">👉 Maintenant tu peux passer à l'Étape 1 pour créer le VLAN 99 de management et sécuriser le trunk.</p>
