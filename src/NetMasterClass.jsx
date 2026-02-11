@@ -3722,8 +3722,44 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
               <p className="text-slate-400 text-sm">Objectif : à partir d’un switch déjà configuré avec des VLANs (ex. Admin / Commercial), appliquer des bonnes pratiques : VLAN natif sur les trunks, restriction des VLANs autorisés, vérification des ports d’accès.</p>
             </div>
             <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
-              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Matériel typique</p>
-              <p className="text-slate-300 text-sm">1 ou 2 switch(s) avec VLANs déjà créés (ex. VLAN 10, 20). PC branchés par VLAN. Si 2 switches : un lien trunk entre eux.</p>
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Matériel</p>
+              <ul className="list-none space-y-1 text-slate-300 text-sm">
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> 2 switches manageables (ex. 2960) - SW1 et SW2</li>
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> 2 PC Administration (VLAN 10)</li>
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> 2 PC Commerciale (VLAN 20)</li>
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> VLANs 10 et 20 déjà créés sur les switches</li>
+              </ul>
+            </div>
+            <div className="border-l-2 border-blue-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Étape 0 – Câblage</p>
+              <p className="text-slate-300 text-sm">PC Admin sur ports access (ex. Fa0/1-2 sur SW1). PC Commercial sur ports access (ex. Fa0/3-4 sur SW1). Lien entre SW1 et SW2 sur un port dédié (ex. Fa0/24 ↔ Fa0/24) = TRUNK.</p>
+            </div>
+            <div className="border-l-2 border-blue-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Étape 1 – Vérifier l'état actuel</p>
+              <p className="text-slate-300 text-sm">Sur chaque switch : <code className="text-emerald-400 font-mono text-xs">enable</code> puis <code className="text-emerald-400 font-mono text-xs">show vlan brief</code> pour voir les VLANs existants (10, 20) et quels ports sont dedans.</p>
+            </div>
+            <div className="border-l-2 border-blue-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Étape 2 – Créer un VLAN natif dédié (VLAN 99)</p>
+              <p className="text-slate-300 text-sm">Sur chaque switch : <code className="text-emerald-400 font-mono text-xs">configure terminal</code> → <code className="text-emerald-400 font-mono text-xs">vlan 99</code> → <code className="text-emerald-400 font-mono text-xs">name Native</code> → <code className="text-emerald-400 font-mono text-xs">exit</code>. Le VLAN natif par défaut est VLAN 1 (pas recommandé). On met un VLAN natif « neutre » (99) pour éviter des problèmes.</p>
+            </div>
+            <div className="border-l-2 border-blue-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Étape 3 – Configurer le port TRUNK</p>
+              <p className="text-slate-300 text-sm">Sur SW1 et SW2, sur le port qui relie les deux switches (ex. Fa0/24) : <code className="text-emerald-400 font-mono text-xs">interface FastEthernet0/24</code> → <code className="text-emerald-400 font-mono text-xs">switchport mode trunk</code> → <code className="text-emerald-400 font-mono text-xs">switchport trunk native vlan 99</code> → <code className="text-emerald-400 font-mono text-xs">switchport trunk allowed vlan 10,20</code> → <code className="text-emerald-400 font-mono text-xs">switchport nonegotiate</code> (désactive DTP pour la sécurité).</p>
+            </div>
+            <div className="border-l-2 border-blue-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Étape 4 – Vérifier / sécuriser les ports PC (ACCESS)</p>
+              <p className="text-slate-300 text-sm">Un port vers un PC doit être : access, dans le bon VLAN, jamais trunk. Ports PC Admin (ex. Fa0/1-2) : <code className="text-emerald-400 font-mono text-xs">interface range FastEthernet0/1 - 2</code> → <code className="text-emerald-400 font-mono text-xs">switchport mode access</code> → <code className="text-emerald-400 font-mono text-xs">switchport access vlan 10</code> → <code className="text-emerald-400 font-mono text-xs">switchport nonegotiate</code>. Ports PC Commercial (ex. Fa0/3-4) : même chose mais VLAN 20.</p>
+            </div>
+            <div className="border-l-2 border-blue-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Étape 5 – Vérifications</p>
+              <p className="text-slate-300 text-sm"><strong>A) VLANs + ports :</strong> <code className="text-emerald-400 font-mono text-xs">show vlan brief</code> → tu dois voir : VLAN 10 (ports Admin), VLAN 20 (ports Commercial), VLAN 99 (souvent aucun port access).</p>
+              <p className="text-slate-300 text-sm mt-2"><strong>B) Trunk actif :</strong> <code className="text-emerald-400 font-mono text-xs">show interfaces trunk</code> → tu dois voir : Fa0/24 en trunk, Native VLAN = 99, Allowed VLANs = 10,20.</p>
+              <p className="text-slate-300 text-sm mt-2"><strong>C) Port PC (ex. Fa0/1) :</strong> <code className="text-emerald-400 font-mono text-xs">show interfaces FastEthernet0/1 switchport</code> → tu dois lire : Administrative Mode: static access, Access Mode VLAN: 10.</p>
+              <p className="text-slate-300 text-sm mt-2"><strong>D) Port trunk Fa0/24 :</strong> <code className="text-emerald-400 font-mono text-xs">show interfaces FastEthernet0/24 switchport</code> → tu dois lire : Administrative Mode: trunk, Trunking Native Mode VLAN: 99, Trunking VLANs Enabled: 10,20.</p>
+            </div>
+            <div className="border-l-2 border-blue-500/50 pl-4 space-y-2">
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">Étape 6 – Sauvegarder</p>
+              <p className="text-slate-300 text-sm"><code className="text-emerald-400 font-mono text-xs">copy running-config startup-config</code> → sauvegarde permanente (sinon perdu au redémarrage).</p>
             </div>
             <div className="border-l-2 border-blue-500/50 pl-4 space-y-2">
               <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">À faire (selon le PDF fourni)</p>
@@ -3734,7 +3770,7 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
                 <li><strong>Vérifications :</strong> <code className="text-emerald-400 font-mono text-xs">show interfaces trunk</code> et <code className="text-emerald-400 font-mono text-xs">show vlan brief</code>. Optionnel : <code className="text-emerald-400 font-mono text-xs">switchport nonegotiate</code> sur les ports d’accès.</li>
               </ol>
             </div>
-            <p className="text-amber-300/90 text-xs border-l-2 border-amber-500/50 pl-3 py-1">Pour les consignes exactes (étapes, adressage), suivre le PDF « 3 - Introduction Vlan avancés et sécurisation - LAB.pdf ».</p>
+            <p className="text-slate-400 text-xs border-l-2 border-slate-500/50 pl-3 py-1">Compétences : configuration de trunk, VLAN natif, restriction des VLANs autorisés, sécurisation des ports d'accès, vérifications avancées.</p>
           </div>
         </div>
       ),
