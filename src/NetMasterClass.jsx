@@ -3715,24 +3715,25 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       },
       {
         type: 'rich_text',
-        title: "VLAN natif – à quoi ça sert ?",
+        title: "VLAN natif – c'est quoi ?",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed text-lg">
-              Sur un trunk, chaque VLAN <strong>sauf un</strong> a un <strong>tag</strong> 802.1Q dans sa trame. Le VLAN <strong className="text-blue-400">natif</strong> est l'exception : ses trames circulent <strong>sans tag</strong>. Par défaut = VLAN 1. <strong>Pourquoi ?</strong> Les protocoles switch (CDP, DTP, STP) envoient des trames non taguées ; le switch les associe au VLAN natif. Compatibilité avec hubs (qui ne comprennent pas les tags).
+            <div className="bg-blue-600/20 border-2 border-blue-500 rounded-xl p-5 mb-4">
+              <h4 className="text-blue-300 font-bold text-lg mb-2">Définition simple</h4>
+              <p className="text-slate-200 text-base">Le <strong className="text-blue-400">VLAN natif</strong> = le seul VLAN dont les trames passent sur le trunk <strong>sans étiquette</strong>. Tous les autres (10, 20, etc.) ont un tag 802.1Q. Lui, non. Par défaut = VLAN 1.</p>
+            </div>
+            <p className="text-slate-200 leading-relaxed">
+              <strong>Pourquoi une exception ?</strong> Les protocoles du switch (CDP, DTP, STP) envoient des trames sans tag. Le switch doit savoir : « trame sans tag = quel VLAN ? » → Réponse : le VLAN natif.
             </p>
             <div className="bg-amber-900/20 rounded-xl p-5 border border-amber-600/40 mb-4">
-              <h4 className="text-amber-300 font-bold mb-2">Exemple NovaTech</h4>
-              <p className="text-slate-300 text-sm mb-2">Trunk entre SW-A et SW-B. VLAN 10 et 20 = <strong>tagués</strong>. VLAN 1 (natif) = <strong>sans tag</strong>. CDP (découverte voisins) part sans tag → SW-B traite comme VLAN 1. Résumé : seul le VLAN natif circule sans étiquette ; les autres ont tous un tag.</p>
+              <h4 className="text-amber-300 font-bold mb-2">Analogie : colis sans étiquette</h4>
+              <p className="text-slate-300 text-sm mb-2">Sur le trunk = convoyeur de colis. VLAN 10 → étiquette « 10 », VLAN 20 → étiquette « 20 ». Le VLAN natif = colis <strong>sans étiquette</strong>. Le switch : « pas d'étiquette = VLAN natif ».</p>
             </div>
-            <ul className="list-none space-y-2 text-slate-300 text-sm">
-              <li>• Un utilisateur <strong>hors du VLAN natif</strong> a un tag dans sa trame.</li>
-              <li>• Avec un <strong>hub</strong>, les PC reliés ne peuvent communiquer qu’en natif avec d’autres équipements (le hub ne comprend pas les trames taguées).</li>
-              <li>• Un utilisateur dans le <strong>VLAN natif</strong> ne comprend pas une trame taguée.</li>
-            </ul>
-            <p className="text-slate-300 text-sm">
-              <strong>But du VLAN natif :</strong> séparer la <strong>data</strong> (autres VLANs, tagués) du <strong>management</strong> (natif : CDP, DTP, VTP, STP, PagP). Par défaut le VLAN natif est le VLAN 1.
-            </p>
+            <div className="bg-slate-800 rounded-xl p-5 border border-slate-700 mb-4">
+              <h4 className="text-emerald-400 font-bold mb-2">Exemple NovaTech</h4>
+              <p className="text-slate-300 text-sm">Trunk SW-A ↔ SW-B. VLAN 10 et 20 = trames avec tag. VLAN 1 (natif) = trames sans tag. SW-A envoie CDP (sans tag) → SW-B reçoit → « pas de tag = VLAN natif = VLAN 1 ».</p>
+            </div>
+            <ProTip>Règle unique : <strong>trame sans tag sur le trunk = VLAN natif</strong>. C'est tout.</ProTip>
           </div>
         )
       },
