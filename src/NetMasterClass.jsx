@@ -1722,6 +1722,18 @@ const CorrectionLab2Session2 = () => (
         </ul>
       </section>
 
+      {/* CÂBLAGE */}
+      <section>
+        <h2 className="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-3">🔌 Câblage</h2>
+        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
+          <ul className="text-slate-300 text-sm list-disc pl-5 space-y-1">
+            <li><strong>PC Admin</strong> branché sur <strong>SW-Core Fa0/1</strong></li>
+            <li><strong>Trunk inter-switch :</strong> SW-Core Fa0/2 ↔ SW-Dist Fa0/1</li>
+          </ul>
+          <p className="text-slate-400 text-xs mt-2">Port PC (access VLAN 99) = SW-Core Fa0/1 — Port trunk = SW-Core Fa0/2 et SW-Dist Fa0/1</p>
+        </div>
+      </section>
+
       {/* TABLE D'ADRESSAGE IP */}
       <section>
         <h2 className="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-3">📋 Table d'adressage IP</h2>
@@ -1848,6 +1860,7 @@ const CorrectionLab2Session2 = () => (
             <CmdLine cmd="interface fastEthernet0/1">➡ Sélectionne le port où est branché le PC Admin.</CmdLine>
             <CmdLine cmd="switchport mode access">➡ Définit le port comme port utilisateur.</CmdLine>
             <CmdLine cmd="switchport access vlan 99">➡ Place ce port dans le VLAN 99.</CmdLine>
+            <CmdLine cmd="no shutdown">➡ Active le port.</CmdLine>
             <CmdLine cmd="exit">➡ Quitte l'interface.</CmdLine>
           </div>
         </div>
@@ -1860,6 +1873,7 @@ const CorrectionLab2Session2 = () => (
             <ul className="text-slate-300 text-sm space-y-1 list-disc pl-5">
               <li><strong>IP :</strong> 192.168.99.10</li>
               <li><strong>Masque :</strong> 255.255.255.0</li>
+              <li><strong>Gateway :</strong> vide (pas de routeur)</li>
             </ul>
           </div>
         </div>
@@ -1870,14 +1884,24 @@ const CorrectionLab2Session2 = () => (
         <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-3">🔵 ÉTAPE 2 — SÉCURISATION DU TRUNK</h2>
         
         <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
-          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core et SW-Dist (port Fa0/24 ↔ Fa0/24)</p>
-          <p className="text-slate-300 text-sm mb-2">Même configuration des deux côtés :</p>
-          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
-            <CmdLine cmd="interface fastEthernet0/24">➡ Sélectionne le port reliant les deux switches.</CmdLine>
+          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core : port Fa0/2 (vers SW-Dist)</p>
+          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0 mb-4">
+            <CmdLine cmd="interface fastEthernet0/2">➡ Port trunk vers SW-Dist.</CmdLine>
             <CmdLine cmd="switchport mode trunk">➡ Permet de transporter plusieurs VLAN sur un seul câble.</CmdLine>
             <CmdLine cmd="switchport trunk native vlan 99">➡ Change le VLAN natif (évite VLAN 1 par défaut).</CmdLine>
             <CmdLine cmd="switchport trunk allowed vlan 99">➡ Autorise uniquement le VLAN 99 à circuler (sécurité).</CmdLine>
             <CmdLine cmd="switchport nonegotiate">➡ Désactive DTP (évite qu'un trunk se crée automatiquement).</CmdLine>
+            <CmdLine cmd="no shutdown">➡ Active le port.</CmdLine>
+            <CmdLine cmd="exit">➡ Quitte l'interface.</CmdLine>
+          </div>
+          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Dist : port Fa0/1 (vers SW-Core)</p>
+          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
+            <CmdLine cmd="interface fastEthernet0/1">➡ Port trunk vers SW-Core.</CmdLine>
+            <CmdLine cmd="switchport mode trunk">➡ Même config que SW-Core.</CmdLine>
+            <CmdLine cmd="switchport trunk native vlan 99">➡ VLAN natif = 99.</CmdLine>
+            <CmdLine cmd="switchport trunk allowed vlan 99">➡ VLAN 99 uniquement autorisé.</CmdLine>
+            <CmdLine cmd="switchport nonegotiate">➡ Désactive DTP.</CmdLine>
+            <CmdLine cmd="no shutdown">➡ Active le port.</CmdLine>
             <CmdLine cmd="exit">➡ Quitte l'interface.</CmdLine>
           </div>
         </div>
@@ -1885,8 +1909,9 @@ const CorrectionLab2Session2 = () => (
         <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4">
           <h3 className="text-emerald-300 font-bold text-base mb-2">🔹 Vérifier le trunk</h3>
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
-            <CmdLine cmd="show interfaces trunk">➡ Vérifie : Que Fa0/24 est bien en trunk, Que le Native VLAN est 99, Que seuls les VLAN autorisés passent</CmdLine>
+            <CmdLine cmd="show interfaces trunk">➡ SW-Core : trunk sur Fa0/2 — SW-Dist : trunk sur Fa0/1. Native VLAN = 99, Allowed = 99</CmdLine>
           </div>
+          <p className="text-amber-500/90 text-xs mt-2">⚠️ Si rien ne s'affiche : vérifier câble (SW-Core Fa0/2 ↔ SW-Dist Fa0/1), <code>no shutdown</code> sur les ports trunk</p>
         </div>
       </section>
 
@@ -1894,10 +1919,17 @@ const CorrectionLab2Session2 = () => (
       <section id="lab2s2-etape3" className="scroll-mt-4">
         <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-3">🔵 ÉTAPE 3 — DÉSACTIVER LES PORTS INUTILISÉS</h2>
         <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4">
-          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core et SW-Dist</p>
-          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
-            <CmdLine cmd="interface range fastEthernet0/2 - 23">➡ Sélectionne tous les ports inutilisés.</CmdLine>
+          <p className="text-amber-500/90 text-xs mb-2">⚠️ Ne pas toucher : SW-Core Fa0/1 (PC), Fa0/2 (trunk) — SW-Dist Fa0/1 (trunk)</p>
+          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 mb-4">
+            <p className="text-slate-300 text-sm mb-2 font-semibold">Sur SW-Core :</p>
+            <CmdLine cmd="interface range fastEthernet0/3 - 24">➡ Ports inutilisés (pas Fa0/1 ni Fa0/2).</CmdLine>
             <CmdLine cmd="shutdown">➡ Désactive les ports pour éviter les connexions non autorisées.</CmdLine>
+            <CmdLine cmd="exit">➡ Quitte l'interface.</CmdLine>
+          </div>
+          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600">
+            <p className="text-slate-300 text-sm mb-2 font-semibold">Sur SW-Dist :</p>
+            <CmdLine cmd="interface range fastEthernet0/2 - 24">➡ Ports inutilisés (pas Fa0/1 trunk).</CmdLine>
+            <CmdLine cmd="shutdown">➡ Désactive les ports.</CmdLine>
             <CmdLine cmd="exit">➡ Quitte l'interface.</CmdLine>
           </div>
         </div>
@@ -1911,7 +1943,7 @@ const CorrectionLab2Session2 = () => (
           <h3 className="text-blue-300 font-bold text-base mb-2">🔹 Vérifier VLAN</h3>
           <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core et SW-Dist</p>
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
-            <CmdLine cmd="show vlan brief">➡ Vérifie que VLAN 99 existe et que le port du PC Admin est dedans.</CmdLine>
+            <CmdLine cmd="show vlan brief">➡ VLAN 99 doit contenir Fa0/1 (PC). Fa0/2 en trunk peut rester affiché dans VLAN 1, c'est normal.</CmdLine>
           </div>
         </div>
 
@@ -1961,7 +1993,7 @@ const CorrectionLab2Session2 = () => (
     </div>
 
     <div className="bg-blue-900/20 border-t border-blue-500/30 p-4">
-      <p className="text-blue-300 text-sm font-medium flex items-center gap-2"><CheckCircle className="w-5 h-5" /> Résultat final : Setup de base (hostname SW-Core/SW-Dist, mot de passe console/enable) ; VLAN 99 (Management) créé ; IP de gestion configurée (192.168.99.2 sur SW-Core, 192.168.99.3 sur SW-Dist) ; PC Admin connecté au VLAN 99 (192.168.99.10) ; Trunk sécurisé avec native VLAN 99 et allowed VLAN 99 uniquement ; Ports inutilisés (Fa0/2-23) désactivés. Vérif via show vlan brief + show interfaces trunk + ping depuis PC Admin vers les switches.</p>
+      <p className="text-blue-300 text-sm font-medium flex items-center gap-2"><CheckCircle className="w-5 h-5" /> Résultat final : Câblage PC sur SW-Core Fa0/1, trunk SW-Core Fa0/2 ↔ SW-Dist Fa0/1 ; VLAN 99 (Management) ; IP gestion 192.168.99.2 / 192.168.99.3 ; PC Admin 192.168.99.10 ; Trunk sécurisé (native 99, allowed 99, nonegotiate) ; Ports inutilisés désactivés (SW-Core Fa0/3-24, SW-Dist Fa0/2-24). Vérif : show vlan brief, show interfaces trunk, show ip interface brief, ping 192.168.99.2 et 192.168.99.3.</p>
     </div>
   </div>
 );
