@@ -3336,6 +3336,19 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       },
       {
         type: 'rich_text',
+        title: "📌 PARTIE 1 — Les VLAN : notions de base et lab Séance 1",
+        content: (
+          <div className="text-center py-8">
+            <div className="inline-block bg-blue-600/30 border-2 border-blue-500 rounded-2xl px-8 py-6">
+              <h3 className="text-2xl font-bold text-blue-100 mb-2">PARTIE 1</h3>
+              <p className="text-blue-200 font-semibold">Les VLAN : notions de base et lab Séance 1</p>
+              <p className="text-slate-400 text-sm mt-3">Notions théoriques → Création des VLANs → Attribution des ports (mode access)</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
         title: "Qu'est-ce qu'un VLAN ?",
         content: (
           <div className="space-y-6">
@@ -3560,14 +3573,27 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       },
       {
         type: 'rich_text',
-        title: "Cours Trunk – Introduction",
+        title: "📌 PARTIE 2 — Le Trunk et le VLAN natif (Séance 2)",
+        content: (
+          <div className="text-center py-8">
+            <div className="inline-block bg-emerald-600/30 border-2 border-emerald-500 rounded-2xl px-8 py-6">
+              <h3 className="text-2xl font-bold text-emerald-100 mb-2">PARTIE 2</h3>
+              <p className="text-emerald-200 font-semibold">Le Trunk et le VLAN natif (Séance 2)</p>
+              <p className="text-slate-400 text-sm mt-3">Lien switch–switch → 802.1Q → VLAN autorisés → VLAN natif (tout lié au trunk)</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Qu'est-ce qu'un trunk ?",
         content: (
           <div className="space-y-6">
             <p className="text-slate-200 leading-relaxed text-lg">
-              L’appellation <strong className="text-blue-400">trunk</strong> est réservée à Cisco. Chez HP, « trunk » signifie agrégat de liens (ce que Cisco appelle EtherChannel). Ici on parle du trunk Cisco : un seul câble entre deux switches qui transporte <strong>plusieurs VLANs</strong> (10, 20, etc.). Sans trunk, il faudrait un câble par VLAN : ingérable.
+              L’appellation <strong className="text-blue-400">trunk</strong> est réservée à Cisco. Chez HP, « trunk » signifie agrégat de liens (ce que Cisco appelle EtherChannel). Ici on parle du trunk Cisco : un seul câble entre deux switches qui transporte <strong>plusieurs VLANs</strong> (10, 20, etc.). Sans trunk, il faudrait un câble par VLAN : ingérable. <strong>Exemple NovaTech</strong> : 2 bâtiments avec Admin (VLAN 10) et Commercial (VLAN 20). Avec trunk = 1 seul câble entre les 2 switches qui transporte les 2 VLANs via des tags 802.1Q.
             </p>
             <p className="text-slate-300 text-sm">
-              Comment le switch sait à quel VLAN appartient chaque trame ? C’est là que le trunk intervient : il fait transiter plusieurs VLANs sur un seul lien en <strong>incluant un tag (étiquette) du VLAN dans la trame</strong> — c’est le protocole <strong>802.1Q</strong>.
+              Comment le switch sait à quel VLAN appartient chaque trame ? C’est là que le trunk intervient : il fait transiter plusieurs VLANs sur un seul lien en <strong>ajoutant un tag 802.1Q (étiquette du VLAN) dans la trame</strong> — c’est le protocole <strong>802.1Q</strong>.
             </p>
             <ProTip>Un port trunk = pour le lien switch–switch (ou switch–routeur). Ne branche jamais un PC sur un port trunk.</ProTip>
           </div>
@@ -3575,17 +3601,67 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       },
       {
         type: 'rich_text',
-        title: "802.1Q – L'étiquette (tag)",
+        title: "Comment ça marche ? L'exemple concret",
         content: (
           <div className="space-y-6">
             <p className="text-slate-200 leading-relaxed text-lg">
-              Le switch ajoute une <strong className="text-blue-400">étiquette de 4 octets</strong> dans la trame. Le plus important : le <strong>numéro du VLAN</strong> (12 bits, jusqu'à 4094 VLANs). L'autre switch lit ce numéro et envoie la trame dans le bon VLAN.
+              Reprenons notre exemple avec les deux bâtiments :
+            </p>
+
+            <div className="bg-slate-800 rounded-xl p-5 border border-slate-700 space-y-4">
+              <div className="border-b border-slate-600 pb-3">
+                <p className="text-blue-400 font-semibold mb-2">📤 Bâtiment A — PC Admin (VLAN 10) envoie un message</p>
+                <p className="text-slate-300 text-sm">Le PC Admin du bâtiment A veut envoyer un fichier au PC Admin du bâtiment B.</p>
+              </div>
+              
+              <div className="border-b border-slate-600 pb-3">
+                <p className="text-emerald-400 font-semibold mb-2">🔀 Le switch A reçoit la trame</p>
+                <p className="text-slate-300 text-sm">Le switch A sait que ce PC est dans le VLAN 10. Il doit envoyer cette trame vers le switch B.</p>
+              </div>
+
+              <div className="border-b border-slate-600 pb-3">
+                <p className="text-purple-400 font-semibold mb-2">🏷️ Le switch A "marque" la trame</p>
+                <p className="text-slate-300 text-sm">Avant d'envoyer la trame sur le trunk, le switch A ajoute une <strong>"étiquette"</strong> qui dit : <em>"Cette trame appartient au VLAN 10"</em>. C'est comme mettre une étiquette sur un colis postal avec l'adresse.</p>
+              </div>
+
+              <div>
+                <p className="text-amber-400 font-semibold mb-2">📥 Le switch B reçoit et lit l'étiquette</p>
+                <p className="text-slate-300 text-sm">Le switch B reçoit la trame sur le trunk, lit l'étiquette "VLAN 10", retire l'étiquette, et envoie la trame uniquement aux ports du VLAN 10 dans le bâtiment B.</p>
+              </div>
+            </div>
+
+            <p className="text-slate-200 leading-relaxed text-lg">
+              <strong className="text-blue-400">Résultat :</strong> Les PC du VLAN 10 du bâtiment A peuvent communiquer avec les PC du VLAN 10 du bâtiment B, <strong>sans que les PC du VLAN 20 voient ce trafic</strong>. Tout passe par le même câble (le trunk), mais chaque VLAN reste isolé !
+            </p>
+
+            <div className="bg-blue-500/10 border-l-4 border-blue-500 rounded-lg p-4">
+              <p className="text-blue-300 font-semibold mb-2">💡 Analogie simple :</p>
+              <p className="text-slate-300 text-sm">
+                Un trunk, c'est comme un <strong>tunnel avec plusieurs voies</strong>. Chaque voie correspond à un VLAN. Les voitures (trames) de la voie "VLAN 10" ne peuvent pas changer de voie et ne voient pas les voitures des autres voies. Mais toutes les voies utilisent le même tunnel (le même câble) !
+              </p>
+            </div>
+
+            <ProTip>Un port trunk = pour le lien switch–switch (ou switch–routeur). Ne branche jamais un PC sur un port trunk.</ProTip>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "802.1Q – Comment l'étiquette fonctionne (détails techniques)",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Maintenant que vous comprenez <strong>pourquoi</strong> on a besoin d'un trunk, voyons <strong>comment</strong> ça fonctionne techniquement.
+            </p>
+
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Le protocole <strong className="text-blue-400">802.1Q</strong> (aussi appelé "dot1q") est le standard qui permet d'ajouter une <strong>étiquette de 4 octets</strong> dans la trame Ethernet. Le plus important dans cette étiquette : le <strong>numéro du VLAN</strong> (12 bits, ce qui permet jusqu'à 4094 VLANs).
             </p>
             <div className="bg-slate-800 rounded-xl p-5 border border-slate-700 space-y-3">
-              <p className="text-slate-300 text-sm"><strong>Ethertype</strong> = identifie la trame 802.1Q.</p>
-              <p className="text-slate-300 text-sm"><strong>Priorité</strong> = classe le trafic (QoS).</p>
-              <p className="text-slate-300 text-sm"><strong>CFI (flag)</strong> = compatible Ethernet / Token Ring.</p>
-              <p className="text-slate-300 text-sm"><strong>VLAN ID</strong> = identifiant du VLAN sur <strong>12 bits</strong> (0–4095 ; en pratique 1–4094).</p>
+              <p className="text-slate-300 text-sm"><strong>VLAN ID</strong> = identifiant du VLAN sur <strong>12 bits</strong> (0–4095 ; en pratique 1–4094). <span className="text-emerald-400">C'est la partie la plus importante !</span></p>
+              <p className="text-slate-300 text-sm"><strong>Ethertype</strong> = identifie la trame 802.1Q (pour que le switch sache qu'il y a une étiquette).</p>
+              <p className="text-slate-300 text-sm"><strong>Priorité</strong> = classe le trafic (QoS) — pour donner la priorité à certains types de trafic.</p>
+              <p className="text-slate-300 text-sm"><strong>CFI (flag)</strong> = compatible Ethernet / Token Ring (rarement utilisé aujourd'hui).</p>
             </div>
             <p className="text-slate-400 text-sm">C’est ce TAG qui permet au switch de l’autre côté du trunk de savoir dans quel VLAN envoyer la trame.</p>
           </div>
@@ -3609,7 +3685,7 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
         content: (
           <div className="space-y-6">
             <p className="text-slate-200 leading-relaxed text-lg">
-              Par défaut, un trunk transporte <strong>tous les VLANs</strong> (1–4094). On peut <strong>optimiser la bande passante</strong> et la sécurité en n’autorisant que les VLANs communs entre les deux switches : <code className="bg-black/40 px-1 rounded">switchport trunk allowed vlan 10,20</code>. Les VLANs présents d’un seul côté ne sont plus propagés sur le trunk.
+              Par défaut, un trunk transporte <strong>tous les VLANs</strong> (1–4094). On peut <strong>optimiser la bande passante</strong> et la sécurité en n’autorisant que les VLANs utiles. Ex. NovaTech (10,20,99) restreint à 10,20 = le 99 ne traverse plus. Commande : <code className="bg-black/40 px-1 rounded">switchport trunk allowed vlan 10,20</code>. Les VLANs présents d’un seul côté ne sont plus propagés sur le trunk.
             </p>
             <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
               <HumanCommand cmd="switchport trunk allowed vlan 10,20" human="Sur ce trunk : uniquement les VLAN 10 et 20. Les autres ne passent pas." />
@@ -3628,6 +3704,7 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
             </p>
             <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
               <p className="text-emerald-400 font-bold mb-2">À faire sur le port qui relie l'autre switch (ex. fa0/24) :</p>
+            <p className="text-slate-500 text-xs mb-2">Ex. : SW-A et SW-B reliés par Fa0/24. Même config des deux côtés.</p>
               <HumanCommand cmd="interface fa0/24" human="Choisir le port." />
               <HumanCommand cmd="switchport mode trunk" human="Activer le trunk : ce port transporte plusieurs VLANs avec des étiquettes." />
               <HumanCommand cmd="switchport trunk allowed vlan 10,20" human="(Optionnel) N'autoriser que les VLAN 10 et 20." />
@@ -3638,23 +3715,16 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       },
       {
         type: 'rich_text',
-        title: "Rappel : VLAN autorisés (Séance 2)",
-        content: (
-          <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed text-lg">
-              Pour limiter ce qui passe sur le trunk : <code className="bg-black/40 px-1 rounded">switchport trunk allowed vlan 10,20</code>. Seuls les VLAN 10 et 20 sont autorisés. Vérif avec <code className="bg-black/40 px-1 rounded">show interfaces trunk</code>.
-            </p>
-          </div>
-        )
-      },
-      {
-        type: 'rich_text',
         title: "VLAN natif – à quoi ça sert ?",
         content: (
           <div className="space-y-6">
             <p className="text-slate-200 leading-relaxed text-lg">
-              Sur un trunk, chaque VLAN <strong>sauf un</strong> a un <strong>tag</strong> inséré dans sa trame (802.1Q). Le VLAN <strong className="text-blue-400">natif</strong> est celui dont les trames circulent <strong>sans tag</strong> (pour compatibilité avec des équipements anciens ou des hubs).
+              Sur un trunk, chaque VLAN <strong>sauf un</strong> a un <strong>tag</strong> 802.1Q dans sa trame. Le VLAN <strong className="text-blue-400">natif</strong> est l'exception : ses trames circulent <strong>sans tag</strong>. Par défaut = VLAN 1. <strong>Pourquoi ?</strong> Les protocoles switch (CDP, DTP, STP) envoient des trames non taguées ; le switch les associe au VLAN natif. Compatibilité avec hubs (qui ne comprennent pas les tags).
             </p>
+            <div className="bg-amber-900/20 rounded-xl p-5 border border-amber-600/40 mb-4">
+              <h4 className="text-amber-300 font-bold mb-2">Exemple NovaTech</h4>
+              <p className="text-slate-300 text-sm mb-2">Trunk entre SW-A et SW-B. VLAN 10 et 20 = <strong>tagués</strong>. VLAN 1 (natif) = <strong>sans tag</strong>. CDP (découverte voisins) part sans tag → SW-B traite comme VLAN 1. Résumé : seul le VLAN natif circule sans étiquette ; les autres ont tous un tag.</p>
+            </div>
             <ul className="list-none space-y-2 text-slate-300 text-sm">
               <li>• Un utilisateur <strong>hors du VLAN natif</strong> a un tag dans sa trame.</li>
               <li>• Avec un <strong>hub</strong>, les PC reliés ne peuvent communiquer qu’en natif avec d’autres équipements (le hub ne comprend pas les trames taguées).</li>
@@ -3672,7 +3742,7 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
         content: (
           <div className="space-y-6">
             <p className="text-slate-200 leading-relaxed text-lg">
-              Le VLAN natif est configuré <strong>sur un segment à la fois</strong> (le trunk le plus souvent). En changeant le VLAN natif de 1 à 999, le VLAN 1 n’est plus natif — on ne peut en avoir qu’un seul. La trame du VLAN 1 est alors <strong>taguée</strong>. Un PC connecté à un hub ne reçoit que les trames non taguées (natif).
+              Le VLAN natif est configuré <strong>sur un segment à la fois</strong> (le trunk le plus souvent). En changeant le VLAN natif de 1 à 999, le VLAN 1 n’est plus natif — on ne peut en avoir qu’un seul. La trame du VLAN 1 est alors <strong>taguée</strong>. Exemple Lab 2 : VLAN 99 en natif sur le trunk = CDP/STP sans tag. À faire des deux côtés.
             </p>
             <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
               <p className="text-emerald-400 font-bold mb-2">Créer le VLAN dédié puis l’appliquer au trunk (des deux côtés) :</p>
@@ -3682,7 +3752,7 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
               <HumanCommand cmd="interface fa0/24" human="Port trunk (ex. fa0/24)." />
               <HumanCommand cmd="switchport trunk native vlan 999" human="Définir le VLAN natif sur 999. À faire des deux côtés du trunk." />
             </div>
-            <DangerZone>Même réglage <strong>des deux côtés</strong> du trunk. Sinon les deux switches ne se comprennent pas pour les trames sans tag.</DangerZone>
+            <DangerZone>Même réglage <strong>des deux côtés</strong> du trunk. Si SW-A a native 99 et SW-B a native 1 : les trames sans tag de SW-A sont interprétées comme VLAN 99 par SW-A mais comme VLAN 1 par SW-B = fuite de trafic entre VLANs. Toujours vérifier avec <code className="text-emerald-400 font-mono">show interfaces trunk</code>.</DangerZone>
           </div>
         )
       },
@@ -3821,10 +3891,6 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
           { q: "switchport trunk encapsulation dot1q", a: "Encapsulation 802.1Q sur le trunk" },
           { q: "interface vlan 1", a: "Interface de management VLAN 1" }
         ]
-      },
-      {
-        type: 'lab_correction',
-        title: "Correction du Lab 2 : VLAN"
       }
     ],
     lab: {
