@@ -1769,6 +1769,7 @@ const CorrectionLab2Session2 = () => (
         
         <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
           <h3 className="text-blue-300 font-bold text-base mb-2">🔹 1️⃣ Passer en mode administrateur</h3>
+          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core puis SW-Dist (ou l'inverse)</p>
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
             <CmdLine cmd="enable">➡ Permet d'accéder au mode privilégié (#).</CmdLine>
             <CmdLine cmd="configure terminal">➡ Permet de modifier la configuration du switch.</CmdLine>
@@ -1789,6 +1790,7 @@ const CorrectionLab2Session2 = () => (
 
         <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
           <h3 className="text-blue-300 font-bold text-base mb-2">🔹 3️⃣ Désactiver la résolution DNS</h3>
+          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core et SW-Dist</p>
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
             <CmdLine cmd="no ip domain-lookup">➡ Empêche le switch de bloquer si une commande est mal tapée.</CmdLine>
           </div>
@@ -1796,6 +1798,7 @@ const CorrectionLab2Session2 = () => (
 
         <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4">
           <h3 className="text-blue-300 font-bold text-base mb-2">🔹 4️⃣ Sécuriser l'accès console</h3>
+          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core et SW-Dist</p>
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
             <CmdLine cmd="enable secret cisco123">➡ Définit le mot de passe du mode administrateur (#).</CmdLine>
             <CmdLine cmd="line console 0">➡ Ouvre la configuration de l'accès physique.</CmdLine>
@@ -1839,7 +1842,8 @@ const CorrectionLab2Session2 = () => (
 
         <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
           <h3 className="text-emerald-300 font-bold text-base mb-2">🔹 Connecter le PC Admin au VLAN 99</h3>
-          <p className="text-slate-300 text-sm mb-2">Supposons qu'il est branché sur Fa0/1 :</p>
+          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur le switch où le PC Admin est branché</p>
+          <p className="text-slate-300 text-sm mb-2">Ex. : si le PC Admin est sur Fa0/1 de SW-Core, faire ces commandes sur SW-Core :</p>
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
             <CmdLine cmd="interface fastEthernet0/1">➡ Sélectionne le port où est branché le PC Admin.</CmdLine>
             <CmdLine cmd="switchport mode access">➡ Définit le port comme port utilisateur.</CmdLine>
@@ -1850,7 +1854,8 @@ const CorrectionLab2Session2 = () => (
 
         <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4">
           <h3 className="text-emerald-300 font-bold text-base mb-2">🔹 Configurer l'IP du PC Admin</h3>
-          <p className="text-slate-300 text-sm mb-2">Dans Packet Tracer → Desktop → IP Configuration :</p>
+          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur le PC Admin (Packet Tracer)</p>
+          <p className="text-slate-300 text-sm mb-2">Desktop → IP Configuration :</p>
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600">
             <ul className="text-slate-300 text-sm space-y-1 list-disc pl-5">
               <li><strong>IP :</strong> 192.168.99.10</li>
@@ -1865,7 +1870,8 @@ const CorrectionLab2Session2 = () => (
         <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-3">🔵 ÉTAPE 2 — SÉCURISATION DU TRUNK</h2>
         
         <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
-          <p className="text-slate-300 text-sm mb-2">Sur SW-Core et SW-Dist (port Fa0/24 ↔ Fa0/24)</p>
+          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core et SW-Dist (port Fa0/24 ↔ Fa0/24)</p>
+          <p className="text-slate-300 text-sm mb-2">Même configuration des deux côtés :</p>
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
             <CmdLine cmd="interface fastEthernet0/24">➡ Sélectionne le port reliant les deux switches.</CmdLine>
             <CmdLine cmd="switchport mode trunk">➡ Permet de transporter plusieurs VLAN sur un seul câble.</CmdLine>
@@ -1888,7 +1894,7 @@ const CorrectionLab2Session2 = () => (
       <section id="lab2s2-etape3" className="scroll-mt-4">
         <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-3">🔵 ÉTAPE 3 — DÉSACTIVER LES PORTS INUTILISÉS</h2>
         <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4">
-          <p className="text-slate-300 text-sm mb-2">Sur chaque switch :</p>
+          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core et SW-Dist</p>
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
             <CmdLine cmd="interface range fastEthernet0/2 - 23">➡ Sélectionne tous les ports inutilisés.</CmdLine>
             <CmdLine cmd="shutdown">➡ Désactive les ports pour éviter les connexions non autorisées.</CmdLine>
@@ -1903,6 +1909,7 @@ const CorrectionLab2Session2 = () => (
         
         <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
           <h3 className="text-blue-300 font-bold text-base mb-2">🔹 Vérifier VLAN</h3>
+          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core et SW-Dist</p>
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
             <CmdLine cmd="show vlan brief">➡ Vérifie que VLAN 99 existe et que le port du PC Admin est dedans.</CmdLine>
           </div>
@@ -1910,6 +1917,7 @@ const CorrectionLab2Session2 = () => (
 
         <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
           <h3 className="text-blue-300 font-bold text-base mb-2">🔹 Vérifier le trunk</h3>
+          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core et SW-Dist</p>
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
             <CmdLine cmd="show interfaces trunk">➡ Vérifie que : Native VLAN = 99, Allowed VLAN = 99</CmdLine>
           </div>
@@ -1917,7 +1925,7 @@ const CorrectionLab2Session2 = () => (
 
         <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
           <h3 className="text-blue-300 font-bold text-base mb-2">🔹 Tester le ping</h3>
-          <p className="text-slate-300 text-sm mb-2">Depuis le PC Admin :</p>
+          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur le PC Admin</p>
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-2">
             <div>
               <p className="text-slate-300 text-sm mb-1 font-semibold">Ping SW-Core :</p>
@@ -1933,6 +1941,7 @@ const CorrectionLab2Session2 = () => (
 
         <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4">
           <h3 className="text-blue-300 font-bold text-base mb-2">🔹 Vérifier que ports inutilisés sont down</h3>
+          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core et SW-Dist</p>
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
             <CmdLine cmd="show ip interface brief">➡ Les ports inutilisés doivent être "administratively down".</CmdLine>
           </div>
@@ -1943,7 +1952,7 @@ const CorrectionLab2Session2 = () => (
       <section id="lab2s2-etape5" className="scroll-mt-4">
         <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-3">🔵 SAUVEGARDE</h2>
         <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4">
-          <p className="text-slate-300 text-sm mb-2">Sur les deux switches :</p>
+          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core et SW-Dist</p>
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
             <CmdLine cmd="copy running-config startup-config">➡ Sauvegarde permanente.</CmdLine>
           </div>
