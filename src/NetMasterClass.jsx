@@ -1662,20 +1662,25 @@ const CorrectionLab2Session2 = () => (
       <h3 className="text-xl font-bold text-white flex items-center gap-3">
         <CheckCircle className="text-blue-400 w-6 h-6" /> Solution Lab 2 Session 2 : VLAN avancés et sécurisation
       </h3>
-      <p className="text-slate-400 mt-2 text-sm">VLAN management 99, IP de gestion (SVI), trunk sécurisé, ports inutilisés désactivés. Commande par commande avec explication.</p>
+      <p className="text-slate-400 mt-2 text-sm">Setup de base, VLANs 10/20/99, IP de gestion (SVI), trunk sécurisé, ports inutilisés désactivés. Commande par commande avec explication.</p>
     </div>
 
     <nav className="sticky top-0 z-50 bg-slate-800/98 backdrop-blur-md border-b border-slate-700 py-2 shadow-lg">
       <div className="flex items-center gap-3 flex-wrap px-2">
         <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
         {[
-          { id: 'lab2s2-etape0', label: 'Étape 0 - Config de base', icon: '🔵' },
-          { id: 'lab2s2-etape1', label: 'Étape 1 - VLAN 99 + IP', icon: '🔴' },
-          { id: 'lab2s2-pc-admin', label: 'PC Admin VLAN 99', icon: '🟨' },
-          { id: 'lab2s2-etape2', label: 'Étape 2 - Trunk sécurisé', icon: '🟩' },
-          { id: 'lab2s2-etape3', label: 'Étape 3 - Ports inutilisés', icon: '🟪' },
-          { id: 'lab2s2-etape4', label: 'Étape 4 - Vérifications', icon: '🔍' },
-          { id: 'lab2s2-etape5', label: 'Étape 5 - Sauvegarde', icon: '💾' },
+          { id: 'lab2s2-etape0', label: 'Setup SW1', icon: '🔵' },
+          { id: 'lab2s2-setup-sw2', label: 'Setup SW2', icon: '🔵' },
+          { id: 'lab2s2-etape1', label: 'VLAN 10/20', icon: '🔴' },
+          { id: 'lab2s2-ports-admin', label: 'Ports Admin', icon: '🟨' },
+          { id: 'lab2s2-ports-commercial', label: 'Ports Commercial', icon: '🟨' },
+          { id: 'lab2s2-pc-admin', label: 'IP PC', icon: '🟩' },
+          { id: 'lab2s2-vlan99', label: 'VLAN 99', icon: '🟪' },
+          { id: 'lab2s2-svi', label: 'IP Management', icon: '💻' },
+          { id: 'lab2s2-etape2', label: 'Trunk', icon: '🔗' },
+          { id: 'lab2s2-etape3', label: 'Ports off', icon: '🔒' },
+          { id: 'lab2s2-etape4', label: 'Vérifications', icon: '🔍' },
+          { id: 'lab2s2-etape5', label: 'Sauvegarde', icon: '💾' },
         ].map(({ id, label, icon }) => (
           <button
             key={id}
@@ -1712,12 +1717,14 @@ const CorrectionLab2Session2 = () => (
       <section>
         <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">🧩 Plan du lab</h2>
         <ul className="text-slate-300 text-sm list-disc pl-5 space-y-1">
-          <li>Configuration de base dans Packet Tracer (topologie + câblage)</li>
-          <li>Créer le VLAN de management (VLAN 99) + IP de gestion (SVI) sur SW1 et SW2</li>
-          <li>Mettre le PC Admin dans le VLAN 99</li>
-          <li>Configurer l'IP du PC Admin</li>
-          <li>Sécuriser le trunk entre switches (VLAN natif 99, VLANs autorisés limités)</li>
-          <li>Désactiver les ports inutilisés</li>
+          <li>Setup de base (hostname, mot de passe, console) sur SW1 et SW2</li>
+          <li>Création des VLANs 10 et 20 (Administration et Commercial)</li>
+          <li>Configuration des ports PC Admin (VLAN 10) et PC Commercial (VLAN 20)</li>
+          <li>Configuration IP des PC</li>
+          <li>Création du VLAN 99 (Management/Native)</li>
+          <li>Configuration de l'IP de management (SVI) sur SW1 et SW2</li>
+          <li>Configuration du trunk sécurisé (native VLAN 99, VLANs autorisés limités)</li>
+          <li>Désactivation des ports inutilisés</li>
           <li>Vérifications avec les commandes show</li>
           <li>Sauvegarde</li>
         </ul>
@@ -1792,243 +1799,209 @@ const CorrectionLab2Session2 = () => (
         </div>
       </section>
 
-      {/* ÉTAPE 0 — CONFIGURATION DE BASE PACKET TRACER */}
+      {/* SETUP DE BASE — SW1 */}
       <section id="lab2s2-etape0" className="scroll-mt-4">
-        <h2 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-3">Étape 0 — Configuration de base dans Packet Tracer</h2>
-        
+        <h2 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-3">🔵 SETUP DE BASE – SW1</h2>
         <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
-          <h3 className="text-emerald-400 font-bold text-base mb-2">A) Créer la topologie</h3>
-          <p className="text-slate-300 text-sm mb-3">Dans Packet Tracer, ajoute les équipements suivants :</p>
-          <ul className="text-slate-300 text-sm space-y-2 list-disc pl-5 mb-3">
-            <li><strong>2 Switches manageables</strong> (ex: 2960) : <strong>SW1</strong> et <strong>SW2</strong></li>
-            <li><strong>1 PC Admin</strong> (pour le VLAN 99 - management)</li>
-            <li><strong>2 PC Administration</strong> (pour le VLAN 10)</li>
-            <li><strong>2 PC Commerciale</strong> (pour le VLAN 20)</li>
-          </ul>
-        </div>
-
-        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
-          <h3 className="text-emerald-400 font-bold text-base mb-2">B) Câblage</h3>
-          <p className="text-slate-300 text-sm mb-3">Utilise le <strong>câble vert clair (Copper Straight-Through)</strong> pour toutes les connexions :</p>
-          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-2">
-            <div className="flex items-start gap-2">
-              <span className="text-emerald-400 font-bold shrink-0">1.</span>
-              <span className="text-slate-300 text-sm"><strong>PC Admin → SW1</strong><br />Connecte le PC Admin à un port access de SW1 (ex: Fa0/5). Ce PC sera utilisé pour l'administration réseau via le VLAN 99.</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-emerald-400 font-bold shrink-0">2.</span>
-              <span className="text-slate-300 text-sm"><strong>PC Administration → SW1</strong><br />Connecte les 2 PC Administration aux ports access de SW1 (ex: Fa0/1-2).</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-emerald-400 font-bold shrink-0">3.</span>
-              <span className="text-slate-300 text-sm"><strong>PC Commerciale → SW1</strong><br />Connecte les 2 PC Commerciale aux ports access de SW1 (ex: Fa0/3-4).</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-emerald-400 font-bold shrink-0">4.</span>
-              <span className="text-slate-300 text-sm"><strong>SW1 ↔ SW2</strong><br />Connecte un port FastEthernet de SW1 (ex: Fa0/24) au port correspondant de SW2 (ex: Fa0/24). Ce sera le lien trunk entre les deux switches.</span>
-            </div>
+          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
+            <CmdLine cmd="enable">➡️ Passe en mode privilégié (#) pour avoir tous les droits.</CmdLine>
+            <CmdLine cmd="configure terminal">➡️ Passe en mode configuration globale pour modifier le switch.</CmdLine>
+            <CmdLine cmd="hostname SW1">➡️ Change le nom du switch pour l'identifier dans le réseau.</CmdLine>
+            <CmdLine cmd="no ip domain-lookup">➡️ Empêche le switch d'essayer de résoudre les fautes de frappe comme des noms DNS.</CmdLine>
+            <CmdLine cmd="enable secret cisco123">➡️ Définit le mot de passe du mode administrateur (#).</CmdLine>
+            <CmdLine cmd="line console 0">➡️ Ouvre la configuration de la ligne console (accès physique).</CmdLine>
+            <CmdLine cmd="password console123">➡️ Définit le mot de passe pour l'accès par câble console.</CmdLine>
+            <CmdLine cmd="login">➡️ Active réellement la demande du mot de passe console.</CmdLine>
+            <CmdLine cmd="exit">➡️ Retour au mode configuration globale.</CmdLine>
           </div>
-          <p className="text-slate-400 text-xs mt-2 italic">👉 Les liens doivent être verts (actifs) après le câblage.</p>
-        </div>
-
-        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
-          <h3 className="text-emerald-400 font-bold text-base mb-2">C) Créer les VLANs de base (10 et 20)</h3>
-          <p className="text-slate-300 text-sm mb-2">Sur <strong>chaque switch (SW1 et SW2)</strong>, crée les VLANs 10 et 20 :</p>
-          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0 mb-3">
-            <CmdLine cmd="enable">➡️ Mode privilégié.</CmdLine>
-            <CmdLine cmd="configure terminal">➡️ Mode configuration globale.</CmdLine>
-            <CmdLine cmd="vlan 10">➡️ Crée le VLAN 10 (Administration).</CmdLine>
-            <CmdLine cmd="name Administration">➡️ Nom du VLAN 10.</CmdLine>
-            <CmdLine cmd="exit">➡️ Retour config global.</CmdLine>
-            <CmdLine cmd="vlan 20">➡️ Crée le VLAN 20 (Commerciale).</CmdLine>
-            <CmdLine cmd="name Commerciale">➡️ Nom du VLAN 20.</CmdLine>
-            <CmdLine cmd="exit">➡️ Retour config global.</CmdLine>
-          </div>
-          <p className="text-slate-400 text-xs italic">👉 Répète ces commandes sur SW2 également.</p>
-        </div>
-
-        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4">
-          <h3 className="text-emerald-400 font-bold text-base mb-2">D) Assigner les ports aux VLANs</h3>
-          <p className="text-slate-300 text-sm mb-2">Sur <strong>SW1</strong>, assigne les ports aux bons VLANs :</p>
-          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0 mb-3">
-            <CmdLine cmd="interface range fastEthernet0/1 - 2">➡️ Sélectionne les ports des PC Administration.</CmdLine>
-            <CmdLine cmd="switchport mode access">➡️ Mode access (port PC).</CmdLine>
-            <CmdLine cmd="switchport access vlan 10">➡️ Met ces ports dans le VLAN 10.</CmdLine>
-            <CmdLine cmd="exit">➡️ Retour config global.</CmdLine>
-            <CmdLine cmd="interface range fastEthernet0/3 - 4">➡️ Sélectionne les ports des PC Commerciale.</CmdLine>
-            <CmdLine cmd="switchport mode access">➡️ Mode access.</CmdLine>
-            <CmdLine cmd="switchport access vlan 20">➡️ Met ces ports dans le VLAN 20.</CmdLine>
-            <CmdLine cmd="exit">➡️ Retour config global.</CmdLine>
-            <CmdLine cmd="interface fastEthernet0/5">➡️ Sélectionne le port du PC Admin (ex: Fa0/5).</CmdLine>
-            <CmdLine cmd="switchport mode access">➡️ Mode access.</CmdLine>
-            <CmdLine cmd="switchport access vlan 99">➡️ Met ce port dans le VLAN 99 (sera créé à l'Étape 1).</CmdLine>
-            <CmdLine cmd="exit">➡️ Retour config global.</CmdLine>
-          </div>
-          <p className="text-slate-400 text-xs italic">👉 Note : Le VLAN 99 n'existe pas encore, mais on prépare le port. Le VLAN 99 sera créé à l'Étape 1.</p>
-          <p className="text-slate-400 text-xs italic mt-2">👉 Fais pareil sur SW2 si tu as des PC connectés dessus.</p>
-          <p className="text-slate-300 text-sm mt-3"><strong>✅ À ce stade, tu as :</strong></p>
-          <ul className="text-slate-300 text-sm space-y-1 list-disc pl-5 mt-2">
-            <li>VLANs 10 et 20 créés sur SW1 et SW2</li>
-            <li>Les ports PC assignés aux bons VLANs (10, 20, et 99 pour le PC Admin)</li>
-            <li>Le lien trunk entre SW1 et SW2 (pas encore configuré, mais câblé)</li>
-          </ul>
-          <p className="text-slate-400 text-xs mt-2 italic">👉 Maintenant tu peux passer à l'Étape 1 pour créer le VLAN 99 de management et sécuriser le trunk.</p>
         </div>
       </section>
 
-      {/* ÉTAPE 1 — CRÉER VLAN 99 + IP DE GESTION */}
+      {/* SETUP DE BASE — SW2 */}
+      <section id="lab2s2-setup-sw2" className="scroll-mt-4">
+        <h2 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-3">🔵 SETUP DE BASE – SW2</h2>
+        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
+          <p className="text-slate-300 text-sm mb-3">Même commandes que SW1 mais :</p>
+          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
+            <CmdLine cmd="hostname SW2">➡️ Change le nom en SW2.</CmdLine>
+          </div>
+          <p className="text-slate-400 text-xs mt-2 italic">👉 Répète toutes les autres commandes (enable secret, console, etc.) sur SW2 également.</p>
+        </div>
+      </section>
+
+      {/* CRÉATION DES VLAN 10 ET 20 */}
       <section id="lab2s2-etape1" className="scroll-mt-4">
-        <h2 className="text-sm font-bold text-red-400 uppercase tracking-wider mb-3">Étape 1 — Créer le VLAN de management (VLAN 99) + IP de gestion (SVI)</h2>
-        
+        <h2 className="text-sm font-bold text-red-400 uppercase tracking-wider mb-3">🔵 CRÉATION DES VLAN 10 ET 20 (sur SW1 et SW2)</h2>
         <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
-          <h3 className="text-emerald-400 font-bold text-base mb-2">A) Sur SW1</h3>
+          <p className="text-slate-300 text-sm mb-2">Sur <strong>chaque switch (SW1 et SW2)</strong> :</p>
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
-            <CmdLine cmd="enable">➡️ Passe en mode administrateur (Switch#) pour avoir accès aux commandes de config.</CmdLine>
-            <CmdLine cmd="configure terminal">➡️ Entre en mode configuration globale (tu peux modifier l'équipement).</CmdLine>
-            <CmdLine cmd="vlan 99">➡️ Crée le VLAN 99 (un "réseau virtuel" dans le switch).</CmdLine>
-            <CmdLine cmd="name Management">➡️ Donne un nom lisible au VLAN 99 (juste pour s'y retrouver).</CmdLine>
-            <CmdLine cmd="interface vlan 99">➡️ Ouvre l'interface virtuelle du VLAN 99 (SVI) : c'est "l'IP du switch" pour l'administration.</CmdLine>
-            <CmdLine cmd="ip address 192.168.99.2 255.255.255.0">➡️ Donne une IP de management au switch (SW1).</CmdLine>
-            <CmdLine cmd="no shutdown">➡️ Active cette interface VLAN (sinon elle reste "éteinte").</CmdLine>
-            <CmdLine cmd="exit">➡️ Retour au mode config global.</CmdLine>
+            <CmdLine cmd="vlan 10">➡️ Crée le VLAN 10 (réseau Administration).</CmdLine>
+            <CmdLine cmd="name Administration">➡️ Donne un nom au VLAN 10.</CmdLine>
+            <CmdLine cmd="vlan 20">➡️ Crée le VLAN 20 (réseau Commercial).</CmdLine>
+            <CmdLine cmd="name Commercial">➡️ Donne un nom au VLAN 20.</CmdLine>
+            <CmdLine cmd="exit">➡️ Quitte la configuration VLAN.</CmdLine>
           </div>
-          <p className="text-slate-400 text-xs mt-2 italic">✅ Sur SW2, tu feras pareil mais avec une autre IP (ex: 192.168.99.3).</p>
+          <p className="text-slate-400 text-xs mt-2 italic">👉 Répète ces commandes sur SW2 également.</p>
         </div>
+      </section>
 
-        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4">
-          <h3 className="text-emerald-400 font-bold text-base mb-2">B) Sur SW2</h3>
+      {/* METTRE LES PORTS ADMIN DANS VLAN 10 */}
+      <section id="lab2s2-ports-admin" className="scroll-mt-4">
+        <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-3">🔵 METTRE LES PORTS ADMIN DANS VLAN 10 (SW1)</h2>
+        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
-            <CmdLine cmd="enable">➡️ Mode admin.</CmdLine>
-            <CmdLine cmd="configure terminal">➡️ Mode config.</CmdLine>
-            <CmdLine cmd="vlan 99">➡️ Crée VLAN 99.</CmdLine>
-            <CmdLine cmd="name Management">➡️ Nom.</CmdLine>
-            <CmdLine cmd="interface vlan 99">➡️ Interface VLAN virtuelle.</CmdLine>
-            <CmdLine cmd="ip address 192.168.99.3 255.255.255.0">➡️ IP de management du second switch (différente de SW1).</CmdLine>
-            <CmdLine cmd="no shutdown">➡️ Active l'interface VLAN.</CmdLine>
-            <CmdLine cmd="exit">➡️ Retour config global.</CmdLine>
+            <CmdLine cmd="interface range fastEthernet0/1 - 2">➡️ Sélectionne les ports Fa0/1 et Fa0/2 en même temps.</CmdLine>
+            <CmdLine cmd="switchport mode access">➡️ Définit ces ports comme ports utilisateur (un seul VLAN).</CmdLine>
+            <CmdLine cmd="switchport access vlan 10">➡️ Place ces ports dans le VLAN 10.</CmdLine>
+            <CmdLine cmd="exit">➡️ Quitte la configuration d'interface.</CmdLine>
           </div>
         </div>
       </section>
 
-      {/* METTRE PC ADMIN DANS VLAN 99 */}
-      <section id="lab2s2-pc-admin" className="scroll-mt-4">
-        <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-2">C) Mettre le PC Admin dans le VLAN 99 (sur le switch où il est branché)</h2>
-        <p className="text-slate-300 text-sm mb-2">Le PDF demande : "Connectez le PC Admin à un port access dans le VLAN 99". Exemple si le PC Admin est sur Fa0/2 :</p>
-        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0 mb-3">
-          <CmdLine cmd="interface fastEthernet0/2">➡️ Sélectionne le port où le PC Admin est branché.</CmdLine>
-          <CmdLine cmd="switchport mode access">➡️ Force le port en mode access (port PC = 1 seul VLAN).</CmdLine>
-          <CmdLine cmd="switchport access vlan 99">➡️ Met ce port dans le VLAN 99 (donc le PC Admin est dans le réseau management).</CmdLine>
-          <CmdLine cmd="exit">➡️ Retour config global.</CmdLine>
+      {/* METTRE LES PORTS COMMERCIAL DANS VLAN 20 */}
+      <section id="lab2s2-ports-commercial" className="scroll-mt-4">
+        <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-3">🔵 METTRE LES PORTS COMMERCIAL DANS VLAN 20 (SW1)</h2>
+        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
+          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
+            <CmdLine cmd="interface range fastEthernet0/3 - 4">➡️ Sélectionne Fa0/3 et Fa0/4.</CmdLine>
+            <CmdLine cmd="switchport mode access">➡️ Définit comme ports utilisateur.</CmdLine>
+            <CmdLine cmd="switchport access vlan 20">➡️ Place ces ports dans VLAN 20.</CmdLine>
+            <CmdLine cmd="exit">➡️ Quitte l'interface.</CmdLine>
+          </div>
         </div>
-        
-        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4">
-          <h3 className="text-emerald-400 font-bold text-base mb-2">D) Config IP des PC (dans Packet Tracer)</h3>
+      </section>
+
+      {/* CONFIGURATION IP DES PC */}
+      <section id="lab2s2-pc-admin" className="scroll-mt-4">
+        <h2 className="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-3">🔵 CONFIGURATION IP DES PC</h2>
+        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
           <p className="text-slate-300 text-sm mb-3">Sur chaque PC : <strong>Desktop → IP Configuration</strong></p>
           
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 mb-3">
-            <p className="text-emerald-400 font-bold text-sm mb-2">PC Admin (VLAN 99) :</p>
-            <ul className="text-slate-300 text-sm space-y-1 list-disc pl-5">
-              <li><strong>IP :</strong> 192.168.99.10</li>
-              <li><strong>Mask :</strong> 255.255.255.0</li>
-              <li><strong>Gateway :</strong> (optionnel si pas de routeur, laisse vide pour ce LAB)</li>
-            </ul>
-          </div>
-
-          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 mb-3">
-            <p className="text-blue-400 font-bold text-sm mb-2">PC Administration 1 (VLAN 10) :</p>
+            <p className="text-blue-400 font-bold text-sm mb-2">PC Admin 1 :</p>
             <ul className="text-slate-300 text-sm space-y-1 list-disc pl-5">
               <li><strong>IP :</strong> 192.168.10.10</li>
-              <li><strong>Mask :</strong> 255.255.255.0</li>
+              <li><strong>Masque :</strong> 255.255.255.0</li>
             </ul>
           </div>
 
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 mb-3">
-            <p className="text-blue-400 font-bold text-sm mb-2">PC Administration 2 (VLAN 10) :</p>
+            <p className="text-blue-400 font-bold text-sm mb-2">PC Admin 2 :</p>
             <ul className="text-slate-300 text-sm space-y-1 list-disc pl-5">
               <li><strong>IP :</strong> 192.168.10.11</li>
-              <li><strong>Mask :</strong> 255.255.255.0</li>
+              <li><strong>Masque :</strong> 255.255.255.0</li>
             </ul>
           </div>
 
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 mb-3">
-            <p className="text-purple-400 font-bold text-sm mb-2">PC Commerciale 1 (VLAN 20) :</p>
+            <p className="text-purple-400 font-bold text-sm mb-2">PC Commercial 1 :</p>
             <ul className="text-slate-300 text-sm space-y-1 list-disc pl-5">
               <li><strong>IP :</strong> 192.168.20.10</li>
-              <li><strong>Mask :</strong> 255.255.255.0</li>
+              <li><strong>Masque :</strong> 255.255.255.0</li>
             </ul>
           </div>
 
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600">
-            <p className="text-purple-400 font-bold text-sm mb-2">PC Commerciale 2 (VLAN 20) :</p>
+            <p className="text-purple-400 font-bold text-sm mb-2">PC Commercial 2 :</p>
             <ul className="text-slate-300 text-sm space-y-1 list-disc pl-5">
               <li><strong>IP :</strong> 192.168.20.11</li>
-              <li><strong>Mask :</strong> 255.255.255.0</li>
+              <li><strong>Masque :</strong> 255.255.255.0</li>
             </ul>
           </div>
 
-          <p className="text-slate-400 text-xs mt-3 italic">👉 Le but du LAB est surtout le ping vers les IP VLAN 99 des switches depuis le PC Admin, et la communication entre PC du même VLAN.</p>
+          <p className="text-slate-400 text-xs mt-3 italic">➡️ Les PC du même VLAN peuvent communiquer entre eux.</p>
         </div>
       </section>
 
-      {/* ÉTAPE 2 — SÉCURISER LE TRUNK */}
-      <section id="lab2s2-etape2" className="scroll-mt-4">
-        <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-2">Étape 2 — Sécuriser le trunk entre switches</h2>
-        <p className="text-slate-300 text-sm mb-2">Le PDF demande : sécuriser trunks, limiter VLANs, changer native VLAN, vérifier avec show interfaces trunk.</p>
-        <p className="text-slate-300 text-sm mb-2"><strong>Sur SW1 (port trunk ex: Fa0/24) :</strong></p>
-        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0 mb-3">
-          <CmdLine cmd="interface fastEthernet0/24">➡️ Sélectionne le port qui relie SW1 à SW2.</CmdLine>
-          <CmdLine cmd="switchport mode trunk">➡️ Met le port en trunk (il peut transporter plusieurs VLANs).</CmdLine>
-          <CmdLine cmd="switchport trunk native vlan 99">➡️ Change le VLAN natif (au lieu de VLAN 1). Le PDF veut que le native VLAN soit changé.</CmdLine>
-          <CmdLine cmd="switchport trunk allowed vlan 10,20,99">➡️ Autorise uniquement les VLANs utiles sur ce trunk (10, 20, 99). 👉 Ça limite ce qui circule = meilleure sécurité (le PDF demande trunk limité).</CmdLine>
-          <CmdLine cmd="switchport nonegotiate">➡️ Empêche la négociation automatique DTP (évite qu'un trunk "se crée" tout seul).</CmdLine>
-          <CmdLine cmd="exit">➡️ Retour config global.</CmdLine>
-        </div>
-        <p className="text-slate-400 text-xs italic">✅ Fais exactement pareil sur SW2 sur son port trunk (Fa0/24).</p>
-      </section>
-
-      {/* ÉTAPE 3 — DÉSACTIVER PORTS INUTILISÉS */}
-      <section id="lab2s2-etape3" className="scroll-mt-4">
-        <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-2">Étape 3 — Désactiver les ports inutilisés</h2>
-        <p className="text-slate-300 text-sm mb-2">Le PDF demande : désactiver les ports inutilisés. Exemple : tu n'utilises pas Fa0/5 à Fa0/23 :</p>
-        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
-          <CmdLine cmd="interface range fastEthernet0/5 - 23">➡️ Sélectionne plein de ports d'un coup (plus rapide).</CmdLine>
-          <CmdLine cmd="shutdown">➡️ Éteint ces ports (personne ne peut se brancher dessus).</CmdLine>
-          <CmdLine cmd="exit">➡️ Retour config global.</CmdLine>
-        </div>
-      </section>
-
-      {/* ÉTAPE 4 — VÉRIFICATIONS */}
-      <section id="lab2s2-etape4" className="scroll-mt-4">
-        <h2 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-2">Étape 4 — Vérifications (preuves du LAB)</h2>
-        <p className="text-slate-300 text-sm mb-2">Le PDF demande de vérifier : ping VLAN 99, trunk limité, native VLAN changé, ports inutilisés désactivés.</p>
-        <p className="text-slate-300 text-sm mb-2"><strong>Sur chaque switch :</strong></p>
-        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0 mb-3">
-          <CmdLine cmd="end">➡️ Sort du mode configuration.</CmdLine>
-          <CmdLine cmd="show vlan brief">➡️ Vérifie que VLAN 99 existe et que le port du PC Admin est bien dedans.</CmdLine>
-          <CmdLine cmd="show interfaces trunk">➡️ Vérifie que le trunk est actif + VLAN natif changé + VLANs autorisés (commande demandée).</CmdLine>
-          <CmdLine cmd="show ip interface brief">➡️ Vérifie que : Vlan99 a bien une IP, les ports inutilisés sont "administratively down".</CmdLine>
-        </div>
-        
-        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mt-4">
-          <h3 className="text-emerald-400 font-bold text-base mb-2">Test ping (depuis PC Admin)</h3>
+      {/* CRÉER VLAN 99 */}
+      <section id="lab2s2-vlan99" className="scroll-mt-4">
+        <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-3">🔵 CRÉER VLAN 99 (MANAGEMENT)</h2>
+        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
+          <p className="text-slate-300 text-sm mb-2">Sur <strong>chaque switch (SW1 et SW2)</strong> :</p>
           <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
-            <CmdLine cmd="ping 192.168.99.2">Ping SW1 : ➡️ Si ça répond : VLAN management OK (demandé par le PDF).</CmdLine>
-            <CmdLine cmd="ping 192.168.99.3">Ping SW2 : ➡️ Si ça répond : VLAN management OK.</CmdLine>
+            <CmdLine cmd="vlan 99">➡️ Crée un VLAN dédié à l'administration du switch.</CmdLine>
+            <CmdLine cmd="name Native">➡️ Donne un nom au VLAN 99.</CmdLine>
           </div>
         </div>
       </section>
 
-      {/* ÉTAPE 5 — SAUVEGARDE */}
+      {/* CONFIGURER L'IP DE MANAGEMENT */}
+      <section id="lab2s2-svi" className="scroll-mt-4">
+        <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-3">🔵 CONFIGURER L'IP DE MANAGEMENT (SVI)</h2>
+        
+        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
+          <h3 className="text-emerald-400 font-bold text-base mb-2">Sur SW1 :</h3>
+          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
+            <CmdLine cmd="interface vlan 99">➡️ Ouvre l'interface virtuelle du VLAN 99.</CmdLine>
+            <CmdLine cmd="ip address 192.168.99.2 255.255.255.0">➡️ Donne une IP au switch pour le management.</CmdLine>
+            <CmdLine cmd="no shutdown">➡️ Active l'interface VLAN 99.</CmdLine>
+            <CmdLine cmd="exit">➡️ Quitte la configuration.</CmdLine>
+          </div>
+        </div>
+
+        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4">
+          <h3 className="text-emerald-400 font-bold text-base mb-2">Sur SW2 :</h3>
+          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
+            <CmdLine cmd="interface vlan 99">➡️ Ouvre l'interface virtuelle VLAN 99.</CmdLine>
+            <CmdLine cmd="ip address 192.168.99.3 255.255.255.0">➡️ Donne l'IP management au deuxième switch.</CmdLine>
+            <CmdLine cmd="no shutdown">➡️ Active l'interface.</CmdLine>
+          </div>
+        </div>
+      </section>
+
+      {/* CONFIGURER LE TRUNK */}
+      <section id="lab2s2-etape2" className="scroll-mt-4">
+        <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-3">🔵 CONFIGURER LE TRUNK (Fa0/24 ↔ Fa0/24)</h2>
+        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
+          <p className="text-slate-300 text-sm mb-2">Sur <strong>SW1 et SW2</strong> :</p>
+          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
+            <CmdLine cmd="interface fastEthernet0/24">➡️ Sélectionne le port reliant les deux switches.</CmdLine>
+            <CmdLine cmd="switchport mode trunk">➡️ Permet au port de transporter plusieurs VLAN.</CmdLine>
+            <CmdLine cmd="switchport trunk native vlan 99">➡️ Définit le VLAN 99 comme VLAN natif (au lieu du VLAN 1 par défaut).</CmdLine>
+            <CmdLine cmd="switchport trunk allowed vlan 10,20,99">➡️ Autorise uniquement ces VLAN à passer sur le trunk.</CmdLine>
+            <CmdLine cmd="switchport nonegotiate">➡️ Désactive la négociation automatique DTP (sécurité).</CmdLine>
+            <CmdLine cmd="exit">➡️ Quitte l'interface.</CmdLine>
+          </div>
+        </div>
+      </section>
+
+      {/* DÉSACTIVER LES PORTS INUTILISÉS */}
+      <section id="lab2s2-etape3" className="scroll-mt-4">
+        <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-3">🔵 DÉSACTIVER LES PORTS INUTILISÉS</h2>
+        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
+          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
+            <CmdLine cmd="interface range fastEthernet0/6 - 23">➡️ Sélectionne les ports non utilisés.</CmdLine>
+            <CmdLine cmd="shutdown">➡️ Désactive ces ports pour éviter les accès non autorisés.</CmdLine>
+            <CmdLine cmd="exit">➡️ Quitte l'interface.</CmdLine>
+          </div>
+        </div>
+      </section>
+
+      {/* VÉRIFICATIONS */}
+      <section id="lab2s2-etape4" className="scroll-mt-4">
+        <h2 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-3">🔵 VÉRIFICATIONS</h2>
+        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
+          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
+            <CmdLine cmd="show vlan brief">➡️ Vérifie que les ports sont dans les bons VLAN.</CmdLine>
+            <CmdLine cmd="show interfaces trunk">➡️ Vérifie que le trunk est actif et que le VLAN natif est 99.</CmdLine>
+            <CmdLine cmd="show interfaces fastEthernet0/1 switchport">➡️ Vérifie qu'un port PC est bien en mode access VLAN 10.</CmdLine>
+          </div>
+        </div>
+      </section>
+
+      {/* SAUVEGARDE */}
       <section id="lab2s2-etape5" className="scroll-mt-4">
-        <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">Étape 5 — Sauvegarde (à faire à la fin)</h2>
-        <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
-          <CmdLine cmd="copy running-config startup-config">➡️ Sauvegarde la config dans la mémoire permanente (sinon tu perds tout au redémarrage).</CmdLine>
+        <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-3">🔵 SAUVEGARDE</h2>
+        <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4 mb-4">
+          <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-600 space-y-0">
+            <CmdLine cmd="copy running-config startup-config">➡️ Sauvegarde la configuration pour qu'elle reste après redémarrage.</CmdLine>
+          </div>
         </div>
       </section>
     </div>
 
     <div className="bg-blue-900/20 border-t border-blue-500/30 p-4">
-      <p className="text-blue-300 text-sm font-medium flex items-center gap-2"><CheckCircle className="w-5 h-5" /> Résultat final : VLANs 10, 20 et 99 créés sur SW1 et SW2 ; VLAN 99 Management avec IP de gestion (192.168.99.2 sur SW1, 192.168.99.3 sur SW2) ; PC Admin dans VLAN 99 avec IP 192.168.99.10 ; trunk sécurisé avec native VLAN 99 et allowed VLANs 10,20,99 ; ports inutilisés désactivés. Vérif via show vlan brief + show interfaces trunk + show ip interface brief + ping depuis PC Admin.</p>
+      <p className="text-blue-300 text-sm font-medium flex items-center gap-2"><CheckCircle className="w-5 h-5" /> Résultat final : Setup de base (hostname, mot de passe console/enable) sur SW1 et SW2 ; VLANs 10 (Administration), 20 (Commercial) et 99 (Native/Management) créés ; Ports PC Admin dans VLAN 10, PC Commercial dans VLAN 20 ; IPs configurées sur tous les PC ; VLAN 99 avec IP de gestion (192.168.99.2 sur SW1, 192.168.99.3 sur SW2) ; Trunk sécurisé avec native VLAN 99 et allowed VLANs 10,20,99 ; Ports inutilisés désactivés. Vérif via show vlan brief + show interfaces trunk + show interfaces fastEthernet0/1 switchport.</p>
     </div>
   </div>
 );
