@@ -4,7 +4,7 @@ import {
   ChevronRight, ChevronLeft, Lock, Shield, 
   Cpu, RotateCcw, Menu, X, Globe,
   Clock, Save, Power, AlertCircle, Eye, AlertTriangle, Lightbulb, HardDrive, Microscope, Router as RouterIcon, Network, ArrowUpDown, Monitor, Command, MessageCircle, HelpCircle,
-  BarChart3, TrendingUp, History, Target, Zap, Activity, Send, Key, User, Layout, Plus, Trash2, Link, Server, Video, Calendar
+  BarChart3, TrendingUp, History, Target, Zap, Activity, Send, Key, User, Layout, Plus, Trash2, Link, Server, Video, Calendar, Wrench
 } from 'lucide-react';
 
 // Constante pour activer/désactiver la section Validation des acquis
@@ -4268,11 +4268,15 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
 
           <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-6">
             <h4 className="text-amber-400 font-bold text-lg">Étape 1 – Câblage</h4>
-            <ul className="list-none space-y-2 text-slate-300 text-sm">
-              <li className="flex gap-2"><span className="text-amber-400 font-bold">•</span> Relier les deux switches entre eux via un lien trunk (<code className="text-emerald-400 font-mono">fa0/24</code>).</li>
-              <li className="flex gap-2"><span className="text-amber-400 font-bold">•</span> Relier le routeur au switch principal (SW-Core) sur <code className="text-emerald-400 font-mono">fa0/1</code>.</li>
-              <li className="flex gap-2"><span className="text-amber-400 font-bold">•</span> Brancher les PC sur les ports restants.</li>
+            <p className="text-slate-300 text-sm">Utilisez l'outil <strong>câblage automatique</strong> (icône éclair ⚡) dans Packet Tracer : il choisit le bon type de câble et les ports automatiquement. Cliquez sur l'icône, puis sur le premier équipement, puis sur le second.</p>
+            <p className="text-slate-300 text-sm font-semibold">Connexions à faire :</p>
+            <ul className="list-none space-y-1 text-slate-300 text-sm">
+              <li className="flex gap-2"><span className="text-amber-400">•</span> SW-Core ↔ SW-Dist</li>
+              <li className="flex gap-2"><span className="text-amber-400">•</span> SW-Core ↔ R-Core</li>
+              <li className="flex gap-2"><span className="text-amber-400">•</span> PC Admin 1 et PC Admin 2 → SW-Core</li>
+              <li className="flex gap-2"><span className="text-amber-400">•</span> PC Com 1 et PC Com 2 → SW-Dist</li>
             </ul>
+            <p className="text-slate-400 text-xs">Renommer les équipements : Switch0 → SW-Core, Switch1 → SW-Dist, Router0 → R-Core, PC0-PC3 → PC Admin 1, PC Admin 2, PC Com 1, PC Com 2.</p>
           </div>
 
           <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
@@ -4287,15 +4291,15 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
           <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
             <h4 className="text-amber-400 font-bold text-lg">Étape 3 – Configuration des ports</h4>
             <ul className="list-none space-y-2 text-slate-300 text-sm">
-              <li className="flex gap-2"><span className="text-amber-400 font-bold">•</span> Ports des PC Administration → mode accès, VLAN 10.</li>
+              <li className="flex gap-2"><span className="text-amber-400 font-bold">•</span> Ports des PC Administration → mode accès, VLAN 10. (Vérifier quels ports avec <code className="text-emerald-400 font-mono">show vlan brief</code> si câblage auto.)</li>
               <li className="flex gap-2"><span className="text-amber-400 font-bold">•</span> Ports des PC Commercial → mode accès, VLAN 20.</li>
-              <li className="flex gap-2"><span className="text-amber-400 font-bold">•</span> Port reliant les deux switches (fa0/24) → trunk.</li>
+              <li className="flex gap-2"><span className="text-amber-400 font-bold">•</span> Port reliant les deux switches → trunk.</li>
             </ul>
           </div>
 
           <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
             <h4 className="text-amber-400 font-bold text-lg">Étape 4 – Configuration du Trunk</h4>
-            <p className="text-slate-300 text-sm">Sur l’interface inter-switch (fa0/24) sur chaque switch :</p>
+            <p className="text-slate-300 text-sm">Sur l’interface inter-switch (souvent fa0/1 ou celui en vert après câblage auto) sur chaque switch :</p>
             <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700 font-mono text-emerald-400 text-sm space-y-1">
               <p>switchport mode trunk</p>
               <p className="text-slate-400 text-xs mt-2">Facultatif : autoriser uniquement les VLANs nécessaires.</p>
@@ -4340,31 +4344,89 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
             <p className="text-slate-400 text-sm mt-3">Ce lab montre comment relier logiquement plusieurs VLANs et permettre leur communication de manière professionnelle dans un réseau d’entreprise.</p>
           </div>
 
-          {/* LAB 2 RÉCAPITULATIF - Synthèse Sessions 1, 2 et 3 (version simplifiée) */}
-          <div className="mt-14 pt-10 border-t-2 border-amber-500/50">
-            <div className="bg-amber-900/30 border-2 border-amber-500/60 rounded-xl p-6 mb-6">
-              <h4 className="text-amber-400 font-bold text-xl mb-2">LAB RÉCAPITULATIF – Synthèse des 3 sessions</h4>
-              <p className="text-amber-100/90 text-base leading-relaxed">
-                Révision en un seul lab : VLANs, trunk, Router-on-a-Stick, sécurisation et sauvegarde. Réalisez-le sur <strong>Cisco Packet Tracer</strong>.
+          {/* LAB 2 DÉPANNAGE - Même maquette que Lab 1 */}
+          <div className="mt-14 pt-10 border-t-2 border-violet-500/50">
+            <div className="bg-violet-900/30 border-2 border-violet-500/60 rounded-xl p-6 mb-6">
+              <h4 className="text-violet-300 font-bold text-xl mb-2 flex items-center gap-2"><Wrench className="w-6 h-6" /> LAB 2 – Dépannage (même maquette que Lab 1)</h4>
+              <p className="text-violet-100/90 text-base leading-relaxed">
+                NetCom vous appelle : « Le réseau marchait hier, mais ce matin plus de communication entre les VLANs. » Même topologie que le Lab 1. Trouvez et corrigez les pannes.
               </p>
             </div>
             <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
-              <h4 className="text-emerald-400 font-bold text-lg">Matériel</h4>
-              <p className="text-slate-300 text-sm">2 switches (SW-Core, SW-Dist), 1 routeur (R-Core), 2 PC Admin, 2 PC Commercial. Même topologie que le Lab 1 de la session.</p>
+              <h4 className="text-emerald-400 font-bold text-lg">Câblage (identique au Lab 1)</h4>
+              <p className="text-slate-300 text-sm">Utilisez la même maquette Packet Tracer que le Lab 1. Ports de connexion :</p>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700 overflow-x-auto">
+                <table className="w-full text-sm text-slate-300">
+                  <thead><tr className="text-left border-b border-slate-600"><th className="py-2 pr-4">Équipement</th><th className="py-2">Port</th><th className="py-2">Connecté à</th></tr></thead>
+                  <tbody>
+                    <tr className="border-t border-slate-600"><td className="py-1.5 pr-4 font-semibold">SW-Core</td><td className="py-1.5 font-mono">Fa0/1</td><td className="py-1.5">R-Core (Gig0/0)</td></tr>
+                    <tr className="border-t border-slate-600"><td className="py-1.5 pr-4">SW-Core</td><td className="py-1.5 font-mono">Fa0/2</td><td className="py-1.5">SW-Dist Fa0/1</td></tr>
+                    <tr className="border-t border-slate-600"><td className="py-1.5 pr-4">SW-Core</td><td className="py-1.5 font-mono">Fa0/3, Fa0/4</td><td className="py-1.5">PC Admin 1, PC Admin 2</td></tr>
+                    <tr className="border-t border-slate-600"><td className="py-1.5 pr-4 font-semibold">SW-Dist</td><td className="py-1.5 font-mono">Fa0/1</td><td className="py-1.5">SW-Core Fa0/2</td></tr>
+                    <tr className="border-t border-slate-600"><td className="py-1.5 pr-4">SW-Dist</td><td className="py-1.5 font-mono">Fa0/3, Fa0/4</td><td className="py-1.5">PC Com 1, PC Com 2</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
             <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
-              <h4 className="text-blue-400 font-bold text-lg">À faire</h4>
-              <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
-                <li><strong>VLANs</strong> (Session 2) : créer VLAN 10 et 20 sur chaque switch. Mettre les ports des PC en mode access dans le bon VLAN.</li>
-                <li><strong>Trunk</strong> (Session 3) : sur le port qui relie les deux switches, <code className="text-emerald-400 font-mono">switchport mode trunk</code>.</li>
-                <li><strong>Router-on-a-Stick</strong> (Session 3) : sur le routeur, sous-interfaces g0/0.10 et g0/0.20 avec encapsulation dot1Q et IP (192.168.10.1 et 192.168.20.1). Configurer les PC avec les bonnes passerelles.</li>
-                <li><strong>Sécurisation</strong> (Session 1) : enable secret, mot de passe console. Optionnel : SSH.</li>
-                <li><strong>Sauvegarde</strong> : <code className="text-emerald-400 font-mono">copy running-config startup-config</code> sur chaque équipement.</li>
-              </ol>
+              <h4 className="text-amber-400 font-bold text-lg">La panne</h4>
+              <p className="text-slate-300 text-sm">Une <strong>seule erreur</strong> de configuration bloque tout le routage inter-VLAN. Les PC du même VLAN communiquent, mais passerelle et communication entre VLANs échouent.</p>
+              <ul className="list-none space-y-2 text-slate-300 text-sm">
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> Ping Admin 1 ↔ Admin 2 = OK (intra-VLAN)</li>
+                <li className="flex gap-2"><span className="text-red-400">•</span> Ping Admin 1 → 192.168.10.1 (passerelle) = échec</li>
+                <li className="flex gap-2"><span className="text-red-400">•</span> Ping Admin 1 → PC Com 1 = échec</li>
+              </ul>
+              <p className="text-slate-400 text-sm">Mission : trouver et corriger la panne. Guide dans l'onglet <strong>Correction Lab 2 (Dépannage)</strong>.</p>
             </div>
-            <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-2">
-              <h4 className="text-blue-400 font-bold text-lg">Validation</h4>
-              <p className="text-slate-300 text-sm">Ping entre PC du même VLAN ✓ — Ping entre PC de VLANs différents (via le routeur) ✓.</p>
+          </div>
+
+          {/* LAB 3 DÉPANNAGE - Autre panne */}
+          <div className="mt-14 pt-10 border-t-2 border-amber-500/50">
+            <div className="bg-amber-900/30 border-2 border-amber-500/60 rounded-xl p-6 mb-6">
+              <h4 className="text-amber-300 font-bold text-xl mb-2 flex items-center gap-2"><Wrench className="w-6 h-6" /> LAB 3 – Dépannage (panne subtile)</h4>
+              <p className="text-amber-100/90 text-base leading-relaxed">
+                Même maquette. <strong>Panne plus complexe</strong> : les ports sont en trunk, le routeur est opérationnel. Les symptômes sont asymétriques — il faut analyser en détail.
+              </p>
+            </div>
+            <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+              <h4 className="text-emerald-400 font-bold text-lg">Câblage</h4>
+              <p className="text-slate-300 text-sm">Identique au Lab 1 et 2.</p>
+            </div>
+            <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+              <h4 className="text-amber-400 font-bold text-lg">Symptômes rapportés</h4>
+              <p className="text-slate-400 text-xs">Adresses : Admin 1 = 192.168.10.2, Admin 2 = 192.168.10.3, Com 1 = 192.168.20.2, Com 2 = 192.168.20.3. Passerelles : 192.168.10.1, 192.168.20.1.</p>
+              <ul className="list-none space-y-2 text-slate-300 text-sm">
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> Ping Admin 1 → Admin 2 (192.168.10.3) = OK</li>
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> Ping Com 1 → Com 2 (192.168.20.3) = OK</li>
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> Ping Admin 1 → 192.168.10.1 (passerelle) = OK</li>
+                <li className="flex gap-2"><span className="text-red-400">•</span> Ping Com 1 → 192.168.20.1 (passerelle) = échec</li>
+                <li className="flex gap-2"><span className="text-red-400">•</span> Ping Admin 1 → Com 1 (192.168.20.2) = échec</li>
+              </ul>
+              <p className="text-slate-400 text-sm">Les Admin atteignent leur passerelle, pas les Com. <code className="bg-slate-900 px-1 rounded">show interfaces trunk</code> affiche bien les ports trunk. Il faut regarder <strong>plus en détail</strong>. Guide dans l'onglet <strong>Correction Lab 3 (Dépannage)</strong>.</p>
+            </div>
+          </div>
+
+          {/* LAB 4 DÉPANNAGE - Problème passerelle (gateway) */}
+          <div className="mt-14 pt-10 border-t-2 border-cyan-500/50">
+            <div className="bg-cyan-900/30 border-2 border-cyan-500/60 rounded-xl p-6 mb-6">
+              <h4 className="text-cyan-300 font-bold text-xl mb-2 flex items-center gap-2"><Wrench className="w-6 h-6" /> LAB 4 – Dépannage (passerelle absente)</h4>
+              <p className="text-cyan-100/90 text-base leading-relaxed">
+                Même maquette. Les switches et le routeur sont corrects. La panne est sur la <strong>configuration d'un PC</strong> — la passerelle par défaut n'est pas configurée.
+              </p>
+            </div>
+            <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+              <h4 className="text-emerald-400 font-bold text-lg">Symptômes rapportés</h4>
+              <p className="text-slate-400 text-xs">Adresses : Admin 1 = 192.168.10.2, Admin 2 = 192.168.10.3, Com 1 = 192.168.20.2, Com 2 = 192.168.20.3. Passerelles : 192.168.10.1, 192.168.20.1.</p>
+              <ul className="list-none space-y-2 text-slate-300 text-sm">
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> Ping Admin 1 → Admin 2 (192.168.10.3) = OK</li>
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> Ping Com 1 → Com 2 (192.168.20.3) = OK</li>
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> Ping Admin 1 → 192.168.10.1 (passerelle) = OK</li>
+                <li className="flex gap-2"><span className="text-emerald-400">•</span> Ping Com 1 → 192.168.20.1 (passerelle) = OK</li>
+                <li className="flex gap-2"><span className="text-red-400">•</span> Ping Admin 1 → Com 1 (192.168.20.2) = échec</li>
+                <li className="flex gap-2"><span className="text-red-400">•</span> Ping Com 1 → Admin 1 (192.168.10.2) = échec</li>
+              </ul>
+              <p className="text-slate-400 text-sm">Les deux passerelles répondent au ping depuis leur VLAN. Mais la communication inter-VLAN échoue. Où chercher ? Guide dans l'onglet <strong>Correction Lab 4 (Dépannage)</strong>.</p>
+              <p className="text-cyan-400/90 text-xs mt-3">Pour casser : Admin 1 → Desktop → IP Configuration → laisser Default Gateway <strong>vide</strong> (ou 0.0.0.0).</p>
             </div>
           </div>
         </div>
@@ -6624,7 +6686,7 @@ const PacketTracerSection = () => {
 
 // --- LAB INDÉPENDANT : Session 1 ou 2 (consignes + corrections) ---
 const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sessionId = 1 }) => {
-  const [labTab, setLabTab] = useState('correction'); // 'consignes' | 'correction' | 'correction_lab2'
+  const [labTab, setLabTab] = useState('correction'); // 'consignes' | 'correction' | 'correction_lab2' | 'correction_lab3' | 'correction_lab4'
   const isSession2 = sessionId === 2;
   const isSession3 = sessionId === 3;
   return (
@@ -6656,8 +6718,24 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
               onClick={() => setLabTab('correction_lab2')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab2' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession3 ? 'Correction Lab 2 (Récapitulatif)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
+              <CheckCircle className="w-4 h-4" /> {isSession3 ? 'Correction Lab 2 (Dépannage)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
             </button>
+          )}
+          {isSession3 && (
+            <>
+              <button
+                onClick={() => setLabTab('correction_lab3')}
+                className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab3' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+              >
+                <CheckCircle className="w-4 h-4" /> Correction Lab 3 (Dépannage)
+              </button>
+              <button
+                onClick={() => setLabTab('correction_lab4')}
+                className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab4' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+              >
+                <CheckCircle className="w-4 h-4" /> Correction Lab 4 (Dépannage)
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -6681,12 +6759,26 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
       {labTab === 'correction_lab2' && (
         <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {isSession3 ? <LabCorrectionSection3Recap /> : isSession2 ? (lab.solutionContentLab2 || (
+            {isSession3 ? <LabTroubleshootingSection3 /> : isSession2 ? (lab.solutionContentLab2 || (
               <div className="max-w-2xl mx-auto bg-slate-800/50 border border-slate-600 rounded-xl p-8 text-center">
                 <h3 className="text-xl font-bold text-blue-400 mb-3">Correction Lab 2 – VLAN avancés et sécurisation</h3>
                 <p className="text-slate-400">Trunk, VLAN autorisés, VLAN natif. Pour les consignes et la correction détaillée, suivre le PDF « 3 - Introduction Vlan avancés et sécurisation - LAB.pdf ».</p>
               </div>
             )) : <LabCorrectionSection2 />}
+          </div>
+        </div>
+      )}
+      {labTab === 'correction_lab3' && isSession3 && (
+        <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl overflow-y-auto">
+          <div className="p-6">
+            <LabTroubleshootingSection3Lab3 />
+          </div>
+        </div>
+      )}
+      {labTab === 'correction_lab4' && isSession3 && (
+        <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl overflow-y-auto">
+          <div className="p-6">
+            <LabTroubleshootingSection3Lab4 />
           </div>
         </div>
       )}
@@ -6759,7 +6851,10 @@ const LabCorrectionSection3 = () => (
         Il faut définir les VLANs sur <strong>chaque switch</strong> (SW-Core et SW-Dist) pour qu'ils reconnaissent les étiquettes (tags) des paquets qui circuleront.
       </p>
       
-      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">2.1 Sur SW-Core (même procédure sur SW-Dist)</h3>
+      <div className="bg-amber-600/30 border-2 border-amber-500 rounded-lg px-4 py-2 mb-6 inline-block">
+        <span className="text-amber-200 font-bold text-sm uppercase tracking-wider">📍 Appareil : SW-Core</span>
+      </div>
+      <p className="text-slate-400 text-sm mb-4">Double-cliquez sur SW-Core dans Packet Tracer pour ouvrir la console, puis :</p>
       
       <div className="space-y-6">
         <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
@@ -6853,11 +6948,10 @@ const LabCorrectionSection3 = () => (
         </div>
       </div>
 
-      <div className="mt-6 bg-blue-900/20 border-l-4 border-blue-500/50 pl-4 py-2">
-        <p className="text-blue-200 text-sm">
-          <strong>Important :</strong> Répétez exactement les mêmes commandes sur <strong>SW-Dist</strong> (en remplaçant "SW-Core" par "SW-Dist"). Les VLANs doivent exister sur les deux switches pour que le trunk fonctionne.
-        </p>
+      <div className="mt-8 bg-blue-600/20 border-2 border-blue-500 rounded-lg px-4 py-2 mb-4 inline-block">
+        <span className="text-blue-200 font-bold text-sm uppercase tracking-wider">📍 Appareil : SW-Dist</span>
       </div>
+      <p className="text-blue-200 text-sm mb-6">Répétez exactement les mêmes commandes sur <strong>SW-Dist</strong> : double-cliquez sur SW-Dist, puis <code className="bg-slate-900 px-1 rounded">enable</code>, <code className="bg-slate-900 px-1 rounded">configure terminal</code>, <code className="bg-slate-900 px-1 rounded">hostname SW-Dist</code>, <code className="bg-slate-900 px-1 rounded">vlan 10</code>, <code className="bg-slate-900 px-1 rounded">name Administration</code>, <code className="bg-slate-900 px-1 rounded">exit</code>, <code className="bg-slate-900 px-1 rounded">vlan 20</code>, <code className="bg-slate-900 px-1 rounded">name Commercial</code>, <code className="bg-slate-900 px-1 rounded">exit</code>.</p>
     </section>
 
     <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
@@ -6866,86 +6960,93 @@ const LabCorrectionSection3 = () => (
         Les ports reliés aux PC doivent être assignés manuellement à leur VLAN respectif. On appelle cela le mode <strong>Access</strong>. Un port en mode access ne peut transporter qu'un seul VLAN à la fois.
       </p>
       
-      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">3.1 Configuration des ports pour les PC Administration (VLAN 10)</h3>
+      <div className="bg-amber-600/30 border-2 border-amber-500 rounded-lg px-4 py-2 mb-4 inline-block">
+        <span className="text-amber-200 font-bold text-sm uppercase tracking-wider">📍 Appareil : SW-Core</span>
+      </div>
+      <h3 className="text-slate-200 font-bold mb-4 mt-4 border-b border-slate-600 pb-2">3.1 Ports des PC Administration (VLAN 10) — sur SW-Core</h3>
       
       <div className="space-y-6 mb-8">
         <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
           <div className="flex items-start gap-3 mb-2">
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
             <div className="flex-1">
-              <code className="text-emerald-400 font-mono text-sm">interface fa0/2</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Sélectionner l'interface FastEthernet 0/2 (ou le port où est branché le PC Administration). Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">SW-Core(config-if)#</code>.</p>
+              <code className="text-emerald-400 font-mono text-sm">interface range fastEthernet 0/1 - 2</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sélectionner les <strong>deux ports</strong> où sont branchés les PC Administration (Admin 1 et Admin 2). Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">SW-Core(config-if-range)#</code>. Les commandes suivantes s'appliquent aux deux ports.</p>
             </div>
           </div>
         </div>
 
         <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
           <div className="flex items-start gap-3 mb-2">
-            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if-range)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">switchport mode access</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Définir le port en mode access (pour un seul VLAN). Par défaut, les ports sont déjà en mode access, mais cette commande le confirme explicitement.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Définir les deux ports en mode access (pour un seul VLAN par port).</p>
             </div>
           </div>
         </div>
 
         <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
           <div className="flex items-start gap-3 mb-2">
-            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if-range)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">switchport access vlan 10</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Assigner ce port au VLAN 10. Tous les paquets entrants sur ce port seront étiquetés comme appartenant au VLAN 10.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Assigner les deux ports au VLAN 10. Les paquets entrants sur ces ports seront étiquetés VLAN 10.</p>
             </div>
           </div>
         </div>
 
         <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
           <div className="flex items-start gap-3 mb-2">
-            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if-range)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">exit</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir de la configuration de l'interface pour revenir au mode configuration globale.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir de la configuration de la plage de ports pour revenir au mode configuration globale.</p>
             </div>
           </div>
         </div>
       </div>
 
-      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">3.2 Configuration des ports pour les PC Commercial (VLAN 20)</h3>
+      <div className="bg-amber-600/30 border-2 border-amber-500 rounded-lg px-4 py-2 mb-4 inline-block mt-8">
+        <span className="text-amber-200 font-bold text-sm uppercase tracking-wider">📍 Appareil : SW-Dist</span>
+      </div>
+      <h3 className="text-slate-200 font-bold mb-4 mt-4 border-b border-slate-600 pb-2">3.2 Ports des PC Commercial (VLAN 20) — sur SW-Dist</h3>
+      <p className="text-slate-400 text-sm mb-4">Même principe : <strong>deux PC Commercial</strong> → deux ports. Utilisez <code className="bg-slate-900 px-1 rounded">interface range</code> pour les configurer ensemble.</p>
       
       <div className="space-y-6">
         <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
           <div className="flex items-start gap-3 mb-2">
-            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Dist(config)#</code>
             <div className="flex-1">
-              <code className="text-emerald-400 font-mono text-sm">interface fa0/3</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Sélectionner l'interface où est branché le PC Commercial (exemple : fa0/3).</p>
+              <code className="text-emerald-400 font-mono text-sm">interface range fastEthernet 0/1 - 2</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sélectionner les deux ports où sont branchés les PC Commercial (Com 1 et Com 2). Adaptez si votre câblage utilise d'autres numéros (ex. fa0/3-4).</p>
             </div>
           </div>
         </div>
 
         <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
           <div className="flex items-start gap-3 mb-2">
-            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Dist(config-if-range)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">switchport mode access</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Mode access pour ce port également.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Mode access pour les deux ports.</p>
             </div>
           </div>
         </div>
 
         <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
           <div className="flex items-start gap-3 mb-2">
-            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Dist(config-if-range)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">switchport access vlan 20</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Assigner ce port au VLAN 20. Les paquets de ce PC seront étiquetés VLAN 20.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Assigner les deux ports au VLAN 20.</p>
             </div>
           </div>
         </div>
 
         <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
           <div className="flex items-start gap-3 mb-2">
-            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Dist(config-if-range)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">exit</code>
               <p className="text-slate-400 text-xs mt-1 ml-0">Retourner au mode configuration globale.</p>
@@ -6956,7 +7057,7 @@ const LabCorrectionSection3 = () => (
 
       <div className="mt-6 bg-blue-900/20 border-l-4 border-blue-500/50 pl-4 py-2">
         <p className="text-blue-200 text-sm">
-          <strong>Note :</strong> Répétez ces configurations sur <strong>SW-Dist</strong> pour les PC qui y sont connectés. Adaptez les numéros de ports selon votre câblage.
+          <strong>Vérification :</strong> Tapez <code className="bg-slate-900 px-1 rounded">show vlan brief</code> sur chaque switch pour confirmer que les ports 1-2 sont bien dans le VLAN 10 (SW-Core) et le VLAN 20 (SW-Dist).
         </p>
       </div>
     </section>
@@ -6964,10 +7065,65 @@ const LabCorrectionSection3 = () => (
     <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
       <h2 id="lab3-config-trunk" className="text-xl font-bold text-blue-400 mb-6 scroll-mt-4">🔗 Étape 4 : Configuration du Trunk</h2>
       <p className="text-slate-300 mb-6 leading-relaxed">
-        Pour que les informations des VLAN 10 et 20 passent d'un switch à l'autre via un seul câble, nous devons transformer le lien en <strong>Trunk</strong>. Le trunk ajoute une étiquette <strong>IEEE 802.1Q</strong> à chaque trame pour identifier le VLAN.
+        Pour que les informations des VLAN 10 et 20 passent entre switchs et jusqu'au routeur, les liens doivent être en <strong>Trunk</strong>. Le trunk ajoute une étiquette <strong>IEEE 802.1Q</strong> à chaque trame pour identifier le VLAN.
       </p>
       
-      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">4.1 Sur SW-Core (interface fa0/24)</h3>
+      <p className="text-slate-300 mb-6 leading-relaxed">
+        <strong>Sur SW-Core</strong>, il y a <strong>deux ports</strong> à mettre en trunk : celui vers le routeur et celui vers SW-Dist. Le port vers le routeur est souvent oublié — c'est la cause la plus fréquente de ping échoué vers la passerelle (192.168.10.1).
+      </p>
+      
+      <div className="bg-red-900/30 border-2 border-red-500 rounded-lg px-4 py-3 mb-6">
+        <p className="text-red-200 text-sm font-bold">⚠️ Erreur la plus courante : le port SW-Core vers le routeur reste en mode <em>access</em> au lieu de <em>trunk</em>. Les PC communiquent entre eux (intra-VLAN) mais le ping vers 192.168.10.1 et 192.168.20.2 échoue. → Configurer ce port en trunk !</p>
+      </div>
+      
+      <div className="bg-amber-600/30 border-2 border-amber-500 rounded-lg px-4 py-2 mb-4 inline-block">
+        <span className="text-amber-200 font-bold text-sm uppercase tracking-wider">📍 Appareil : SW-Core</span>
+      </div>
+      <h3 className="text-slate-200 font-bold mb-4 mt-4 border-b border-slate-600 pb-2">4.1 Port SW-Core vers le routeur (fa0/1) — Trunk obligatoire</h3>
+      
+      <div className="space-y-6 mb-8">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">interface fa0/1</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sélectionner le port qui relie SW-Core au routeur R-Core. Adaptez le numéro (fa0/1, fa0/2…) selon votre câblage.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">switchport mode trunk</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Activer le mode trunk. <strong>Sans cela, le routeur ne reçoit pas les trames étiquetées</strong> et le routage inter-VLAN ne fonctionne pas.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">switchport trunk allowed vlan 10,20</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Autoriser les VLAN 10 et 20 sur ce trunk.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">exit</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir de la configuration de l'interface.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">4.2 Port SW-Core vers SW-Dist (fa0/24)</h3>
       
       <div className="space-y-6 mb-8">
         <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
@@ -6995,7 +7151,7 @@ const LabCorrectionSection3 = () => (
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">switchport trunk allowed vlan 10,20</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Restreindre les VLANs autorisés sur le trunk (sécurité). Seuls les VLAN 10 et 20 pourront traverser ce lien. Sans cette commande, tous les VLANs seraient autorisés.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Restreindre les VLANs autorisés sur le trunk (sécurité). Seuls les VLAN 10 et 20 pourront traverser ce lien.</p>
             </div>
           </div>
         </div>
@@ -7011,10 +7167,13 @@ const LabCorrectionSection3 = () => (
         </div>
       </div>
 
-      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">4.2 Sur SW-Dist (interface fa0/24)</h3>
+      <div className="bg-amber-600/30 border-2 border-amber-500 rounded-lg px-4 py-2 mb-4 inline-block mt-8">
+        <span className="text-amber-200 font-bold text-sm uppercase tracking-wider">📍 Appareil : SW-Dist</span>
+      </div>
+      <h3 className="text-slate-200 font-bold mb-4 mt-4 border-b border-slate-600 pb-2">4.3 Sur SW-Dist (interface fa0/24)</h3>
       
-      <p className="text-slate-300 mb-6 leading-relaxed">
-        Répétez exactement les mêmes commandes sur <strong>SW-Dist</strong> :
+      <p className="text-slate-300 mb-4 leading-relaxed">
+        Double-cliquez sur <strong>SW-Dist</strong> dans Packet Tracer, puis répétez exactement les mêmes commandes :
       </p>
       
       <div className="space-y-6">
@@ -7072,7 +7231,12 @@ const LabCorrectionSection3 = () => (
         C'est l'étape cruciale. Le routeur va servir de "passerelle" entre les deux réseaux. Comme nous n'avons qu'un seul câble physique entre le switch et le routeur, nous créons des <strong>sous-interfaces virtuelles</strong> (une par VLAN).
       </p>
       
-      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">5.1 Activation de l'interface physique principale</h3>
+      <div className="bg-blue-600/30 border-2 border-blue-500 rounded-lg px-4 py-2 mb-4 inline-block">
+        <span className="text-blue-200 font-bold text-sm uppercase tracking-wider">📍 Appareil : R-Core</span>
+      </div>
+      <p className="text-slate-400 text-sm mb-6">Double-cliquez sur <strong>R-Core</strong> dans Packet Tracer pour ouvrir le CLI, puis exécutez les commandes ci-dessous.</p>
+      
+      <h3 className="text-slate-200 font-bold mb-4 mt-4 border-b border-slate-600 pb-2">5.1 Activation de l'interface physique principale</h3>
       
       <div className="space-y-6 mb-8">
         <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
@@ -7207,7 +7371,11 @@ const LabCorrectionSection3 = () => (
         Pour vérifier que tout fonctionne, attribuez des adresses IP statiques aux PC dans Packet Tracer (onglet Desktop → IP Configuration).
       </p>
       
-      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">6.1 Configuration des PC du VLAN 10 (Administration)</h3>
+      <div className="bg-emerald-600/30 border-2 border-emerald-500 rounded-lg px-4 py-2 mb-4 inline-block">
+        <span className="text-emerald-200 font-bold text-sm uppercase tracking-wider">📍 Appareils : PC Admin 1, PC Admin 2</span>
+      </div>
+      <p className="text-slate-400 text-sm mb-4">Double-cliquez sur chaque PC Administration (Admin 1, Admin 2) dans Packet Tracer, puis Desktop → IP Configuration.</p>
+      <h3 className="text-slate-200 font-bold mb-4 mt-4 border-b border-slate-600 pb-2">6.1 Configuration des PC du VLAN 10 (Administration)</h3>
       
       <ul className="list-none space-y-3 ml-0 text-slate-300 mb-6">
         <li className="flex gap-3 items-start">
@@ -7224,7 +7392,11 @@ const LabCorrectionSection3 = () => (
         </li>
       </ul>
 
-      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">6.2 Configuration des PC du VLAN 20 (Commercial)</h3>
+      <div className="bg-emerald-600/30 border-2 border-emerald-500 rounded-lg px-4 py-2 mb-4 inline-block mt-8">
+        <span className="text-emerald-200 font-bold text-sm uppercase tracking-wider">📍 Appareils : PC Com 1, PC Com 2</span>
+      </div>
+      <p className="text-slate-400 text-sm mb-4">Double-cliquez sur chaque PC Commercial (Com 1, Com 2) dans Packet Tracer, puis Desktop → IP Configuration.</p>
+      <h3 className="text-slate-200 font-bold mb-4 mt-4 border-b border-slate-600 pb-2">6.2 Configuration des PC du VLAN 20 (Commercial)</h3>
       
       <ul className="list-none space-y-3 ml-0 text-slate-300 mb-6">
         <li className="flex gap-3 items-start">
@@ -7308,7 +7480,436 @@ const LabCorrectionSection3 = () => (
   </div>
 );
 
-// --- CORRECTION LAB 2 RÉCAPITULATIF – Session 3 (Synthèse Sessions 1, 2, 3) ---
+// --- LAB 2 DÉPANNAGE – Session 3 (même maquette que Lab 1, ports utilisateur) ---
+const LabTroubleshootingSection3 = () => (
+  <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16">
+    <div className="bg-gradient-to-br from-violet-900/30 to-slate-800 border border-violet-500/40 rounded-2xl p-8">
+      <h1 className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
+        <Wrench className="w-8 h-8 text-violet-400 flex-shrink-0" /> Guide de dépannage – Lab 2 Session 3
+      </h1>
+      <p className="text-violet-100/90 text-lg leading-relaxed">Même maquette que le Lab 1. Méthode systématique pour identifier et corriger les pannes (trunk, VLANs, routeur).</p>
+    </div>
+
+    <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-600 py-2 mb-6">
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
+        {[
+          { id: 'dep-scenario', label: 'Scénario', icon: '📋' },
+          { id: 'dep-recherche', label: 'Recherche panne', icon: '🔍' },
+          { id: 'dep-resolution', label: 'Résolution', icon: '🔧' },
+          { id: 'dep-test', label: 'Test', icon: '✅' },
+        ].map(({ id, label, icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-violet-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
+          >
+            <span className="text-[10px]">{icon}</span> {label}
+          </button>
+        ))}
+      </div>
+    </nav>
+
+    <section id="dep-scenario" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+      <h2 className="text-xl font-bold text-violet-400 mb-6">📋 1. Scénario</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">
+        NetCom vous appelle : « Le réseau marchait hier, ce matin plus de communication entre les VLANs. » Même maquette que le Lab 1. À vous de trouver l'origine de la panne.
+      </p>
+      <h3 className="text-slate-200 font-bold mb-3 border-b border-slate-600 pb-2">Symptômes rapportés par l'utilisateur</h3>
+      <ul className="list-disc pl-6 text-slate-300 space-y-1">
+        <li>Ping Admin 1 ↔ Admin 2 = <span className="text-emerald-400 font-semibold">OK</span> (intra-VLAN)</li>
+        <li>Ping Admin 1 → 192.168.10.1 (passerelle) = <span className="text-red-400 font-semibold">échec</span></li>
+        <li>Ping Admin 1 → PC Com 1 (192.168.20.2) = <span className="text-red-400 font-semibold">échec</span></li>
+      </ul>
+      <div className="mt-6 p-3 bg-slate-900/50 rounded-lg border border-slate-600">
+        <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Câblage (maquette Lab 1)</p>
+        <p className="text-slate-300 text-sm">SW-Core Fa0/1 → R-Core | Fa0/2 → SW-Dist | Fa0/3-4 → PC Admin. SW-Dist Fa0/1 → SW-Core | Fa0/3-4 → PC Com.</p>
+      </div>
+    </section>
+
+    <section id="dep-recherche" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+      <h2 className="text-xl font-bold text-amber-400 mb-6">🔍 2. Recherche de la panne</h2>
+      
+      <div className="mb-8 p-6 bg-violet-900/20 border border-violet-500/40 rounded-xl space-y-6">
+        <h3 className="text-violet-300 font-bold text-lg">🧠 Trame de réflexion</h3>
+        
+        <div className="space-y-6 border-l-2 border-violet-500/50 pl-6">
+          <div>
+            <p className="text-violet-300 font-bold mb-2">1. Que sait-on ?</p>
+            <p className="text-slate-400 text-xs font-medium mb-2 uppercase tracking-wider">Tests à effectuer d'abord :</p>
+            <ul className="list-disc pl-5 space-y-2 text-slate-300 leading-relaxed">
+              <li>Depuis Admin 1 : <code className="bg-slate-900 px-1 rounded">ping 192.168.10.3</code> (Admin 2) — teste la communication au sein du VLAN 10, sans passer par le routeur.</li>
+              <li>Depuis Admin 1 : <code className="bg-slate-900 px-1 rounded">ping 192.168.10.1</code> (passerelle) — teste si Admin 1 atteint le routeur.</li>
+              <li>Depuis Admin 1 : <code className="bg-slate-900 px-1 rounded">ping 192.168.20.2</code> (Com 1) — teste le routage inter-VLAN.</li>
+            </ul>
+            <p className="mt-3 text-slate-300 leading-relaxed">Interprétation : si l'intra-VLAN fonctionne (Admin 1 ↔ Admin 2) mais que le ping vers la passerelle échoue, le blocage n'est pas entre Admin 1 et Admin 2. Le trafic vers 192.168.10.1 doit traverser le switch puis le lien vers le routeur — c'est là que ça coince.</p>
+          </div>
+
+          <div>
+            <p className="text-violet-300 font-bold mb-2">2. Où se situe le blocage ?</p>
+            <p className="text-slate-300 leading-relaxed mb-2">Le trafic vers la passerelle suit le chemin : Admin 1 → port switch (Fa0/3 ou Fa0/4) → SW-Core → port vers le routeur (Fa0/1) → routeur.</p>
+            <p className="text-slate-300 leading-relaxed">L'intra-VLAN OK prouve que les ports vers les PC et le switch lui-même fonctionnent. Le seul segment non vérifié est le lien entre SW-Core et le routeur. C'est donc la zone à investiguer.</p>
+          </div>
+
+          <div>
+            <p className="text-violet-300 font-bold mb-2">3. Quel équipement sur ce chemin ?</p>
+            <p className="text-slate-300 leading-relaxed mb-2">Le routeur en Router-on-a-Stick reçoit le trafic de plusieurs VLANs sur une même interface physique. Pour distinguer les VLANs, les trames doivent être étiquetées 802.1Q.</p>
+            <p className="text-slate-300 leading-relaxed">Un port switch en mode <em>access</em> n'envoie pas d'étiquettes : il enlève le tag VLAN et ne transporte qu'un seul VLAN natif. Le routeur ne recevrait que du trafic « sans VLAN » et ne pourrait pas router correctement entre les sous-réseaux. Le routeur a besoin d'un port en <strong>trunk</strong> pour recevoir les trames étiquetées.</p>
+          </div>
+
+          <div>
+            <p className="text-violet-300 font-bold mb-2">4. Hypothèse</p>
+            <p className="text-slate-300 leading-relaxed">Le port SW-Core connecté au routeur (Fa0/1 selon le câblage) est probablement en mode access au lieu de trunk. Il faut le vérifier avec une commande qui liste les ports en trunk.</p>
+          </div>
+
+          <div>
+            <p className="text-violet-300 font-bold mb-2">5. Vérification ciblée (test)</p>
+            <p className="text-slate-400 text-xs font-medium mb-2 uppercase tracking-wider">Commande à exécuter :</p>
+            <p className="text-slate-300 leading-relaxed mb-2">Sur <strong>SW-Core</strong>, taper <code className="bg-slate-900 px-1 rounded">show interfaces trunk</code>. Cette commande affiche uniquement les ports configurés en mode trunk.</p>
+            <p className="text-slate-300 leading-relaxed">Question : le port qui relie SW-Core au routeur (Fa0/1) apparaît-il dans la liste ? Si non, il est en access — c'est la cause de la panne.</p>
+          </div>
+        </div>
+      </div>
+
+      <h3 className="text-slate-200 font-bold mb-3 border-b border-slate-600 pb-2">Étape 1 — Vérifier les trunks sur SW-Core</h3>
+      <p className="text-slate-300 mb-4">Connectez-vous à <strong>SW-Core</strong> et exécutez :</p>
+      <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700 font-mono text-sm mb-4">
+        <p className="text-emerald-400">show interfaces trunk</p>
+      </div>
+      <p className="text-slate-300 mb-6">Quels ports apparaissent en trunk ? Pour que le Router-on-a-Stick fonctionne, quel port doit obligatoirement être en trunk ? Comparez avec votre câblage (quel port relie SW-Core au routeur ?).</p>
+      <h3 className="text-slate-200 font-bold mb-3 border-b border-slate-600 pb-2">Étape 2 — Analyser la sortie</h3>
+      <p className="text-slate-300 mb-4">Si le port qui relie SW-Core au routeur (Fa0/1 selon le câblage) n'apparaît pas dans la liste des trunks, c'est la cause. En mode <em>access</em>, le routeur ne reçoit pas les trames étiquetées 802.1Q — le routage inter-VLAN est impossible.</p>
+    </section>
+
+    <section id="dep-resolution" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+      <h2 className="text-xl font-bold text-emerald-400 mb-6">🔧 3. Résolution de la panne</h2>
+      <p className="text-slate-400 text-sm mb-4">📍 Appareil : <strong>SW-Core</strong></p>
+      <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-1">
+        <p className="text-slate-400">SW-Core#</p>
+        <p className="text-emerald-400">configure terminal</p>
+        <p className="text-emerald-400">interface fa0/1</p>
+        <p className="text-emerald-400">switchport mode trunk</p>
+        <p className="text-emerald-400">switchport trunk allowed vlan 10,20</p>
+        <p className="text-emerald-400">exit</p>
+      </div>
+    </section>
+
+    <section id="dep-test" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+      <h2 className="text-xl font-bold text-blue-400 mb-6">✅ 4. Test de validation</h2>
+      <p className="text-slate-300 mb-4 leading-relaxed">Vérifications à effectuer après correction :</p>
+      <ol className="list-decimal list-inside space-y-3 text-slate-300 mb-6">
+        <li>Sur SW-Core : <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">show interfaces trunk</code> — Fa0/1 doit maintenant apparaître en trunk.</li>
+        <li>Depuis PC Admin 1 : <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">ping 192.168.10.1</code> — doit répondre.</li>
+        <li>Depuis PC Admin 1 : <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">ping 192.168.20.2</code> (PC Com 1) — doit répondre (routage inter-VLAN OK).</li>
+      </ol>
+    </section>
+
+    <div className="bg-violet-900/20 border-t border-violet-500/30 p-6 rounded-xl">
+      <p className="text-violet-300 text-sm font-medium flex items-center gap-2">
+        <Wrench className="w-5 h-5" /> 
+        Scénario → Recherche → Résolution → Test. Commande clé : <code className="bg-slate-900 px-1 rounded">show interfaces trunk</code> sur SW-Core.
+      </p>
+    </div>
+  </div>
+);
+
+// --- LAB 3 DÉPANNAGE – Session 3 (panne subtile : trunk allowed vlan incomplet) ---
+const LabTroubleshootingSection3Lab3 = () => (
+  <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16">
+    <div className="bg-gradient-to-br from-amber-900/30 to-slate-800 border border-amber-500/40 rounded-2xl p-8">
+      <h1 className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
+        <Wrench className="w-8 h-8 text-amber-400 flex-shrink-0" /> Guide de dépannage – Lab 3 (panne subtile)
+      </h1>
+      <p className="text-amber-100/90 text-lg leading-relaxed">Les ports sont en trunk, le routeur fonctionne. La panne est <strong>subtile</strong> — il faut lire les sorties de commandes en détail et comprendre le chemin du trafic.</p>
+    </div>
+
+    <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-600 py-2 mb-6">
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
+        {[
+          { id: 'dep3-scenario', label: 'Scénario', icon: '📋' },
+          { id: 'dep3-recherche', label: 'Recherche panne', icon: '🔍' },
+          { id: 'dep3-resolution', label: 'Résolution', icon: '🔧' },
+          { id: 'dep3-test', label: 'Test', icon: '✅' },
+        ].map(({ id, label, icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-amber-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
+          >
+            <span className="text-[10px]">{icon}</span> {label}
+          </button>
+        ))}
+      </div>
+    </nav>
+
+    <section id="dep3-scenario" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+      <h2 className="text-xl font-bold text-amber-400 mb-6">📋 1. Scénario</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">
+        Ticket NetCom : « Les commerciaux ne peuvent pas joindre internet ni les admin. Les admin disent que de leur côté tout va. » Les ports trunk apparaissent bien dans <code className="bg-slate-900 px-1 rounded">show interfaces trunk</code>. Le routeur répond au ping depuis les Admin. Où est le blocage ?
+      </p>
+      <h3 className="text-slate-200 font-bold mb-3 border-b border-slate-600 pb-2">Symptômes rapportés</h3>
+      <p className="text-slate-400 text-xs mb-3">Adresses : Admin 1 = 192.168.10.2, Admin 2 = 192.168.10.3, Com 1 = 192.168.20.2, Com 2 = 192.168.20.3. Passerelles : 192.168.10.1 et 192.168.20.1.</p>
+      <ul className="list-disc pl-6 text-slate-300 space-y-1">
+        <li>Ping Admin 1 → Admin 2 (<code className="bg-slate-900 px-1 rounded">192.168.10.3</code>) = <span className="text-emerald-400 font-semibold">OK</span></li>
+        <li>Ping Com 1 → Com 2 (<code className="bg-slate-900 px-1 rounded">192.168.20.3</code>) = <span className="text-emerald-400 font-semibold">OK</span></li>
+        <li>Ping Admin 1 → 192.168.10.1 (passerelle) = <span className="text-emerald-400 font-semibold">OK</span></li>
+        <li>Ping Com 1 → 192.168.20.1 (passerelle) = <span className="text-red-400 font-semibold">échec</span></li>
+        <li>Ping Admin 1 → Com 1 (<code className="bg-slate-900 px-1 rounded">192.168.20.2</code>) = <span className="text-red-400 font-semibold">échec</span></li>
+      </ul>
+      <div className="mt-6 p-3 bg-slate-900/50 rounded-lg border border-slate-600">
+        <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Question clé</p>
+        <p className="text-slate-300 text-sm">Le trafic des PC Com (VLAN 20) doit passer par quel(s) lien(s) pour atteindre le routeur ? Et sur ces liens, quels VLANs doivent être autorisés ?</p>
+      </div>
+    </section>
+
+    <section id="dep3-recherche" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+      <h2 className="text-xl font-bold text-amber-400 mb-6">🔍 2. Recherche de la panne</h2>
+      
+      <div className="mb-8 p-6 bg-amber-900/20 border border-amber-500/40 rounded-xl space-y-6">
+        <h3 className="text-amber-300 font-bold text-lg">🧠 Trame de réflexion</h3>
+        
+        <div className="space-y-6 border-l-2 border-amber-500/50 pl-6">
+          <div>
+            <p className="text-amber-300 font-bold mb-3">1. Que sait-on ?</p>
+            <p className="text-slate-400 text-xs font-medium mb-2 uppercase tracking-wider">Tests à effectuer d'abord :</p>
+            <ul className="list-disc pl-5 space-y-2 text-slate-300 leading-relaxed">
+              <li>Depuis Admin 1 : <code className="bg-slate-900 px-1 rounded">ping 192.168.10.1</code> — teste si les Admin atteignent leur passerelle.</li>
+              <li>Depuis Com 1 : <code className="bg-slate-900 px-1 rounded">ping 192.168.20.1</code> — teste si les Com atteignent leur passerelle.</li>
+              <li>Depuis Com 1 : <code className="bg-slate-900 px-1 rounded">ping 192.168.20.3</code> (Com 2) — teste l'intra-VLAN Com (même VLAN, sans routeur).</li>
+              <li>Sur SW-Core et SW-Dist : <code className="bg-slate-900 px-1 rounded">show interfaces trunk</code> — vérifier que des ports apparaissent en trunk.</li>
+            </ul>
+            <p className="mt-3 text-slate-300 leading-relaxed">Interprétation : Admin OK et Com échec sur la passerelle, alors que les ports trunk sont visibles. Ce n'est pas le Lab 2 (un port en access n'apparaîtrait pas du tout). Ici les ports sont bien en trunk, mais le trafic VLAN 20 ne parvient pas au routeur — la panne est plus subtile.</p>
+          </div>
+
+          <div>
+            <p className="text-amber-300 font-bold mb-2">2. Où se situe le blocage ?</p>
+            <p className="text-slate-300 leading-relaxed mb-2">Le trafic Com (VLAN 20) vers la passerelle suit : PC Com → SW-Dist (Fa0/3 ou Fa0/4) → SW-Dist Fa0/1 (trunk vers SW-Core) → SW-Core Fa0/2 → SW-Core Fa0/1 (trunk vers routeur) → routeur.</p>
+            <p className="text-slate-300 leading-relaxed">Le VLAN 10 fonctionne (Admin joignent leur passerelle). Le VLAN 20 ne fonctionne pas. La rupture est donc sur le chemin du trafic VLAN 20 uniquement — un des trunks sur ce chemin bloque peut-être ce VLAN.</p>
+          </div>
+
+          <div>
+            <p className="text-amber-300 font-bold mb-2">3. Un port trunk peut-il bloquer un VLAN ?</p>
+            <p className="text-slate-300 leading-relaxed mb-2">Oui. Par défaut un trunk transporte tous les VLANs, mais on peut restreindre avec <code className="bg-slate-900 px-1 rounded">switchport trunk allowed vlan 10</code>. Dans ce cas, seul le VLAN 10 traverse le trunk — le VLAN 20 est filtré.</p>
+            <p className="text-slate-300 leading-relaxed">Le trunk existe (il apparaît dans <code className="bg-slate-900 px-1 rounded">show interfaces trunk</code>), mais la liste des VLANs autorisés peut être incomplète. Il faut lire la colonne « Vlans allowed » ou équivalent pour chaque port.</p>
+          </div>
+
+          <div>
+            <p className="text-amber-300 font-bold mb-2">4. Hypothèse</p>
+            <p className="text-slate-300 leading-relaxed">Sur un des trunks du chemin Com → routeur (SW-Dist Fa0/1, SW-Core Fa0/2 ou Fa0/1), le VLAN 20 n'est pas dans la liste des VLANs autorisés. La commande affiche le port en trunk, mais il faut regarder <em>toute</em> la sortie, pas seulement la présence du port.</p>
+          </div>
+
+          <div>
+            <p className="text-amber-300 font-bold mb-2">5. Vérification ciblée (test)</p>
+            <p className="text-slate-400 text-xs font-medium mb-2 uppercase tracking-wider">Action :</p>
+            <p className="text-slate-300 leading-relaxed mb-2">Sur <strong>SW-Core</strong> puis <strong>SW-Dist</strong>, exécuter <code className="bg-slate-900 px-1 rounded">show interfaces trunk</code>. La sortie affiche plusieurs colonnes : port, mode, encapsulation, et surtout la liste des <strong>VLANs autorisés</strong> (Vlans allowed on trunk).</p>
+            <p className="text-slate-300 leading-relaxed">Pour chaque trunk sur le chemin Com → routeur (Fa0/1, Fa0/2 selon le switch), vérifier que les valeurs <strong>10,20</strong> (ou 1-4094 si « all ») apparaissent. Si un port affiche seulement 10, c'est le port à corriger.</p>
+          </div>
+        </div>
+      </div>
+
+      <h3 className="text-slate-200 font-bold mb-3 border-b border-slate-600 pb-2">Étape 1 — Commandes à exécuter</h3>
+      <p className="text-slate-300 mb-4">Sur <strong>SW-Core</strong>, puis sur <strong>SW-Dist</strong>, exécutez :</p>
+      <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700 font-mono text-sm mb-6">
+        <p className="text-emerald-400">show interfaces trunk</p>
+      </div>
+
+      <h3 className="text-slate-200 font-bold mb-3 border-b border-slate-600 pb-2">Étape 2 — Observer la sortie</h3>
+      <p className="text-slate-300 mb-4">La commande affiche plusieurs colonnes. Notez pour chaque port en trunk :</p>
+      <ul className="list-disc pl-6 text-slate-300 space-y-1 mb-6">
+        <li>Quel port ?</li>
+        <li>Quelle colonne indique les VLANs autorisés à traverser ce trunk ?</li>
+        <li>Quelle(s) valeur(s) sont affichées pour chaque port ?</li>
+      </ul>
+
+      <h3 className="text-slate-200 font-bold mb-3 border-b border-slate-600 pb-2">Étape 3 — Analyser le chemin du trafic Com</h3>
+      <p className="text-slate-300 mb-4">Le trafic des PC Com (VLAN 20) va de SW-Dist vers le routeur via SW-Core. Il traverse :</p>
+      <ol className="list-decimal list-inside text-slate-300 space-y-1 mb-4">
+        <li>SW-Dist Fa0/1 (lien vers SW-Core)</li>
+        <li>SW-Core Fa0/2 (lien depuis SW-Dist)</li>
+        <li>SW-Core Fa0/1 (lien vers le routeur)</li>
+      </ol>
+      <p className="text-slate-300 mb-6">Pour chaque trunk sur ce chemin : le VLAN 20 doit-il être autorisé ? Comparez avec ce que vous avez observé à l'étape 2.</p>
+
+      <h3 className="text-slate-200 font-bold mb-3 border-b border-slate-600 pb-2">Étape 4 — Déduction</h3>
+      <p className="text-slate-300">Sur quel(s) port(s) le VLAN 20 est-il absent de la liste des VLANs autorisés ? C'est le ou les ports à corriger.</p>
+    </section>
+
+    <section id="dep3-resolution" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+      <h2 className="text-xl font-bold text-emerald-400 mb-6">🔧 3. Résolution de la panne</h2>
+      <p className="text-slate-300 mb-4">Une fois le port identifié (étape 4 de la recherche), appliquer la correction suivante sur l'équipement concerné.</p>
+      <p className="text-slate-400 text-sm mb-4">📍 Appareil : celui où se trouve le port fautif (SW-Core ou SW-Dist)</p>
+      <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-1">
+        <p className="text-slate-400">SW-Core# (ou SW-Dist#)</p>
+        <p className="text-emerald-400">configure terminal</p>
+        <p className="text-emerald-400">interface fa0/X</p>
+        <p className="text-slate-400 text-xs mt-1">(remplacer X par le numéro du port identifié : 1 ou 2 selon le switch)</p>
+        <p className="text-emerald-400">switchport trunk allowed vlan 10,20</p>
+        <p className="text-emerald-400">exit</p>
+      </div>
+    </section>
+
+    <section id="dep3-test" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+      <h2 className="text-xl font-bold text-blue-400 mb-6">✅ 4. Test de validation</h2>
+      <p className="text-slate-400 text-xs mb-3">Rappel : Admin 1 = 192.168.10.2, Com 1 = 192.168.20.2. Passerelles = 192.168.10.1 et 192.168.20.1.</p>
+      <ol className="list-decimal list-inside space-y-3 text-slate-300 mb-6">
+        <li>Sur chaque switch : <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">show interfaces trunk</code> — la colonne « Vlans allowed » doit indiquer 10,20 sur tous les trunks.</li>
+        <li>Depuis Com 1 (192.168.20.2) : <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">ping 192.168.20.1</code> — doit répondre.</li>
+        <li>Depuis Admin 1 (192.168.10.2) : <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">ping 192.168.20.2</code> (Com 1) — doit répondre.</li>
+      </ol>
+    </section>
+
+    <div className="bg-amber-900/20 border-t border-amber-500/30 p-6 rounded-xl">
+      <p className="text-amber-300 text-sm font-medium flex items-center gap-2">
+        <Wrench className="w-5 h-5" /> 
+        Lab 2 : port en access (n'apparaît pas en trunk). Lab 3 : port en trunk mais <strong>VLANs autorisés incomplets</strong> — il faut lire toute la sortie de <code className="bg-slate-900 px-1 rounded">show interfaces trunk</code>, pas seulement vérifier si le port apparaît.
+      </p>
+    </div>
+  </div>
+);
+
+// --- LAB 4 DÉPANNAGE – Session 3 (problème passerelle / gateway sur PC) ---
+const LabTroubleshootingSection3Lab4 = () => (
+  <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16">
+    <div className="bg-gradient-to-br from-cyan-900/30 to-slate-800 border border-cyan-500/40 rounded-2xl p-8">
+      <h1 className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
+        <Wrench className="w-8 h-8 text-cyan-400 flex-shrink-0" /> Guide de dépannage – Lab 4 (passerelle absente)
+      </h1>
+      <p className="text-cyan-100/90 text-lg leading-relaxed">Les switches et le routeur sont corrects. La panne est sur la <strong>configuration IP d'un PC</strong> — la passerelle par défaut (Default Gateway) est absente.</p>
+    </div>
+
+    <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-600 py-2 mb-6">
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
+        {[
+          { id: 'dep4-scenario', label: 'Scénario', icon: '📋' },
+          { id: 'dep4-recherche', label: 'Recherche panne', icon: '🔍' },
+          { id: 'dep4-resolution', label: 'Résolution', icon: '🔧' },
+          { id: 'dep4-test', label: 'Test', icon: '✅' },
+        ].map(({ id, label, icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-cyan-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
+          >
+            <span className="text-[10px]">{icon}</span> {label}
+          </button>
+        ))}
+      </div>
+    </nav>
+
+    <section id="dep4-scenario" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+      <h2 className="text-xl font-bold text-cyan-400 mb-6">📋 1. Scénario</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">
+        Ticket NetCom : « Les admin et les commerciaux ne peuvent pas communiquer entre eux. Chacun peut ping sa propre passerelle. » Les ports trunk sont corrects, le routeur répond. Où est le blocage ?
+      </p>
+      <h3 className="text-slate-200 font-bold mb-3 border-b border-slate-600 pb-2">Symptômes rapportés</h3>
+      <p className="text-slate-400 text-xs mb-3">Adresses : Admin 1 = 192.168.10.2, Admin 2 = 192.168.10.3, Com 1 = 192.168.20.2, Com 2 = 192.168.20.3. Passerelles : 192.168.10.1 et 192.168.20.1.</p>
+      <ul className="list-disc pl-6 text-slate-300 space-y-1">
+        <li>Ping Admin 1 → Admin 2 (<code className="bg-slate-900 px-1 rounded">192.168.10.3</code>) = <span className="text-emerald-400 font-semibold">OK</span></li>
+        <li>Ping Com 1 → Com 2 (<code className="bg-slate-900 px-1 rounded">192.168.20.3</code>) = <span className="text-emerald-400 font-semibold">OK</span></li>
+        <li>Ping Admin 1 → 192.168.10.1 (passerelle Admin) = <span className="text-emerald-400 font-semibold">OK</span></li>
+        <li>Ping Com 1 → 192.168.20.1 (passerelle Com) = <span className="text-emerald-400 font-semibold">OK</span></li>
+        <li>Ping Admin 1 → Com 1 (<code className="bg-slate-900 px-1 rounded">192.168.20.2</code>) = <span className="text-red-400 font-semibold">échec</span></li>
+        <li>Ping Com 1 → Admin 1 (<code className="bg-slate-900 px-1 rounded">192.168.10.2</code>) = <span className="text-red-400 font-semibold">échec</span></li>
+      </ul>
+      <div className="mt-6 p-3 bg-slate-900/50 rounded-lg border border-slate-600">
+        <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Question clé</p>
+        <p className="text-slate-300 text-sm">Où vérifier la config IP des PC ? Chaque PC doit avoir la passerelle correspondant à son VLAN.</p>
+      </div>
+    </section>
+
+    <section id="dep4-recherche" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+      <h2 className="text-xl font-bold text-cyan-400 mb-6">🔍 2. Recherche de la panne</h2>
+      
+      <div className="mb-8 p-6 bg-cyan-900/20 border border-cyan-500/40 rounded-xl space-y-6">
+        <h3 className="text-cyan-300 font-bold text-lg">🧠 Trame de réflexion</h3>
+        
+        <div className="space-y-6 border-l-2 border-cyan-500/50 pl-6">
+          <div>
+            <p className="text-cyan-300 font-bold mb-3">1. Que sait-on ?</p>
+            <p className="text-slate-400 text-xs font-medium mb-2 uppercase tracking-wider">Tests à effectuer d'abord :</p>
+            <ul className="list-disc pl-5 space-y-2 text-slate-300 leading-relaxed">
+              <li>Depuis Admin 1 : <code className="bg-slate-900 px-1 rounded">ping 192.168.10.1</code> (passerelle) et <code className="bg-slate-900 px-1 rounded">ping 192.168.10.3</code> (Admin 2) — teste l'accès à la passerelle et l'intra-VLAN Admin.</li>
+              <li>Depuis Com 1 : <code className="bg-slate-900 px-1 rounded">ping 192.168.20.1</code> (passerelle) et <code className="bg-slate-900 px-1 rounded">ping 192.168.20.3</code> (Com 2) — idem pour le VLAN 20.</li>
+              <li>Depuis Admin 1 : <code className="bg-slate-900 px-1 rounded">ping 192.168.20.2</code> (Com 1) ; depuis Com 1 : <code className="bg-slate-900 px-1 rounded">ping 192.168.10.2</code> (Admin 1) — teste l'inter-VLAN dans les deux sens.</li>
+            </ul>
+            <p className="mt-3 text-slate-300 leading-relaxed">Interprétation : si les deux passerelles répondent et l'intra-VLAN fonctionne, le routeur et les trunks sont OK. Seul l'inter-VLAN échoue. Or l'inter-VLAN implique les PC — chacun doit envoyer ses paquets vers sa passerelle pour atteindre l'autre VLAN. Si un PC n'a pas de passerelle configurée, il ne sait pas où envoyer. Le blocage est donc côté configuration des <strong>hôtes</strong>, pas des équipements réseau.</p>
+          </div>
+
+          <div>
+            <p className="text-cyan-300 font-bold mb-2">2. Où se situe le blocage ?</p>
+            <p className="text-slate-300 leading-relaxed mb-2">Les tests prouvent que l'infrastructure (switches, routeur, trunks) fonctionne. Pour qu'Admin 1 joigne Com 1 (192.168.20.2), Admin 1 doit envoyer le paquet vers sa passerelle (192.168.10.1) ; le routeur le forwarde vers Com 1. Même logique dans l'autre sens.</p>
+            <p className="text-slate-300 leading-relaxed">Chaque PC a besoin d'une <strong>passerelle par défaut</strong> (Default Gateway) pour savoir à quelle adresse envoyer les paquets destinés à un autre sous-réseau. Sans passerelle, le PC ne connaît pas la route — il ne peut pas envoyer les paquets vers l'autre VLAN.</p>
+          </div>
+
+          <div>
+            <p className="text-cyan-300 font-bold mb-2">3. Qui est impliqué ?</p>
+            <p className="text-slate-300 leading-relaxed mb-2">Les deux sens échouent (Admin 1 → Com 1 et Com 1 → Admin 1). Pour qu'un ping réussisse, il faut l'envoi ET la réponse.</p>
+            <p className="text-slate-300 leading-relaxed">Exemple : Com 1 ping Admin 1. Le paquet va Com 1 → passerelle Com → routeur → Admin 1. Admin 1 reçoit et doit répondre. Pour répondre vers 192.168.20.2 (Com 1), Admin 1 doit utiliser sa passerelle (différent sous-réseau). Si Admin 1 n'a pas de passerelle, il ne peut pas envoyer la réponse — le ping échoue. Un seul PC mal configuré peut bloquer les deux sens.</p>
+          </div>
+
+          <div>
+            <p className="text-cyan-300 font-bold mb-2">4. Hypothèse</p>
+            <p className="text-slate-300 leading-relaxed">Un PC a une configuration IP incomplète : adresse et masque corrects, mais le champ <strong>Default Gateway</strong> est vide ou incorrect (par ex. la passerelle d'un autre VLAN).</p>
+          </div>
+
+          <div>
+            <p className="text-cyan-300 font-bold mb-2">5. Où chercher ? (Test de vérification)</p>
+            <p className="text-slate-400 text-xs font-medium mb-2 uppercase tracking-wider">Action :</p>
+            <p className="text-slate-300 leading-relaxed mb-2">Dans Packet Tracer : cliquer sur chaque PC → onglet <strong>Desktop</strong> → <strong>IP Configuration</strong>. Vérifier pour chaque machine : le champ Default Gateway est-il renseigné ? La valeur correspond-elle au VLAN du PC ?</p>
+            <p className="text-slate-300 leading-relaxed">Règle : Admin (VLAN 10, 192.168.10.x) → passerelle 192.168.10.1. Com (VLAN 20, 192.168.20.x) → passerelle 192.168.20.1. Un champ vide ou 0.0.0.0 indique une panne.</p>
+          </div>
+        </div>
+      </div>
+
+      <h3 className="text-slate-200 font-bold mb-3 border-b border-slate-600 pb-2">Étape 1 — Où vérifier la config des PC ?</h3>
+      <p className="text-slate-300 mb-4">Sur chaque PC : cliquer sur le PC → onglet <strong>Desktop</strong> → <strong>IP Configuration</strong>. Contrôler pour chaque machine : adresse IP, masque, et <strong>passerelle par défaut</strong>.</p>
+
+      <h3 className="text-slate-200 font-bold mb-3 border-b border-slate-600 pb-2">Étape 2 — Valeurs attendues</h3>
+      <p className="text-slate-300 mb-4">Chaque PC doit avoir une passerelle correspondant à son VLAN :</p>
+      <ul className="list-disc pl-6 text-slate-300 space-y-1 mb-6">
+        <li><strong>Admin 1, Admin 2</strong> : passerelle = <code className="bg-slate-900 px-1 rounded">192.168.10.1</code></li>
+        <li><strong>Com 1, Com 2</strong> : passerelle = <code className="bg-slate-900 px-1 rounded">192.168.20.1</code></li>
+      </ul>
+
+      <h3 className="text-slate-200 font-bold mb-3 border-b border-slate-600 pb-2">Étape 3 — Déduction</h3>
+      <p className="text-slate-300">Quel PC a le champ Default Gateway vide ou incorrect ? C'est le PC à corriger. (Dans ce lab : Admin 1 sans passerelle.)</p>
+    </section>
+
+    <section id="dep4-resolution" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+      <h2 className="text-xl font-bold text-emerald-400 mb-6">🔧 3. Résolution de la panne</h2>
+      <p className="text-slate-300 mb-4">Corriger <strong>Admin 1</strong> : renseigner la passerelle <code className="bg-slate-900 px-1 rounded">192.168.10.1</code> dans le champ Default Gateway.</p>
+      <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700 space-y-2">
+        <p className="text-emerald-400">PC Admin 1 → Desktop → IP Configuration</p>
+        <p className="text-slate-300 text-sm">Dans Default Gateway : saisir <span className="text-emerald-400">192.168.10.1</span> (au lieu de laisser vide ou 0.0.0.0)</p>
+      </div>
+      <p className="text-slate-400 text-sm mt-4">Règle : Admin 1 est dans le VLAN 10 (192.168.10.x), sa passerelle doit être 192.168.10.1 (interface routeur sur VLAN 10).</p>
+    </section>
+
+    <section id="dep4-test" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+      <h2 className="text-xl font-bold text-blue-400 mb-6">✅ 4. Test de validation</h2>
+      <p className="text-slate-400 text-xs mb-3">Rappel : Admin 1 = 192.168.10.2, Com 1 = 192.168.20.2. Passerelles = 192.168.10.1 et 192.168.20.1.</p>
+      <ol className="list-decimal list-inside space-y-3 text-slate-300 mb-6">
+        <li>Vérifier chaque PC : Desktop → IP Configuration → Default Gateway renseignée et correcte selon le VLAN.</li>
+        <li>Depuis Admin 1 : <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">ping 192.168.20.2</code> (Com 1) — doit répondre.</li>
+        <li>Depuis Com 1 : <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-sm">ping 192.168.10.2</code> (Admin 1) — doit répondre.</li>
+      </ol>
+    </section>
+
+    <div className="bg-cyan-900/20 border-t border-cyan-500/30 p-6 rounded-xl">
+      <p className="text-cyan-300 text-sm font-medium flex items-center gap-2">
+        <Wrench className="w-5 h-5" /> 
+        Lab 4 : quand les switches et le routeur sont corrects, penser aux <strong>hôtes</strong>. Une passerelle manquante ou vide empêche tout trafic inter-VLAN — comportement stable dans Packet Tracer.
+      </p>
+    </div>
+  </div>
+);
+
+// --- CORRECTION LAB 2 RÉCAPITULATIF – Session 3 (Synthèse Sessions 1, 2, 3) - conservé pour référence ---
 const LabCorrectionSection3Recap = () => (
   <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16">
     <div className="bg-gradient-to-br from-amber-900/30 to-emerald-900/20 border border-amber-500/40 rounded-2xl p-8">
@@ -7735,8 +8336,13 @@ const LabCorrectionSection3Recap = () => (
     <section id="recap-sec" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
       <h2 className="text-xl font-bold text-blue-400 mb-6">🔒 Étape 4 : Sécurisation (Session 1)</h2>
       <p className="text-slate-300 mb-6 leading-relaxed">
-        Sur tous les équipements (R-Core, SW-Core, SW-Dist). Chaque commande est à exécuter en mode configuration globale.
+        Même séquence de commandes sur chaque équipement. Exécutez d'abord sur R-Core, puis sur SW-Core, puis sur SW-Dist.
       </p>
+      
+      <div className="bg-blue-600/30 border-2 border-blue-500 rounded-lg px-4 py-2 mb-4 inline-block">
+        <span className="text-blue-200 font-bold text-sm uppercase tracking-wider">📍 Appareil : R-Core</span>
+      </div>
+      <p className="text-slate-400 text-sm mb-6">Double-cliquez sur <strong>R-Core</strong>, puis <code className="bg-slate-900 px-1 rounded">enable</code> et <code className="bg-slate-900 px-1 rounded">configure terminal</code>.</p>
       <div className="space-y-6">
         <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
           <div className="flex items-start gap-3 mb-2">
@@ -7793,9 +8399,16 @@ const LabCorrectionSection3Recap = () => (
           </div>
         </div>
       </div>
-      <div className="mt-6 bg-blue-900/20 border-l-4 border-blue-500/50 pl-4 py-2">
-        <p className="text-blue-200 text-sm"><strong>Répéter</strong> ces commandes sur SW-Core et SW-Dist (remplacer R-Core par le nom du switch). Optionnel : configurer SSH (ip domain-name, crypto key generate rsa, username, line vty + login local + transport input ssh).</p>
+      
+      <div className="bg-amber-600/30 border-2 border-amber-500 rounded-lg px-4 py-2 mb-4 inline-block mt-8">
+        <span className="text-amber-200 font-bold text-sm uppercase tracking-wider">📍 Appareil : SW-Core</span>
       </div>
+      <p className="text-slate-400 text-sm mb-6">Double-cliquez sur <strong>SW-Core</strong>, puis répétez exactement les mêmes commandes (enable, configure terminal, no ip domain-lookup, enable secret cisco123, line console 0, password console123, login, exit).</p>
+      
+      <div className="bg-amber-600/30 border-2 border-amber-500 rounded-lg px-4 py-2 mb-4 inline-block">
+        <span className="text-amber-200 font-bold text-sm uppercase tracking-wider">📍 Appareil : SW-Dist</span>
+      </div>
+      <p className="text-slate-400 text-sm mb-6">Double-cliquez sur <strong>SW-Dist</strong>, puis répétez les mêmes commandes. Optionnel : configurer SSH (ip domain-name, crypto key generate rsa, username, line vty + login local + transport input ssh).</p>
     </section>
 
     <section id="recap-verify" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
@@ -7805,13 +8418,23 @@ const LabCorrectionSection3Recap = () => (
       </p>
       
       <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">5.1 Sauvegarde sur chaque équipement</h3>
+      <p className="text-slate-400 text-sm mb-4">Commande à exécuter sur <strong>chaque</strong> appareil (SW-Core, SW-Dist, R-Core) : ouvrez le CLI de l'appareil, passez en mode privilégié (<code className="bg-slate-900 px-1 rounded">enable</code>), puis tapez la commande.</p>
+      <div className="space-y-4 mb-4">
+        <div className="flex items-center gap-2">
+          <span className="bg-amber-600/30 border border-amber-500 rounded px-2 py-1 text-amber-200 text-xs font-bold">SW-Core</span>
+          <span className="text-slate-400 text-sm">puis</span>
+          <span className="bg-amber-600/30 border border-amber-500 rounded px-2 py-1 text-amber-200 text-xs font-bold">SW-Dist</span>
+          <span className="text-slate-400 text-sm">puis</span>
+          <span className="bg-blue-600/30 border border-blue-500 rounded px-2 py-1 text-blue-200 text-xs font-bold">R-Core</span>
+        </div>
+      </div>
       <div className="space-y-6">
         <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
           <div className="flex items-start gap-3 mb-2">
             <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core#</code>
             <div className="flex-1">
               <code className="text-emerald-400 font-mono text-sm">copy running-config startup-config</code>
-              <p className="text-slate-400 text-xs mt-1 ml-0">Copier la configuration active (RAM) vers la NVRAM. Réponse : <em>Destination filename [startup-config]?</em> — appuyer sur Entrée. Répéter sur SW-Dist et R-Core.</p>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Copier la configuration active (RAM) vers la NVRAM. Réponse : <em>Destination filename [startup-config]?</em> — appuyer sur Entrée. Répéter ensuite sur SW-Dist puis sur R-Core.</p>
             </div>
           </div>
         </div>
