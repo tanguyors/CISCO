@@ -3992,12 +3992,12 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
         content: (
           <div className="space-y-6">
             <p className="text-slate-200 leading-relaxed text-lg">
-              Les <strong className="text-blue-400">switches</strong> sont des équipements de couche 2 : ils lisent la trame pour l’acheminer, sans changer d’adresse. Avec un <strong>routeur</strong>, le PC envoie un broadcast ARP pour connaître l’adresse MAC du destinataire ; le routeur <strong>bloque les broadcast</strong> et transmet <strong>sa propre MAC</strong> : l’adresse MAC destination change à chaque saut routeur.
+              Les <strong className="text-blue-400">switches</strong> sont des équipement qui relie les PC dans un même réseau. Il lit la trame pour l’acheminer, sans changer d’adresse. Avec un <strong>routeur</strong>, le PC envoie un broadcast ARP pour connaître l’adresse MAC du destinataire ; le routeur <strong>bloque les broadcast</strong> et transmet <strong>sa propre MAC</strong> : l’adresse MAC destination change à chaque saut routeur.
             </p>
             <p className="text-slate-300 text-sm">
               L’intérêt du routage inter-VLAN est de faire communiquer des machines dans des <strong>VLANs et sous-réseaux différents</strong>. La limite classique est le <strong>nombre de connexions physiques</strong> du routeur vers le switch (un câble par VLAN). C’est là qu’intervient le <strong>Router-on-a-Stick</strong> : un seul lien physique (trunk) + des sous-interfaces (une par VLAN) sur le routeur.
             </p>
-            <ProTip>Un lien physique minimum en FastEthernet (ou supérieur) est recommandé pour le Router-on-a-Stick, car tout le trafic inter-VLAN passe par ce lien.</ProTip>
+            <ProTip>Tout le trafic entre VLANs passe par ce seul câble. Il vaut mieux qu'il soit rapide (FastEthernet minimum).</ProTip>
           </div>
         )
       },
@@ -4099,21 +4099,79 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       },
       {
         type: 'rich_text',
+        title: "Qu'est-ce que le routage inter-VLAN ?",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">
+              Imagine deux <strong>bureaux dans le même bâtiment</strong> : le bureau Admin (VLAN 10) et le bureau Commercial (VLAN 20). Ils sont séparés par des cloisons : les gens du bureau Admin ne peuvent pas parler directement à ceux du Commercial. C'est l'isolation des VLANs.
+            </p>
+            <p className="text-slate-300 leading-relaxed">
+              Maintenant, on veut que Marie (Admin) envoie un document à Pierre (Commercial). Il faut quelqu'un qui fasse la liaison entre les deux bureaux — comme un <strong>guichet</strong> au rez-de-chaussée. Ce guichet, c'est le <strong>routeur</strong>. Marie dépose le document au guichet ; le guichet le remet à Pierre. Le routeur fait pareil avec les paquets réseau : il les reçoit d'un VLAN et les envoie vers l'autre. C'est le <strong>routage inter-VLAN</strong>.
+            </p>
+            <div className="bg-amber-900/20 rounded-xl p-5 border border-amber-600/40">
+              <h4 className="text-amber-300 font-bold mb-2">En résumé (sans jargon)</h4>
+              <ul className="list-none space-y-2 text-slate-300 text-sm">
+                <li className="flex gap-2"><span className="text-amber-400">•</span> <strong>VLAN 10 et VLAN 20</strong> = deux « pièces » séparées. Les PC d'une pièce ne voient pas ceux de l'autre.</li>
+                <li className="flex gap-2"><span className="text-amber-400">•</span> <strong>Le routeur</strong> = la « porte » qui relie les deux pièces. Il a une adresse dans chaque pièce (passerelle).</li>
+                <li className="flex gap-2"><span className="text-amber-400">•</span> <strong>Routage inter-VLAN</strong> = le chemin emprunté par un message quand il va d'une pièce à l'autre, en passant par le routeur.</li>
+              </ul>
+            </div>
+            <div className="bg-blue-600/20 border-2 border-blue-500 rounded-xl p-5">
+              <h4 className="text-blue-300 font-bold mb-2">Pourquoi on en a besoin ?</h4>
+              <p className="text-slate-200 text-sm">En entreprise, on sépare les départements (Admin, Commercial, etc.) pour la sécurité. Mais parfois, Admin doit envoyer un fichier à Commercial. Sans routeur : impossible. Avec un routeur qui « touche » les deux réseaux : ça marche.</p>
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-slate-800 rounded-xl p-5 border border-slate-600">
+                <h4 className="text-amber-400 font-bold mb-2">Sans routage</h4>
+                <p className="text-slate-400 text-sm">Admin et Commercial sont chacun dans leur bulle. Pas de communication entre eux.</p>
+              </div>
+              <div className="bg-slate-800 rounded-xl p-5 border border-emerald-600/50">
+                <h4 className="text-emerald-400 font-bold mb-2">Avec routage</h4>
+                <p className="text-slate-400 text-sm">Le routeur fait le pont. Les messages passent par lui pour aller de l'un à l'autre.</p>
+              </div>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
         title: "Routage Inter-VLAN (Router-on-a-Stick)",
         content: (
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Explication des sous-interfaces - version débutant */}
+            <div className="bg-blue-600/20 border-l-4 border-blue-500 rounded-r-xl p-5">
+              <h4 className="text-blue-300 font-bold mb-2">C'est quoi une sous-interface ?</h4>
+              <p className="text-slate-200 text-sm leading-relaxed mb-3">
+                Normalement, un routeur a une prise (port) par réseau. Pour 2 VLANs, il faudrait 2 câbles. Mais on veut n'utiliser qu'<strong>un seul câble</strong> entre le switch et le routeur.
+              </p>
+              <p className="text-slate-200 text-sm leading-relaxed mb-3">
+                La solution : créer des <strong>sous-interfaces</strong>. C'est comme diviser virtuellement une prise en plusieurs. Sur la prise g0/0, on crée g0/0.10 (pour le VLAN 10) et g0/0.20 (pour le VLAN 20). Une seule prise physique, mais le routeur se comporte comme s'il avait deux portes : une vers Admin, une vers Commercial.
+              </p>
+              <p className="text-slate-300 text-xs">En bref : 1 câble, plusieurs « portes logiques » (sous-interfaces), chacune avec sa propre adresse IP.</p>
+            </div>
+            {/* Explication de l'encapsulation - version débutant */}
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 rounded-r-xl p-5">
+              <h4 className="text-amber-300 font-bold mb-2">C'est quoi l'encapsulation dot1Q ?</h4>
+              <p className="text-slate-200 text-sm leading-relaxed mb-3">
+                Sur le câble entre le switch et le routeur, les messages voyagent <strong>tous ensemble</strong>. Pour que le routeur sache lequel va vers Admin et lequel vers Commercial, chaque message porte une <strong>étiquette</strong> (un numéro) : « je suis pour le VLAN 10 » ou « je suis pour le VLAN 20 ». C'est le protocole 802.1Q (dot1Q).
+              </p>
+              <p className="text-slate-200 text-sm leading-relaxed mb-3">
+                La commande <code className="bg-slate-800 px-1 rounded text-emerald-400">encapsulation dot1Q 10</code> dit au routeur : « Pour la sous-interface g0/0.10, ne reçois que les messages qui ont l'étiquette « VLAN 10 ». » Ainsi, g0/0.10 ne reçoit que le trafic Admin, et g0/0.20 que le trafic Commercial.
+              </p>
+              <p className="text-slate-300 text-xs">En bref : l'encapsulation l'associe la sous-interface au bon VLAN (grâce à l'étiquette sur les messages).</p>
+            </div>
             <p className="text-slate-200 leading-relaxed text-lg">
-              Sur le routeur (R-Core), créez des sous-interfaces par VLAN avec encapsulation 802.1Q et une IP par VLAN :
+              Configuration sur le routeur (R-Core) :
             </p>
             <div className="bg-slate-800 rounded-lg p-4 border border-slate-700">
-              <HumanCommand cmd="interface g0/0.10" human="Sous-interface pour VLAN 10." />
-              <HumanCommand cmd="encapsulation dot1Q 10" human="Encapsulation 802.1Q VLAN 10." />
-              <HumanCommand cmd="ip address 192.168.10.1 255.255.255.0" human="Passerelle VLAN 10." />
-              <HumanCommand cmd="interface g0/0.20" human="Sous-interface pour VLAN 20." />
-              <HumanCommand cmd="encapsulation dot1Q 20" human="Encapsulation 802.1Q VLAN 20." />
-              <HumanCommand cmd="ip address 192.168.20.1 255.255.255.0" human="Passerelle VLAN 20." />
+              <HumanCommand cmd="interface g0/0.10" human="Créer la « porte » vers le VLAN 10 (Admin)." />
+              <HumanCommand cmd="encapsulation dot1Q 10" human="Dire : cette porte ne reçoit que les messages étiquetés VLAN 10." />
+              <HumanCommand cmd="ip address 192.168.10.1 255.255.255.0" human="Adresse du routeur dans le réseau Admin. Les PC Admin mettront cette IP comme « passerelle par défaut »." />
+              <HumanCommand cmd="interface g0/0.20" human="Créer la « porte » vers le VLAN 20 (Commercial)." />
+              <HumanCommand cmd="encapsulation dot1Q 20" human="Cette porte ne reçoit que les messages étiquetés VLAN 20." />
+              <HumanCommand cmd="ip address 192.168.20.1 255.255.255.0" human="Adresse du routeur dans le réseau Commercial." />
             </div>
-            <ProTip>PC VLAN 10 : 192.168.10.X/24 ; PC VLAN 20 : 192.168.20.X/24. Le routeur fait le routage entre VLANs.</ProTip>
+            <ProTip>Sur chaque PC : définir l'adresse IP ET la « passerelle par défaut » (gateway) = l'IP du routeur sur son VLAN. Ex. PC Admin : passerelle 192.168.10.1 ; PC Commercial : passerelle 192.168.20.1.</ProTip>
           </div>
         )
       },
@@ -4280,6 +4338,34 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
               <li className="flex gap-2"><span className="text-emerald-400">•</span> Vérification de la segmentation et de l’interconnexion réseau</li>
             </ul>
             <p className="text-slate-400 text-sm mt-3">Ce lab montre comment relier logiquement plusieurs VLANs et permettre leur communication de manière professionnelle dans un réseau d’entreprise.</p>
+          </div>
+
+          {/* LAB 2 RÉCAPITULATIF - Synthèse Sessions 1, 2 et 3 (version simplifiée) */}
+          <div className="mt-14 pt-10 border-t-2 border-amber-500/50">
+            <div className="bg-amber-900/30 border-2 border-amber-500/60 rounded-xl p-6 mb-6">
+              <h4 className="text-amber-400 font-bold text-xl mb-2">LAB RÉCAPITULATIF – Synthèse des 3 sessions</h4>
+              <p className="text-amber-100/90 text-base leading-relaxed">
+                Révision en un seul lab : VLANs, trunk, Router-on-a-Stick, sécurisation et sauvegarde. Réalisez-le sur <strong>Cisco Packet Tracer</strong>.
+              </p>
+            </div>
+            <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+              <h4 className="text-emerald-400 font-bold text-lg">Matériel</h4>
+              <p className="text-slate-300 text-sm">2 switches (SW-Core, SW-Dist), 1 routeur (R-Core), 2 PC Admin, 2 PC Commercial. Même topologie que le Lab 1 de la session.</p>
+            </div>
+            <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+              <h4 className="text-blue-400 font-bold text-lg">À faire</h4>
+              <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
+                <li><strong>VLANs</strong> (Session 2) : créer VLAN 10 et 20 sur chaque switch. Mettre les ports des PC en mode access dans le bon VLAN.</li>
+                <li><strong>Trunk</strong> (Session 3) : sur le port qui relie les deux switches, <code className="text-emerald-400 font-mono">switchport mode trunk</code>.</li>
+                <li><strong>Router-on-a-Stick</strong> (Session 3) : sur le routeur, sous-interfaces g0/0.10 et g0/0.20 avec encapsulation dot1Q et IP (192.168.10.1 et 192.168.20.1). Configurer les PC avec les bonnes passerelles.</li>
+                <li><strong>Sécurisation</strong> (Session 1) : enable secret, mot de passe console. Optionnel : SSH.</li>
+                <li><strong>Sauvegarde</strong> : <code className="text-emerald-400 font-mono">copy running-config startup-config</code> sur chaque équipement.</li>
+              </ol>
+            </div>
+            <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-2">
+              <h4 className="text-blue-400 font-bold text-lg">Validation</h4>
+              <p className="text-slate-300 text-sm">Ping entre PC du même VLAN ✓ — Ping entre PC de VLANs différents (via le routeur) ✓.</p>
+            </div>
           </div>
         </div>
       ),
@@ -6563,14 +6649,14 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
             onClick={() => setLabTab('correction')}
             className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
           >
-            <CheckCircle className="w-4 h-4" /> {isSession3 ? 'Correction' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
+            <CheckCircle className="w-4 h-4" /> {isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
           </button>
-          {!isSession3 && (
+          {(isSession2 || isSession3) && (
             <button
               onClick={() => setLabTab('correction_lab2')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab2' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
+              <CheckCircle className="w-4 h-4" /> {isSession3 ? 'Correction Lab 2 (Récapitulatif)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
             </button>
           )}
         </div>
@@ -6595,7 +6681,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
       {labTab === 'correction_lab2' && (
         <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {isSession2 ? (lab.solutionContentLab2 || (
+            {isSession3 ? <LabCorrectionSection3Recap /> : isSession2 ? (lab.solutionContentLab2 || (
               <div className="max-w-2xl mx-auto bg-slate-800/50 border border-slate-600 rounded-xl p-8 text-center">
                 <h3 className="text-xl font-bold text-blue-400 mb-3">Correction Lab 2 – VLAN avancés et sécurisation</h3>
                 <p className="text-slate-400">Trunk, VLAN autorisés, VLAN natif. Pour les consignes et la correction détaillée, suivre le PDF « 3 - Introduction Vlan avancés et sécurisation - LAB.pdf ».</p>
@@ -7217,6 +7303,562 @@ const LabCorrectionSection3 = () => (
       <p className="text-emerald-300 text-sm font-medium flex items-center gap-2">
         <CheckCircle className="w-5 h-5" /> 
         Cette correction détaillée commande par commande vous guide pas à pas dans la compréhension de la circulation des données entre différents réseaux virtuels. Chaque commande est expliquée pour comprendre son rôle dans la configuration globale.
+      </p>
+    </div>
+  </div>
+);
+
+// --- CORRECTION LAB 2 RÉCAPITULATIF – Session 3 (Synthèse Sessions 1, 2, 3) ---
+const LabCorrectionSection3Recap = () => (
+  <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16">
+    <div className="bg-gradient-to-br from-amber-900/30 to-emerald-900/20 border border-amber-500/40 rounded-2xl p-8">
+      <h1 className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
+        <CheckCircle className="w-8 h-8 text-amber-400 flex-shrink-0" /> Correction Lab 2 – Récapitulatif (Synthèse des 3 sessions)
+      </h1>
+      <p className="text-amber-100/90 text-lg leading-relaxed">VLANs, trunk, Router-on-a-Stick, sécurisation et sauvegarde. Même style que les autres corrections.</p>
+    </div>
+
+    <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-600 py-2 mb-6">
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
+        {[
+          { id: 'recap-vlan', label: 'VLANs', icon: '🏷️' },
+          { id: 'recap-trunk', label: 'Trunk', icon: '🔗' },
+          { id: 'recap-router', label: 'Router-on-a-Stick', icon: '🚀' },
+          { id: 'recap-sec', label: 'Sécurisation', icon: '🔒' },
+          { id: 'recap-verify', label: 'Tests', icon: '✅' },
+        ].map(({ id, label, icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
+          >
+            <span className="text-[10px]">{icon}</span> {label}
+          </button>
+        ))}
+      </div>
+    </nav>
+
+    <section className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8">
+      <h2 className="text-xl font-bold text-emerald-400 mb-6">🎯 Introduction</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">
+        Ce lab récapitule les notions des Sessions 1, 2 et 3. Topologie : 2 switches (SW-Core, SW-Dist), 1 routeur (R-Core), 2 PC Admin, 2 PC Commercial. Même câblage que le Lab 1 de la session.
+      </p>
+    </section>
+
+    <section id="recap-vlan" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+      <h2 className="text-xl font-bold text-blue-400 mb-6">🏷️ Étape 1 : VLANs et ports access (Session 2)</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">
+        Sur chaque switch (SW-Core et SW-Dist), créer les VLANs puis assigner les ports des PC.
+      </p>
+      
+      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">1.1 Création des VLANs sur SW-Core</h3>
+      <div className="space-y-6">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Switch&gt;</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">enable</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Passer en mode privilégié.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Switch#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">configure terminal</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Entrer en mode configuration globale.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Switch(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">hostname SW-Core</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Renommer le switch. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">SW-Core(config)#</code>.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">vlan 10</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Créer le VLAN 10. Le prompt passe en <code className="bg-slate-800 px-1 rounded text-xs">SW-Core(config-vlan)#</code>.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-vlan)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">name Administration</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Donner un nom descriptif au VLAN 10 pour le reconnaître dans <code className="bg-slate-800 px-1 rounded text-xs">show vlan brief</code>.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-vlan)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">exit</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir du mode configuration VLAN.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">vlan 20</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Créer le VLAN 20 pour le département Commercial.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-vlan)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">name Commercial</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Nommer le VLAN 20.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-vlan)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">exit</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Retourner au mode configuration globale.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">1.2 Attribution des ports aux VLANs (ex. PC Admin sur fa0/2, PC Commercial sur fa0/3)</h3>
+      <div className="space-y-6">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">interface fa0/2</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sélectionner le port où est branché le PC Administration. Adapter le numéro selon votre câblage.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">switchport mode access</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Définir le port en mode access (un seul VLAN par port, pour les PC).</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">switchport access vlan 10</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Assigner ce port au VLAN 10. Les paquets entrant seront étiquetés VLAN 10.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">exit</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir de la configuration d'interface.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">interface fa0/3</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sélectionner le port du PC Commercial.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">switchport mode access</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Mode access pour ce port.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">switchport access vlan 20</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Assigner ce port au VLAN 20.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">exit</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Retourner au mode configuration globale.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-6 bg-blue-900/20 border-l-4 border-blue-500/50 pl-4 py-2">
+        <p className="text-blue-200 text-sm"><strong>Répéter</strong> exactement les mêmes étapes sur SW-Dist (en remplaçant SW-Core par SW-Dist). Adapter les numéros de ports selon les PC branchés. Vérifier avec <code className="bg-slate-900 px-1 rounded font-mono">show vlan brief</code>.</p>
+      </div>
+    </section>
+
+    <section id="recap-trunk" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+      <h2 className="text-xl font-bold text-blue-400 mb-6">🔗 Étape 2 : Trunk (Session 3)</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">
+        Le trunk permet de transporter plusieurs VLANs sur un seul câble entre switches. Sur SW-Core : fa0/24 (vers SW-Dist) <strong>et</strong> fa0/1 (vers le routeur pour Router-on-a-Stick). Sur SW-Dist : fa0/24.
+      </p>
+      
+      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">2.1 Port fa0/24 – SW-Core (lien inter-switch)</h3>
+      <div className="space-y-6">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">interface fa0/24</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sélectionner le port qui relie SW-Core à SW-Dist. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">SW-Core(config-if)#</code>.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">switchport mode trunk</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Activer le mode trunk. Les trames seront étiquetées 802.1Q avec le VLAN ID. Un seul câble transporte VLAN 10 et 20.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">switchport trunk allowed vlan 10,20</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Optionnel : restreindre les VLANs autorisés sur le trunk pour la sécurité. Seuls 10 et 20 traverseront ce lien.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">exit</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir de la configuration d'interface.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">2.2 Port fa0/1 – SW-Core (lien vers le routeur)</h3>
+      <p className="text-slate-300 mb-4 leading-relaxed">
+        Pour le Router-on-a-Stick, le routeur envoie des trames étiquetées 802.1Q. Le port du switch vers le routeur doit donc être en trunk.
+      </p>
+      <div className="space-y-6">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">interface fa0/1</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Port connecté au routeur R-Core.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">switchport mode trunk</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Activer le trunk pour que les sous-interfaces du routeur (g0/0.10, g0/0.20) reçoivent le trafic des VLANs correspondants.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">exit</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Retourner au mode configuration globale.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">2.3 Sur SW-Dist – port fa0/24</h3>
+      <p className="text-slate-300 mb-4 leading-relaxed">
+        Répéter la même configuration sur SW-Dist pour le port fa0/24 (vers SW-Core) : <code className="bg-slate-900 px-1 rounded text-emerald-400 font-mono">interface fa0/24</code>, <code className="bg-slate-900 px-1 rounded text-emerald-400 font-mono">switchport mode trunk</code>, <code className="bg-slate-900 px-1 rounded text-emerald-400 font-mono">switchport trunk allowed vlan 10,20</code> (optionnel), <code className="bg-slate-900 px-1 rounded text-emerald-400 font-mono">exit</code>.
+      </p>
+      <div className="mt-6 bg-emerald-900/20 border-l-4 border-emerald-500/50 pl-4 py-2">
+        <p className="text-emerald-200 text-sm"><strong>Vérification :</strong> <code className="bg-slate-900 px-1 rounded font-mono">show interfaces trunk</code> — le trunk doit être actif et les VLANs 10 et 20 autorisés.</p>
+      </div>
+    </section>
+
+    <section id="recap-router" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+      <h2 className="text-xl font-bold text-blue-400 mb-6">🚀 Étape 3 : Router-on-a-Stick (Session 3)</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">
+        Le routeur crée des sous-interfaces virtuelles (une par VLAN) sur une seule interface physique. Chaque sous-interface reçoit le trafic de son VLAN grâce à l'encapsulation 802.1Q.
+      </p>
+      
+      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">3.1 Activation de l'interface physique</h3>
+      <div className="space-y-6">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">interface g0/0</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sélectionner l'interface physique connectée au switch. Sur certains routeurs Packet Tracer : <code className="bg-slate-800 px-1 rounded text-xs">fa0/0</code>.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">no shutdown</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Activer l'interface. <strong>Important :</strong> les sous-interfaces ne fonctionnent pas si l'interface mère est administratively down.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Core(config-if)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">exit</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Retourner au mode configuration globale.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">3.2 Sous-interface pour VLAN 10</h3>
+      <div className="space-y-6">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">interface g0/0.10</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Créer la sous-interface (le .10 correspond au VLAN). Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">R-Core(config-subif)#</code>.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Core(config-subif)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">encapsulation dot1Q 10</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Lier cette sous-interface au VLAN 10. Elle ne recevra que les paquets étiquetés VLAN 10.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Core(config-subif)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">ip address 192.168.10.1 255.255.255.0</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Adresse de la passerelle pour les PC du VLAN 10. Ils utiliseront 192.168.10.1 comme gateway.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Core(config-subif)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">exit</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir de la sous-interface.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">3.3 Sous-interface pour VLAN 20</h3>
+      <div className="space-y-6">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">interface g0/0.20</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Créer la sous-interface pour le VLAN 20.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Core(config-subif)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">encapsulation dot1Q 20</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Lier au VLAN 20.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Core(config-subif)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">ip address 192.168.20.1 255.255.255.0</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Passerelle pour les PC du VLAN 20.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Core(config-subif)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">exit</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Retourner au mode configuration globale.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">3.4 Configuration des PC</h3>
+      <p className="text-slate-300 mb-4 leading-relaxed">Dans Packet Tracer, Desktop → IP Configuration :</p>
+      <ul className="list-none space-y-2 ml-0 text-slate-300 mb-6">
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">•</span><span><strong>PC Admin :</strong> IP 192.168.10.2 (ou .3), masque 255.255.255.0, passerelle 192.168.10.1</span></li>
+        <li className="flex gap-3 items-start"><span className="font-bold text-emerald-400/90 shrink-0">•</span><span><strong>PC Commercial :</strong> IP 192.168.20.2 (ou .3), masque 255.255.255.0, passerelle 192.168.20.1</span></li>
+      </ul>
+    </section>
+
+    <section id="recap-sec" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+      <h2 className="text-xl font-bold text-blue-400 mb-6">🔒 Étape 4 : Sécurisation (Session 1)</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">
+        Sur tous les équipements (R-Core, SW-Core, SW-Dist). Chaque commande est à exécuter en mode configuration globale.
+      </p>
+      <div className="space-y-6">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">no ip domain-lookup</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Désactiver la résolution DNS. Évite les délais de 5-10 s lors d'une erreur de frappe (commande inexistante).</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">enable secret cisco123</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Mot de passe privilégié chiffré (MD5). Demandé à chaque <code className="bg-slate-800 px-1 rounded text-xs">enable</code>.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Core(config)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">line console 0</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Entrer en configuration de la ligne console (prise physique). Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">R-Core(config-line)#</code>.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Core(config-line)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">password console123</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Définir le mot de passe pour la connexion console.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Core(config-line)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">login</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Activer la demande de mot de passe à la connexion console. Sans <code className="bg-slate-800 px-1 rounded text-xs">login</code>, le mot de passe n'est pas demandé.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">R-Core(config-line)#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">exit</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Sortir des lignes console.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-6 bg-blue-900/20 border-l-4 border-blue-500/50 pl-4 py-2">
+        <p className="text-blue-200 text-sm"><strong>Répéter</strong> ces commandes sur SW-Core et SW-Dist (remplacer R-Core par le nom du switch). Optionnel : configurer SSH (ip domain-name, crypto key generate rsa, username, line vty + login local + transport input ssh).</p>
+      </div>
+    </section>
+
+    <section id="recap-verify" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+      <h2 className="text-xl font-bold text-blue-400 mb-6">✅ Étape 5 : Sauvegarde et tests</h2>
+      <p className="text-slate-300 mb-6 leading-relaxed">
+        Sans sauvegarde, toutes les modifications sont perdues au redémarrage.
+      </p>
+      
+      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">5.1 Sauvegarde sur chaque équipement</h3>
+      <div className="space-y-6">
+        <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+          <div className="flex items-start gap-3 mb-2">
+            <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">SW-Core#</code>
+            <div className="flex-1">
+              <code className="text-emerald-400 font-mono text-sm">copy running-config startup-config</code>
+              <p className="text-slate-400 text-xs mt-1 ml-0">Copier la configuration active (RAM) vers la NVRAM. Réponse : <em>Destination filename [startup-config]?</em> — appuyer sur Entrée. Répéter sur SW-Dist et R-Core.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">5.2 Tests de connectivité</h3>
+      <div className="mt-6 overflow-x-auto rounded-xl border border-slate-600">
+        <table className="w-full text-left">
+          <thead>
+            <tr className="bg-slate-700/80 text-slate-200">
+              <th className="px-5 py-3 font-bold">Test</th>
+              <th className="px-5 py-3 font-bold">Commande</th>
+              <th className="px-5 py-3 font-bold">Résultat</th>
+            </tr>
+          </thead>
+          <tbody className="text-slate-300">
+            <tr className="border-t border-slate-600">
+              <td className="px-5 py-3">Ping intra-VLAN</td>
+              <td className="px-5 py-3"><code className="bg-slate-900 px-1 rounded text-emerald-400 font-mono text-xs">ping 192.168.10.3</code> (depuis Admin1)</td>
+              <td className="px-5 py-3"><span className="text-emerald-400 font-bold">Succès ✓</span></td>
+            </tr>
+            <tr className="border-t border-slate-600">
+              <td className="px-5 py-3">Ping vers passerelle</td>
+              <td className="px-5 py-3"><code className="bg-slate-900 px-1 rounded text-emerald-400 font-mono text-xs">ping 192.168.10.1</code></td>
+              <td className="px-5 py-3"><span className="text-emerald-400 font-bold">Succès ✓</span></td>
+            </tr>
+            <tr className="border-t border-slate-600">
+              <td className="px-5 py-3">Ping inter-VLAN</td>
+              <td className="px-5 py-3"><code className="bg-slate-900 px-1 rounded text-emerald-400 font-mono text-xs">ping 192.168.20.2</code> (depuis Admin1 vers Com1)</td>
+              <td className="px-5 py-3"><span className="text-emerald-400 font-bold">Succès ✓</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 className="text-slate-200 font-bold mb-4 mt-6 border-b border-slate-600 pb-2">5.3 Commandes de vérification</h3>
+      <ul className="list-none space-y-2 ml-0 text-slate-300 text-sm">
+        <li className="flex gap-2"><span className="text-emerald-400">•</span> <code className="bg-slate-900 px-1 rounded font-mono">show vlan brief</code> — VLANs et ports assignés</li>
+        <li className="flex gap-2"><span className="text-emerald-400">•</span> <code className="bg-slate-900 px-1 rounded font-mono">show interfaces trunk</code> — Ports trunk, VLANs autorisés</li>
+        <li className="flex gap-2"><span className="text-emerald-400">•</span> <code className="bg-slate-900 px-1 rounded font-mono">show ip interface brief</code> (routeur) — Sous-interfaces et IP</li>
+      </ul>
+    </section>
+
+    <div className="bg-amber-900/20 border-t border-amber-500/30 p-6 rounded-xl">
+      <p className="text-amber-200 text-sm font-medium flex items-center gap-2">
+        <CheckCircle className="w-5 h-5" /> 
+        Ce lab récapitule Session 1 (sécurisation, sauvegarde), Session 2 (VLANs, ports access) et Session 3 (trunk, Router-on-a-Stick).
       </p>
     </div>
   </div>
