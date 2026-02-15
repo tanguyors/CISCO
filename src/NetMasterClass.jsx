@@ -663,6 +663,68 @@ const DataFlowAnimation = () => {
   );
 };
 
+// Animation du flux DORA (DHCP)
+const DoraFlowAnimation = () => {
+  const [step, setStep] = useState(0);
+  const steps = [
+    { letter: 'D', label: 'Discover', desc: 'Le client envoie une demande de configuration (broadcast)', color: 'blue' },
+    { letter: 'O', label: 'Offer', desc: 'Le serveur propose une adresse IP au client', color: 'emerald' },
+    { letter: 'R', label: 'Request', desc: 'Le client accepte l\'offre et la demande officiellement', color: 'amber' },
+    { letter: 'A', label: 'Acknowledge', desc: 'Le serveur confirme l\'attribution et enregistre le bail', color: 'violet' }
+  ];
+
+  return (
+    <div className="bg-slate-800 rounded-xl border border-slate-700 p-6">
+      <h3 className="text-xl font-bold text-white flex items-center gap-2 mb-6">
+        <Activity className="w-6 h-6 text-amber-400" /> Flux DORA – Attribution DHCP
+      </h3>
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <div className="text-center flex-1">
+          <div className="bg-blue-900/30 p-4 rounded-lg border border-blue-500/30">
+            <Monitor className="w-10 h-10 text-blue-400 mx-auto" />
+          </div>
+          <p className="text-slate-300 font-semibold mt-2">Client (PC)</p>
+          <p className="text-slate-500 text-xs">0.0.0.0 au départ</p>
+        </div>
+        <div className="flex-1 flex justify-center gap-2">
+          {steps.map((s, i) => (
+            <div
+              key={s.letter}
+              className={`w-14 h-14 rounded-xl flex flex-col items-center justify-center font-bold transition-all cursor-pointer border-2 ${
+                step >= i
+                  ? s.color === 'blue' ? 'bg-blue-600 border-blue-400 text-white'
+                  : s.color === 'emerald' ? 'bg-emerald-600 border-emerald-400 text-white'
+                  : s.color === 'amber' ? 'bg-amber-600 border-amber-400 text-white'
+                  : 'bg-violet-600 border-violet-400 text-white'
+                  : 'bg-slate-700 border-slate-600 text-slate-500'
+              }`}
+              onClick={() => setStep(i)}
+            >
+              <span className="text-lg">{s.letter}</span>
+              <span className="text-[9px] opacity-90">{s.label.slice(0, 3)}</span>
+            </div>
+          ))}
+        </div>
+        <div className="text-center flex-1">
+          <div className="bg-amber-900/30 p-4 rounded-lg border border-amber-500/30">
+            <Server className="w-10 h-10 text-amber-400 mx-auto" />
+          </div>
+          <p className="text-slate-300 font-semibold mt-2">Serveur DHCP</p>
+          <p className="text-slate-500 text-xs">Pool d'adresses</p>
+        </div>
+      </div>
+      <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+        <p className="text-amber-300 font-bold mb-2">{steps[step].label}</p>
+        <p className="text-slate-300 text-sm">{steps[step].desc}</p>
+      </div>
+      <div className="flex justify-between mt-4">
+        <button onClick={() => setStep(Math.max(0, step - 1))} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm">← Précédent</button>
+        <button onClick={() => setStep(Math.min(3, step + 1))} className="px-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-lg text-sm">Suivant →</button>
+      </div>
+    </div>
+  );
+};
+
 // Schéma de configuration avant/après
 const ConfigComparison = ({ before, after, title }) => {
   const [viewMode, setViewMode] = useState('split'); // 'split', 'before', 'after'
@@ -4469,6 +4531,1118 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       { q: "Qu'est-ce que le Router-on-a-Stick ?", options: ["Un routeur physique dédié", "Un routeur avec des sous-interfaces (une par VLAN) pour faire le routage inter-VLAN", "Un switch"], a: 1 },
       { q: "Pour une sous-interface VLAN 10 sur le routeur, on utilise :", options: ["interface g0/0", "interface g0/0.10 + encapsulation dot1Q 10", "vlan 10"], a: 1 }
     ]
+  },
+  {
+    id: 4,
+    title: "Session 1 : DHCP & DNS",
+    duration: "1h",
+    icon: <Server className="w-5 h-5" />,
+    slides: [
+      {
+        type: 'intro',
+        title: "Cours Théorique – Séance 1 : Services d'Attribution et de Résolution (DHCP & DNS)",
+        content: `Bienvenue ! Ce cours s'adresse aux débutants. Nous allons progresser pas à pas.
+
+Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des services DHCP et DNS dans un réseau d'entreprise.
+
+🎯 À la fin, vous serez capable de :
+📡 Comprendre le protocole DHCP et le flux DORA
+📋 Configurer un pool DHCP sur un routeur Cisco
+🌐 Comprendre le DNS et le configurer
+📝 Maîtriser les commandes Cisco`
+      },
+      {
+        type: 'rich_text',
+        title: "Le problème : configurer chaque PC à la main",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">Imaginez une entreprise avec 50 postes. Pour que chaque PC accède au réseau, il faut lui donner une <strong>adresse IP</strong>, un <strong>masque</strong>, une <strong>passerelle</strong> et un <strong>serveur DNS</strong>.</p>
+            <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
+              <p className="text-red-200 font-bold mb-2">Sans automatisation :</p>
+              <ul className="text-red-100/90 text-sm space-y-1 list-disc list-inside">
+                <li>50 postes = 50 configurations manuelles</li>
+                <li>Risque de conflits (2 PC avec la même IP)</li>
+                <li>Erreurs de frappe (192.168.1.1 vs 192.168.1.l)</li>
+                <li>Changement de serveur DNS = modifier 50 postes</li>
+              </ul>
+            </div>
+            <p className="text-slate-300">La solution : le <strong>DHCP</strong>, qui attribue tout automatiquement.</p>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "DHCP – C'est quoi, en une phrase ?",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-xl text-center py-4">Le <strong className="text-amber-400">DHCP</strong> est un service qui donne <strong>automatiquement</strong> une adresse IP et les paramètres réseau à chaque PC qui se branche.</p>
+            <div className="bg-amber-900/20 border border-amber-500/40 rounded-xl p-6">
+              <p className="text-amber-200 font-bold mb-2">Dynamic Host Configuration Protocol</p>
+              <p className="text-slate-300 text-sm">Protocole standardisé (RFC 2131) utilisé partout dans le monde. Les routeurs Cisco peuvent faire office de serveur DHCP.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "DHCP – Quelles infos sont attribuées ?",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Le DHCP ne donne pas que l'adresse IP. Il peut aussi fournir :</p>
+            <ul className="space-y-3 text-slate-300">
+              <li className="flex gap-3"><span className="bg-amber-600/30 text-amber-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0">1</span><span><strong>Adresse IP</strong> — l'identité du PC sur le réseau</span></li>
+              <li className="flex gap-3"><span className="bg-amber-600/30 text-amber-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0">2</span><span><strong>Masque de sous-réseau</strong> — définit le réseau local</span></li>
+              <li className="flex gap-3"><span className="bg-amber-600/30 text-amber-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0">3</span><span><strong>Passerelle par défaut</strong> — pour joindre les autres réseaux</span></li>
+              <li className="flex gap-3"><span className="bg-amber-600/30 text-amber-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0">4</span><span><strong>Serveur DNS</strong> — pour résoudre les noms (ex. google.fr)</span></li>
+              <li className="flex gap-3"><span className="bg-amber-600/30 text-amber-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0">5</span><span><strong>Durée du bail</strong> — la location de l'IP a une limite dans le temps</span></li>
+            </ul>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "DHCP – Avant vs Après",
+        content: (
+          <div className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-red-900/20 border-2 border-red-500/50 rounded-xl p-5">
+                <p className="text-red-300 font-bold mb-3">❌ Sans DHCP</p>
+                <p className="text-slate-300 text-sm">Sur chaque PC : Configuration manuelle → IP 192.168.1.21, masque 255.255.255.0, passerelle 192.168.1.1, DNS 192.168.1.100. Répéter 50 fois.</p>
+              </div>
+              <div className="bg-emerald-900/20 border-2 border-emerald-500/50 rounded-xl p-5">
+                <p className="text-emerald-300 font-bold mb-3">✅ Avec DHCP</p>
+                <p className="text-slate-300 text-sm">Sur chaque PC : « Obtenir une adresse IP automatiquement ». Le serveur DHCP fait le reste. Une seule config sur le routeur.</p>
+              </div>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Comment le client obtient son IP ? — DORA",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Quand un PC se branche, il n'a pas encore d'IP. Il suit un échange en <strong>4 étapes</strong> avec le serveur DHCP. On appelle ça <strong>DORA</strong> (les initiales en anglais) :</p>
+            <ul className="space-y-2 text-slate-300">
+              <li><strong className="text-blue-400">D</strong>iscover — Le client demande « Qui peut me donner une IP ? »</li>
+              <li><strong className="text-emerald-400">O</strong>ffer — Le serveur répond « Voici une IP pour toi »</li>
+              <li><strong className="text-amber-400">R</strong>equest — Le client dit « Je la prends ! »</li>
+              <li><strong className="text-violet-400">A</strong>cknowledge — Le serveur confirme « C'est enregistré »</li>
+            </ul>
+            <p className="text-slate-400 text-sm">Slide suivante : animation interactive du flux DORA.</p>
+          </div>
+        )
+      },
+      {
+        type: 'dora_flow',
+        title: "Animation : Le flux DORA"
+      },
+      {
+        type: 'rich_text',
+        title: "DORA – Détail de chaque étape",
+        content: (
+          <div className="space-y-4">
+            {[
+              { letter: 'D', label: 'Discover', desc: 'Le client envoie un broadcast (message à tout le monde) : « J\'ai besoin d\'une configuration IP »', color: 'blue' },
+              { letter: 'O', label: 'Offer', desc: 'Le serveur DHCP qui reçoit la demande répond : « Voici une adresse IP disponible pour toi »', color: 'emerald' },
+              { letter: 'R', label: 'Request', desc: 'Le client accepte l\'offre et demande officiellement cette adresse', color: 'amber' },
+              { letter: 'A', label: 'Acknowledge', desc: 'Le serveur confirme et enregistre le bail. Le client peut maintenant utiliser l\'IP.', color: 'violet' }
+            ].map((s, i) => (
+              <div key={i} className="p-4 bg-slate-800/60 rounded-lg border-l-4 border-slate-500">
+                <p className="font-bold text-white"><span className="text-lg mr-2">{s.letter}</span>{s.label}</p>
+                <p className="text-slate-400 text-sm mt-1">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Pourquoi exclure des adresses du pool DHCP ?",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Le pool DHCP contient les adresses qu'on peut attribuer aux PC. Mais certaines adresses ne doivent <strong>jamais</strong> être données par le DHCP :</p>
+            <ul className="space-y-2 text-slate-300">
+              <li><strong>192.168.1.1</strong> — la passerelle (le routeur) a une IP fixe</li>
+              <li><strong>192.168.1.10 à .20</strong> — des serveurs (fichiers, imprimantes) ont des IP fixes</li>
+              <li><strong>192.168.1.250 à .254</strong> — réservées pour équipements réseau</li>
+            </ul>
+            <p className="text-slate-300">On « exclut » ces plages pour que le DHCP ne les attribue jamais. Sinon : conflit d'IP, plus de passerelle, panne réseau.</p>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Config DHCP – Étape 1 : Les exclusions",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Avant de créer le pool, on exclut les adresses réservées. <strong>Ordre important</strong> : exclusions d'abord, pool ensuite.</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm">
+              <p className="text-slate-400">Router(config)#</p>
+              <p className="text-emerald-400">ip dhcp excluded-address 192.168.1.1 192.168.1.10</p>
+              <p className="text-slate-500 text-xs mt-2">→ Réserve 192.168.1.1 à 192.168.1.10 (passerelle + quelques serveurs)</p>
+              <p className="text-emerald-400 mt-3">ip dhcp excluded-address 192.168.1.250 192.168.1.254</p>
+              <p className="text-slate-500 text-xs mt-2">→ Réserve la fin du range pour des équipements fixes</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Config DHCP – Étape 2 : Créer le pool",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">On crée un pool nommé (ex. LAN) et on entre en mode de configuration du pool :</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm">
+              <p className="text-emerald-400">ip dhcp pool LAN</p>
+              <p className="text-slate-400 mt-2">Router(dhcp-config)#</p>
+              <p className="text-slate-500 text-xs mt-2">→ Le prompt change : on est dans le pool « LAN »</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Config DHCP – Étape 3 : Plage et paramètres",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Dans le pool, on définit la plage d'adresses et les infos à donner aux clients :</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2">
+              <p className="text-emerald-400">network 192.168.1.0 255.255.255.0</p>
+              <p className="text-slate-500 text-xs">Plage : 192.168.1.0/24 (les exclusions sont automatiquement retirées)</p>
+              <p className="text-emerald-400 mt-3">default-router 192.168.1.1</p>
+              <p className="text-slate-500 text-xs">Passerelle par défaut transmise aux clients</p>
+              <p className="text-emerald-400 mt-2">dns-server 192.168.1.100</p>
+              <p className="text-slate-500 text-xs">Serveur DNS transmis aux clients</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Config DHCP – Résumé complet",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed font-semibold">Configuration complète sur un routeur Cisco :</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-1">
+              <p className="text-slate-500 text-xs">1. Exclusions (en mode config globale)</p>
+              <p className="text-emerald-400">ip dhcp excluded-address 192.168.1.1 192.168.1.10</p>
+              <p className="text-emerald-400">ip dhcp excluded-address 192.168.1.250 192.168.1.254</p>
+              <p className="text-slate-500 text-xs mt-4">2. Pool (en mode dhcp-config)</p>
+              <p className="text-emerald-400">ip dhcp pool LAN</p>
+              <p className="text-emerald-400">network 192.168.1.0 255.255.255.0</p>
+              <p className="text-emerald-400">default-router 192.168.1.1</p>
+              <p className="text-emerald-400">dns-server 192.168.1.100</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Passons au DNS – Le problème",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">Pour accéder à un site web, on tape <strong>www.google.fr</strong> — pas 142.250.186.35. Les humains retiennent les noms, les machines utilisent les adresses IP.</p>
+            <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
+              <p className="text-red-200 font-bold mb-2">Sans DNS :</p>
+              <p className="text-slate-300 text-sm">Il faudrait taper les adresses IP à la main pour chaque site, chaque serveur. Impossible à mémoriser.</p>
+            </div>
+            <p className="text-slate-300">La solution : le <strong>DNS</strong>, qui traduit les noms en adresses IP.</p>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "DNS – C'est quoi, en une phrase ?",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-xl text-center py-4">Le <strong className="text-blue-400">DNS</strong> est un annuaire : vous lui donnez un <strong>nom</strong>, il vous renvoie l'<strong>adresse IP</strong>.</p>
+            <div className="bg-blue-900/20 border border-blue-500/40 rounded-xl p-6 text-center">
+              <p className="text-blue-200 font-mono text-lg">www.google.fr</p>
+              <p className="text-slate-400 my-2">↓</p>
+              <p className="text-emerald-300 font-mono">142.250.186.35</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "DNS – Exemples concrets",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed"><strong>Sur internet :</strong> vous tapez google.fr → le DNS renvoie l'IP du serveur Google.</p>
+            <p className="text-slate-200 leading-relaxed"><strong>En entreprise :</strong> vous tapez \\serveur-fichiers → le DNS interne renvoie l'IP du serveur. Idem pour l'intranet, les imprimantes réseau, etc.</p>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold">Pourquoi c'est essentiel ?</p>
+              <p className="text-slate-300 text-sm">On change l'IP d'un serveur ? On met à jour le DNS. Les utilisateurs gardent le même nom à taper.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "DNS – Comment ça marche ?",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Schéma simplifié :</p>
+            <ol className="space-y-3 text-slate-300 list-decimal list-inside">
+              <li>Le PC demande : « Quelle est l'IP de www.google.fr ? »</li>
+              <li>La requête part vers le serveur DNS configuré sur le PC (souvent donné par le DHCP)</li>
+              <li>Le serveur DNS répond : « 142.250.186.35 »</li>
+              <li>Le PC peut maintenant contacter le serveur Google</li>
+            </ol>
+            <p className="text-slate-400 text-sm">En entreprise, le serveur DNS peut aussi résoudre des noms internes (srv-impression, intranet, etc.).</p>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Config DNS sur un routeur Cisco",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Par défaut, un routeur Cisco peut avoir la résolution DNS désactivée. Pour qu'il résolve des noms (ex. <code className="bg-slate-900 px-1 rounded">ping srv-fichiers</code>) :</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2">
+              <p className="text-emerald-400">ip domain-lookup</p>
+              <p className="text-slate-500 text-xs">Active la résolution DNS (si elle a été désactivée avec no ip domain-lookup)</p>
+              <p className="text-emerald-400 mt-3">ip name-server 192.168.1.100</p>
+              <p className="text-slate-500 text-xs">Indique quel serveur DNS interroger pour résoudre les noms</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Récapitulatif : DHCP et DNS",
+        content: (
+          <div className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-amber-900/20 border border-amber-500/40 rounded-xl p-5">
+                <p className="text-amber-300 font-bold mb-2">DHCP</p>
+                <p className="text-slate-300 text-sm">Attribue automatiquement : IP, masque, passerelle, DNS. Flux DORA. Exclusions pour les adresses fixes.</p>
+              </div>
+              <div className="bg-blue-900/20 border border-blue-500/40 rounded-xl p-5">
+                <p className="text-blue-300 font-bold mb-2">DNS</p>
+                <p className="text-slate-300 text-sm">Traduit les noms en adresses IP. Essentiel pour le web et les services internes. ip domain-lookup + ip name-server.</p>
+              </div>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Texte à trous – Réponses",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-400 text-sm mb-4">Complétez mentalement ou vérifiez vos réponses :</p>
+            <div className="space-y-4">
+              {[
+                { n: 1, text: "Le protocole DHCP permet d'", blank: "attribuer automatiquement", after: " des adresses IP aux équipements d'un réseau." },
+                { n: 2, text: "Les étapes d'une attribution DHCP suivent l'ordre DORA : ", blank: "Discover, Offer, Request, Acknowledgment", after: "." },
+                { n: 3, text: "Un serveur DNS permet de ", blank: "résoudre un nom d'hôte en adresse IP", after: "." },
+                { n: 4, text: "La commande pour indiquer un serveur DNS à un routeur Cisco est ", blank: "ip name-server", after: "." },
+                { n: 5, text: "Le DHCP évite d'avoir à ", blank: "configurer manuellement chaque adresse IP", after: " sur les postes clients." }
+              ].map(({ n, text, blank, after }) => (
+                <div key={n} className="p-4 bg-slate-800/60 rounded-lg border border-slate-600">
+                  <p className="text-slate-300">
+                    <span>{n}. {text}</span>
+                    <span className="bg-emerald-900/40 text-emerald-300 px-2 py-0.5 rounded font-semibold">{blank}</span>
+                    <span>{after}</span>
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Tableau à compléter – Commandes DHCP & DNS",
+        content: (
+          <div className="space-y-6 overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-slate-600">
+                  <th className="text-left py-3 px-4 text-amber-300 font-bold">Objectif</th>
+                  <th className="text-left py-3 px-4 text-emerald-300 font-bold">Commande associée Cisco</th>
+                </tr>
+              </thead>
+              <tbody className="text-slate-300">
+                {[
+                  { obj: "Exclure des adresses du pool DHCP", cmd: "ip dhcp excluded-address [ip_debut] [ip_fin]" },
+                  { obj: "Créer un pool DHCP", cmd: "ip dhcp pool <nom_du_pool>" },
+                  { obj: "Définir la plage d'adresses DHCP", cmd: "network 192.168.1.0 255.255.255.0" },
+                  { obj: "Définir la passerelle par défaut", cmd: "default-router 192.168.1.1" },
+                  { obj: "Spécifier un serveur DNS dans le DHCP", cmd: "dns-server 192.168.1.100" },
+                  { obj: "Activer la résolution DNS sur le routeur", cmd: "ip domain-lookup" },
+                  { obj: "Indiquer le serveur DNS à interroger", cmd: "ip name-server 192.168.1.100" },
+                  { obj: "Vérifier les baux DHCP attribués", cmd: "show ip dhcp binding" }
+                ].map((row, i) => (
+                  <tr key={i} className="border-b border-slate-700 hover:bg-slate-800/50">
+                    <td className="py-3 px-4">{row.obj}</td>
+                    <td className="py-3 px-4 font-mono text-emerald-400">{row.cmd}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Configuration de base DHCP sur un routeur Cisco",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Le routeur Cisco peut agir comme serveur DHCP. Exemple pour le réseau 192.168.1.0/24 :</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-1">
+              <p className="text-slate-500 text-xs mb-2">Exclusion d'adresses fixes (serveurs, imprimantes, passerelle) :</p>
+              <p className="text-emerald-400">ip dhcp excluded-address 192.168.1.1 192.168.1.10</p>
+              <p className="text-emerald-400">ip dhcp excluded-address 192.168.1.250 192.168.1.254</p>
+              <p className="text-slate-500 text-xs mt-4 mb-2">Création du pool DHCP avec les informations nécessaires :</p>
+              <p className="text-emerald-400">ip dhcp pool LAN</p>
+              <p className="text-slate-400">Router(dhcp-config)#</p>
+              <p className="text-emerald-400">network 192.168.1.0 255.255.255.0</p>
+              <p className="text-emerald-400">default-router 192.168.1.1</p>
+              <p className="text-emerald-400">dns-server 192.168.1.100</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Rappel – Fonctionnement DNS et config Cisco",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed font-semibold">Fonctionnement en bref</p>
+            <ul className="text-slate-300 list-disc pl-6 space-y-1">
+              <li>Le poste envoie une requête « Quel est l'IP de ce nom ? » au serveur DNS.</li>
+              <li>Le serveur DNS renvoie l'adresse IP correspondante.</li>
+              <li>Utilisé pour le web et les services internes (intranet, serveurs de fichiers).</li>
+            </ul>
+            <p className="text-slate-200 leading-relaxed font-semibold">Configuration sur un routeur Cisco</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-1">
+              <p className="text-emerald-400">ip domain-lookup</p>
+              <p className="text-slate-500 text-xs">Activation de la résolution DNS depuis l'équipement lui-même</p>
+              <p className="text-emerald-400 mt-2">ip name-server 192.168.1.100</p>
+              <p className="text-slate-500 text-xs">Indication du serveur DNS à interroger</p>
+            </div>
+            <p className="text-slate-400 text-sm">Dans Packet Tracer : Serveur → Services → DNS → créer des enregistrements (nom → IP) pour les noms internes.</p>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Questions rapides – Réponses",
+        content: (
+          <div className="space-y-6">
+            {[
+              { q: "Pourquoi utilise-t-on DHCP dans un réseau ?", a: "Pour automatiser l'attribution des adresses IP et des paramètres réseau (passerelle, DNS), éviter les erreurs de configuration manuelle, et simplifier la gestion des postes." },
+              { q: "Que signifie DORA ?", a: "Discover (le client cherche un serveur), Offer (le serveur propose une adresse), Request (le client demande officiellement l'adresse proposée), Acknowledgment (le serveur valide et enregistre le bail)." },
+              { q: "Quelles informations le DHCP peut-il fournir en plus de l'adresse IP ?", a: "La passerelle par défaut, le ou les serveurs DNS, la durée du bail, le masque de sous-réseau, des options spécifiques selon le réseau." },
+              { q: "Pourquoi un DNS est-il essentiel en entreprise ?", a: "Il permet de transformer des noms faciles à retenir en adresses IP, pour accéder aux services internes (fichiers, intranet, applications) ou à internet, sans mémoriser les IP." },
+              { q: "Peut-on configurer un serveur DNS dans Packet Tracer ?", a: "Oui, en utilisant un serveur dans l'onglet Services > DNS et en créant des enregistrements pour résoudre des noms internes." }
+            ].map((item, i) => (
+              <div key={i} className="p-4 bg-slate-800/60 rounded-lg border border-slate-600">
+                <p className="text-amber-300 font-semibold mb-2">{i + 1}. {item.q}</p>
+                <p className="text-slate-300 text-sm pl-4 border-l-2 border-emerald-500/50">→ {item.a}</p>
+              </div>
+            ))}
+          </div>
+        )
+      },
+      {
+        type: 'interactive_quiz',
+        title: "Quiz : DHCP & DNS",
+        questions: [
+          { q: "Pourquoi utilise-t-on DHCP dans un réseau ?", options: ["Pour augmenter la vitesse", "Pour automatiser l'attribution des adresses IP et des paramètres réseau (passerelle, DNS), éviter les erreurs et simplifier la gestion", "Pour remplacer le routeur"], a: 1, explanation: "DHCP centralise et automatise la configuration IP, réduisant les erreurs et le travail manuel." },
+          { q: "Que signifie DORA ?", options: ["Un mot de passe", "Discover (client cherche), Offer (serveur propose), Request (client demande), Acknowledgment (serveur valide)", "Un protocole de routage"], a: 1, explanation: "DORA décrit les 4 étapes d'une attribution DHCP réussie." },
+          { q: "Quelles informations le DHCP peut-il fournir en plus de l'adresse IP ?", options: ["Rien d'autre", "La passerelle par défaut, le serveur DNS, la durée du bail, le masque", "Uniquement le masque"], a: 1, explanation: "DHCP fournit passerelle, DNS, masque, bail, et options spécifiques selon le réseau." },
+          { q: "Pourquoi un DNS est-il essentiel en entreprise ?", options: ["Il n'est pas essentiel", "Il transforme des noms en IP pour accéder aux services internes ou internet sans mémoriser les adresses", "Il remplace le DHCP"], a: 1, explanation: "Le DNS permet d'utiliser des noms faciles à retenir au lieu d'adresses IP." },
+          { q: "Peut-on configurer un serveur DNS dans Packet Tracer ?", options: ["Non", "Oui, en utilisant un serveur dans l'onglet Services > DNS et en créant des enregistrements", "Uniquement sur un routeur"], a: 1, explanation: "Packet Tracer permet de configurer un serveur DNS avec des enregistrements nom → IP." },
+          { q: "Quelle commande exclut une adresse du pool DHCP ?", options: ["exclude-address", "ip dhcp excluded-address", "dhcp exclude"], a: 1, explanation: "ip dhcp excluded-address [ip] réserve une adresse (souvent la passerelle) pour qu'elle ne soit pas attribuée." }
+        ]
+      },
+      {
+        type: 'command_builder',
+        title: "Construire la configuration DHCP",
+        commandBuilderTitle: "Configuration DHCP minimale",
+        steps: [
+          { cmd: "ip dhcp excluded-address 192.168.1.1 192.168.1.10", desc: "Exclure les adresses fixes (passerelle, serveurs)" },
+          { cmd: "ip dhcp pool LAN", desc: "Créer le pool DHCP" },
+          { cmd: "network 192.168.1.0 255.255.255.0", desc: "Plage d'adresses" },
+          { cmd: "default-router 192.168.1.1", desc: "Passerelle par défaut" },
+          { cmd: "dns-server 192.168.1.100", desc: "Serveur DNS" }
+        ]
+      },
+      {
+        type: 'flashcards',
+        title: "Flashcards : Commandes DHCP & DNS",
+        mode: "command_to_definition",
+        cards: [
+          { q: "ip dhcp excluded-address", a: "Exclure des adresses du pool DHCP (serveurs, passerelle)" },
+          { q: "ip dhcp pool", a: "Créer un pool DHCP" },
+          { q: "network", a: "Définir la plage d'adresses (en mode dhcp-config)" },
+          { q: "default-router", a: "Passerelle par défaut pour les clients DHCP" },
+          { q: "dns-server", a: "Serveur DNS à transmettre aux clients" },
+          { q: "ip domain-lookup", a: "Activer la résolution DNS sur l'équipement" },
+          { q: "ip name-server", a: "Serveur DNS à interroger pour la résolution de noms" },
+          { q: "show ip dhcp binding", a: "Voir les baux DHCP attribués" }
+        ]
+      }
+    ],
+    lab: {
+      title: "Mémo des Commandes – DHCP & DNS",
+      context: "Retrouvez toutes les commandes DHCP et DNS vues dans cette séance : configuration de pool, exclusions, passerelle, DNS, et vérification des baux.",
+      consignes: null,
+      solutionContent: null
+    },
+    quiz: [
+      { q: "Que signifie DORA ?", options: ["Un protocole", "Discover, Offer, Request, Acknowledgment — les 4 étapes DHCP", "Un outil de diagnostic"], a: 1, explanation: "DORA décrit le processus complet d'attribution d'une adresse IP par DHCP." },
+      { q: "Quelle commande crée un pool DHCP ?", options: ["dhcp pool", "ip dhcp pool nom", "create pool"], a: 1, explanation: "ip dhcp pool [nom] crée un pool et entre en mode dhcp-config." },
+      { q: "Comment exclure une plage d'adresses du pool DHCP ?", options: ["exclude gateway", "ip dhcp excluded-address 192.168.1.1 192.168.1.10", "no pool 192.168.1.1"], a: 1, explanation: "ip dhcp excluded-address [ip_debut] [ip_fin] réserve des adresses pour serveurs, passerelle, etc." },
+      { q: "Quelle commande active la résolution DNS sur un routeur Cisco ?", options: ["dns on", "ip domain-lookup", "dns enable"], a: 1, explanation: "ip domain-lookup active la résolution de noms par DNS (souvent désactivée avec no ip domain lookup)." },
+      { q: "Quelle commande indique le serveur DNS à interroger ?", options: ["dns server", "ip name-server 192.168.1.100", "dns 192.168.1.100"], a: 1, explanation: "ip name-server permet au routeur de résoudre des noms de domaine." },
+      { q: "Comment voir les baux DHCP attribués ?", options: ["show dhcp", "show ip dhcp binding", "show leases"], a: 1, explanation: "show ip dhcp binding affiche les baux actifs avec IP, MAC, durée." }
+    ]
+  },
+  {
+    id: 5,
+    title: "Session 2 : HTTP, FTP et ARP",
+    duration: "1h",
+    icon: <Globe className="w-5 h-5" />,
+    slides: [
+      {
+        type: 'intro',
+        title: "Cours Théorique – Séance 2 : HTTP, FTP et ARP",
+        content: `Bienvenue ! Ce cours s'adresse aux débutants. Nous allons progresser pas à pas.
+
+Objectif : Comprendre les protocoles HTTP, FTP et ARP et leur rôle dans la communication réseau.
+
+🎯 À la fin, vous serez capable de :
+📡 Comprendre HTTP et HTTPS (client-serveur, ports 80/443)
+📂 Comprendre FTP (ports 21 et 20, modes actif/passif)
+🔗 Comprendre ARP (résolution IP → MAC, table ARP)`
+      },
+      {
+        type: 'rich_text',
+        title: "1. HTTP – Le problème : afficher des pages web",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">Quand vous tapez <strong>https://www.google.fr</strong> dans votre navigateur, comment le contenu de la page arrive-t-il jusqu'à vous ?</p>
+            <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
+              <p className="text-red-200 font-bold mb-2">Sans protocole standard :</p>
+              <p className="text-slate-300 text-sm">Chaque site inventerait sa propre façon d'envoyer les pages → impossible de s'entendre entre navigateurs et serveurs.</p>
+            </div>
+            <p className="text-slate-300">La solution : le protocole <strong>HTTP</strong>, commun à tous les sites web.</p>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "HTTP – C'est quoi, en une phrase ?",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-xl text-center py-4">Le <strong className="text-blue-400">HTTP</strong> est le protocole qui permet à un navigateur (client) de demander une page web à un serveur et de recevoir la réponse.</p>
+            <div className="bg-blue-900/20 border border-blue-500/40 rounded-xl p-6">
+              <p className="text-blue-200 font-bold mb-2">HyperText Transfer Protocol</p>
+              <p className="text-slate-300 text-sm">Couche application (modèle OSI). Utilisé par tous les navigateurs et serveurs web du monde.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "HTTP – Modèle client-serveur",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">HTTP fonctionne selon un modèle <strong>client-serveur</strong> :</p>
+            <ol className="space-y-3 text-slate-300 list-decimal list-inside">
+              <li><strong>Le client</strong> (navigateur) envoie une requête au serveur (ex : <code className="bg-slate-900 px-1 rounded">GET /page.html</code>)</li>
+              <li><strong>Le serveur</strong> renvoie une réponse avec des en-têtes (headers) et le contenu (body)</li>
+            </ol>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm">
+              <p className="text-amber-300">Requêtes courantes : GET (récupérer), POST (envoyer des données)</p>
+              <p className="text-emerald-400 mt-2">HTTP utilise le port TCP 80</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "HTTP vs HTTPS – La sécurité",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed"><strong>HTTP</strong> transmet les données en clair. N'importe qui sur le réseau peut les lire.</p>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">HTTPS</p>
+              <p className="text-slate-300 text-sm">HTTPS ajoute une couche de chiffrement <strong>TLS/SSL</strong>. Les données sont cryptées.</p>
+              <ul className="text-slate-300 text-sm mt-2 list-disc list-inside">
+                <li><strong>Port 443</strong> (au lieu de 80)</li>
+                <li>Confidentialité : personne ne peut lire les données</li>
+                <li>Authenticité : certificats pour vérifier l'identité du site</li>
+                <li>Intégrité : les données ne sont pas modifiées en transit</li>
+              </ul>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "HTTP – Utilisations",
+        content: (
+          <div className="space-y-6">
+            <ul className="space-y-3 text-slate-300">
+              <li>• <strong>Navigation web</strong> — afficher des pages HTML, images, vidéos</li>
+              <li>• <strong>APIs REST</strong> — les applications échangent des données (JSON, XML) via HTTP</li>
+              <li>• <strong>Services cloud</strong> — beaucoup de services utilisent HTTP en arrière-plan</li>
+            </ul>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "2. FTP – Le problème : transférer des fichiers",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">Comment envoyer ou récupérer des fichiers volumineux entre deux machines (ex : publier un site web, échanger des documents) ?</p>
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
+              <p className="text-blue-200 font-bold mb-2">FTP – File Transfer Protocol</p>
+              <p className="text-slate-300 text-sm">Protocole de la couche application dédié au <strong>transfert de fichiers</strong> entre un client et un serveur.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "FTP – Deux connexions TCP",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">FTP établit <strong>2 connexions TCP</strong> distinctes :</p>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-amber-900/20 border border-amber-500/40 rounded-xl p-5">
+                <p className="text-amber-300 font-bold mb-2">Port 21 — Canal de commandes</p>
+                <p className="text-slate-300 text-sm">Authentification (login/mot de passe), navigation dans les dossiers, ordres (upload, download)</p>
+              </div>
+              <div className="bg-emerald-900/20 border border-emerald-500/40 rounded-xl p-5">
+                <p className="text-emerald-300 font-bold mb-2">Port 20 — Canal de données</p>
+                <p className="text-slate-300 text-sm">Transmission réelle des fichiers (téléchargement, envoi)</p>
+              </div>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "FTP – Mode actif vs Mode passif",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Pour la connexion de données (port 20), deux modes existent :</p>
+            <div className="space-y-4">
+              <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4">
+                <p className="text-amber-300 font-bold">Mode actif</p>
+                <p className="text-slate-300 text-sm">Le serveur initie la connexion de données vers le client. Problème : les pare-feux bloquent souvent les connexions entrantes.</p>
+              </div>
+              <div className="bg-slate-800/60 border border-emerald-600/50 rounded-lg p-4">
+                <p className="text-emerald-300 font-bold">Mode passif</p>
+                <p className="text-slate-300 text-sm">Le client initie toutes les connexions. Plus adapté pour traverser les pare-feux et NAT.</p>
+              </div>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "FTP – Limitations et alternatives",
+        content: (
+          <div className="space-y-6">
+            <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
+              <p className="text-red-200 font-bold mb-2">Limitation de FTP</p>
+              <p className="text-slate-300 text-sm">FTP transmet les données (et le mot de passe) en clair. Non sécurisé sur un réseau non fiable.</p>
+            </div>
+            <p className="text-slate-200 leading-relaxed">Alternatives sécurisées :</p>
+            <ul className="text-slate-300 list-disc pl-6 space-y-1">
+              <li><strong>SFTP</strong> — FTP via SSH (chiffrement intégré)</li>
+              <li><strong>FTPS</strong> — FTP + TLS (chiffrement des données)</li>
+            </ul>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "3. ARP – Le problème : IP vs MAC",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">Les applications utilisent des <strong>adresses IP</strong>. Mais sur le réseau local (Ethernet), les machines communiquent avec des <strong>adresses MAC</strong>. Comment passer de l'une à l'autre ?</p>
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
+              <p className="text-blue-200 font-bold mb-2">ARP – Address Resolution Protocol</p>
+              <p className="text-slate-300 text-sm">Protocole de la couche liaison (Layer 2) qui associe une adresse IP à une adresse MAC.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "ARP – Comment ça marche ?",
+        content: (
+          <div className="space-y-6">
+            <ol className="space-y-3 text-slate-300 list-decimal list-inside">
+              <li>Un hôte doit envoyer un paquet à une adresse IP locale qu'il ne connaît pas.</li>
+              <li>Il envoie une <strong>requête ARP en broadcast</strong> : « Qui a l'IP 192.168.1.10 ? »</li>
+              <li>Le destinataire répond : « Moi, mon adresse MAC est AA:BB:CC:DD:EE:FF »</li>
+              <li>L'expéditeur stocke cette correspondance dans sa <strong>table ARP</strong>.</li>
+            </ol>
+            <p className="text-slate-400 text-sm">Résultat : les prochaines communications vers cette IP utilisent directement la MAC, sans refaire de requête.</p>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "ARP – Caractéristiques importantes",
+        content: (
+          <div className="space-y-6">
+            <ul className="space-y-2 text-slate-300">
+              <li>• <strong>Portée : LAN uniquement</strong> — ARP utilise le broadcast Ethernet, qui ne traverse pas les routeurs.</li>
+              <li>• <strong>Table ARP</strong> — stocke les correspondances IP/MAC pour éviter de répéter les requêtes.</li>
+              <li>• <strong>Sécurité</strong> — ARP peut être exploité (ARP spoofing : usurpation d'identité pour intercepter du trafic).</li>
+            </ul>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Texte à trous – À compléter",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Complétez les trous mentalement avant de consulter les réponses :</p>
+            <div className="space-y-4 text-slate-300">
+              <p>1. Le protocole _____ utilise un modèle client-serveur, où le client envoie une requête au serveur pour obtenir des ressources.</p>
+              <p>2. Pour sécuriser cette communication, _____ ajoute une couche de chiffrement, utilisant le port _____.</p>
+              <p>3. Le protocole _____ permet le transfert de fichiers. Il utilise le port _____ pour la connexion de commande.</p>
+              <p>4. Pour résoudre une adresse IP en adresse _____, le protocole _____ effectue une requête en _____. Les correspondances sont stockées dans la _____ _____.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Texte à trous – Réponses",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-400 text-sm mb-4">Vérifiez vos réponses :</p>
+            <div className="space-y-4">
+              {[
+                { n: 1, text: "Le protocole ", blank: "HTTP", after: " utilise un modèle client-serveur, où le client envoie une requête au serveur pour obtenir des ressources." },
+                { n: 2, text: "Pour sécuriser cette communication, ", blank: "HTTPS", after: " ajoute une couche de chiffrement, utilisant le port ", blank2: "443", after2: "." },
+                { n: 3, text: "Le protocole ", blank: "FTP", after: " permet le transfert de fichiers. Il utilise le port ", blank2: "21", after2: " pour la connexion de commande." },
+                { n: 4, text: "Pour résoudre une adresse IP en adresse ", blank: "MAC", after: ", le protocole ", blank2: "ARP", after2: " effectue une requête en ", blank3: "broadcast", after3: ". Les correspondances sont stockées dans la ", blank4: "table ARP", after4: "." }
+              ].map(({ n, text, blank, after, blank2, after2, blank3, after3, blank4, after4 }) => (
+                <div key={n} className="p-4 bg-slate-800/60 rounded-lg border border-slate-600">
+                  <p className="text-slate-300">
+                    <span>{n}. {text}</span>
+                    <span className="bg-emerald-900/40 text-emerald-300 px-2 py-0.5 rounded font-semibold">{blank}</span>
+                    <span>{after}</span>
+                    {blank2 && <><span className="bg-emerald-900/40 text-emerald-300 px-2 py-0.5 rounded font-semibold">{blank2}</span><span>{after2}</span></>}
+                    {blank3 && <><span className="bg-emerald-900/40 text-emerald-300 px-2 py-0.5 rounded font-semibold">{blank3}</span><span>{after3}</span></>}
+                    {blank4 && <><span className="bg-emerald-900/40 text-emerald-300 px-2 py-0.5 rounded font-semibold">{blank4}</span><span>{after4}</span></>}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Tableau à compléter – Protocoles et couches",
+        content: (
+          <div className="space-y-6 overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-slate-600">
+                  <th className="text-left py-3 px-4 text-amber-300 font-bold">Protocole</th>
+                  <th className="text-left py-3 px-4 text-blue-300 font-bold">Couche OSI</th>
+                  <th className="text-left py-3 px-4 text-emerald-300 font-bold">Port(s)</th>
+                  <th className="text-left py-3 px-4 text-slate-300 font-bold">Fonction principale</th>
+                </tr>
+              </thead>
+              <tbody className="text-slate-300">
+                {[
+                  { proto: "HTTP", layer: "Application", port: "80", func: "Affichage de pages web" },
+                  { proto: "HTTPS", layer: "Application", port: "443", func: "Communication web sécurisée" },
+                  { proto: "FTP", layer: "Application", port: "21 (commande), 20 (données)", func: "Transfert de fichiers" },
+                  { proto: "ARP", layer: "Liaison (Layer 2)", port: "N/A", func: "Résolution IP → MAC" }
+                ].map((row, i) => (
+                  <tr key={i} className="border-b border-slate-700 hover:bg-slate-800/50">
+                    <td className="py-3 px-4 font-semibold">{row.proto}</td>
+                    <td className="py-3 px-4">{row.layer}</td>
+                    <td className="py-3 px-4 font-mono text-emerald-400">{row.port}</td>
+                    <td className="py-3 px-4">{row.func}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Questions rapides – Réponses",
+        content: (
+          <div className="space-y-6">
+            {[
+              { q: "Quelle différence principale distingue HTTP et HTTPS ?", a: "HTTPS ajoute une couche de chiffrement (TLS/SSL), garantissant la confidentialité, l'intégrité et l'authenticité des données échangées, contrairement à HTTP qui transmet en clair." },
+              { q: "Pourquoi le protocole FTP utilise-t-il deux connexions (port 21 et port 20) ?", a: "Port 21 pour la connexion de commande (authentification, navigation, ordres). Port 20 pour la transmission réelle des données (fichiers)." },
+              { q: "Quelle est la portée d'une requête ARP (LAN ou WAN) ?", a: "ARP fonctionne uniquement sur le réseau local (LAN) car il utilise des diffusions Ethernet (broadcast) qui ne franchissent pas les routeurs." },
+              { q: "Quel est le rôle de la table ARP sur un hôte ?", a: "La table ARP stocke temporairement les correspondances IP/MAC pour éviter de renvoyer des requêtes ARP à chaque communication locale." },
+              { q: "En quoi le mode passif du FTP est-il important pour la traversée de pare-feu ?", a: "En mode passif, le client initie toutes les connexions (y compris la connexion de données). Cela évite les problèmes de pare-feu/NAT qui bloqueraient une connexion entrante depuis le serveur en mode actif." }
+            ].map((item, i) => (
+              <div key={i} className="p-4 bg-slate-800/60 rounded-lg border border-slate-600">
+                <p className="text-amber-300 font-semibold mb-2">{i + 1}. {item.q}</p>
+                <p className="text-slate-300 text-sm pl-4 border-l-2 border-emerald-500/50">→ {item.a}</p>
+              </div>
+            ))}
+          </div>
+        )
+      },
+      {
+        type: 'interactive_quiz',
+        title: "Quiz : HTTP, FTP et ARP",
+        questions: [
+          { q: "Quelle différence principale distingue HTTP et HTTPS ?", options: ["Aucune", "HTTPS ajoute une couche de chiffrement (TLS/SSL), garantissant confidentialité et authenticité", "HTTPS est plus rapide"], a: 1, explanation: "HTTPS chiffre les échanges et utilise des certificats pour vérifier l'identité du serveur." },
+          { q: "Pourquoi FTP utilise-t-il le port 21 et le port 20 ?", options: ["Pour la vitesse", "Port 21 = commandes, port 20 = données (transfert des fichiers)", "Pour la sécurité"], a: 1, explanation: "Le canal de commandes gère l'authentification et les ordres ; le canal de données transmet les fichiers." },
+          { q: "Quelle est la portée d'une requête ARP ?", options: ["WAN (Internet)", "LAN uniquement", "Les deux"], a: 1, explanation: "ARP utilise le broadcast Ethernet qui ne traverse pas les routeurs." },
+          { q: "Quel est le rôle de la table ARP ?", options: ["Stocker des pages web", "Stocker temporairement les correspondances IP/MAC pour éviter de répéter les requêtes", "Gérer les connexions FTP"], a: 1, explanation: "Une fois l'association IP→MAC connue, elle est mise en cache." },
+          { q: "Pourquoi le mode passif FTP est-il utile pour les pare-feux ?", options: ["Il est plus rapide", "Le client initie toutes les connexions, ce qui évite les blocages des connexions entrantes", "Il chiffre les données"], a: 1, explanation: "En mode actif, le serveur tente une connexion entrante que le pare-feu peut bloquer." },
+          { q: "Quel port utilise HTTPS ?", options: ["80", "443", "21"], a: 1, explanation: "HTTP = 80, HTTPS = 443, FTP commande = 21." }
+        ]
+      },
+      {
+        type: 'flashcards',
+        title: "Flashcards : HTTP, FTP et ARP",
+        mode: "definition_to_term",
+        cards: [
+          { q: "Protocole qui permet à un navigateur de demander une page web à un serveur", a: "HTTP" },
+          { q: "Version sécurisée de HTTP avec chiffrement TLS/SSL, port 443", a: "HTTPS" },
+          { q: "Port utilisé par HTTP", a: "80" },
+          { q: "Protocole de transfert de fichiers, port 21 (commande) et 20 (données)", a: "FTP" },
+          { q: "Mode FTP où le client initie toutes les connexions (meilleur pour pare-feux)", a: "Mode passif" },
+          { q: "Protocole qui associe une adresse IP à une adresse MAC", a: "ARP" },
+          { q: "Table qui stocke les correspondances IP/MAC pour éviter de répéter les requêtes", a: "Table ARP" }
+        ]
+      }
+    ],
+    lab: {
+      title: "HTTP, FTP et ARP",
+      context: "Cette séance est principalement théorique. Les protocoles HTTP, FTP et ARP sont utilisés par les applications et équipements de façon transparente.",
+      consignes: null,
+      solutionContent: null
+    },
+    quiz: [
+      { q: "Quel port utilise HTTPS ?", options: ["80", "443", "21"], a: 1, explanation: "HTTPS utilise le port TCP 443." },
+      { q: "FTP utilise combien de connexions TCP ?", options: ["Une", "Deux (commande + données)", "Trois"], a: 1, explanation: "Port 21 pour les commandes, port 20 pour les données." },
+      { q: "ARP résout une adresse IP en...", options: ["Adresse MAC", "Nom de domaine", "Port"], a: 0, explanation: "ARP associe une adresse IP à une adresse MAC sur le LAN." }
+    ]
+  },
+  {
+    id: 6,
+    title: "Session 3 : Syslog & SNMP",
+    duration: "1h",
+    icon: <Activity className="w-5 h-5" />,
+    slides: [
+      {
+        type: 'intro',
+        title: "Cours Théorique – Séance 3 : Syslog & SNMP",
+        content: `Bienvenue ! Ce cours s'adresse aux débutants. Nous allons progresser pas à pas.
+
+Objectif : Comprendre les protocoles Syslog et SNMP pour la surveillance et la gestion des équipements réseau.
+
+🎯 À la fin, vous serez capable de :
+📋 Comprendre Syslog (centralisation des logs, port UDP 514)
+📊 Comprendre SNMP (Manager-Agent, MIB, polling, trap)
+🔒 Distinguer SNMPv1/v2c et SNMPv3`
+      },
+      {
+        type: 'rich_text',
+        title: "1. Syslog – Le problème : des logs partout",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">Un routeur, un switch, un pare-feu... Chacun génère des <strong>logs</strong> (messages de journalisation) : interface down, erreur, connexion SSH, changement de config. Si chaque équipement garde ses logs localement, comment les consulter en cas de panne ?</p>
+            <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
+              <p className="text-red-200 font-bold mb-2">Sans centralisation :</p>
+              <p className="text-slate-300 text-sm">Il faudrait se connecter à chaque équipement pour lire les logs. Impossible de corréler des événements sur plusieurs appareils.</p>
+            </div>
+            <p className="text-slate-300">La solution : <strong>Syslog</strong>, qui centralise tous les logs vers un serveur unique.</p>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Syslog – C'est quoi, en une phrase ?",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-xl text-center py-4">Le <strong className="text-blue-400">Syslog</strong> est un protocole qui centralise les messages de journalisation (logs) de tous les équipements réseau vers un serveur dédié.</p>
+            <div className="bg-blue-900/20 border border-blue-500/40 rounded-xl p-6">
+              <p className="text-blue-200 font-bold mb-2">System Logging Protocol</p>
+              <p className="text-slate-300 text-sm">Port UDP 514. Standardisé (RFC 5424). Routeurs, switches, firewalls, serveurs… envoient leurs logs vers le serveur Syslog.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Syslog – Fonctionnement",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Flux simple : les équipements <strong>poussent</strong> leurs logs vers le serveur :</p>
+            <ol className="space-y-2 text-slate-300 list-decimal list-inside">
+              <li>Un routeur détecte une interface down → il envoie un message Syslog au serveur</li>
+              <li>Un pare-feu bloque une tentative de connexion → log envoyé</li>
+              <li>Un switch enregistre une erreur → log envoyé</li>
+            </ol>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold">Niveaux de logs</p>
+              <p className="text-slate-300 text-sm">Informations, avertissements, erreurs, alertes critiques. Le serveur archive et permet la recherche.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Syslog – Importance",
+        content: (
+          <div className="space-y-6">
+            <ul className="space-y-2 text-slate-300">
+              <li>• <strong>Monitoring</strong> — surveiller l'état du réseau et détecter les anomalies</li>
+              <li>• <strong>Diagnostic</strong> — identifier la source d'une panne en consultant les logs centralisés</li>
+              <li>• <strong>Traçabilité</strong> — qui a fait quoi, quand (audit, conformité)</li>
+              <li>• <strong>Veille sécurité (SIEM)</strong> — corrélation des événements pour détecter des intrusions</li>
+            </ul>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "2. SNMP – Le problème : superviser à distance",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">Comment connaître la charge CPU d'un switch, le trafic sur une interface, la température d'un équipement... sans se connecter manuellement à chacun ?</p>
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
+              <p className="text-blue-200 font-bold mb-2">SNMP – Simple Network Management Protocol</p>
+              <p className="text-slate-300 text-sm">Protocole de gestion réseau permettant de <strong>collecter des informations</strong> et d'<strong>agir à distance</strong> sur les équipements.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "SNMP – Architecture Manager-Agent",
+        content: (
+          <div className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-amber-900/20 border border-amber-500/40 rounded-xl p-5">
+                <p className="text-amber-300 font-bold mb-2">Manager (NMS)</p>
+                <p className="text-slate-300 text-sm">Network Management Station — outil de supervision (Cacti, PRTG, SolarWinds…). Interroge les agents et affiche les graphiques.</p>
+              </div>
+              <div className="bg-emerald-900/20 border border-emerald-500/40 rounded-xl p-5">
+                <p className="text-emerald-300 font-bold mb-2">Agent SNMP</p>
+                <p className="text-slate-300 text-sm">Installé sur chaque équipement à superviser (routeur, switch…). Répond aux requêtes du manager et peut envoyer des alertes.</p>
+              </div>
+            </div>
+            <p className="text-slate-400 text-sm">Ports : 161 (agent, requêtes) et 162 (trap, alertes). Protocole UDP.</p>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "SNMP – La MIB",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed"><strong>MIB</strong> (Management Information Base) : base d'objets normalisés qui décrivent ce qu'un équipement peut exposer (CPU, mémoire, trafic par interface, etc.).</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+              <p className="text-slate-300 text-sm">Le manager et l'agent partagent la même MIB : ils « parlent la même langue ». Ex. : « Donne-moi la valeur de l'objet 1.3.6.1.2.1.1.5.0 » (nom du système).</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "SNMP – Polling vs Trap",
+        content: (
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <div className="bg-amber-900/20 border border-amber-500/40 rounded-lg p-4">
+                <p className="text-amber-300 font-bold">Polling (get, set)</p>
+                <p className="text-slate-300 text-sm">Le manager interroge <strong>périodiquement</strong> les agents pour récupérer des informations (CPU, trafic…). Communication bidirectionnelle.</p>
+              </div>
+              <div className="bg-emerald-900/20 border border-emerald-500/40 rounded-lg p-4">
+                <p className="text-emerald-300 font-bold">Trap</p>
+                <p className="text-slate-300 text-sm">L'agent envoie une <strong>alerte spontanée</strong> au manager lors d'un événement critique (interface down, température élevée…). Communication unidirectionnelle (agent → manager).</p>
+              </div>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "SNMP – Versions et sécurité",
+        content: (
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4">
+                <p className="text-red-300 font-bold">SNMPv1 & v2c</p>
+                <p className="text-slate-300 text-sm">Basés sur des <strong>communautés</strong> (mot de passe en clair). Sécurité faible. À éviter en environnement sensible.</p>
+              </div>
+              <div className="bg-emerald-900/20 border border-emerald-500/40 rounded-lg p-4">
+                <p className="text-emerald-300 font-bold">SNMPv3</p>
+                <p className="text-slate-300 text-sm">Authentification et chiffrement. Préféré en environnement sécurisé.</p>
+              </div>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Syslog vs SNMP – Comparaison",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Log Syslog : message de journalisation régulier (interface, événements, erreurs). Centralisé sur le serveur.</p>
+            <p className="text-slate-200 leading-relaxed">Trap SNMP : alerte <strong>immédiate</strong> lors d'un événement critique. L'agent prévient le manager spontanément.</p>
+            <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4">
+              <p className="text-slate-300 text-sm">Syslog = centralisation des logs. SNMP = supervision + alertes en temps réel.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Texte à trous – À compléter",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Complétez avec : UDP 514, NMS, trap, polling, MIB, SNMPv3, logs, authentification.</p>
+            <div className="space-y-4 text-slate-300 text-sm">
+              <p>1. Syslog utilise le port _____ pour transmettre les _____ vers un serveur centralisé.</p>
+              <p>2. SNMP repose sur un modèle Manager-Agent. Le _____ interroge les agents via des requêtes appelées _____.</p>
+              <p>3. Lors d'un événement critique, l'agent envoie une alerte spontanée appelée _____.</p>
+              <p>4. Tous les objets SNMP sont définis dans une base appelée _____.</p>
+              <p>5. _____ introduit _____ et chiffrement pour renforcer la sécurité.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Texte à trous – Réponses",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-400 text-sm mb-4">Vérifiez vos réponses :</p>
+            <div className="space-y-4">
+              {[
+                { n: 1, text: "Syslog utilise le port ", blank: "UDP 514", after: " pour transmettre les ", blank2: "logs", after2: " vers un serveur centralisé." },
+                { n: 2, text: "Le ", blank: "NMS", after: " interroge les agents via des requêtes appelées ", blank2: "polling", after2: "." },
+                { n: 3, text: "Lors d'un événement critique, l'agent envoie une alerte spontanée appelée ", blank: "trap", after: "." },
+                { n: 4, text: "Tous les objets SNMP sont définis dans une base appelée ", blank: "MIB", after: "." },
+                { n: 5, text: "", blank: "SNMPv3", after: " introduit ", blank2: "authentification", after2: " et chiffrement." }
+              ].map(({ n, text, blank, after, blank2, after2 }) => (
+                <div key={n} className="p-4 bg-slate-800/60 rounded-lg border border-slate-600">
+                  <p className="text-slate-300">
+                    <span>{n}. {text}</span>
+                    <span className="bg-emerald-900/40 text-emerald-300 px-2 py-0.5 rounded font-semibold">{blank}</span>
+                    <span>{after}</span>
+                    {blank2 && <><span className="bg-emerald-900/40 text-emerald-300 px-2 py-0.5 rounded font-semibold">{blank2}</span><span>{after2}</span></>}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Tableau à compléter – Syslog & SNMP",
+        content: (
+          <div className="space-y-6 overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-slate-600">
+                  <th className="text-left py-3 px-4 text-amber-300 font-bold">Protocole</th>
+                  <th className="text-left py-3 px-4 text-blue-300 font-bold">Port(s)</th>
+                  <th className="text-left py-3 px-4 text-emerald-300 font-bold">Fonction principale</th>
+                  <th className="text-left py-3 px-4 text-slate-300 font-bold">Type de communication</th>
+                </tr>
+              </thead>
+              <tbody className="text-slate-300">
+                {[
+                  { proto: "Syslog", port: "UDP 514", func: "Centralisation des logs", comm: "Unidirectionnelle (push vers serveur)" },
+                  { proto: "SNMP", port: "161 (agent), 162 (trap)", func: "Supervision et gestion des équipements", comm: "Polling bidirectionnelle + trap unidirectionnel" }
+                ].map((row, i) => (
+                  <tr key={i} className="border-b border-slate-700 hover:bg-slate-800/50">
+                    <td className="py-3 px-4 font-semibold">{row.proto}</td>
+                    <td className="py-3 px-4 font-mono text-emerald-400">{row.port}</td>
+                    <td className="py-3 px-4">{row.func}</td>
+                    <td className="py-3 px-4 text-sm">{row.comm}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Questions rapides – Réponses",
+        content: (
+          <div className="space-y-6">
+            {[
+              { q: "Quelle est la différence entre un log Syslog et un trap SNMP ?", a: "Syslog : centralisation des logs (messages de journalisation réguliers). Trap SNMP : alerte immédiate lors d'un événement critique détecté par l'agent." },
+              { q: "Pourquoi SNMPv3 est-il préféré aux versions v1 et v2c en environnement sécurisé ?", a: "SNMPv3 intègre authentification et chiffrement. Les versions v1/v2c utilisent des communautés en clair." },
+              { q: "Comment un serveur Syslog peut-il aider à diagnostiquer des pannes réseau ?", a: "Il centralise les logs des équipements (interfaces, déconnexions, erreurs), facilitant l'identification de la source de la panne." },
+              { q: "Quelle est la différence entre polling SNMP et trap SNMP ?", a: "Polling : le NMS interroge périodiquement les agents pour récupérer des infos. Trap : l'agent envoie spontanément une alerte au NMS lors d'un événement significatif." }
+            ].map((item, i) => (
+              <div key={i} className="p-4 bg-slate-800/60 rounded-lg border border-slate-600">
+                <p className="text-amber-300 font-semibold mb-2">{i + 1}. {item.q}</p>
+                <p className="text-slate-300 text-sm pl-4 border-l-2 border-emerald-500/50">→ {item.a}</p>
+              </div>
+            ))}
+          </div>
+        )
+      },
+      {
+        type: 'interactive_quiz',
+        title: "Quiz : Syslog & SNMP",
+        questions: [
+          { q: "Quel port utilise Syslog ?", options: ["TCP 80", "UDP 514", "UDP 161"], a: 1, explanation: "Syslog utilise le port UDP 514 pour la transmission des logs." },
+          { q: "Quelle est la différence entre un log Syslog et un trap SNMP ?", options: ["Aucune", "Syslog = logs réguliers centralisés ; Trap = alerte immédiate sur événement critique", "Le trap est plus lent"], a: 1, explanation: "Syslog archive les messages ; le trap SNMP alerte en temps réel." },
+          { q: "Pourquoi SNMPv3 est-il préféré à v1/v2c ?", options: ["Il est plus rapide", "Il intègre authentification et chiffrement", "Il utilise moins de bande passante"], a: 1, explanation: "SNMPv3 renforce la sécurité avec authentification et chiffrement." },
+          { q: "Qu'est-ce que la MIB en SNMP ?", options: ["Un type de trap", "La base d'objets normalisés décrivant les données exposées par les équipements", "Un protocole"], a: 1, explanation: "Management Information Base — vocabulaire commun entre manager et agents." },
+          { q: "Polling SNMP vs Trap SNMP : quelle différence ?", options: ["Identique", "Polling = manager interroge ; Trap = agent alerte spontanément", "Le trap est bidirectionnel"], a: 1, explanation: "Polling : requêtes périodiques. Trap : alerte envoyée par l'agent quand un événement survient." },
+          { q: "Quels ports utilise SNMP ?", options: ["80 et 443", "21 et 20", "161 (agent) et 162 (trap)"], a: 2, explanation: "Port 161 pour les requêtes, 162 pour les traps." }
+        ]
+      },
+      {
+        type: 'flashcards',
+        title: "Flashcards : Syslog & SNMP",
+        mode: "definition_to_term",
+        cards: [
+          { q: "Protocole de centralisation des logs, port UDP 514", a: "Syslog" },
+          { q: "Port utilisé par Syslog", a: "UDP 514" },
+          { q: "Outil de supervision SNMP (Network Management Station)", a: "NMS" },
+          { q: "Requêtes périodiques du manager vers les agents SNMP", a: "Polling" },
+          { q: "Alerte spontanée envoyée par l'agent SNMP au manager", a: "Trap" },
+          { q: "Base d'objets normalisés en SNMP", a: "MIB" },
+          { q: "Version SNMP avec authentification et chiffrement", a: "SNMPv3" }
+        ]
+      }
+    ],
+    lab: {
+      title: "Syslog & SNMP",
+      context: "Cette séance est principalement théorique. Syslog et SNMP sont configurés sur les équipements pour la supervision en production.",
+      consignes: null,
+      solutionContent: null
+    },
+    quiz: [
+      { q: "Quel port utilise Syslog ?", options: ["TCP 514", "UDP 514", "UDP 161"], a: 1, explanation: "Syslog utilise UDP 514." },
+      { q: "Quel port reçoit les traps SNMP ?", options: ["161", "162", "514"], a: 1, explanation: "Port 162 pour les traps." },
+      { q: "Qu'est-ce que la MIB ?", options: ["Un type de log", "La base d'objets SNMP", "Un protocole"], a: 1, explanation: "Management Information Base." }
+    ]
   }
 ];
 
@@ -4509,6 +5683,8 @@ const TheoryPlayer = ({ slides, lab }) => {
         return <NetworkDiagram mode={s.mode || 'ssh'} />;
       case 'data_flow':
         return <DataFlowAnimation />;
+      case 'dora_flow':
+        return <DoraFlowAnimation />;
       case 'config_comparison':
         return <ConfigComparison before={s.before} after={s.after} title={s.title} />;
       case 'ssh_flow':
@@ -4629,6 +5805,17 @@ const session3Commands = [
   { command: "encapsulation dot1Q", description: "Définir l'encapsulation 802.1Q pour un VLAN", syntax: "encapsulation dot1Q [vlan_id]" },
   { command: "show interfaces trunk", description: "Afficher les ports trunk et les VLANs autorisés", syntax: "show interfaces trunk" },
   { command: "show ip route", description: "Afficher la table de routage", syntax: "show ip route" }
+];
+
+const session4Commands = [
+  { command: "ip dhcp excluded-address", description: "Exclure une ou plusieurs adresses du pool DHCP (serveurs, passerelle)", syntax: "ip dhcp excluded-address [ip_debut] [ip_fin]" },
+  { command: "ip dhcp pool", description: "Créer un pool DHCP et entrer en mode dhcp-config", syntax: "ip dhcp pool [nom]" },
+  { command: "network", description: "Définir la plage d'adresses du pool DHCP", syntax: "network [réseau] [masque]" },
+  { command: "default-router", description: "Passerelle par défaut transmise aux clients DHCP", syntax: "default-router [ip]" },
+  { command: "dns-server", description: "Serveur DNS transmis aux clients DHCP", syntax: "dns-server [ip]" },
+  { command: "ip domain-lookup", description: "Activer la résolution DNS sur l'équipement Cisco", syntax: "ip domain-lookup" },
+  { command: "ip name-server", description: "Indiquer le serveur DNS à interroger pour la résolution de noms", syntax: "ip name-server [ip]" },
+  { command: "show ip dhcp binding", description: "Afficher les baux DHCP attribués (IP, MAC, bail)", syntax: "show ip dhcp binding" }
 ];
 
 // --- LISTE PÉDAGOGIQUE DES COMMANDES ---
@@ -9688,9 +10875,9 @@ const weeks = [
   {
     id: 2,
     title: "Semaine 2",
-    subtitle: "À venir",
-    sessions: [],
-    available: false
+    subtitle: "DHCP, DNS, HTTP, FTP, ARP, Syslog, SNMP",
+    sessions: [4, 5, 6],
+    available: true
   },
   {
     id: 3,
@@ -10158,6 +11345,7 @@ export default function NetMasterClass() {
                       activeSessionId === 1 ? session1Commands :
                       activeSessionId === 2 ? session2Commands :
                       activeSessionId === 3 ? session3Commands :
+                      activeSessionId === 4 ? session4Commands :
                       []
                     }
                   />
