@@ -10867,28 +10867,28 @@ const LabCorrectionSection2 = () => (
 const weeks = [
   {
     id: 1,
-    title: "Semaine 1",
-    subtitle: "Administration Cisco, SSH & VLAN",
+    title: "Administration Cisco & VLAN",
+    subtitle: "SSH, VLAN, Trunk, inter-VLAN",
     sessions: [1, 2, 3],
     available: true
   },
   {
     id: 2,
-    title: "Semaine 2",
+    title: "Protocoles & services réseau",
     subtitle: "DHCP, DNS, HTTP, FTP, ARP, Syslog, SNMP",
     sessions: [4, 5, 6],
     available: true
   },
   {
     id: 3,
-    title: "Semaine 3",
+    title: "Routage",
     subtitle: "À venir",
     sessions: [],
     available: false
   },
   {
     id: 4,
-    title: "Semaine 4",
+    title: "Commutation",
     subtitle: "À venir",
     sessions: [],
     available: false
@@ -11103,7 +11103,7 @@ export default function NetMasterClass() {
           <div className="mt-6 pt-4 border-t border-slate-800 space-y-2">
             <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Labs Pratiques</p>
             
-            {/* Semaine 1 - Labs disponibles */}
+            {/* Administration Cisco & VLAN - Labs disponibles */}
             <div className="mb-2">
               <button
                 onClick={() => setExpandedLabWeek(expandedLabWeek === 1 ? null : 1)}
@@ -11114,7 +11114,7 @@ export default function NetMasterClass() {
                 }`}
               >
                 <div className="text-left flex-1">
-                  <p className="font-bold text-sm">Semaine 1</p>
+                  <p className="font-bold text-sm">Administration Cisco & VLAN</p>
                   <p className="text-[10px] text-slate-500 mt-0.5">3 labs disponibles</p>
                 </div>
                 <ChevronRight className={`w-4 h-4 transition-transform ${expandedLabWeek === 1 ? 'rotate-90' : ''}`} />
@@ -11183,42 +11183,42 @@ export default function NetMasterClass() {
               )}
             </div>
 
-            {/* Semaine 2 - Coming Soon */}
+            {/* Protocoles & services - Coming Soon */}
             <button
               disabled
               className="w-full p-3 rounded-xl flex items-center justify-between transition-all border bg-slate-900/50 border-slate-800/50 text-slate-600 cursor-not-allowed opacity-60"
             >
               <div className="text-left flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="font-bold text-sm">Semaine 2</p>
+                  <p className="font-bold text-sm">Protocoles & services</p>
                   <span className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 rounded-full text-[9px] font-bold text-amber-400 uppercase">Soon</span>
                 </div>
                 <p className="text-[10px] text-slate-600 mt-0.5">À venir</p>
               </div>
             </button>
 
-            {/* Semaine 3 - Coming Soon */}
+            {/* Routage - Coming Soon */}
             <button
               disabled
               className="w-full p-3 rounded-xl flex items-center justify-between transition-all border bg-slate-900/50 border-slate-800/50 text-slate-600 cursor-not-allowed opacity-60"
             >
               <div className="text-left flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="font-bold text-sm">Semaine 3</p>
+                  <p className="font-bold text-sm">Routage</p>
                   <span className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 rounded-full text-[9px] font-bold text-amber-400 uppercase">Soon</span>
                 </div>
                 <p className="text-[10px] text-slate-600 mt-0.5">À venir</p>
               </div>
             </button>
 
-            {/* Semaine 4 - Coming Soon */}
+            {/* Commutation - Coming Soon */}
             <button
               disabled
               className="w-full p-3 rounded-xl flex items-center justify-between transition-all border bg-slate-900/50 border-slate-800/50 text-slate-600 cursor-not-allowed opacity-60"
             >
               <div className="text-left flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="font-bold text-sm">Semaine 4</p>
+                  <p className="font-bold text-sm">Commutation</p>
                   <span className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 rounded-full text-[9px] font-bold text-amber-400 uppercase">Soon</span>
                 </div>
                 <p className="text-[10px] text-slate-600 mt-0.5">À venir</p>
