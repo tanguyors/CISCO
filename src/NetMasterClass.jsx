@@ -4616,32 +4616,29 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
       {
         type: 'intro',
         title: "Cours Théorique – Séance 1 : Services d'Attribution et de Résolution (DHCP & DNS)",
-        content: `Bienvenue ! Ce cours s'adresse aux débutants. Nous allons progresser pas à pas.
+        content: `Bienvenue ! Ce cours est fait pour les débutants. On va aller doucement, avec des exemples concrets.
 
-Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des services DHCP et DNS dans un réseau d'entreprise.
-
-🎯 À la fin, vous serez capable de :
-📡 Comprendre le protocole DHCP et le flux DORA
-📋 Configurer un pool DHCP sur un routeur Cisco
-🌐 Comprendre le DNS et le configurer
-📝 Maîtriser les commandes Cisco`
+🎯 Ce qu'on va voir :
+• Le DHCP : comment ton PC obtient « tout seul » son adresse quand tu te connectes (comme le wifi de la maison)
+• Le DNS : pourquoi tu tapes google.fr et pas 142.250.186.35 (comme un annuaire téléphonique)
+• Comment configurer tout ça sur un routeur et dans Packet Tracer`
       },
       {
         type: 'rich_text',
         title: "Le problème : configurer chaque PC à la main",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed text-lg">Imaginez une entreprise avec 50 postes. Pour que chaque PC accède au réseau, il faut lui donner une <strong>adresse IP</strong>, un <strong>masque</strong>, une <strong>passerelle</strong> et un <strong>serveur DNS</strong>.</p>
+            <p className="text-slate-200 leading-relaxed text-lg">Imagine un bureau avec 50 PC. Chaque PC a besoin d'une adresse sur le réseau (comme une adresse postale) : <strong>IP</strong>, <strong>masque</strong>, <strong>passerelle</strong> (la sortie vers internet), et l'adresse du <strong>serveur DNS</strong>.</p>
             <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
-              <p className="text-red-200 font-bold mb-2">Sans automatisation :</p>
+              <p className="text-red-200 font-bold mb-2">Si tu fais tout à la main sur chaque PC :</p>
               <ul className="text-red-100/90 text-sm space-y-1 list-disc list-inside">
-                <li>50 postes = 50 configurations manuelles</li>
-                <li>Risque de conflits (2 PC avec la même IP)</li>
-                <li>Erreurs de frappe (192.168.1.1 vs 192.168.1.l)</li>
-                <li>Changement de serveur DNS = modifier 50 postes</li>
+                <li>50 PC = 50 fois la même config</li>
+                <li>Risque de se tromper (2 PC avec la même IP = conflit)</li>
+                <li>Une erreur de frappe et ça ne marche plus</li>
+                <li>Si tu changes quelque chose, tu modifies les 50 postes</li>
               </ul>
             </div>
-            <p className="text-slate-300">La solution : le <strong>DHCP</strong>, qui attribue tout automatiquement.</p>
+            <p className="text-slate-300">La solution : le <strong>DHCP</strong>. Comme le wifi à la maison — tu te connectes et tout se configure tout seul.</p>
           </div>
         )
       },
@@ -4650,26 +4647,26 @@ Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des ser
         title: "DHCP – C'est quoi, en une phrase ?",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed text-xl text-center py-4">Le <strong className="text-amber-400">DHCP</strong> est un service qui donne <strong>automatiquement</strong> une adresse IP et les paramètres réseau à chaque PC qui se branche.</p>
+            <p className="text-slate-200 leading-relaxed text-xl text-center py-4">Le <strong className="text-amber-400">DHCP</strong> = quand tu branches un PC, il reçoit <strong>tout seul</strong> son adresse IP et les infos réseau, sans rien taper.</p>
             <div className="bg-amber-900/20 border border-amber-500/40 rounded-xl p-6">
-              <p className="text-amber-200 font-bold mb-2">Dynamic Host Configuration Protocol</p>
-              <p className="text-slate-300 text-sm">Protocole standardisé (RFC 2131) utilisé partout dans le monde. Les routeurs Cisco peuvent faire office de serveur DHCP.</p>
+              <p className="text-amber-200 font-bold mb-2">En bref</p>
+              <p className="text-slate-300 text-sm">Comme quand tu te connectes au wifi chez toi : tu choisis le réseau, tu mets le mot de passe, et ton téléphone reçoit automatiquement une adresse. Le routeur (ou une box) fait office de « serveur DHCP » — c'est lui qui distribue les adresses.</p>
             </div>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "DHCP – Quelles infos sont attribuées ?",
+        title: "DHCP – Qu'est-ce que le PC reçoit ?",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed">Le DHCP ne donne pas que l'adresse IP. Il peut aussi fournir :</p>
+            <p className="text-slate-200 leading-relaxed">Le DHCP ne donne pas que l'IP. Il envoie un « package » complet au PC :</p>
             <ul className="space-y-3 text-slate-300">
-              <li className="flex gap-3"><span className="bg-amber-600/30 text-amber-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0">1</span><span><strong>Adresse IP</strong> — l'identité du PC sur le réseau</span></li>
-              <li className="flex gap-3"><span className="bg-amber-600/30 text-amber-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0">2</span><span><strong>Masque de sous-réseau</strong> — définit le réseau local</span></li>
-              <li className="flex gap-3"><span className="bg-amber-600/30 text-amber-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0">3</span><span><strong>Passerelle par défaut</strong> — pour joindre les autres réseaux</span></li>
-              <li className="flex gap-3"><span className="bg-amber-600/30 text-amber-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0">4</span><span><strong>Serveur DNS</strong> — pour résoudre les noms (ex. google.fr)</span></li>
-              <li className="flex gap-3"><span className="bg-amber-600/30 text-amber-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0">5</span><span><strong>Durée du bail</strong> — la location de l'IP a une limite dans le temps</span></li>
+              <li className="flex gap-3"><span className="bg-amber-600/30 text-amber-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0">1</span><span><strong>L'adresse IP</strong> — comme ton numéro dans le bâtiment</span></li>
+              <li className="flex gap-3"><span className="bg-amber-600/30 text-amber-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0">2</span><span><strong>Le masque</strong> — pour savoir qui est dans ton réseau local</span></li>
+              <li className="flex gap-3"><span className="bg-amber-600/30 text-amber-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0">3</span><span><strong>La passerelle</strong> — la « porte de sortie » vers internet (souvent le routeur)</span></li>
+              <li className="flex gap-3"><span className="bg-amber-600/30 text-amber-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0">4</span><span><strong>L'adresse du serveur DNS</strong> — pour traduire les noms (google.fr) en adresses</span></li>
+              <li className="flex gap-3"><span className="bg-amber-600/30 text-amber-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0">5</span><span><strong>La durée du bail</strong> — l'IP est « louée » un certain temps, puis renouvelée</span></li>
             </ul>
           </div>
         )
@@ -4682,11 +4679,11 @@ Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des ser
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-red-900/20 border-2 border-red-500/50 rounded-xl p-5">
                 <p className="text-red-300 font-bold mb-3">❌ Sans DHCP</p>
-                <p className="text-slate-300 text-sm">Sur chaque PC : Configuration manuelle → IP 192.168.1.21, masque 255.255.255.0, passerelle 192.168.1.1, DNS 192.168.1.100. Répéter 50 fois.</p>
+                <p className="text-slate-300 text-sm">Tu dois aller sur chaque PC, ouvrir les paramètres réseau, taper l'IP, le masque, la passerelle, le DNS… 50 PC = 50 fois la même chose. Un cauchemar.</p>
               </div>
               <div className="bg-emerald-900/20 border-2 border-emerald-500/50 rounded-xl p-5">
                 <p className="text-emerald-300 font-bold mb-3">✅ Avec DHCP</p>
-                <p className="text-slate-300 text-sm">Sur chaque PC : « Obtenir une adresse IP automatiquement ». Le serveur DHCP fait le reste. Une seule config sur le routeur.</p>
+                <p className="text-slate-300 text-sm">Sur chaque PC : tu choisis « Obtenir une adresse automatiquement ». C'est tout. Le routeur donne tout le reste. Tu configures une seule fois sur le routeur.</p>
               </div>
             </div>
           </div>
@@ -4694,17 +4691,17 @@ Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des ser
       },
       {
         type: 'rich_text',
-        title: "Comment le client obtient son IP ? — DORA",
+        title: "Comment le PC obtient son IP ? — DORA",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed">Quand un PC se branche, il n'a pas encore d'IP. Il suit un échange en <strong>4 étapes</strong> avec le serveur DHCP. On appelle ça <strong>DORA</strong> (les initiales en anglais) :</p>
+            <p className="text-slate-200 leading-relaxed">Quand tu branches un PC (ou tu le mets en DHCP), il n'a pas encore d'adresse. Il fait une petite « conversation » en 4 étapes avec le routeur. On appelle ça <strong>DORA</strong> :</p>
             <ul className="space-y-2 text-slate-300">
-              <li><strong className="text-blue-400">D</strong>iscover — Le client demande « Qui peut me donner une IP ? »</li>
-              <li><strong className="text-emerald-400">O</strong>ffer — Le serveur répond « Voici une IP pour toi »</li>
-              <li><strong className="text-amber-400">R</strong>equest — Le client dit « Je la prends ! »</li>
-              <li><strong className="text-violet-400">A</strong>cknowledge — Le serveur confirme « C'est enregistré »</li>
+              <li><strong className="text-blue-400">D</strong>écouvrir — Le PC crie « Y'a quelqu'un qui peut me donner une IP ? » (il envoie un message à tout le monde)</li>
+              <li><strong className="text-emerald-400">O</strong>ffre — Le routeur répond « Voilà, prends 192.168.10.11 »</li>
+              <li><strong className="text-amber-400">R</strong>equest — Le PC dit « OK, je la prends ! »</li>
+              <li><strong className="text-violet-400">A</strong>ccusé de réception — Le routeur confirme « C'est noté, c'est à toi »</li>
             </ul>
-            <p className="text-slate-400 text-sm">Slide suivante : animation interactive du flux DORA.</p>
+            <p className="text-slate-400 text-sm">Slide suivante : une petite animation pour voir le flux.</p>
           </div>
         )
       },
@@ -4714,14 +4711,14 @@ Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des ser
       },
       {
         type: 'rich_text',
-        title: "DORA – Détail de chaque étape",
+        title: "DORA – En détail",
         content: (
           <div className="space-y-4">
             {[
-              { letter: 'D', label: 'Discover', desc: 'Le client envoie un broadcast (message à tout le monde) : « J\'ai besoin d\'une configuration IP »', color: 'blue' },
-              { letter: 'O', label: 'Offer', desc: 'Le serveur DHCP qui reçoit la demande répond : « Voici une adresse IP disponible pour toi »', color: 'emerald' },
-              { letter: 'R', label: 'Request', desc: 'Le client accepte l\'offre et demande officiellement cette adresse', color: 'amber' },
-              { letter: 'A', label: 'Acknowledge', desc: 'Le serveur confirme et enregistre le bail. Le client peut maintenant utiliser l\'IP.', color: 'violet' }
+              { letter: 'D', label: 'Discover', desc: 'Le PC envoie un message à tout le monde : « J\'ai besoin d\'une IP »', color: 'blue' },
+              { letter: 'O', label: 'Offer', desc: 'Le routeur répond : « Voilà une adresse pour toi, par ex. 192.168.10.11 »', color: 'emerald' },
+              { letter: 'R', label: 'Request', desc: 'Le PC dit : « Je la prends ! »', color: 'amber' },
+              { letter: 'A', label: 'Acknowledge', desc: 'Le routeur confirme : « C\'est enregistré, tu peux l\'utiliser. »', color: 'violet' }
             ].map((s, i) => (
               <div key={i} className="p-4 bg-slate-800/60 rounded-lg border-l-4 border-slate-500">
                 <p className="font-bold text-white"><span className="text-lg mr-2">{s.letter}</span>{s.label}</p>
@@ -4733,74 +4730,96 @@ Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des ser
       },
       {
         type: 'rich_text',
-        title: "Pourquoi exclure des adresses du pool DHCP ?",
+        title: "Pourquoi réserver certaines adresses ?",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed">Le pool DHCP contient les adresses qu'on peut attribuer aux PC. Mais certaines adresses ne doivent <strong>jamais</strong> être données par le DHCP :</p>
+            <p className="text-slate-200 leading-relaxed">Le « pool » DHCP, c'est la réserve d'adresses qu'on peut donner aux PC. Mais certaines adresses doivent rester <strong>libres</strong> — on ne les donne jamais à un PC :</p>
             <ul className="space-y-2 text-slate-300">
-              <li><strong>192.168.1.1</strong> — la passerelle (le routeur) a une IP fixe</li>
-              <li><strong>192.168.1.10 à .20</strong> — des serveurs (fichiers, imprimantes) ont des IP fixes</li>
-              <li><strong>192.168.1.250 à .254</strong> — réservées pour équipements réseau</li>
+              <li><strong>192.168.1.1</strong> — c'est l'adresse du routeur (la passerelle). Si un PC la recevait, conflit : deux machines avec la même adresse !</li>
+              <li><strong>192.168.1.10 à .20</strong> — souvent réservées aux serveurs, imprimantes réseau, etc.</li>
+              <li><strong>192.168.1.250 à .254</strong> — la fin du rang, souvent pour le serveur DNS ou d'autres équipements fixes</li>
             </ul>
-            <p className="text-slate-300">On « exclut » ces plages pour que le DHCP ne les attribue jamais. Sinon : conflit d'IP, plus de passerelle, panne réseau.</p>
+            <p className="text-slate-300">On « exclut » ces adresses du pool. Sinon le DHCP pourrait les donner à un PC, et là tout casse (plus de passerelle, plus de DNS…).</p>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "Config DHCP – Étape 1 : Les exclusions",
+        title: "Étape 0 : Allumer le port du routeur",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed">Avant de créer le pool, on exclut les adresses réservées. <strong>Ordre important</strong> : exclusions d'abord, pool ensuite.</p>
+            <p className="text-slate-200 leading-relaxed">Avant de configurer le DHCP, le routeur doit avoir une <strong>adresse</strong> sur le port branché au switch. Et ce port doit être <strong>allumé</strong>. Sinon : câble rouge dans Packet Tracer, rien ne passe.</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2">
+              <p className="text-emerald-400">interface g0/0</p>
+              <p className="text-slate-500 text-xs">→ Tu choisis le port à configurer</p>
+              <p className="text-emerald-400">ip address 192.168.10.1 255.255.255.0</p>
+              <p className="text-slate-500 text-xs">→ Tu donnes l'adresse du routeur (c'est la passerelle des PC)</p>
+              <p className="text-emerald-400">no shutdown</p>
+              <p className="text-slate-500 text-xs">→ Tu « allumes » le port. <strong>Sans ça, le câble reste rouge !</strong></p>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold">L'ordre à respecter : 1) Port allumé → 2) Exclusions → 3) Pool DHCP</p>
+              <p className="text-slate-300 text-sm">Si tu fais le pool avant d'avoir fait no shutdown, les PC ne recevront rien : le routeur n'est pas « connecté ».</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Étape 1 : Réserver les adresses qu'on ne donne pas",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">On dit au routeur : « Ces adresses, ne les donne <strong>jamais</strong> à un PC. » On les réserve pour le routeur, le serveur DNS, etc.</p>
             <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm">
               <p className="text-slate-400">Router(config)#</p>
               <p className="text-emerald-400">ip dhcp excluded-address 192.168.1.1 192.168.1.10</p>
-              <p className="text-slate-500 text-xs mt-2">→ Réserve 192.168.1.1 à 192.168.1.10 (passerelle + quelques serveurs)</p>
+              <p className="text-slate-500 text-xs mt-2">→ On garde .1 à .10 (le routeur est en .1, le reste pour serveurs)</p>
               <p className="text-emerald-400 mt-3">ip dhcp excluded-address 192.168.1.250 192.168.1.254</p>
-              <p className="text-slate-500 text-xs mt-2">→ Réserve la fin du range pour des équipements fixes</p>
+              <p className="text-slate-500 text-xs mt-2">→ On garde la fin pour le serveur DNS (.254). Sinon les PC ne le trouveraient plus.</p>
             </div>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "Config DHCP – Étape 2 : Créer le pool",
+        title: "Étape 2 : Créer le « réservoir » d'adresses",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed">On crée un pool nommé (ex. LAN) et on entre en mode de configuration du pool :</p>
+            <p className="text-slate-200 leading-relaxed">On crée un « pool » (un réservoir) avec un nom, par ex. LAN. Ensuite on va y mettre la plage d'adresses et les infos à donner aux PC.</p>
             <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm">
               <p className="text-emerald-400">ip dhcp pool LAN</p>
               <p className="text-slate-400 mt-2">Router(dhcp-config)#</p>
-              <p className="text-slate-500 text-xs mt-2">→ Le prompt change : on est dans le pool « LAN »</p>
+              <p className="text-slate-500 text-xs mt-2">→ Le routeur te met en mode « config du pool LAN ». Les commandes suivantes vont dans ce pool.</p>
             </div>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "Config DHCP – Étape 3 : Plage et paramètres",
+        title: "Étape 3 : Qu'est-ce qu'on donne aux PC ?",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed">Dans le pool, on définit la plage d'adresses et les infos à donner aux clients :</p>
+            <p className="text-slate-200 leading-relaxed">Dans le pool, tu définis : la plage d'adresses, la passerelle, et l'adresse du serveur DNS. Le routeur donnera tout ça à chaque PC qui demande.</p>
             <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2">
               <p className="text-emerald-400">network 192.168.1.0 255.255.255.0</p>
-              <p className="text-slate-500 text-xs">Plage : 192.168.1.0/24 (les exclusions sont automatiquement retirées)</p>
+              <p className="text-slate-500 text-xs">→ Les adresses à distribuer (le réseau 192.168.1.x). Les exclusions sont automatiquement retirées.</p>
               <p className="text-emerald-400 mt-3">default-router 192.168.1.1</p>
-              <p className="text-slate-500 text-xs">Passerelle par défaut transmise aux clients</p>
+              <p className="text-slate-500 text-xs">→ La « porte de sortie » : l'adresse du routeur</p>
               <p className="text-emerald-400 mt-2">dns-server 192.168.1.100</p>
-              <p className="text-slate-500 text-xs">Serveur DNS transmis aux clients</p>
+              <p className="text-slate-500 text-xs">→ L'adresse du serveur qui traduit les noms (google.fr) en adresses</p>
             </div>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "Config DHCP – Résumé complet",
+        title: "Résumé : toute la config DHCP",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed font-semibold">Configuration complète sur un routeur Cisco :</p>
+            <p className="text-slate-200 leading-relaxed font-semibold">L'ordre à suivre sur le routeur :</p>
             <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-1">
-              <p className="text-slate-500 text-xs">1. Exclusions (en mode config globale)</p>
+              <p className="text-slate-500 text-xs">0. Allumer le port : interface g0/0 → ip address → no shutdown</p>
+              <p className="text-slate-500 text-xs mt-2">1. Réserver les adresses qu'on ne donne pas</p>
               <p className="text-emerald-400">ip dhcp excluded-address 192.168.1.1 192.168.1.10</p>
               <p className="text-emerald-400">ip dhcp excluded-address 192.168.1.250 192.168.1.254</p>
               <p className="text-slate-500 text-xs mt-4">2. Pool (en mode dhcp-config)</p>
@@ -4814,27 +4833,27 @@ Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des ser
       },
       {
         type: 'rich_text',
-        title: "Passons au DNS – Le problème",
+        title: "Passons au DNS – Pourquoi on tape google.fr et pas une adresse ?",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed text-lg">Pour accéder à un site web, on tape <strong>www.google.fr</strong> — pas 142.250.186.35. Les humains retiennent les noms, les machines utilisent les adresses IP.</p>
+            <p className="text-slate-200 leading-relaxed text-lg">Quand tu vas sur Google, tu tapes <strong>www.google.fr</strong>. Personne ne tape 142.250.186.35 ! Les noms, c'est pour nous. Les machines, elles ont besoin des adresses.</p>
             <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
               <p className="text-red-200 font-bold mb-2">Sans DNS :</p>
-              <p className="text-slate-300 text-sm">Il faudrait taper les adresses IP à la main pour chaque site, chaque serveur. Impossible à mémoriser.</p>
+              <p className="text-slate-300 text-sm">Il faudrait retenir l'adresse de chaque site, de chaque serveur… Impossible.</p>
             </div>
-            <p className="text-slate-300">La solution : le <strong>DNS</strong>, qui traduit les noms en adresses IP.</p>
+            <p className="text-slate-300">La solution : le <strong>DNS</strong>. Comme un annuaire téléphonique : tu lui donnes un nom, il te donne l'adresse.</p>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "DNS – C'est quoi, en une phrase ?",
+        title: "DNS – C'est quoi ?",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed text-xl text-center py-4">Le <strong className="text-blue-400">DNS</strong> est un annuaire : vous lui donnez un <strong>nom</strong>, il vous renvoie l'<strong>adresse IP</strong>.</p>
+            <p className="text-slate-200 leading-relaxed text-xl text-center py-4">Le <strong className="text-blue-400">DNS</strong> = un annuaire. Tu lui donnes un <strong>nom</strong>, il te renvoie l'<strong>adresse</strong>.</p>
             <div className="bg-blue-900/20 border border-blue-500/40 rounded-xl p-6 text-center">
-              <p className="text-blue-200 font-mono text-lg">www.google.fr</p>
-              <p className="text-slate-400 my-2">↓</p>
+              <p className="text-blue-200 font-mono text-lg">google.fr</p>
+              <p className="text-slate-400 my-2">↓ le DNS traduit ↓</p>
               <p className="text-emerald-300 font-mono">142.250.186.35</p>
             </div>
           </div>
@@ -4842,14 +4861,56 @@ Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des ser
       },
       {
         type: 'rich_text',
-        title: "DNS – Exemples concrets",
+        title: "DNS – À quoi ça sert ?",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed"><strong>Sur internet :</strong> vous tapez google.fr → le DNS renvoie l'IP du serveur Google.</p>
-            <p className="text-slate-200 leading-relaxed"><strong>En entreprise :</strong> vous tapez \\serveur-fichiers → le DNS interne renvoie l'IP du serveur. Idem pour l'intranet, les imprimantes réseau, etc.</p>
-            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
-              <p className="text-amber-200 font-bold">Pourquoi c'est essentiel ?</p>
-              <p className="text-slate-300 text-sm">On change l'IP d'un serveur ? On met à jour le DNS. Les utilisateurs gardent le même nom à taper.</p>
+            <p className="text-slate-200 leading-relaxed">Le DNS traduit les <strong>noms en adresses</strong>. Sans lui :</p>
+            <ul className="text-slate-300 space-y-2 list-disc list-inside">
+              <li>Qui retient 192.168.10.100 ? Personne. « intranet » c'est plus simple</li>
+              <li>Si tu changes l'adresse d'un serveur, tu mets à jour le DNS — les gens continuent à taper le même nom</li>
+              <li>Tu ne pourrais pas taper google.fr — seulement des chiffres illisibles</li>
+            </ul>
+            <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg">
+              <p className="text-emerald-200 font-bold mb-2">En bref</p>
+              <p className="text-slate-300 text-sm">Tu utilises des <strong>noms</strong> (intranet, imprimante, files). Le DNS te donne l'adresse. Même si l'adresse change, le nom reste le même.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "DNS – C'est quoi une requête ?",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Une <strong>requête</strong> = ton PC pose une question au serveur DNS. Le serveur répond avec l'adresse.</p>
+            <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-600 space-y-4">
+              <p className="text-slate-300 font-semibold">Exemple : tu tapes <code className="bg-slate-900 px-2 py-0.5 rounded text-emerald-400">ping intranet.techcorp.local</code></p>
+              <ol className="text-slate-300 list-decimal list-inside space-y-2 text-sm">
+                <li>Le PC demande au serveur DNS : « C'est quoi l'adresse de intranet.techcorp.local ? »</li>
+                <li>Le serveur répond : « 192.168.10.100 »</li>
+                <li>Le PC envoie alors son ping (ou ouvre le navigateur) vers cette adresse</li>
+              </ol>
+            </div>
+            <p className="text-slate-400 text-sm">Le PC sait où est le serveur DNS grâce au DHCP (qui lui a donné l'adresse). Si le PC n'a pas d'adresse DNS, il ne peut pas poser la question → « Ping request could not find host ».</p>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "DNS – Exemples du quotidien",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed"><strong>Sur internet :</strong> tu tapes google.fr → le DNS te donne l'adresse de Google.</p>
+            <p className="text-slate-200 leading-relaxed"><strong>En entreprise :</strong> « imprimante », « intranet », « partage-fichiers » → le DNS interne donne l'adresse de chaque service.</p>
+            <div className="bg-blue-900/20 border border-blue-500/40 rounded-xl p-4">
+              <p className="text-blue-200 font-bold mb-2">Dans nos labs (TechCorp)</p>
+              <p className="text-slate-300 text-sm mb-2">On crée des « fiches » sur le serveur DNS : nom → adresse</p>
+              <ul className="text-slate-300 text-sm space-y-1 font-mono">
+                <li>intranet.techcorp.local → 192.168.10.100</li>
+                <li>files.techcorp.local → 192.168.10.101</li>
+                <li>imprimante.techcorp.local → 192.168.10.50</li>
+              </ul>
+              <p className="text-slate-400 text-xs mt-2">Quand tu tapes <code className="bg-slate-800 px-1 rounded">ping intranet.techcorp.local</code>, le PC demande au DNS, reçoit .100, puis ping cette adresse.</p>
             </div>
           </div>
         )
@@ -4859,45 +4920,89 @@ Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des ser
         title: "DNS – Comment ça marche ?",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed">Schéma simplifié :</p>
+            <p className="text-slate-200 leading-relaxed">En 4 étapes :</p>
             <ol className="space-y-3 text-slate-300 list-decimal list-inside">
-              <li>Le PC demande : « Quelle est l'IP de www.google.fr ? »</li>
-              <li>La requête part vers le serveur DNS configuré sur le PC (souvent donné par le DHCP)</li>
-              <li>Le serveur DNS répond : « 142.250.186.35 »</li>
-              <li>Le PC peut maintenant contacter le serveur Google</li>
+              <li>Tu veux joindre un nom (intranet, google.fr…)</li>
+              <li>Ton PC demande au serveur DNS : « C'est quoi l'adresse de ce nom ? » (le PC connaît l'adresse du DNS grâce au DHCP)</li>
+              <li>Le serveur regarde sa liste (nom → adresse) et répond</li>
+              <li>Ton PC utilise cette adresse pour envoyer les données (ping, navigateur, etc.)</li>
             </ol>
-            <p className="text-slate-400 text-sm">En entreprise, le serveur DNS peut aussi résoudre des noms internes (srv-impression, intranet, etc.).</p>
+            <p className="text-slate-400 text-sm">En lab : Packet Tracer → clic sur le serveur → Services → DNS. Tu ajoutes les fiches (intranet, files, imprimante) pour que les PC puissent les résoudre.</p>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "Config DNS sur un routeur Cisco",
+        title: "DNS sur un routeur Cisco (optionnel)",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed">Par défaut, un routeur Cisco peut avoir la résolution DNS désactivée. Pour qu'il résolve des noms (ex. <code className="bg-slate-900 px-1 rounded">ping srv-fichiers</code>) :</p>
+            <p className="text-slate-200 leading-relaxed">Si tu veux que le routeur lui-même résolve des noms (par ex. taper <code className="bg-slate-900 px-1 rounded">ping srv-fichiers</code> dans la console du routeur) :</p>
             <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2">
               <p className="text-emerald-400">ip domain-lookup</p>
-              <p className="text-slate-500 text-xs">Active la résolution DNS (si elle a été désactivée avec no ip domain-lookup)</p>
+              <p className="text-slate-500 text-xs">→ Active la résolution de noms sur le routeur</p>
               <p className="text-emerald-400 mt-3">ip name-server 192.168.1.100</p>
-              <p className="text-slate-500 text-xs">Indique quel serveur DNS interroger pour résoudre les noms</p>
+              <p className="text-slate-500 text-xs">→ Tu indiques quel serveur DNS le routeur doit interroger</p>
             </div>
+            <p className="text-slate-400 text-sm">Dans nos labs, le DNS est sur un <strong>serveur à part</strong> (Packet Tracer). Les PC l'interrogent directement. Le routeur donne juste l'adresse du DNS aux PC via le DHCP.</p>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "Récapitulatif : DHCP et DNS",
+        title: "Configurer le serveur DNS dans Packet Tracer",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Le serveur DNS (l'appareil « Server ») doit avoir une <strong>adresse fixe</strong>. Pas de DHCP pour lui — sinon il changerait d'adresse et les PC ne le trouveraient plus.</p>
+            <div className="bg-slate-800/60 rounded-xl p-5 border border-slate-600 space-y-4">
+              <p className="text-slate-200 font-semibold">Ce que tu fais :</p>
+              <ol className="text-slate-300 list-decimal list-inside space-y-2 text-sm">
+                <li><strong>Config → IP</strong> : tu lui donnes une adresse fixe (ex. 192.168.10.254), le masque, la passerelle</li>
+                <li><strong>Services → DNS</strong> : tu ajoutes les « fiches » : intranet.techcorp.local → 192.168.10.100, files.techcorp.local → 192.168.10.101, imprimante.techcorp.local → 192.168.10.50</li>
+              </ol>
+            </div>
+            <p className="text-slate-400 text-sm">Le DHCP donne cette adresse (192.168.10.254) aux PC. Comme ça, les PC savent où aller poser leurs questions.</p>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Mettre les PC en mode DHCP",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Pour que les PC reçoivent tout automatiquement, tu les mets en <strong>DHCP</strong>.</p>
+            <p className="text-slate-300">Dans Packet Tracer : <strong>clic sur le PC</strong> → onglet <strong>Desktop</strong> → <strong>IP Configuration</strong> → tu choisis <strong>DHCP</strong> (pas Static).</p>
+            <p className="text-slate-400 text-sm">Le PC demande alors une IP au routeur (DORA) et reçoit : son adresse, la passerelle, et l'adresse du serveur DNS.</p>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Comment vérifier que tout marche ?",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Tu vérifies du plus simple au plus complexe :</p>
+            <ol className="text-slate-300 list-decimal list-inside space-y-3">
+              <li><strong>ipconfig</strong> (PC → Desktop → Command Prompt) : le PC a bien reçu une IP ? La passerelle et le DNS sont là ? Si tu vois 0.0.0.0 → le DHCP n'a pas répondu.</li>
+              <li><strong>ping 192.168.10.1</strong> : la passerelle répond ? Si « Request timed out » → vérifie que tu as fait no shutdown sur le routeur, et que le câble est bien branché.</li>
+              <li><strong>ping intranet.techcorp.local</strong> : le DNS trouve le nom ? Si « could not find host » → le DNS est mal configuré ou le PC n'a pas l'adresse du serveur DNS.</li>
+              <li><strong>show ip dhcp binding</strong> (sur le routeur) : tu vois une ligne par PC qui a reçu une IP ?</li>
+            </ol>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Récap en 2 phrases",
         content: (
           <div className="space-y-6">
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-amber-900/20 border border-amber-500/40 rounded-xl p-5">
                 <p className="text-amber-300 font-bold mb-2">DHCP</p>
-                <p className="text-slate-300 text-sm">Attribue automatiquement : IP, masque, passerelle, DNS. Flux DORA. Exclusions pour les adresses fixes.</p>
+                <p className="text-slate-300 text-sm">Donne tout seul aux PC leur adresse, la passerelle et l'adresse du DNS. Tu configures une fois sur le routeur, les PC reçoivent tout.</p>
               </div>
               <div className="bg-blue-900/20 border border-blue-500/40 rounded-xl p-5">
                 <p className="text-blue-300 font-bold mb-2">DNS</p>
-                <p className="text-slate-300 text-sm">Traduit les noms en adresses IP. Essentiel pour le web et les services internes. ip domain-lookup + ip name-server.</p>
+                <p className="text-slate-300 text-sm">Traduit les noms en adresses. Tu tapes « intranet », il te donne l'adresse. Comme un annuaire.</p>
               </div>
             </div>
           </div>
@@ -4911,11 +5016,11 @@ Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des ser
             <p className="text-slate-400 text-sm mb-4">Complétez mentalement ou vérifiez vos réponses :</p>
             <div className="space-y-4">
               {[
-                { n: 1, text: "Le protocole DHCP permet d'", blank: "attribuer automatiquement", after: " des adresses IP aux équipements d'un réseau." },
-                { n: 2, text: "Les étapes d'une attribution DHCP suivent l'ordre DORA : ", blank: "Discover, Offer, Request, Acknowledgment", after: "." },
-                { n: 3, text: "Un serveur DNS permet de ", blank: "résoudre un nom d'hôte en adresse IP", after: "." },
-                { n: 4, text: "La commande pour indiquer un serveur DNS à un routeur Cisco est ", blank: "ip name-server", after: "." },
-                { n: 5, text: "Le DHCP évite d'avoir à ", blank: "configurer manuellement chaque adresse IP", after: " sur les postes clients." }
+                { n: 1, text: "Le DHCP permet de ", blank: "donner automatiquement", after: " les adresses aux PC." },
+                { n: 2, text: "DORA = le PC demande (D), le routeur propose (O), le PC accepte (R), le routeur confirme (A). En anglais : ", blank: "Discover, Offer, Request, Acknowledgment", after: "." },
+                { n: 3, text: "Le DNS traduit un ", blank: "nom en adresse IP", after: "." },
+                { n: 4, text: "Pour dire au routeur quel serveur DNS interroger : ", blank: "ip name-server", after: " + l'adresse." },
+                { n: 5, text: "Avec le DHCP, tu n'as pas à ", blank: "configurer chaque PC à la main", after: "." }
               ].map(({ n, text, blank, after }) => (
                 <div key={n} className="p-4 bg-slate-800/60 rounded-lg border border-slate-600">
                   <p className="text-slate-300">
@@ -4943,14 +5048,15 @@ Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des ser
               </thead>
               <tbody className="text-slate-300">
                 {[
-                  { obj: "Exclure des adresses du pool DHCP", cmd: "ip dhcp excluded-address [ip_debut] [ip_fin]" },
-                  { obj: "Créer un pool DHCP", cmd: "ip dhcp pool <nom_du_pool>" },
-                  { obj: "Définir la plage d'adresses DHCP", cmd: "network 192.168.1.0 255.255.255.0" },
-                  { obj: "Définir la passerelle par défaut", cmd: "default-router 192.168.1.1" },
-                  { obj: "Spécifier un serveur DNS dans le DHCP", cmd: "dns-server 192.168.1.100" },
+                  { obj: "Allumer le port du routeur", cmd: "no shutdown (après ip address)" },
+                  { obj: "Réserver des adresses qu'on ne donne pas aux PC", cmd: "ip dhcp excluded-address [début] [fin]" },
+                  { obj: "Créer le réservoir d'adresses", cmd: "ip dhcp pool LAN" },
+                  { obj: "Dire quelle plage d'adresses distribuer", cmd: "network 192.168.1.0 255.255.255.0" },
+                  { obj: "Donner la passerelle aux PC", cmd: "default-router 192.168.1.1" },
+                  { obj: "Donner l'adresse du serveur DNS aux PC", cmd: "dns-server 192.168.1.100" },
                   { obj: "Activer la résolution DNS sur le routeur", cmd: "ip domain-lookup" },
-                  { obj: "Indiquer le serveur DNS à interroger", cmd: "ip name-server 192.168.1.100" },
-                  { obj: "Vérifier les baux DHCP attribués", cmd: "show ip dhcp binding" }
+                  { obj: "Dire au routeur quel serveur DNS interroger", cmd: "ip name-server 192.168.1.100" },
+                  { obj: "Voir quels PC ont reçu une IP", cmd: "show ip dhcp binding" }
                 ].map((row, i) => (
                   <tr key={i} className="border-b border-slate-700 hover:bg-slate-800/50">
                     <td className="py-3 px-4">{row.obj}</td>
@@ -4964,12 +5070,13 @@ Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des ser
       },
       {
         type: 'rich_text',
-        title: "Configuration de base DHCP sur un routeur Cisco",
+        title: "Configuration DHCP – En bref",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed">Le routeur Cisco peut agir comme serveur DHCP. Exemple pour le réseau 192.168.1.0/24 :</p>
+            <p className="text-slate-200 leading-relaxed">Le routeur peut distribuer les adresses aux PC. Exemple pour le réseau 192.168.1.x :</p>
             <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-1">
-              <p className="text-slate-500 text-xs mb-2">Exclusion d'adresses fixes (serveurs, imprimantes, passerelle) :</p>
+              <p className="text-slate-500 text-xs mb-2">Interface (interface g0/0 → ip address 192.168.1.1 255.255.255.0 → no shutdown)</p>
+              <p className="text-slate-500 text-xs mt-2 mb-2">Exclusion d'adresses fixes (serveurs, imprimantes, passerelle) :</p>
               <p className="text-emerald-400">ip dhcp excluded-address 192.168.1.1 192.168.1.10</p>
               <p className="text-emerald-400">ip dhcp excluded-address 192.168.1.250 192.168.1.254</p>
               <p className="text-slate-500 text-xs mt-4 mb-2">Création du pool DHCP avec les informations nécessaires :</p>
@@ -4984,23 +5091,28 @@ Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des ser
       },
       {
         type: 'rich_text',
-        title: "Rappel – Fonctionnement DNS et config Cisco",
+        title: "Rappel – DNS en pratique",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed font-semibold">Fonctionnement en bref</p>
+            <p className="text-slate-200 leading-relaxed font-semibold">En bref</p>
             <ul className="text-slate-300 list-disc pl-6 space-y-1">
-              <li>Le poste envoie une requête « Quel est l'IP de ce nom ? » au serveur DNS.</li>
-              <li>Le serveur DNS renvoie l'adresse IP correspondante.</li>
-              <li>Utilisé pour le web et les services internes (intranet, serveurs de fichiers).</li>
+              <li>Le PC demande au serveur DNS : « C'est quoi l'adresse de intranet ? »</li>
+              <li>Le serveur répond : « 192.168.10.100 »</li>
+              <li>Le PC utilise cette adresse pour envoyer ses données.</li>
             </ul>
-            <p className="text-slate-200 leading-relaxed font-semibold">Configuration sur un routeur Cisco</p>
+            <p className="text-slate-200 leading-relaxed font-semibold">En lab</p>
+            <ul className="text-slate-300 list-disc pl-6 space-y-1 text-sm">
+              <li>Le DHCP donne aux PC l'adresse du serveur DNS (192.168.10.254)</li>
+              <li>Sur le serveur : Services → DNS → tu ajoutes intranet, files, imprimante</li>
+              <li>Tu testes avec <code className="bg-slate-800 px-1 rounded">ping intranet.techcorp.local</code> → si ça répond, c'est bon !</li>
+            </ul>
+            <p className="text-slate-200 leading-relaxed font-semibold">Sur un routeur Cisco (optionnel)</p>
             <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-1">
               <p className="text-emerald-400">ip domain-lookup</p>
-              <p className="text-slate-500 text-xs">Activation de la résolution DNS depuis l'équipement lui-même</p>
+              <p className="text-slate-500 text-xs">Activer la résolution DNS sur le routeur</p>
               <p className="text-emerald-400 mt-2">ip name-server 192.168.1.100</p>
-              <p className="text-slate-500 text-xs">Indication du serveur DNS à interroger</p>
+              <p className="text-slate-500 text-xs">Indiquer quel serveur DNS interroger</p>
             </div>
-            <p className="text-slate-400 text-sm">Dans Packet Tracer : Serveur → Services → DNS → créer des enregistrements (nom → IP) pour les noms internes.</p>
           </div>
         )
       },
@@ -5010,11 +5122,11 @@ Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des ser
         content: (
           <div className="space-y-6">
             {[
-              { q: "Pourquoi utilise-t-on DHCP dans un réseau ?", a: "Pour automatiser l'attribution des adresses IP et des paramètres réseau (passerelle, DNS), éviter les erreurs de configuration manuelle, et simplifier la gestion des postes." },
-              { q: "Que signifie DORA ?", a: "Discover (le client cherche un serveur), Offer (le serveur propose une adresse), Request (le client demande officiellement l'adresse proposée), Acknowledgment (le serveur valide et enregistre le bail)." },
-              { q: "Quelles informations le DHCP peut-il fournir en plus de l'adresse IP ?", a: "La passerelle par défaut, le ou les serveurs DNS, la durée du bail, le masque de sous-réseau, des options spécifiques selon le réseau." },
-              { q: "Pourquoi un DNS est-il essentiel en entreprise ?", a: "Il permet de transformer des noms faciles à retenir en adresses IP, pour accéder aux services internes (fichiers, intranet, applications) ou à internet, sans mémoriser les IP." },
-              { q: "Peut-on configurer un serveur DNS dans Packet Tracer ?", a: "Oui, en utilisant un serveur dans l'onglet Services > DNS et en créant des enregistrements pour résoudre des noms internes." }
+              { q: "Pourquoi utilise-t-on DHCP ?", a: "Pour que les PC reçoivent leur adresse, la passerelle et le DNS tout seuls. Plus besoin de configurer chaque PC à la main." },
+              { q: "Que signifie DORA ?", a: "Les 4 étapes : le PC demande une IP (Discover), le routeur propose (Offer), le PC accepte (Request), le routeur confirme (Acknowledgment)." },
+              { q: "Qu'est-ce que le DHCP donne aux PC ?", a: "L'adresse IP, le masque, la passerelle (la sortie vers internet), et l'adresse du serveur DNS." },
+              { q: "À quoi sert le DNS ?", a: "À traduire les noms (google.fr, intranet) en adresses. Comme un annuaire : tu donnes un nom, il te donne l'adresse." },
+              { q: "Peut-on configurer un serveur DNS dans Packet Tracer ?", a: "Oui. Clic sur le serveur → Services → DNS → tu ajoutes des fiches nom → adresse." }
             ].map((item, i) => (
               <div key={i} className="p-4 bg-slate-800/60 rounded-lg border border-slate-600">
                 <p className="text-amber-300 font-semibold mb-2">{i + 1}. {item.q}</p>
@@ -5028,12 +5140,12 @@ Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des ser
         type: 'interactive_quiz',
         title: "Quiz : DHCP & DNS",
         questions: [
-          { q: "Pourquoi utilise-t-on DHCP dans un réseau ?", options: ["Pour augmenter la vitesse", "Pour automatiser l'attribution des adresses IP et des paramètres réseau (passerelle, DNS), éviter les erreurs et simplifier la gestion", "Pour remplacer le routeur"], a: 1, explanation: "DHCP centralise et automatise la configuration IP, réduisant les erreurs et le travail manuel." },
-          { q: "Que signifie DORA ?", options: ["Un mot de passe", "Discover (client cherche), Offer (serveur propose), Request (client demande), Acknowledgment (serveur valide)", "Un protocole de routage"], a: 1, explanation: "DORA décrit les 4 étapes d'une attribution DHCP réussie." },
-          { q: "Quelles informations le DHCP peut-il fournir en plus de l'adresse IP ?", options: ["Rien d'autre", "La passerelle par défaut, le serveur DNS, la durée du bail, le masque", "Uniquement le masque"], a: 1, explanation: "DHCP fournit passerelle, DNS, masque, bail, et options spécifiques selon le réseau." },
-          { q: "Pourquoi un DNS est-il essentiel en entreprise ?", options: ["Il n'est pas essentiel", "Il transforme des noms en IP pour accéder aux services internes ou internet sans mémoriser les adresses", "Il remplace le DHCP"], a: 1, explanation: "Le DNS permet d'utiliser des noms faciles à retenir au lieu d'adresses IP." },
-          { q: "Peut-on configurer un serveur DNS dans Packet Tracer ?", options: ["Non", "Oui, en utilisant un serveur dans l'onglet Services > DNS et en créant des enregistrements", "Uniquement sur un routeur"], a: 1, explanation: "Packet Tracer permet de configurer un serveur DNS avec des enregistrements nom → IP." },
-          { q: "Quelle commande exclut une adresse du pool DHCP ?", options: ["exclude-address", "ip dhcp excluded-address", "dhcp exclude"], a: 1, explanation: "ip dhcp excluded-address [ip] réserve une adresse (souvent la passerelle) pour qu'elle ne soit pas attribuée." }
+          { q: "Pourquoi utilise-t-on DHCP ?", options: ["Pour aller plus vite sur internet", "Pour que les PC reçoivent leur adresse tout seuls (plus de config à la main)", "Pour remplacer le routeur"], a: 1, explanation: "Le DHCP donne tout aux PC automatiquement : adresse, passerelle, DNS. Tu configures une fois sur le routeur." },
+          { q: "Que signifie DORA ?", options: ["Un mot de passe", "Les 4 étapes : PC demande, routeur propose, PC accepte, routeur confirme", "Un protocole de routage"], a: 1, explanation: "D = le PC cherche une IP, O = le routeur propose, R = le PC accepte, A = le routeur valide." },
+          { q: "Qu'est-ce que le DHCP donne aux PC ?", options: ["Juste l'adresse IP", "L'adresse, la passerelle, le serveur DNS et le masque", "Uniquement le masque"], a: 1, explanation: "Il donne tout : l'IP, le masque, la passerelle (la sortie) et l'adresse du serveur DNS." },
+          { q: "À quoi sert le DNS ?", options: ["À rien", "À traduire les noms (google.fr, intranet) en adresses", "À remplacer le DHCP"], a: 1, explanation: "Comme un annuaire : tu donnes un nom, il te donne l'adresse. Tu n'as pas à mémoriser les chiffres." },
+          { q: "Peut-on configurer un serveur DNS dans Packet Tracer ?", options: ["Non", "Oui : serveur → Services → DNS → ajouter des fiches nom → adresse", "Seulement sur un routeur"], a: 1, explanation: "Tu cliques sur le serveur, tu vas dans Services → DNS, et tu ajoutes des enregistrements." },
+          { q: "Quelle commande réserve des adresses pour qu'elles ne soient pas données aux PC ?", options: ["exclude-address", "ip dhcp excluded-address", "dhcp exclude"], a: 1, explanation: "ip dhcp excluded-address réserve une plage (par ex. la passerelle et le serveur DNS)." }
         ]
       },
       {
@@ -5041,11 +5153,11 @@ Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des ser
         title: "Construire la configuration DHCP",
         commandBuilderTitle: "Configuration DHCP minimale",
         steps: [
-          { cmd: "ip dhcp excluded-address 192.168.1.1 192.168.1.10", desc: "Exclure les adresses fixes (passerelle, serveurs)" },
-          { cmd: "ip dhcp pool LAN", desc: "Créer le pool DHCP" },
-          { cmd: "network 192.168.1.0 255.255.255.0", desc: "Plage d'adresses" },
-          { cmd: "default-router 192.168.1.1", desc: "Passerelle par défaut" },
-          { cmd: "dns-server 192.168.1.100", desc: "Serveur DNS" }
+          { cmd: "ip dhcp excluded-address 192.168.1.1 192.168.1.10", desc: "Réserver les adresses pour le routeur et les serveurs" },
+          { cmd: "ip dhcp pool LAN", desc: "Créer le réservoir d'adresses" },
+          { cmd: "network 192.168.1.0 255.255.255.0", desc: "La plage à distribuer" },
+          { cmd: "default-router 192.168.1.1", desc: "La passerelle (la sortie)" },
+          { cmd: "dns-server 192.168.1.100", desc: "L'adresse du serveur DNS" }
         ]
       },
       {
@@ -5053,14 +5165,14 @@ Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des ser
         title: "Flashcards : Commandes DHCP & DNS",
         mode: "command_to_definition",
         cards: [
-          { q: "ip dhcp excluded-address", a: "Exclure des adresses du pool DHCP (serveurs, passerelle)" },
-          { q: "ip dhcp pool", a: "Créer un pool DHCP" },
-          { q: "network", a: "Définir la plage d'adresses (en mode dhcp-config)" },
-          { q: "default-router", a: "Passerelle par défaut pour les clients DHCP" },
-          { q: "dns-server", a: "Serveur DNS à transmettre aux clients" },
-          { q: "ip domain-lookup", a: "Activer la résolution DNS sur l'équipement" },
-          { q: "ip name-server", a: "Serveur DNS à interroger pour la résolution de noms" },
-          { q: "show ip dhcp binding", a: "Voir les baux DHCP attribués" }
+          { q: "ip dhcp excluded-address", a: "Réserver des adresses qu'on ne donne pas aux PC (routeur, serveur DNS)" },
+          { q: "ip dhcp pool", a: "Créer le réservoir d'adresses" },
+          { q: "network", a: "La plage d'adresses à distribuer" },
+          { q: "default-router", a: "La passerelle qu'on donne aux PC" },
+          { q: "dns-server", a: "L'adresse du serveur DNS qu'on donne aux PC" },
+          { q: "ip domain-lookup", a: "Activer la résolution de noms sur le routeur" },
+          { q: "ip name-server", a: "Dire au routeur quel serveur DNS interroger" },
+          { q: "show ip dhcp binding", a: "Voir quels PC ont reçu une IP" }
         ]
       }
     ],
