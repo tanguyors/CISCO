@@ -1556,6 +1556,19 @@ const CmdLine = ({ cmd, children }) => (
   </div>
 );
 
+// Bloc de commandes compact (style Lab DHCP & DNS) - lines: {prompt, cmd} ou string
+const CmdBlock = ({ lines }) => (
+  <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-1">
+    {lines.map((l, i) => (
+      <p key={i}>
+        {typeof l === 'string' ? <span className="text-emerald-400">{l}</span> : (
+          <><span className="text-slate-500">{l.prompt} </span><span className="text-emerald-400">{l.cmd}</span></>
+        )}
+      </p>
+    ))}
+  </div>
+);
+
 // --- Composant pédagogique : Commande détaillée ---
 const CommandStep = ({ number, command, why, result, prompt }) => (
   <div className="bg-slate-800/40 border border-slate-700 rounded-xl p-5 hover:bg-slate-800/60 transition-all">
@@ -1591,16 +1604,50 @@ const CommandStep = ({ number, command, why, result, prompt }) => (
   </div>
 );
 
-// --- CORRECTION DÉTAILLÉE LAB 1 SESSION 2 (Introduction VLAN) ---
+// --- CORRECTION LAB 1 SESSION 2 (Introduction VLAN) – Format compact ---
 const CorrectionLab1Session2 = () => (
-  <div className="max-w-5xl mx-auto space-y-8 pb-16">
-    <div className="bg-gradient-to-br from-emerald-900/30 to-blue-900/20 border border-emerald-500/40 rounded-2xl p-8">
-      <h1 className="text-3xl font-bold text-white flex items-center gap-3 mb-3">
-        <CheckCircle className="w-10 h-10 text-emerald-400 flex-shrink-0" /> Correction Lab 1 : Introduction aux VLANs
-      </h1>
-      <p className="text-emerald-100/90 text-lg leading-relaxed">Création de VLANs sur un switch et attribution des ports - Commande par commande avec explications détaillées.</p>
+  <div className="space-y-10 text-slate-200 text-base leading-relaxed pb-16">
+    <div className="bg-emerald-900/20 border border-emerald-500/40 rounded-xl p-5">
+      <p className="text-emerald-200 font-semibold text-lg mb-2">Correction Lab 1 – Introduction VLANs</p>
+      <p className="text-slate-300 text-sm">1 switch, 4 PC. Commande par commande.</p>
     </div>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">1. Créer les VLANs</h4>
+      <CmdBlock lines={[
+        { prompt: "Switch>", cmd: "enable" },
+        { prompt: "Switch#", cmd: "configure terminal" },
+        { prompt: "Switch(config)#", cmd: "vlan 10" },
+        { prompt: "Switch(config-vlan)#", cmd: "name Administration" },
+        { prompt: "Switch(config-vlan)#", cmd: "exit" },
+        { prompt: "Switch(config)#", cmd: "vlan 20" },
+        { prompt: "Switch(config-vlan)#", cmd: "name Commercial" },
+        { prompt: "Switch(config-vlan)#", cmd: "exit" },
+        { prompt: "Switch(config)#", cmd: "show vlan brief" }
+      ]} />
+    </section>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">2. Attribuer les ports</h4>
+      <CmdBlock lines={[
+        { prompt: "Switch(config)#", cmd: "interface range fastEthernet0/1 - 2" },
+        { prompt: "Switch(config-if-range)#", cmd: "switchport mode access" },
+        { prompt: "Switch(config-if-range)#", cmd: "switchport access vlan 10" },
+        { prompt: "Switch(config-if-range)#", cmd: "exit" },
+        { prompt: "Switch(config)#", cmd: "interface range fastEthernet0/3 - 4" },
+        { prompt: "Switch(config-if-range)#", cmd: "switchport mode access" },
+        { prompt: "Switch(config-if-range)#", cmd: "switchport access vlan 20" },
+        { prompt: "Switch(config-if-range)#", cmd: "exit" },
+        { prompt: "Switch(config)#", cmd: "show vlan brief" }
+      ]} />
+    </section>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">3. Vérifications</h4>
+      <p className="text-slate-300 text-sm">PC-Admin1 ping 192.168.1.11 ✓ | PC-Com1 ping 192.168.1.21 ✓ | PC-Admin1 ping 192.168.1.20 ✗ (VLANs isolés)</p>
+    </section>
+  </div>
+);
 
+const _CorrectionLab1Session2Verbose = () => (
+  <div className="max-w-5xl mx-auto space-y-8 pb-16 hidden">
     <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-600 py-2 mb-6">
       <div className="flex items-center gap-3 flex-wrap">
         <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
@@ -1717,16 +1764,44 @@ const CorrectionLab1Session2 = () => (
   </div>
 );
 
-// --- CORRECTION DÉTAILLÉE LAB 2 SESSION 2 (VLAN avancés, trunk, VLAN natif, management) ---
+// --- CORRECTION LAB 2 SESSION 2 (VLAN avancés) – Format compact ---
 const CorrectionLab2Session2 = () => (
-  <div className="bg-slate-900 rounded-xl border border-slate-700 shadow-xl relative">
-    <div className="bg-gradient-to-r from-blue-900/50 to-emerald-900/50 p-5 border-b border-slate-700">
-      <h3 className="text-xl font-bold text-white flex items-center gap-3">
-        <CheckCircle className="text-blue-400 w-6 h-6" /> Solution Lab 2 Session 2 : VLAN avancés et sécurisation
-      </h3>
-      <p className="text-slate-400 mt-2 text-sm">Setup de base (SW-Core et SW-Dist), VLAN 99 Management, IP de gestion (SVI), trunk sécurisé (VLAN 99 uniquement), ports inutilisés désactivés. Commande par commande avec explication.</p>
+  <div className="space-y-10 text-slate-200 text-base leading-relaxed pb-16">
+    <div className="bg-blue-900/20 border border-blue-500/40 rounded-xl p-5">
+      <p className="text-blue-200 font-semibold text-lg mb-2">Correction Lab 2 – VLAN avancés et sécurisation</p>
+      <p className="text-slate-300 text-sm">SW-Core, SW-Dist. VLAN 99, trunk, ports désactivés.</p>
     </div>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">1. VLAN 99 Management (sur chaque switch)</h4>
+      <CmdBlock lines={[
+        { prompt: "Switch(config)#", cmd: "vlan 99" },
+        { prompt: "Switch(config-vlan)#", cmd: "name Management" },
+        { prompt: "Switch(config-vlan)#", cmd: "exit" },
+        { prompt: "Switch(config)#", cmd: "interface vlan 99" },
+        { prompt: "Switch(config-if)#", cmd: "ip address 192.168.1.x 255.255.255.0" },
+        { prompt: "Switch(config-if)#", cmd: "no shutdown" }
+      ]} />
+    </section>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">2. Trunk sécurisé</h4>
+      <CmdBlock lines={[
+        { prompt: "Switch(config)#", cmd: "interface fa0/24" },
+        { prompt: "Switch(config-if)#", cmd: "switchport mode trunk" },
+        { prompt: "Switch(config-if)#", cmd: "switchport trunk allowed vlan 99" }
+      ]} />
+    </section>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">3. Ports inutilisés désactivés</h4>
+      <CmdBlock lines={[
+        { prompt: "Switch(config)#", cmd: "interface range fa0/1-23" },
+        { prompt: "Switch(config-if-range)#", cmd: "shutdown" }
+      ]} />
+    </section>
+  </div>
+);
 
+const _CorrectionLab2Session2Verbose = () => (
+  <div className="bg-slate-900 rounded-xl border border-slate-700 shadow-xl relative hidden">
     <nav className="sticky top-0 z-50 bg-slate-800/98 backdrop-blur-md border-b border-slate-700 py-2 shadow-lg">
       <div className="flex items-center gap-3 flex-wrap px-2">
         <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
@@ -4990,10 +5065,764 @@ Objectif : Comprendre le fonctionnement, l'intérêt et la configuration des ser
       }
     ],
     lab: {
-      title: "Mémo des Commandes – DHCP & DNS",
-      context: "Retrouvez toutes les commandes DHCP et DNS vues dans cette séance : configuration de pool, exclusions, passerelle, DNS, et vérification des baux.",
-      consignes: null,
-      solutionContent: null
+      title: "Lab Pratique – DHCP & DNS",
+      context: "Mise en œuvre des services DHCP et DNS pour TechCorp. Topologie : 1 routeur, 1 switch, 2 PC, 1 serveur DNS. Réalisez le lab sur Cisco Packet Tracer.",
+      consignes: (
+        <div className="space-y-12 text-slate-200 text-base leading-relaxed">
+          <div className="bg-blue-900/30 border border-blue-500/40 rounded-xl p-5">
+            <p className="text-blue-100 font-semibold text-lg mb-2">Contexte général</p>
+            <p className="text-blue-200/90 text-sm leading-relaxed">
+              L'entreprise <strong>TechCorp</strong> déploie des réseaux et souhaite <strong>automatiser la configuration IP</strong> via DHCP et permettre l'accès aux serveurs internes via des <strong>noms</strong> (DNS). Deux labs sont proposés : un lab de base, puis un lab plus long avec deux sous-réseaux.
+            </p>
+          </div>
+
+          {/* LAB 1 */}
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-6">
+            <h4 className="text-emerald-400 font-bold text-lg">LAB 1 – TechCorp base (court)</h4>
+            <p className="text-slate-400 text-sm">Topologie : 1 routeur R-Tech, 1 switch, 2 PC, 1 serveur DNS. Plan 192.168.10.0/24.</p>
+            <h5 className="text-amber-300 font-semibold mt-2">Câblage (Copper Straight-Through — chaque ligne = 1 câble)</h5>
+            <div className="overflow-x-auto mb-4">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead><tr className="bg-slate-700/50"><th className="p-2 text-left">Appareil</th><th className="p-2 text-left">Port</th><th className="p-2 text-center text-slate-400">↔</th><th className="p-2 text-left">Appareil</th><th className="p-2 text-left">Port</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC-Bureautique</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/1</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC-Technique</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/2</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">Serveur DNS</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/3</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/24</td><td className="p-2 text-center">↔</td><td className="p-2">R-Tech</td><td className="p-2 font-mono">G0/0</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="text-slate-400 text-xs mb-2">Lecture : PC-Bureautique Fa0 ↔ Switch Fa0/1 = brancher un câble entre le port Fa0 du PC et le port Fa0/1 du switch.</p>
+            <h5 className="text-amber-300 font-semibold mt-4">Partie 1 – DHCP</h5>
+            <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
+              <li>Exclure 192.168.10.1 à 192.168.10.10</li>
+              <li>Créer le pool LAN, network, default-router, dns-server</li>
+              <li>PC en DHCP, vérifier avec ipconfig</li>
+            </ol>
+            <h5 className="text-blue-300 font-semibold mt-4">Partie 2 – DNS</h5>
+            <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
+              <li>Serveur : intranet.techcorp.local → 192.168.10.100, files.techcorp.local → 192.168.10.101</li>
+              <li>Test : ping intranet.techcorp.local depuis les PC</li>
+            </ol>
+          </div>
+
+          {/* LAB 2 - Consolidation du cours */}
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-6">
+            <h4 className="text-violet-400 font-bold text-lg">LAB 2 – TechCorp étendu (consolidation)</h4>
+            <p className="text-slate-300 text-sm mb-4">Même topologie et mêmes concepts que le Lab 1 : un seul réseau 192.168.10.0/24, un pool DHCP, un serveur DNS. Ce lab ajoute plus de postes et plus d'enregistrements DNS pour renforcer la maîtrise des notions du cours.</p>
+
+            <h5 className="text-amber-300 font-semibold">Topologie attendue</h5>
+            <ul className="list-none space-y-1 text-slate-300 text-sm">
+              <li className="flex gap-2"><span className="text-emerald-400">•</span> 1 Routeur <strong>(R-Tech)</strong>, 1 Switch</li>
+              <li className="flex gap-2"><span className="text-emerald-400">•</span> 4 PC : PC-B1, PC-B2, PC-B3, PC-B4</li>
+              <li className="flex gap-2"><span className="text-emerald-400">•</span> 1 Serveur DNS (IP fixe 192.168.10.254)</li>
+            </ul>
+
+            <h5 className="text-amber-300 font-semibold mt-4">Câblage (Copper Straight-Through — chaque ligne = 1 câble)</h5>
+            <div className="overflow-x-auto mb-4">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead><tr className="bg-slate-700/50"><th className="p-2 text-left">Appareil</th><th className="p-2 text-left">Port</th><th className="p-2 text-center text-slate-400">↔</th><th className="p-2 text-left">Appareil</th><th className="p-2 text-left">Port</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC-B1</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/1</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC-B2</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/2</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC-B3</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/3</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC-B4</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/4</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">Serveur DNS</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/5</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/24</td><td className="p-2 text-center">↔</td><td className="p-2">R-Tech</td><td className="p-2 font-mono">G0/0</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="text-slate-400 text-xs mb-2">Lecture : PC-B1 Fa0 ↔ Switch Fa0/1 = brancher un câble entre le port Fa0 du PC-B1 et le port Fa0/1 du switch.</p>
+
+            <h5 className="text-amber-300 font-semibold mt-6">Plan d'adressage</h5>
+            <ul className="text-slate-300 text-sm space-y-1">
+              <li>• Réseau : 192.168.10.0/24 — Passerelle (routeur G0/0) = 192.168.10.1</li>
+              <li>• Serveur DNS : 192.168.10.254</li>
+            </ul>
+
+            <h5 className="text-amber-300 font-semibold mt-6">Partie 1 – Câblage et interface du routeur</h5>
+            <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
+              <li>Câbler selon le tableau ci-dessus : 6 câbles (4 PC, 1 serveur, 1 switch↔routeur)</li>
+              <li>Configurer G0/0 : 192.168.10.1/24, no shutdown</li>
+            </ol>
+
+            <h5 className="text-amber-300 font-semibold mt-6">Partie 2 – Exclusions DHCP</h5>
+            <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
+              <li>Exclure 192.168.10.1 à 192.168.10.10 (passerelle + plage réservée)</li>
+              <li>Exclure 192.168.10.250 à 192.168.10.254 (serveur DNS et fin du réseau)</li>
+            </ol>
+
+            <h5 className="text-amber-300 font-semibold mt-6">Partie 3 – Pool DHCP</h5>
+            <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
+              <li>Créer le pool <strong>LAN</strong> : network 192.168.10.0 255.255.255.0, default-router 192.168.10.1, dns-server 192.168.10.254</li>
+            </ol>
+
+            <h5 className="text-amber-300 font-semibold mt-6">Partie 4 – Serveur DNS</h5>
+            <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
+              <li>Sur le serveur : IP 192.168.10.254, masque /24, passerelle 192.168.10.1</li>
+              <li>Services → DNS, ajouter les enregistrements :</li>
+              <ul className="list-disc list-inside mt-2 ml-4 text-slate-400">
+                <li>intranet.techcorp.local → 192.168.10.100</li>
+                <li>files.techcorp.local → 192.168.10.101</li>
+                <li>imprimante.techcorp.local → 192.168.10.50</li>
+              </ul>
+            </ol>
+
+            <h5 className="text-amber-300 font-semibold mt-6">Partie 5 – PC et vérifications DHCP/DNS</h5>
+            <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
+              <li>Les 4 PC en mode DHCP (Desktop → IP Configuration)</li>
+              <li>ipconfig sur chaque PC → IP 192.168.10.x, passerelle 192.168.10.1, DNS 192.168.10.254</li>
+              <li>ping 192.168.10.1 (passerelle) depuis un PC</li>
+              <li>ping intranet.techcorp.local, files.techcorp.local, imprimante.techcorp.local</li>
+              <li>Sur le routeur : show ip dhcp binding → 4 baux affichés</li>
+            </ol>
+
+            <h5 className="text-amber-300 font-semibold mt-6">Partie 6 – Configuration SSH sur le routeur R-Tech</h5>
+            <p className="text-slate-400 text-sm mb-2">Sur le routeur (après DHCP/DNS) : configurer SSH pour se connecter à distance depuis un PC. Notions de la Semaine 1 (Administration Cisco).</p>
+            <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
+              <li><code className="text-emerald-400 font-mono">hostname R-Tech</code> — nom du routeur</li>
+              <li><code className="text-emerald-400 font-mono">ip domain-name techcorp.local</code> — requis pour les clés RSA</li>
+              <li><code className="text-emerald-400 font-mono">crypto key generate rsa</code> — taper 1024 quand demandé</li>
+              <li><code className="text-emerald-400 font-mono">username admin privilege 15 secret cisco123</code> — utilisateur SSH</li>
+              <li><code className="text-emerald-400 font-mono">line vty 0 4</code> → <code className="text-emerald-400 font-mono">login local</code> → <code className="text-emerald-400 font-mono">transport input ssh</code></li>
+              <li><code className="text-emerald-400 font-mono">copy running-config startup-config</code> — sauvegarder</li>
+            </ol>
+            <p className="text-slate-400 text-sm mt-2"><strong>Test :</strong> Depuis PC-B1 (Desktop → Command Prompt) : <code className="text-emerald-400 font-mono">ssh -l admin 192.168.10.1</code> → taper cisco123 → connexion au routeur en mode privilégié.</p>
+
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mt-6">
+              <p className="text-amber-200 font-bold mb-2">Livrables Lab 2</p>
+              <ul className="text-slate-300 text-sm space-y-1">
+                <li>• 4 PC avec IP automatique via DHCP</li>
+                <li>• Résolution DNS fonctionnelle pour les 3 noms (intranet, files, imprimante)</li>
+                <li>• show ip dhcp binding montrant les 4 baux</li>
+                <li>• Connexion SSH depuis un PC vers le routeur (ssh -l admin 192.168.10.1)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      ),
+      solutionContent: (
+        <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16">
+          <div className="bg-gradient-to-br from-emerald-900/30 to-blue-900/20 border border-emerald-500/40 rounded-2xl p-8">
+            <h1 className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
+              <CheckCircle className="w-8 h-8 text-emerald-400 flex-shrink-0" /> Correction détaillée – Lab DHCP & DNS
+            </h1>
+            <p className="text-emerald-100/90 text-lg leading-relaxed">Lab TechCorp : mise en œuvre complète du DHCP et du DNS sur Cisco Packet Tracer, avec explications à chaque étape.</p>
+          </div>
+
+          <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-600 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis :</span>
+              {[
+                { id: 'lab-dhcp-topo', label: 'Topologie', icon: '🔌' },
+                { id: 'lab-dhcp-routeur', label: 'Routeur', icon: '📡' },
+                { id: 'lab-dhcp-excl', label: 'Exclusions', icon: '🚫' },
+                { id: 'lab-dhcp-pool', label: 'Pool DHCP', icon: '🔄' },
+                { id: 'lab-dhcp-dns', label: 'Serveur DNS', icon: '🌐' },
+                { id: 'lab-dhcp-pc', label: 'Configuration PC', icon: '💻' },
+                { id: 'lab-dhcp-verif', label: 'Vérifications', icon: '✅' },
+                { id: 'lab-dhcp-depan', label: 'Dépannage', icon: '🔧' }
+              ].map(({ id, label, icon }) => (
+                <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <section id="lab-dhcp-topo" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">🔌 Étape 0 — Topologie et câblage</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Placer 1 routeur (R-Tech), 1 switch, 2 PC (PC-Bureautique, PC-Technique), 1 serveur. Utiliser des câbles <strong>Copper Straight-Through</strong> (vert clair). Chaque ligne du tableau = un câble à brancher.</p>
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead>
+                  <tr className="bg-slate-700/50">
+                    <th className="p-2 text-left">Appareil</th>
+                    <th className="p-2 text-left">Port</th>
+                    <th className="p-2 text-center text-slate-400">connexion</th>
+                    <th className="p-2 text-left">Appareil</th>
+                    <th className="p-2 text-left">Port</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC-Bureautique</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/1</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC-Technique</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/2</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">Serveur DNS</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/3</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/24</td><td className="p-2 text-center">↔</td><td className="p-2">R-Tech</td><td className="p-2 font-mono">G0/0</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="text-slate-400 text-xs mb-4">Exemple : le câble du PC-Bureautique se branche sur le port <strong>Fa0</strong> du PC et sur le port <strong>Fa0/1</strong> du switch. Renommer les équipements (clic → Config → Display Name). Attendre 10–20 s que les liens passent au vert.</p>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mb-4">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi cette topologie ?</p>
+              <p className="text-slate-300 text-sm mb-2">Le routeur a deux rôles : (1) <strong>passerelle</strong> — les PC envoient vers lui le trafic sortant du réseau ; (2) <strong>serveur DHCP</strong> — il écoute les requêtes DORA et attribue les IP. Le serveur DNS doit avoir une <strong>IP fixe</strong> (192.168.10.254) : les PC reçoivent cette adresse via le DHCP, et ils doivent savoir où aller pour résoudre les noms. Un serveur en DHCP changerait d'IP et deviendrait introuvable.</p>
+              <p className="text-slate-400 text-xs">Le switch relie tout le monde sur le même segment Ethernet. Sans lui, les broadcasts DHCP ne traverseraient pas.</p>
+            </div>
+          </section>
+
+          <section id="lab-dhcp-routeur" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-blue-400 mb-6">📡 Étape 1 — Configuration de l'interface du routeur</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Donner une IP au routeur sur son interface connectée au switch. Sans IP, le routeur n'est « personne » sur le réseau : les PC ne peuvent pas le joindre, et le DHCP (qui tourne sur le routeur) ne peut pas être atteint par les requêtes broadcast des clients.</p>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mb-6">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi cette étape en premier ?</p>
+              <p className="text-slate-300 text-sm">L'ordre est important : (1) d'abord l'IP du routeur, (2) ensuite les exclusions (pour ne pas donner .1 à un PC), (3) puis le pool DHCP. Si tu crées le pool avant d'avoir activé l'interface, le DHCP ne recevra pas les requêtes car le lien physique serait down.</p>
+            </div>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <div className="flex items-start gap-3 mb-2">
+                  <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Router(config)#</code>
+                  <div className="flex-1">
+                    <code className="text-emerald-400 font-mono text-sm">interface g0/0</code>
+                    <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                    <p className="text-slate-400 text-xs">Entre en mode configuration de l'interface GigabitEthernet 0/0. Le prompt devient <code className="bg-slate-800 px-1 rounded text-xs">Router(config-if)#</code> — toutes les commandes tapées s'appliquent à cette interface.</p>
+                    <p className="text-amber-200/90 text-xs font-semibold mt-1">Pourquoi on la tape :</p>
+                    <p className="text-slate-400 text-xs">Sans cette étape, on reste en config globale et on ne peut pas attribuer d'IP à une interface précise. On choisit G0/0 car c'est le port physiquement connecté au switch.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <div className="flex items-start gap-3 mb-2">
+                  <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Router(config-if)#</code>
+                  <div className="flex-1">
+                    <code className="text-emerald-400 font-mono text-sm">ip address 192.168.10.1 255.255.255.0</code>
+                    <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                    <p className="text-slate-400 text-xs">Attribue l'adresse 192.168.10.1 avec le masque 255.255.255.0 (/24) à l'interface. Le routeur « vit » maintenant dans le réseau 192.168.10.0 — les 254 adresses .1 à .254 lui sont familières.</p>
+                    <p className="text-amber-200/90 text-xs font-semibold mt-1">Pourquoi on la tape :</p>
+                    <p className="text-slate-400 text-xs">Sans IP, le routeur n'existe pas pour le réseau : les PC ne savent pas où envoyer les paquets, et les requêtes DHCP (broadcast) ne trouvent personne pour y répondre. Cette IP sera la passerelle (<code className="bg-slate-800 px-1 rounded text-xs">default-router</code>) que le DHCP donnera aux PC.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <div className="flex items-start gap-3 mb-2">
+                  <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Router(config-if)#</code>
+                  <div className="flex-1">
+                    <code className="text-emerald-400 font-mono text-sm">no shutdown</code>
+                    <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                    <p className="text-slate-400 text-xs">Réactive l'interface. Par défaut, les interfaces Cisco sont en <strong>shutdown</strong> (état « administratively down ») : le port est logiciellement désactivé, le lien reste rouge même si le câble est branché.</p>
+                    <p className="text-amber-200/90 text-xs font-semibold mt-1">Pourquoi on la tape :</p>
+                    <p className="text-slate-400 text-xs">Sans <code className="bg-slate-800 px-1 rounded text-xs">no shutdown</code>, le lien physique ne monte jamais : les paquets ne passent pas, les broadcasts DHCP ne traversent pas, et les PC ne reçoivent jamais d'IP. C'est la cause n°1 de « ça ne marche pas » en lab.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab-dhcp-excl" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">🚫 Étape 2 — Exclusions DHCP (adresses réservées)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> On dit au routeur : « Ces adresses ne doivent <em>jamais</em> être attribuées à un client DHCP ». Typiquement la passerelle (192.168.10.1), le serveur DNS (.254), et éventuellement serveurs ou imprimantes avec IP fixe.</p>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mb-6">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi exclure ces adresses ?</p>
+              <p className="text-slate-300 text-sm">Si un PC reçoit 192.168.10.1 via DHCP, il aura la même IP que la passerelle → conflit : le routeur ne répond plus correctement, les autres PC ne trouvent plus la passerelle, et tout le réseau est perturbé. En réservant .1 à .10 et .250 à .254, tu gardes ces plages pour les équipements à adresses statiques. Le pool ne distribue que les adresses entre .11 et .249.</p>
+            </div>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <div className="flex items-start gap-3 mb-2">
+                  <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Router(config)#</code>
+                  <div className="flex-1">
+                    <code className="text-emerald-400 font-mono text-sm">ip dhcp excluded-address 192.168.10.1 192.168.10.10</code>
+                    <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                    <p className="text-slate-400 text-xs">Indique au routeur : « Ne donne jamais ces adresses (.1 à .10) à un client DHCP ». Ces IP sont retirées du pool et ne seront jamais proposées lors d'une Offre DORA.</p>
+                    <p className="text-amber-200/90 text-xs font-semibold mt-1">Pourquoi on la tape :</p>
+                    <p className="text-slate-400 text-xs">192.168.10.1 est l'IP du routeur (passerelle). Si un PC la reçoit via DHCP, conflit d'IP : deux machines avec la même adresse, le réseau devient imprévisible. On réserve aussi .2 à .10 pour serveurs, imprimantes, équipements à IP fixe.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <div className="flex items-start gap-3 mb-2">
+                  <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Router(config)#</code>
+                  <div className="flex-1">
+                    <code className="text-emerald-400 font-mono text-sm">ip dhcp excluded-address 192.168.10.250 192.168.10.254</code>
+                    <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                    <p className="text-slate-400 text-xs">Exclut la plage .250 à .254 du pool. Le DHCP ne proposera jamais ces adresses aux PC.</p>
+                    <p className="text-amber-200/90 text-xs font-semibold mt-1">Pourquoi on la tape :</p>
+                    <p className="text-slate-400 text-xs">192.168.10.254 est réservé au serveur DNS. Ce serveur a une IP fixe ; si le DHCP lui donnait une autre IP ou si un PC recevait .254, le DNS deviendrait introuvable et la résolution des noms échouerait.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
+              <p className="text-blue-200 font-bold">Rappel</p>
+              <p className="text-slate-300 text-sm">Les exclusions se font en <strong>mode configuration globale</strong> (Router(config)#), <em>avant</em> de créer le pool. Une fois le pool créé, tu es en mode dhcp-config et les exclusions ne peuvent plus être modifiées depuis là.</p>
+            </div>
+          </section>
+
+          <section id="lab-dhcp-pool" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">🔄 Étape 3 — Création du pool DHCP</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Créer un « pool » (réservoir) d'adresses que le DHCP distribuera aux clients, et configurer les paramètres que chaque client recevra : passerelle, masque et serveur DNS.</p>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mb-6">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi après les exclusions ?</p>
+              <p className="text-slate-300 text-sm">L'ordre est crucial : les exclusions s'appliquent au pool. Quand tu définis <code className="bg-slate-800 px-1 rounded text-xs">network 192.168.10.0</code>, le DHCP utilise la plage .0–.255 <strong>moins</strong> les adresses exclues. Si tu ne fais pas les exclusions avant, le pool pourrait théoriquement distribuer .1 ou .254 à un PC. Fais toujours exclusions → pool.</p>
+            </div>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <div className="flex items-start gap-3 mb-2">
+                  <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Router(config)#</code>
+                  <div className="flex-1">
+                    <code className="text-emerald-400 font-mono text-sm">ip dhcp pool LAN</code>
+                    <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                    <p className="text-slate-400 text-xs">Crée un pool DHCP nommé « LAN » et bascule en mode <code className="bg-slate-800 px-1 rounded text-xs">Router(dhcp-config)#</code>. Toutes les commandes suivantes (network, default-router, dns-server) s'appliquent à ce pool.</p>
+                    <p className="text-amber-200/90 text-xs font-semibold mt-1">Pourquoi on la tape :</p>
+                    <p className="text-slate-400 text-xs">Un pool = un réservoir d'adresses à distribuer. Le nom (LAN, OFFICE, etc.) sert à identifier le pool dans la config ; il n'apparaît pas aux clients. Sans pool, le routeur ne peut pas répondre aux requêtes DHCP.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <div className="flex items-start gap-3 mb-2">
+                  <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Router(dhcp-config)#</code>
+                  <div className="flex-1">
+                    <code className="text-emerald-400 font-mono text-sm">network 192.168.10.0 255.255.255.0</code>
+                    <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                    <p className="text-slate-400 text-xs">Définit le réseau du pool : 192.168.10.0 avec masque /24. Le DHCP prend toutes les adresses de ce réseau ( .1 à .254 ) puis retire les exclusions. Il ne distribuera que .11 à .249.</p>
+                    <p className="text-amber-200/90 text-xs font-semibold mt-1">Pourquoi on la tape :</p>
+                    <p className="text-slate-400 text-xs">Sans <code className="bg-slate-800 px-1 rounded text-xs">network</code>, le pool ne sait pas quelles adresses proposer. Le masque doit correspondre au réseau réel ( ici /24 ) pour que les PC aient des IP valides sur le même segment que le routeur.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <div className="flex items-start gap-3 mb-2">
+                  <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Router(dhcp-config)#</code>
+                  <div className="flex-1">
+                    <code className="text-emerald-400 font-mono text-sm">default-router 192.168.10.1</code>
+                    <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                    <p className="text-slate-400 text-xs">Envoie l'adresse de la passerelle par défaut dans la réponse DHCP ( Option 3 ). Chaque PC qui reçoit une IP reçoit aussi cette passerelle et l'enregistre dans sa configuration.</p>
+                    <p className="text-amber-200/90 text-xs font-semibold mt-1">Pourquoi on la tape :</p>
+                    <p className="text-slate-400 text-xs">Un PC sans passerelle ne sait pas où envoyer le trafic destiné à un autre réseau ( internet, autre sous-réseau ). Il enverrait les paquets en broadcast ou les perdrait. La passerelle = la « porte de sortie » du réseau local.</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <div className="flex items-start gap-3 mb-2">
+                  <code className="bg-black/50 px-2 py-1 rounded text-emerald-400 font-mono text-sm shrink-0">Router(dhcp-config)#</code>
+                  <div className="flex-1">
+                    <code className="text-emerald-400 font-mono text-sm">dns-server 192.168.10.254</code>
+                    <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                    <p className="text-slate-400 text-xs">Envoie l'adresse du serveur DNS dans la réponse DHCP ( Option 6 ). Le PC enregistre 192.168.10.254 comme serveur DNS et l'utilisera pour toutes les résolutions de noms.</p>
+                    <p className="text-amber-200/90 text-xs font-semibold mt-1">Pourquoi on la tape :</p>
+                    <p className="text-slate-400 text-xs">Sans ça, le PC ne saurait pas qui contacter pour traduire intranet.techcorp.local en IP. Tu devrais configurer le DNS manuellement sur chaque poste. Avec cette option, tout est automatisé dès l'obtention de l'IP via DORA.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab-dhcp-dns" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-blue-400 mb-6">🌐 Étape 4 — Configuration du serveur DNS</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Configurer le serveur (PC ou device « Server » dans Packet Tracer) avec l’IP 192.168.10.254 (adresse que tu as exclue du pool), puis créer les enregistrements DNS qui associent les noms de domaine aux IP.</p>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mb-6">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi le DNS et dans quel ordre ?</p>
+              <p className="text-slate-300 text-sm">Le DNS permet aux PC de résoudre <code className="bg-slate-800 px-1 rounded text-xs">intranet.techcorp.local</code> en 192.168.10.100. Le pool DHCP envoie déjà l’adresse du DNS (192.168.10.254) aux clients via <code className="bg-slate-800 px-1 rounded text-xs">dns-server</code>, donc tu peux configurer le serveur DNS avant ou après les PC. L’important : l’IP du serveur doit être .254 (dans la plage exclue) et correspondre à ce que tu as mis dans le pool.</p>
+            </div>
+            <div className="space-y-4 mb-4">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 text-xs font-semibold">Config du serveur : IP 192.168.10.254, masque /24, passerelle 192.168.10.1</p>
+                <p className="text-slate-400 text-xs mt-1">Ce que ça fait : Donne une IP fixe au serveur sur le réseau 192.168.10.0.</p>
+                <p className="text-amber-200/90 text-xs">Pourquoi : Le pool DHCP envoie 192.168.10.254 comme DNS. Si le serveur n'a pas cette IP, les PC enverront les requêtes DNS vers une adresse sans répondant.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 text-xs font-semibold">Services → DNS → Add : enregistrements nom → IP</p>
+                <p className="text-slate-400 text-xs mt-1">Ce que ça fait : Quand un PC demande « quelle est l'IP de intranet.techcorp.local ? », le serveur répond « 192.168.10.100 ».</p>
+                <p className="text-amber-200/90 text-xs">Pourquoi : Sans enregistrement, le DNS répond « nom inconnu » et le ping par nom échoue.</p>
+                <ul className="list-none space-y-1 text-slate-300 text-sm mt-2">
+                  <li><code className="text-emerald-400">intranet.techcorp.local</code> → 192.168.10.100</li>
+                  <li><code className="text-emerald-400">files.techcorp.local</code> → 192.168.10.101</li>
+                </ul>
+              </div>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold">Important</p>
+              <p className="text-slate-300 text-sm">Les PC reçoivent l'adresse du serveur DNS via le DHCP (commande <code className="bg-slate-900 px-1 rounded">dns-server</code> dans le pool). Tu n'as pas besoin de configurer le DNS manuellement sur les PC.</p>
+            </div>
+          </section>
+
+          <section id="lab-dhcp-pc" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">💻 Étape 5 — Configuration des PC en DHCP</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Sur chaque PC : Desktop → IP Configuration, puis choisir <strong>DHCP</strong> au lieu de Static. Le PC envoie une requête broadcast (DORA) et reçoit automatiquement une IP dans le pool, la passerelle et l’adresse du serveur DNS.</p>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mb-6">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi faire cette étape en dernier côté PC ?</p>
+              <p className="text-slate-300 text-sm">Les PC envoient des requêtes DHCP dès qu’ils sont en mode DHCP. Si le routeur n’a pas encore le pool configuré (ou si l’interface est down), la requête ne reçoit pas de réponse et le PC reste à 0.0.0.0. Donc : configure toujours le routeur (interface + exclusions + pool) avant de passer les PC en DHCP.</p>
+            </div>
+            <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
+              <p className="text-red-200 font-bold">Si l'IP reste à 0.0.0.0</p>
+              <p className="text-slate-300 text-sm">Vérifie que le routeur a bien l'interface activée (<code className="bg-slate-900 px-1 rounded">no shutdown</code>), que le pool DHCP est créé, et que le PC est sur le même réseau (branché sur le switch, lui-même relié au routeur). En mode Simulation, tu peux voir les paquets DORA circuler.</p>
+            </div>
+          </section>
+
+          <section id="lab-dhcp-verif" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">✅ Étape 6 — Procédures de vérification (commandes exactes)</h2>
+            <p className="text-slate-300 mb-6 leading-relaxed">Suivre chaque étape dans l'ordre. Chaque ligne indique : <strong>où</strong> faire la vérification, la <strong>commande exacte</strong> à taper, et le <strong>résultat attendu</strong>.</p>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mb-6">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi cet ordre de vérification ?</p>
+              <p className="text-slate-300 text-sm">On teste du plus proche au plus loin : d’abord « est-ce que j’ai une IP ? » (ipconfig), puis « est-ce que je reach la passerelle ? » (ping .1), enfin « est-ce que le DNS résout ? » (ping intranet.techcorp.local). Si le ping .1 échoue alors que ipconfig affiche une IP, le problème est au niveau routeur (interface down, mauvais masque). Si le ping par nom échoue mais ping .1 marche, le problème est DNS (serveur mal configuré ou mauvaise IP dans le pool).</p>
+            </div>
+            <div className="space-y-6 ml-0 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 1 — IP reçue via DHCP</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC-Bureautique (ou PC-Technique) → Desktop → Command Prompt</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">ipconfig</p>
+                <p className="text-slate-400 text-xs font-semibold mb-1">Output attendu :</p>
+                <pre className="text-slate-300 text-xs font-mono bg-black/50 p-3 rounded overflow-x-auto mb-2">Ethernet adapter Local Area Connection:
+   IPv4 Address. . . . . . . . . : 192.168.10.11
+   Subnet Mask . . . . . . . . . : 255.255.255.0
+   Default Gateway . . . . . . . : 192.168.10.1
+   DNS Servers . . . . . . . . . : 192.168.10.254</pre>
+                <p className="text-slate-400 text-xs">Si IP = 0.0.0.0 → DHCP n'a pas répondu.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 2 — Passerelle joignable</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC-Bureautique → Desktop → Command Prompt</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">ping 192.168.10.1</p>
+                <p className="text-slate-400 text-xs font-semibold mb-1">Output attendu :</p>
+                <pre className="text-slate-300 text-xs font-mono bg-black/50 p-3 rounded overflow-x-auto mb-2">Pinging 192.168.10.1 with 32 bytes of data:
+Reply from 192.168.10.1: bytes=32 time&lt;1ms TTL=255
+Reply from 192.168.10.1: bytes=32 time&lt;1ms TTL=255
+Reply from 192.168.10.1: bytes=32 time&lt;1ms TTL=255
+Reply from 192.168.10.1: bytes=32 time&lt;1ms TTL=255</pre>
+                <p className="text-slate-400 text-xs">Si « Request timed out » → vérifier interface routeur (no shutdown), câble.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 3 — Résolution DNS</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC-Bureautique → Desktop → Command Prompt</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">ping intranet.techcorp.local</p>
+                <p className="text-slate-400 text-xs font-semibold mb-1">Output attendu :</p>
+                <pre className="text-slate-300 text-xs font-mono bg-black/50 p-3 rounded overflow-x-auto mb-2">Pinging intranet.techcorp.local [192.168.10.100] with 32 bytes of data:
+Reply from 192.168.10.100: bytes=32 time&lt;1ms TTL=128
+Reply from 192.168.10.100: bytes=32 time&lt;1ms TTL=128
+...</pre>
+                <p className="text-slate-400 text-xs">Tester aussi files.techcorp.local. Si « Ping request could not find host » → DNS mal configuré.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 4 — Baux DHCP</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> R-Tech → CLI (console) → mode privilégié</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">show ip dhcp binding</p>
+                <p className="text-slate-400 text-xs font-semibold mb-1">Output attendu :</p>
+                <pre className="text-slate-300 text-xs font-mono bg-black/50 p-3 rounded overflow-x-auto mb-2">IP address       Client-ID/              Lease expiration        Type
+                 Hardware address
+192.168.10.11    0050.0FC2.1234.01    --                     Automatic
+192.168.10.12    0050.0FC2.1234.02    --                     Automatic</pre>
+                <p className="text-slate-400 text-xs">2 lignes = PC-Bureautique et PC-Technique avec IP via DHCP.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab-dhcp-depan" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">🔧 Dépannage courant</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Quand quelque chose ne marche pas, remonter la chaîne des dépendances : (1) lien physique up ? (2) IP du routeur configurée ? (3) pool DHCP créé et exclusions OK ? (4) PC en mode DHCP ? (5) DNS configuré sur le serveur ?</p>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mb-6">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi suivre cet ordre de vérification ?</p>
+              <p className="text-slate-300 text-sm">Chaque élément dépend du précédent : si l'interface du routeur est down, le DHCP ne reçoit jamais les requêtes ; si le pool n'est pas créé, pas d'Offre DHCP ; si le PC est en Static, il n'envoie pas de requête DORA. En vérifiant du plus bas niveau (lien, interface) vers le plus haut (DNS), tu identifies vite le maillon manquant.</p>
+            </div>
+            <div className="space-y-4">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-bold mb-2">Le PC ne reçoit pas d'IP</p>
+                <p className="text-slate-400 text-sm mb-2">Vérifie : interface du routeur <code className="bg-slate-900 px-1 rounded">no shutdown</code>, pool DHCP créé avec <code className="bg-slate-900 px-1 rounded">network</code>, exclusions correctes. Vérifie aussi que le câble est bien branché et que le lien est vert.</p>
+                <p className="text-amber-200/90 text-xs italic">Pourquoi : si le lien est down, les broadcast DHCP n'atteignent pas le routeur. Si le pool n'existe pas, pas d'Offre. Si les exclusions englobent tout le réseau, plus d'adresses à distribuer.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-bold mb-2">Le ping par nom échoue</p>
+                <p className="text-slate-400 text-sm mb-2">Le PC a-t-il bien reçu le serveur DNS (192.168.10.254) ? Vérifie avec ipconfig. Le serveur a-t-il les enregistrements DNS configurés ? Le serveur a-t-il l'IP 192.168.10.254 ?</p>
+                <p className="text-amber-200/90 text-xs italic">Pourquoi : le ping par nom passe par le DNS. Si le PC n'a pas reçu l'adresse DNS (via DHCP), il ne sait pas qui interroger. Si le serveur n'a pas l'enregistrement, il répond « nom inconnu ».</p>
+              </div>
+            </div>
+          </section>
+
+          <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
+            <p className="text-blue-200 font-bold">DHCP vs DNS — Rappel</p>
+            <p className="text-slate-300 text-sm mt-1"><strong>DHCP</strong> : attribue automatiquement IP, masque, passerelle, DNS aux clients. Le client envoie une requête DORA et reçoit tout. <strong>DNS</strong> : traduit les noms en adresses IP. Quand tu tapes intranet.techcorp.local, le PC interroge le DNS, reçoit 192.168.10.100, puis envoie le paquet à cette IP.</p>
+            <p className="text-blue-100/80 text-xs mt-2 italic">Pourquoi les deux ensemble ici ? Le pool DHCP transmet l'adresse du serveur DNS (<code className="bg-slate-800 px-1 rounded">dns-server 192.168.10.254</code>). Sans ça, tu devrais configurer le DNS manuellement sur chaque PC. Avec DHCP + DNS, tout est automatisé : le PC reçoit tout en une seule requête.</p>
+          </div>
+        </div>
+      ),
+      solutionContentLab2: (
+        <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16">
+          <div className="bg-gradient-to-br from-violet-900/30 to-emerald-900/20 border border-violet-500/40 rounded-2xl p-8">
+            <h1 className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
+              <CheckCircle className="w-8 h-8 text-violet-400 flex-shrink-0" /> Correction Lab 2 – TechCorp étendu
+            </h1>
+            <p className="text-violet-100/90 text-lg leading-relaxed">Même topologie que le Lab 1 : un seul réseau, un pool DHCP, un serveur DNS. 4 PC et 3 enregistrements DNS pour consolider les notions du cours.</p>
+          </div>
+
+          <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-600 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis :</span>
+              {[
+                { id: 'lab2-topo', label: 'Topologie', icon: '🔌' },
+                { id: 'lab2-routeur', label: 'Routeur', icon: '📡' },
+                { id: 'lab2-excl', label: 'Exclusions', icon: '🚫' },
+                { id: 'lab2-pool', label: 'Pool DHCP', icon: '🔄' },
+                { id: 'lab2-dns', label: 'DNS', icon: '🌐' },
+                { id: 'lab2-ssh', label: 'SSH', icon: '🔐' },
+                { id: 'lab2-verif', label: 'Vérifications', icon: '✅' }
+              ].map(({ id, label, icon }) => (
+                <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-violet-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <section id="lab2-topo" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-violet-400 mb-6">🔌 Étape 0 — Topologie et câblage</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Même structure que le Lab 1 : 1 routeur R-Tech, 1 switch, 4 PC (PC-B1 à PC-B4), 1 serveur. Câbles <strong>Copper Straight-Through</strong>. Chaque ligne du tableau = un câble.</p>
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead>
+                  <tr className="bg-slate-700/50">
+                    <th className="p-2 text-left">Appareil</th>
+                    <th className="p-2 text-left">Port</th>
+                    <th className="p-2 text-center text-slate-400">↔</th>
+                    <th className="p-2 text-left">Appareil</th>
+                    <th className="p-2 text-left">Port</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC-B1</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/1</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC-B2</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/2</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC-B3</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/3</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC-B4</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/4</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">Serveur DNS</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/5</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/24</td><td className="p-2 text-center">↔</td><td className="p-2">R-Tech</td><td className="p-2 font-mono">G0/0</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="text-slate-400 text-xs mb-4">Exemple : PC-B1 Fa0 ↔ Switch Fa0/1 = brancher un câble entre le port Fa0 du PC-B1 et le port Fa0/1 du switch.</p>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mb-4">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi ce lab ressemble au Lab 1 ?</p>
+              <p className="text-slate-300 text-sm">Le cours enseigne un seul réseau, un pool, un serveur DNS. Ce lab 2 reprend exactement ces notions : plus de PC et plus d'enregistrements DNS pour s'entraîner sans introduire de nouveaux concepts (pas de multi-sites, pas de routage inter-réseaux).</p>
+            </div>
+          </section>
+
+          <section id="lab2-routeur" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-blue-400 mb-6">📡 Étape 1 — Interface du routeur</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Configurer l'interface G0/0 : IP 192.168.10.1/24 et no shutdown. C'est la passerelle du réseau et l'interface qui reçoit les requêtes DORA.</p>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">Router(config)#</span> interface g0/0</p>
+                <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                <p className="text-slate-400 text-xs">Entre en mode configuration de l'interface G0/0.</p>
+                <p className="text-amber-200/90 text-xs font-semibold">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">Pour pouvoir attribuer une IP à cette interface.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">Router(config-if)#</span> ip address 192.168.10.1 255.255.255.0</p>
+                <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                <p className="text-slate-400 text-xs">Attribue l'IP 192.168.10.1/24 au routeur sur ce port.</p>
+                <p className="text-amber-200/90 text-xs font-semibold">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">Le routeur doit avoir une IP sur le réseau pour être la passerelle et recevoir les requêtes DHCP.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">Router(config-if)#</span> no shutdown</p>
+                <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                <p className="text-slate-400 text-xs">Active le port. Sans ça, le lien reste rouge ( administratively down ).</p>
+                <p className="text-amber-200/90 text-xs font-semibold">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">Le trafic ne passe pas si le port est shutdown. Les broadcasts DHCP n'atteindraient pas le routeur.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab2-excl" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">🚫 Étape 2 — Exclusions DHCP</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Réserver les adresses fixes : la passerelle (.1 à .10) et le serveur DNS (.250 à .254). Comme vu dans le cours, les exclusions se font en mode config globale, avant le pool.</p>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm">ip dhcp excluded-address 192.168.10.1 192.168.10.10</p>
+                <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                <p className="text-slate-400 text-xs">Retire les adresses .1 à .10 du pool. Le DHCP ne les attribuera jamais.</p>
+                <p className="text-amber-200/90 text-xs font-semibold">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">.1 est la passerelle. Si un PC la reçoit, conflit d'IP. .2 à .10 réservés pour serveurs, imprimantes.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm">ip dhcp excluded-address 192.168.10.250 192.168.10.254</p>
+                <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                <p className="text-slate-400 text-xs">Retire les adresses .250 à .254 du pool.</p>
+                <p className="text-amber-200/90 text-xs font-semibold">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">.254 est le serveur DNS. IP fixe — si un PC la recevait, le DNS serait introuvable.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab2-pool" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">🔄 Étape 3 — Pool DHCP</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Créer le pool LAN comme dans le cours : network, default-router, dns-server. Le pool distribue les IP entre .11 et .249 (hors exclusions).</p>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm">ip dhcp pool LAN</p>
+                <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                <p className="text-slate-400 text-xs">Crée le pool et passe en mode dhcp-config.</p>
+                <p className="text-amber-200/90 text-xs font-semibold">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">Sans pool, le routeur ne peut pas répondre aux requêtes DORA.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm">network 192.168.10.0 255.255.255.0</p>
+                <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                <p className="text-slate-400 text-xs">Définit le réseau du pool. Le DHCP distribue les IP de ce réseau moins les exclusions.</p>
+                <p className="text-amber-200/90 text-xs font-semibold">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">Les PC doivent être sur le même réseau que la passerelle pour communiquer.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm">default-router 192.168.10.1</p>
+                <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                <p className="text-slate-400 text-xs">Envoie la passerelle dans la réponse DHCP ( Option 3 ).</p>
+                <p className="text-amber-200/90 text-xs font-semibold">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">Sans passerelle, les PC ne savent pas où envoyer le trafic sortant du réseau.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm">dns-server 192.168.10.254</p>
+                <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                <p className="text-slate-400 text-xs">Envoie l'adresse du DNS dans la réponse DHCP ( Option 6 ).</p>
+                <p className="text-amber-200/90 text-xs font-semibold">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">Les PC pourront résoudre les noms ( intranet.techcorp.local, etc. ) sans config manuelle.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab2-dns" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-blue-400 mb-6">🌐 Étape 4 — Serveur DNS</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Configurer le serveur (Packet Tracer : Config → IP 192.168.10.254, masque /24, passerelle 192.168.10.1). Puis Services → DNS, ajouter 3 enregistrements.</p>
+            <div className="space-y-4 mb-4">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 text-xs font-semibold">IP du serveur : 192.168.10.254</p>
+                <p className="text-slate-400 text-xs mt-1">Ce que ça fait : Donne une IP fixe au serveur sur le réseau.</p>
+                <p className="text-amber-200/90 text-xs">Pourquoi : Le pool DHCP envoie .254 comme DNS aux PC. Si le serveur n'a pas cette IP, les requêtes DNS vont au vide.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 text-xs font-semibold">Enregistrements DNS (nom → IP)</p>
+                <p className="text-slate-400 text-xs mt-1">Ce que ça fait : Quand un PC demande « quelle est l'IP de intranet.techcorp.local ? », le serveur répond « 192.168.10.100 ».</p>
+                <p className="text-amber-200/90 text-xs">Pourquoi : Sans enregistrement, le DNS répond « nom inconnu » et le ping par nom échoue.</p>
+                <ul className="list-none space-y-1 text-slate-300 text-sm mt-2">
+                  <li><code className="text-emerald-400">intranet.techcorp.local</code> → 192.168.10.100</li>
+                  <li><code className="text-emerald-400">files.techcorp.local</code> → 192.168.10.101</li>
+                  <li><code className="text-emerald-400">imprimante.techcorp.local</code> → 192.168.10.50</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab2-ssh" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">🔐 Étape 5 — Configuration SSH sur le routeur</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Configurer SSH sur R-Tech pour s'y connecter à distance depuis un PC (ssh -l admin 192.168.10.1). Reprise des notions de la Semaine 1 (Administration Cisco).</p>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">Router(config)#</span> hostname R-Tech</p>
+                <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                <p className="text-slate-400 text-xs">Donne le nom « R-Tech » au routeur. Le prompt devient R-Tech(config)#.</p>
+                <p className="text-amber-200/90 text-xs font-semibold">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">Identifie l'équipement. Requis pour SSH : les clés RSA utilisent le hostname + domain.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R-Tech(config)#</span> ip domain-name techcorp.local</p>
+                <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                <p className="text-slate-400 text-xs">Définit le nom de domaine. Le routeur formera « R-Tech.techcorp.local » pour les clés RSA.</p>
+                <p className="text-amber-200/90 text-xs font-semibold">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">crypto key generate rsa exige un domain-name. Sans ça, erreur.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R-Tech(config)#</span> crypto key generate rsa</p>
+                <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                <p className="text-slate-400 text-xs">Génère une paire de clés RSA (publique + privée). Quand demandé : taper <strong>1024</strong> pour la taille (suffisant en Packet Tracer).</p>
+                <p className="text-amber-200/90 text-xs font-semibold">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">SSH chiffre la session avec ces clés. Sans clés RSA, SSH ne démarre pas.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R-Tech(config)#</span> username admin privilege 15 secret cisco123</p>
+                <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                <p className="text-slate-400 text-xs">Crée l'utilisateur « admin » avec mot de passe « cisco123 », niveau 15 (accès complet).</p>
+                <p className="text-amber-200/90 text-xs font-semibold">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">login local utilisera cet utilisateur pour l'authentification SSH.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R-Tech(config)#</span> line vty 0 4</p>
+                <p className="font-mono text-emerald-400 text-sm mt-1"><span className="text-slate-500">R-Tech(config-line)#</span> login local</p>
+                <p className="font-mono text-emerald-400 text-sm mt-1"><span className="text-slate-500">R-Tech(config-line)#</span> transport input ssh</p>
+                <p className="text-slate-200 text-xs font-semibold mt-1">Ce que font les commandes :</p>
+                <p className="text-slate-400 text-xs"><strong>line vty 0 4</strong> = configure les 5 lignes virtuelles. <strong>login local</strong> = demande user + mot de passe. <strong>transport input ssh</strong> = autorise uniquement SSH (désactive Telnet).</p>
+                <p className="text-amber-200/90 text-xs font-semibold">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">Sécuriser l'accès : plus de Telnet en clair, uniquement SSH chiffré.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R-Tech#</span> copy running-config startup-config</p>
+                <p className="text-slate-200 text-xs font-semibold mt-1">Ce que fait la commande :</p>
+                <p className="text-slate-400 text-xs">Sauvegarde la config en mémoire non volatile. Elle survivra à un reboot.</p>
+                <p className="text-amber-200/90 text-xs font-semibold">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">Bonne pratique. Sans sauvegarde, tout est perdu si le routeur redémarre.</p>
+              </div>
+            </div>
+            <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg">
+              <p className="text-emerald-200 font-bold mb-2">Test SSH</p>
+              <p className="text-slate-300 text-sm">Sur PC-B1 : Desktop → Command Prompt → <code className="bg-slate-900 px-1 rounded">ssh -l admin 192.168.10.1</code>. Quand demandé, taper <strong>cisco123</strong>. Tu dois arriver sur le routeur en mode privilégié (R-Tech#).</p>
+            </div>
+          </section>
+
+          <section id="lab2-verif" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">✅ Étape 6 — Procédures de vérification (commandes exactes)</h2>
+            <p className="text-slate-300 mb-6 leading-relaxed">Suivre chaque étape dans l'ordre. Chaque ligne indique : <strong>où</strong> faire la vérification, la <strong>commande exacte</strong> à taper, et le <strong>résultat attendu</strong>.</p>
+            <div className="space-y-6">
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 1 — IP reçue via DHCP</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC-B1 (ou PC-B2, PC-B3, PC-B4) → Desktop → Command Prompt</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">ipconfig</p>
+                <p className="text-slate-400 text-xs font-semibold mb-1">Output attendu :</p>
+                <pre className="text-slate-300 text-xs font-mono bg-black/50 p-3 rounded overflow-x-auto mb-2">Wireless LAN adapter Wireless:
+   IPv4 Address. . . . . . . . . : 192.168.10.11
+   Subnet Mask . . . . . . . . . : 255.255.255.0
+   Default Gateway . . . . . . . : 192.168.10.1
+   DNS Servers . . . . . . . . . : 192.168.10.254</pre>
+                <p className="text-slate-400 text-xs">Si IP = 0.0.0.0 → DHCP n'a pas répondu.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 2 — Passerelle joignable</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC-B1 → Desktop → Command Prompt</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">ping 192.168.10.1</p>
+                <p className="text-slate-400 text-xs font-semibold mb-1">Output attendu :</p>
+                <pre className="text-slate-300 text-xs font-mono bg-black/50 p-3 rounded overflow-x-auto mb-2">Pinging 192.168.10.1 with 32 bytes of data:
+Reply from 192.168.10.1: bytes=32 time&lt;1ms TTL=255
+Reply from 192.168.10.1: bytes=32 time&lt;1ms TTL=255
+Reply from 192.168.10.1: bytes=32 time&lt;1ms TTL=255
+Reply from 192.168.10.1: bytes=32 time&lt;1ms TTL=255</pre>
+                <p className="text-slate-400 text-xs">Si « Request timed out » → vérifier interface routeur (no shutdown), câble.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 3 — Résolution DNS</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC-B1 → Desktop → Command Prompt</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">ping intranet.techcorp.local</p>
+                <p className="text-slate-400 text-xs font-semibold mb-1">Output attendu :</p>
+                <pre className="text-slate-300 text-xs font-mono bg-black/50 p-3 rounded overflow-x-auto mb-2">Pinging intranet.techcorp.local [192.168.10.100] with 32 bytes of data:
+Reply from 192.168.10.100: bytes=32 time&lt;1ms TTL=128
+Reply from 192.168.10.100: bytes=32 time&lt;1ms TTL=128
+...</pre>
+                <p className="text-slate-400 text-xs">Tester aussi files.techcorp.local et imprimante.techcorp.local. Si « Ping request could not find host » → DNS mal configuré.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 4 — Baux DHCP (sur le routeur)</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> R-Tech → CLI → mode privilégié</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">show ip dhcp binding</p>
+                <p className="text-slate-400 text-xs font-semibold mb-1">Output attendu :</p>
+                <pre className="text-slate-300 text-xs font-mono bg-black/50 p-3 rounded overflow-x-auto mb-2">IP address       Client-ID/              Lease expiration        Type
+                 Hardware address
+192.168.10.11    0050.0FC2.1234.01    --                     Automatic
+192.168.10.12    0050.0FC2.1234.02    --                     Automatic
+192.168.10.13    0050.0FC2.1234.03    --                     Automatic
+192.168.10.14    0050.0FC2.1234.04    --                     Automatic</pre>
+                <p className="text-slate-400 text-xs">4 lignes = 4 PC avec IP via DHCP.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 5 — Connexion SSH</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC-B1 → Desktop → Command Prompt</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">ssh -l admin 192.168.10.1</p>
+                <p className="text-slate-400 text-xs font-semibold mb-1">Output attendu :</p>
+                <pre className="text-slate-300 text-xs font-mono bg-black/50 p-3 rounded overflow-x-auto mb-2">Password: cisco123
+
+R-Tech&gt;</pre>
+                <p className="text-slate-400 text-xs">Taper <code className="bg-slate-800 px-1 rounded">enable</code> → R-Tech#. Si « Connection refused » → vérifier config SSH sur le routeur.</p>
+              </div>
+            </div>
+          </section>
+
+          <div className="bg-violet-900/20 border-l-4 border-violet-500 p-4 rounded-r-lg">
+            <p className="text-violet-200 font-bold">Récapitulatif</p>
+            <p className="text-slate-300 text-sm mt-1">Un réseau, un pool DHCP, un serveur DNS, puis la config SSH sur le routeur (Semaine 1). Ce lab 2 combine les notions des protocoles (DHCP/DNS) et de l'administration Cisco (SSH, sauvegarde). Les 4 PC, les 3 noms DNS et la connexion SSH permettent de pratiquer sans sortir du cadre.</p>
+          </div>
+        </div>
+      )
     },
     quiz: [
       { q: "Que signifie DORA ?", options: ["Un protocole", "Discover, Offer, Request, Acknowledgment — les 4 étapes DHCP", "Un outil de diagnostic"], a: 1, explanation: "DORA décrit le processus complet d'attribution d'une adresse IP par DHCP." },
@@ -7876,6 +8705,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
   const [labTab, setLabTab] = useState('correction'); // 'consignes' | 'correction' | 'correction_lab2' | 'correction_lab3' | 'correction_lab4'
   const isSession2 = sessionId === 2;
   const isSession3 = sessionId === 3;
+  const isSession4 = sessionId === 4;
   return (
     <div className="h-full flex flex-col">
       <div className="bg-slate-800 p-6 rounded-t-xl border border-slate-700 border-b-0">
@@ -7898,14 +8728,14 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
             onClick={() => setLabTab('correction')}
             className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
           >
-            <CheckCircle className="w-4 h-4" /> {isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
+            <CheckCircle className="w-4 h-4" /> {isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
           </button>
-          {(isSession2 || isSession3) && (
+          {(isSession2 || isSession3 || isSession4) && (
             <button
               onClick={() => setLabTab('correction_lab2')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab2' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession3 ? 'Correction Lab 2 (Dépannage)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
+              <CheckCircle className="w-4 h-4" /> {isSession4 ? 'Correction Lab 2 (Étendu)' : isSession3 ? 'Correction Lab 2 (Dépannage)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
             </button>
           )}
           {isSession3 && (
@@ -7929,7 +8759,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
       {labTab === 'consignes' && lab.consignes && (
         <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl px-6 py-5 overflow-y-auto">
           <h4 className="text-white font-bold flex items-center gap-2 mb-4 text-base">
-            <BookOpen className="w-5 h-5 text-amber-400" /> {isSession3 ? 'Consignes du lab – à réaliser sur Cisco Packet Tracer' : isSession2 ? 'Consignes des deux labs Session 2' : 'Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer'}
+            <BookOpen className="w-5 h-5 text-amber-400" /> {isSession4 ? 'Consignes des deux labs DHCP & DNS – à réaliser sur Cisco Packet Tracer' : isSession3 ? 'Consignes du lab – à réaliser sur Cisco Packet Tracer' : isSession2 ? 'Consignes des deux labs Session 2' : 'Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer'}
           </h4>
           <div className="pr-4 space-y-1 text-slate-300">
             {lab.consignes}
@@ -7939,14 +8769,14 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
       {labTab === 'correction' && (
         <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {isSession3 ? <LabCorrectionSection3 /> : isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSection />}
+            {isSession4 && lab.solutionContent ? lab.solutionContent : isSession3 ? <LabCorrectionSection3 /> : isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSection />}
           </div>
         </div>
       )}
       {labTab === 'correction_lab2' && (
         <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {isSession3 ? <LabTroubleshootingSection3 /> : isSession2 ? (lab.solutionContentLab2 || (
+            {isSession4 ? (lab.solutionContentLab2) : isSession3 ? <LabTroubleshootingSection3 /> : isSession2 ? (lab.solutionContentLab2 || (
               <div className="max-w-2xl mx-auto bg-slate-800/50 border border-slate-600 rounded-xl p-8 text-center">
                 <h3 className="text-xl font-bold text-blue-400 mb-3">Correction Lab 2 – VLAN avancés et sécurisation</h3>
                 <p className="text-slate-400">Trunk, VLAN autorisés, VLAN natif. Pour les consignes et la correction détaillée, suivre le PDF « 3 - Introduction Vlan avancés et sécurisation - LAB.pdf ».</p>
@@ -7973,16 +8803,70 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
   );
 };
 
-// --- CORRECTION LAB 3 – Session 3 (Trunk et Routage Inter-VLAN) – Version détaillée ---
+// --- CORRECTION LAB 3 – Session 3 (Trunk et Routage Inter-VLAN) – Format compact ---
 const LabCorrectionSection3 = () => (
-  <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16">
-    <div className="bg-gradient-to-br from-emerald-900/30 to-blue-900/20 border border-emerald-500/40 rounded-2xl p-8">
-      <h1 className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
-        <CheckCircle className="w-8 h-8 text-emerald-400 flex-shrink-0" /> Correction du Lab – Trunks et Routage Inter-VLAN
-      </h1>
-      <p className="text-emerald-100/90 text-lg leading-relaxed">Guide pédagogique commande par commande pour comprendre la circulation des données entre différents réseaux virtuels.</p>
+  <div className="space-y-10 text-slate-200 text-base leading-relaxed pb-16">
+    <div className="bg-emerald-900/20 border border-emerald-500/40 rounded-xl p-5">
+      <p className="text-emerald-200 font-semibold text-lg mb-2">Correction Lab – Trunk et Router-on-a-Stick</p>
+      <p className="text-slate-300 text-sm">SW-Core, SW-Dist, R-Core. VLANs 10 et 20, routage inter-VLAN.</p>
     </div>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">1. VLANs sur les switches (SW-Core et SW-Dist)</h4>
+      <CmdBlock lines={[
+        { prompt: "Switch(config)#", cmd: "vlan 10" },
+        { prompt: "Switch(config-vlan)#", cmd: "name Administration" },
+        { prompt: "Switch(config-vlan)#", cmd: "exit" },
+        { prompt: "Switch(config)#", cmd: "vlan 20" },
+        { prompt: "Switch(config-vlan)#", cmd: "name Commercial" },
+        { prompt: "Switch(config-vlan)#", cmd: "exit" }
+      ]} />
+    </section>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">2. Ports access (PC Admin → VLAN 10, PC Com → VLAN 20)</h4>
+      <CmdBlock lines={[
+        { prompt: "Switch(config)#", cmd: "interface range fa0/1-2" },
+        { prompt: "Switch(config-if-range)#", cmd: "switchport mode access" },
+        { prompt: "Switch(config-if-range)#", cmd: "switchport access vlan 10" },
+        { prompt: "Switch(config-if-range)#", cmd: "exit" },
+        { prompt: "Switch(config)#", cmd: "interface range fa0/3-4" },
+        { prompt: "Switch(config-if-range)#", cmd: "switchport mode access" },
+        { prompt: "Switch(config-if-range)#", cmd: "switchport access vlan 20" }
+      ]} />
+    </section>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">3. Trunk (SW-Core vers R-Core et vers SW-Dist)</h4>
+      <CmdBlock lines={[
+        { prompt: "SW-Core(config)#", cmd: "interface fa0/1" },
+        { prompt: "SW-Core(config-if)#", cmd: "switchport mode trunk" },
+        { prompt: "SW-Core(config-if)#", cmd: "switchport trunk allowed vlan 10,20" },
+        { prompt: "SW-Core(config)#", cmd: "interface fa0/24" },
+        { prompt: "SW-Core(config-if)#", cmd: "switchport mode trunk" },
+        { prompt: "SW-Core(config-if)#", cmd: "switchport trunk allowed vlan 10,20" }
+      ]} />
+    </section>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">4. Routeur R-Core – Router-on-a-Stick</h4>
+      <CmdBlock lines={[
+        { prompt: "R-Core(config)#", cmd: "interface g0/0" },
+        { prompt: "R-Core(config-if)#", cmd: "no shutdown" },
+        { prompt: "R-Core(config-if)#", cmd: "exit" },
+        { prompt: "R-Core(config)#", cmd: "interface g0/0.10" },
+        { prompt: "R-Core(config-subif)#", cmd: "encapsulation dot1Q 10" },
+        { prompt: "R-Core(config-subif)#", cmd: "ip address 192.168.10.1 255.255.255.0" },
+        { prompt: "R-Core(config)#", cmd: "interface g0/0.20" },
+        { prompt: "R-Core(config-subif)#", cmd: "encapsulation dot1Q 20" },
+        { prompt: "R-Core(config-subif)#", cmd: "ip address 192.168.20.1 255.255.255.0" }
+      ]} />
+    </section>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">5. PC – IP et passerelle</h4>
+      <p className="text-slate-300 text-sm">PC Admin : 192.168.10.x/24, gateway 192.168.10.1. PC Com : 192.168.20.x/24, gateway 192.168.20.1.</p>
+    </section>
+  </div>
+);
 
+const _LabCorrectionSection3Verbose = () => (
+  <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16 hidden">
     <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-600 py-2 mb-6">
       <div className="flex items-center gap-3 flex-wrap">
         <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
@@ -9674,8 +10558,66 @@ const LabCorrectionSection3Recap = () => (
   </div>
 );
 
-// --- CORRECTION LAB 1 – Session 1 (NovaTech) – Version lisible ---
+// --- CORRECTION LAB 1 – Session 1 (NovaTech) – Format compact commande par commande ---
 const LabCorrectionSection = () => (
+  <div className="space-y-10 text-slate-200 text-base leading-relaxed pb-16">
+    <div className="bg-emerald-900/20 border border-emerald-500/40 rounded-xl p-5">
+      <p className="text-emerald-200 font-semibold text-lg mb-2">Correction Lab S1 – NovaTech</p>
+      <p className="text-slate-300 text-sm">Configuration à reproduire sur Cisco Packet Tracer. Commande par commande.</p>
+    </div>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">1. Routeur R-Nova – Base</h4>
+      <CmdBlock lines={[
+        { prompt: "Router>", cmd: "enable" },
+        { prompt: "Router#", cmd: "configure terminal" },
+        { prompt: "Router(config)#", cmd: "hostname R-Nova" },
+        { prompt: "R-Nova(config)#", cmd: "no ip domain-lookup" },
+        { prompt: "R-Nova(config)#", cmd: "enable secret cisco123" },
+        { prompt: "R-Nova(config)#", cmd: "line console 0" },
+        { prompt: "R-Nova(config-line)#", cmd: "password console123" },
+        { prompt: "R-Nova(config-line)#", cmd: "login" },
+        { prompt: "R-Nova(config-line)#", cmd: "exit" }
+      ]} />
+    </section>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">2. Routeur R-Nova – Interface IP</h4>
+      <CmdBlock lines={[
+        { prompt: "R-Nova(config)#", cmd: "interface gigabitEthernet0/0" },
+        { prompt: "R-Nova(config-if)#", cmd: "ip address 192.168.10.1 255.255.255.0" },
+        { prompt: "R-Nova(config-if)#", cmd: "no shutdown" },
+        { prompt: "R-Nova(config-if)#", cmd: "exit" }
+      ]} />
+    </section>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">3. Switches SW-Entrée & SW-Bureau</h4>
+      <p className="text-slate-400 text-sm mb-2">Sur chaque switch : hostname, IP sur interface vlan 1, mot de passe console.</p>
+      <CmdBlock lines={[
+        { prompt: "Switch>", cmd: "enable" },
+        { prompt: "Switch#", cmd: "configure terminal" },
+        { prompt: "Switch(config)#", cmd: "hostname SW-Entrée" },
+        { prompt: "SW-Entrée(config)#", cmd: "interface vlan 1" },
+        { prompt: "SW-Entrée(config-if)#", cmd: "ip address 192.168.10.2 255.255.255.0" },
+        { prompt: "SW-Entrée(config-if)#", cmd: "no shutdown" },
+        { prompt: "SW-Entrée(config-if)#", cmd: "exit" }
+      ]} />
+      <p className="text-slate-500 text-xs mt-2">SW-Bureau : IP 192.168.10.3. Même principe.</p>
+    </section>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">4. PC & Serveur TFTP</h4>
+      <p className="text-slate-300 text-sm">PC : IP 192.168.10.10, masque /24, passerelle 192.168.10.1. Serveur : activer TFTP dans Services.</p>
+    </section>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">5. Sauvegarde</h4>
+      <CmdBlock lines={[
+        { prompt: "R-Nova#", cmd: "copy running-config startup-config" },
+        { prompt: "R-Nova#", cmd: "copy startup-config tftp:" }
+      ]} />
+    </section>
+  </div>
+);
+
+// --- Ancienne version détaillée (conservée pour référence) ---
+const LabCorrectionSectionVerbose = () => (
   <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16">
     <div className="bg-gradient-to-br from-emerald-900/30 to-blue-900/20 border border-emerald-500/40 rounded-2xl p-8">
       <h1 className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
@@ -10297,16 +11239,51 @@ const LabCorrectionSection = () => (
   </div>
 );
 
-// --- CORRECTION LAB 2 – Session 1 (SSH) – Même lisibilité que Lab 1 ---
+// --- CORRECTION LAB 2 – Session 1 (SSH) – Format compact ---
 const LabCorrectionSection2 = () => (
-  <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16">
-    <div className="bg-gradient-to-br from-blue-900/30 to-emerald-900/20 border border-blue-500/40 rounded-2xl p-8">
-      <h1 className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
-        <CheckCircle className="w-8 h-8 text-blue-400 flex-shrink-0" /> Correction Lab 2 – Session 1 (SSH)
-      </h1>
-      <p className="text-slate-200/90 text-lg leading-relaxed">LAB S2 de zéro, étape par étape : câblage → IP → users → RSA/SSH → VTY → tests PC.</p>
+  <div className="space-y-10 text-slate-200 text-base leading-relaxed pb-16">
+    <div className="bg-blue-900/20 border border-blue-500/40 rounded-xl p-5">
+      <p className="text-blue-200 font-semibold text-lg mb-2">Correction Lab S2 – SSH</p>
+      <p className="text-slate-300 text-sm">R-Sec, SW-Core, PC-Tech. Configuration SSH.</p>
     </div>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">1. Routeur R-Sec – IP et SSH</h4>
+      <CmdBlock lines={[
+        { prompt: "Router>", cmd: "enable" },
+        { prompt: "Router#", cmd: "configure terminal" },
+        { prompt: "Router(config)#", cmd: "hostname R-Sec" },
+        { prompt: "R-Sec(config)#", cmd: "interface g0/0" },
+        { prompt: "R-Sec(config-if)#", cmd: "ip address 192.168.1.1 255.255.255.0" },
+        { prompt: "R-Sec(config-if)#", cmd: "no shutdown" },
+        { prompt: "R-Sec(config-if)#", cmd: "exit" },
+        { prompt: "R-Sec(config)#", cmd: "ip domain-name novatech.local" },
+        { prompt: "R-Sec(config)#", cmd: "username admin privilege 15 secret admin123" },
+        { prompt: "R-Sec(config)#", cmd: "crypto key generate rsa" },
+        { prompt: "R-Sec(config)#", cmd: "line vty 0 4" },
+        { prompt: "R-Sec(config-line)#", cmd: "login local" },
+        { prompt: "R-Sec(config-line)#", cmd: "transport input ssh" },
+        { prompt: "R-Sec(config-line)#", cmd: "exit" },
+        { prompt: "R-Sec(config)#", cmd: "exit" },
+        { prompt: "R-Sec#", cmd: "copy running-config startup-config" }
+      ]} />
+    </section>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">2. Switch SW-Core</h4>
+      <CmdBlock lines={[
+        { prompt: "Switch(config)#", cmd: "interface vlan 1" },
+        { prompt: "Switch(config-if)#", cmd: "ip address 192.168.1.2 255.255.255.0" },
+        { prompt: "Switch(config-if)#", cmd: "no shutdown" }
+      ]} />
+    </section>
+    <section className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-4">
+      <h4 className="text-emerald-400 font-bold">3. Test SSH</h4>
+      <p className="text-slate-300 text-sm">Depuis PC-Tech (IP 192.168.1.10) : <code className="text-emerald-400">ssh -l admin 192.168.1.1</code></p>
+    </section>
+  </div>
+);
 
+const _LabCorrectionSection2Verbose = () => (
+  <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16 hidden">
     <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-600 py-2 mb-6">
       <div className="flex items-center gap-3 flex-wrap">
         <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
@@ -10898,7 +11875,7 @@ const weeks = [
 // --- MAIN APP : THÉORIE + LAB + QUIZ ---
 
 export default function NetMasterClass() {
-  const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer' | 'labs' | 'labs_s2' | 'labs_s3'
+  const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer' | 'labs' | 'labs_s2' | 'labs_s3' | 'labs_s4'
   const [activeSessionId, setActiveSessionId] = useState(1);
   const [activeTab, setActiveTab] = useState('theory');
   const [completedSessions, setCompletedSessions] = useState([]);
@@ -10974,12 +11951,12 @@ export default function NetMasterClass() {
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           <div className="mb-4 pb-3 border-b border-slate-800">
-            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Programme</p>
+            <p className="text-xs uppercase tracking-widest text-emerald-400 font-bold mb-2">Programme</p>
           </div>
 
           {/* Info Pratique */}
           <div className="mb-6 pb-4 border-b border-slate-800 space-y-2">
-            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Info Pratique</p>
+            <p className="text-xs uppercase tracking-widest text-emerald-400 font-bold mb-2">Info Pratique</p>
             <div className="space-y-3">
               <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
                 <div className="flex items-start gap-3">
@@ -11101,7 +12078,7 @@ export default function NetMasterClass() {
             </div>
           ))}
           <div className="mt-6 pt-4 border-t border-slate-800 space-y-2">
-            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-2">Labs Pratiques</p>
+            <p className="text-xs uppercase tracking-widest text-emerald-400 font-bold mb-2">Labs Pratiques</p>
             
             {/* Administration Cisco & VLAN - Labs disponibles */}
             <div className="mb-2">
@@ -11183,19 +12160,46 @@ export default function NetMasterClass() {
               )}
             </div>
 
-            {/* Protocoles & services - Coming Soon */}
-            <button
-              disabled
-              className="w-full p-3 rounded-xl flex items-center justify-between transition-all border bg-slate-900/50 border-slate-800/50 text-slate-600 cursor-not-allowed opacity-60"
-            >
-              <div className="text-left flex-1">
-                <div className="flex items-center gap-2">
+            {/* Protocoles & services - Lab DHCP & DNS */}
+            <div className="mb-2">
+              <button
+                onClick={() => setExpandedLabWeek(expandedLabWeek === 2 ? null : 2)}
+                className={`w-full p-3 rounded-xl flex items-center justify-between transition-all border ${
+                  expandedLabWeek === 2
+                    ? 'bg-blue-600/10 border-blue-500/50 text-blue-100'
+                    : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-300 hover:border-slate-600'
+                }`}
+              >
+                <div className="text-left flex-1">
                   <p className="font-bold text-sm">Protocoles & services</p>
-                  <span className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 rounded-full text-[9px] font-bold text-amber-400 uppercase">Soon</span>
+                  <p className="text-[10px] text-slate-500 mt-0.5">2 labs disponibles</p>
                 </div>
-                <p className="text-[10px] text-slate-600 mt-0.5">À venir</p>
-              </div>
-            </button>
+                <ChevronRight className={`w-4 h-4 transition-transform ${expandedLabWeek === 2 ? 'rotate-90' : ''}`} />
+              </button>
+              {expandedLabWeek === 2 && (
+                <div className="mt-2 ml-3 space-y-2 border-l-2 border-slate-800 pl-3">
+                  <button
+                    onClick={() => {
+                      setViewMode('labs_s4');
+                      if (window.innerWidth < 1024) setSidebarOpen(false);
+                    }}
+                    className={`w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs ${
+                      viewMode === 'labs_s4'
+                        ? 'bg-blue-600/20 border-blue-500 text-blue-100'
+                        : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-400 hover:border-slate-600'
+                    }`}
+                  >
+                    <div className={`p-1.5 rounded ${viewMode === 'labs_s4' ? 'bg-blue-600 text-white' : 'bg-slate-800'}`}>
+                      <Server className="w-4 h-4" />
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className="font-bold">Lab DHCP & DNS</p>
+                      <p className="text-[9px] text-slate-500">Mise en œuvre TechCorp</p>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Routage - Coming Soon */}
             <button
@@ -11258,7 +12262,7 @@ export default function NetMasterClass() {
             </button>
             <div>
               <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
-                {viewMode === 'packet_tracer' ? 'Packet Tracer – Simulateur réseau' : viewMode === 'labs' ? 'Mémo Commandes – Session 1' : viewMode === 'labs_s2' ? 'Mémo Commandes – Session 2' : viewMode === 'labs_s3' ? 'Mémo Commandes – Session 3' : activeSession.title}
+                {viewMode === 'packet_tracer' ? 'Packet Tracer – Simulateur réseau' : viewMode === 'labs' ? 'Mémo Commandes – Session 1' : viewMode === 'labs_s2' ? 'Mémo Commandes – Session 2' : viewMode === 'labs_s3' ? 'Mémo Commandes – Session 3' : viewMode === 'labs_s4' ? 'Lab DHCP & DNS' : activeSession.title}
               </h2>
             </div>
           </div>
@@ -11314,6 +12318,10 @@ export default function NetMasterClass() {
           ) : viewMode === 'labs_s3' ? (
             <div className="h-full min-h-[500px]">
               <LabsSection lab={sessions[2].lab} sessionLabel="Session 3" sessionDescription="Lab Trunk et routage inter-VLAN (Router-on-a-Stick) sur Cisco Packet Tracer. Consignes ci-dessous." sessionId={3} />
+            </div>
+          ) : viewMode === 'labs_s4' ? (
+            <div className="h-full min-h-[500px]">
+              <LabsSection lab={sessions[3].lab} sessionLabel="DHCP & DNS" sessionDescription="Lab TechCorp : mise en œuvre DHCP et DNS sur Cisco Packet Tracer. Consignes et correction ci-dessous." sessionId={4} />
             </div>
           ) : (
           <div className="max-w-6xl mx-auto h-full flex flex-col">
