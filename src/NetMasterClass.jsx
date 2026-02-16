@@ -5214,7 +5214,7 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
             <h5 className="text-blue-300 font-semibold mt-4">Partie 2 – DNS</h5>
             <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
               <li>Serveur : intranet.techcorp.local → 192.168.10.100, files.techcorp.local → 192.168.10.101</li>
-              <li>Test : ping intranet.techcorp.local depuis les PC</li>
+              <li>Vérifier avec ipconfig /all que chaque PC a bien DNS Servers = 192.168.10.254</li>
             </ol>
           </div>
 
@@ -5283,9 +5283,8 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
             <h5 className="text-amber-300 font-semibold mt-6">Partie 5 – PC et vérifications DHCP/DNS</h5>
             <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
               <li>Les 4 PC en mode DHCP (Desktop → IP Configuration)</li>
-              <li>ipconfig sur chaque PC → IP 192.168.10.x, passerelle 192.168.10.1, DNS 192.168.10.254</li>
+              <li>ipconfig /all sur chaque PC → IP 192.168.10.x, passerelle 192.168.10.1, DNS 192.168.10.254</li>
               <li>ping 192.168.10.1 (passerelle) depuis un PC</li>
-              <li>ping intranet.techcorp.local, files.techcorp.local, imprimante.techcorp.local</li>
               <li>Sur le routeur : show ip dhcp binding → 4 baux affichés</li>
             </ol>
 
@@ -5305,7 +5304,7 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
               <p className="text-amber-200 font-bold mb-2">Livrables Lab 2</p>
               <ul className="text-slate-300 text-sm space-y-1">
                 <li>• 4 PC avec IP automatique via DHCP</li>
-                <li>• Résolution DNS fonctionnelle pour les 3 noms (intranet, files, imprimante)</li>
+                <li>• DNS reçu par les PC (ipconfig /all affiche DNS Servers : 192.168.10.254)</li>
                 <li>• show ip dhcp binding montrant les 4 baux</li>
                 <li>• Connexion SSH depuis un PC vers le routeur (ssh -l admin 192.168.10.1)</li>
               </ul>
@@ -5564,20 +5563,19 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
             <p className="text-slate-300 mb-6 leading-relaxed">Suivre chaque étape dans l'ordre. Chaque ligne indique : <strong>où</strong> faire la vérification, la <strong>commande exacte</strong> à taper, et le <strong>résultat attendu</strong>.</p>
             <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mb-6">
               <p className="text-amber-200 font-bold mb-2">💡 Pourquoi cet ordre de vérification ?</p>
-              <p className="text-slate-300 text-sm">On teste du plus proche au plus loin : d’abord « est-ce que j’ai une IP ? » (ipconfig), puis « est-ce que je reach la passerelle ? » (ping .1), enfin « est-ce que le DNS résout ? » (ping intranet.techcorp.local). Si le ping .1 échoue alors que ipconfig affiche une IP, le problème est au niveau routeur (interface down, mauvais masque). Si le ping par nom échoue mais ping .1 marche, le problème est DNS (serveur mal configuré ou mauvaise IP dans le pool).</p>
+              <p className="text-slate-300 text-sm">On teste du plus proche au plus loin : d’abord « est-ce que j’ai une IP ? » (ipconfig /all), puis « est-ce que je reach la passerelle ? » (ping .1). Si le ping .1 échoue alors que ipconfig affiche une IP, le problème est au niveau routeur (interface down, mauvais masque). Si ipconfig ne montre pas de DNS, le pool DHCP manque dns-server.</p>
             </div>
             <div className="space-y-6 ml-0 mb-6">
               <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
-                <p className="text-amber-300 font-bold mb-2">Vérification 1 — IP reçue via DHCP</p>
+                <p className="text-amber-300 font-bold mb-2">Vérification 1 — IP et DNS reçus via DHCP</p>
                 <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC-Bureautique (ou PC-Technique) → Desktop → Command Prompt</p>
-                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">ipconfig</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">ipconfig /all</p>
                 <p className="text-slate-400 text-xs font-semibold mb-1">Output attendu :</p>
-                <pre className="text-slate-300 text-xs font-mono bg-black/50 p-3 rounded overflow-x-auto mb-2">Ethernet adapter Local Area Connection:
-   IPv4 Address. . . . . . . . . : 192.168.10.11
-   Subnet Mask . . . . . . . . . : 255.255.255.0
-   Default Gateway . . . . . . . : 192.168.10.1
-   DNS Servers . . . . . . . . . : 192.168.10.254</pre>
-                <p className="text-slate-400 text-xs">Si IP = 0.0.0.0 → DHCP n'a pas répondu.</p>
+                <pre className="text-slate-300 text-xs font-mono bg-black/50 p-3 rounded overflow-x-auto mb-2">IPv4 Address. . . . . . . . . : 192.168.10.11
+Subnet Mask . . . . . . . . . : 255.255.255.0
+Default Gateway . . . . . . . : 192.168.10.1
+DNS Servers . . . . . . . . . : 192.168.10.254</pre>
+                <p className="text-slate-400 text-xs">Si IP = 0.0.0.0 → DHCP n'a pas répondu. Si DNS absent → ajouter dns-server 192.168.10.254 dans le pool.</p>
               </div>
               <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
                 <p className="text-amber-300 font-bold mb-2">Vérification 2 — Passerelle joignable</p>
@@ -5592,18 +5590,7 @@ Reply from 192.168.10.1: bytes=32 time&lt;1ms TTL=255</pre>
                 <p className="text-slate-400 text-xs">Si « Request timed out » → vérifier interface routeur (no shutdown), câble.</p>
               </div>
               <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
-                <p className="text-amber-300 font-bold mb-2">Vérification 3 — Résolution DNS</p>
-                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC-Bureautique → Desktop → Command Prompt</p>
-                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">ping intranet.techcorp.local</p>
-                <p className="text-slate-400 text-xs font-semibold mb-1">Output attendu :</p>
-                <pre className="text-slate-300 text-xs font-mono bg-black/50 p-3 rounded overflow-x-auto mb-2">Pinging intranet.techcorp.local [192.168.10.100] with 32 bytes of data:
-Reply from 192.168.10.100: bytes=32 time&lt;1ms TTL=128
-Reply from 192.168.10.100: bytes=32 time&lt;1ms TTL=128
-...</pre>
-                <p className="text-slate-400 text-xs">Tester aussi files.techcorp.local. Si « Ping request could not find host » → DNS mal configuré.</p>
-              </div>
-              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
-                <p className="text-amber-300 font-bold mb-2">Vérification 4 — Baux DHCP</p>
+                <p className="text-amber-300 font-bold mb-2">Vérification 3 — Baux DHCP</p>
                 <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> R-Tech → CLI (console) → mode privilégié</p>
                 <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">show ip dhcp binding</p>
                 <p className="text-slate-400 text-xs font-semibold mb-1">Output attendu :</p>
@@ -5893,18 +5880,7 @@ Reply from 192.168.10.1: bytes=32 time&lt;1ms TTL=255</pre>
                 <p className="text-slate-400 text-xs">Si « Request timed out » → vérifier interface routeur (no shutdown), câble.</p>
               </div>
               <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
-                <p className="text-amber-300 font-bold mb-2">Vérification 3 — Résolution DNS</p>
-                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC-B1 → Desktop → Command Prompt</p>
-                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">ping intranet.techcorp.local</p>
-                <p className="text-slate-400 text-xs font-semibold mb-1">Output attendu :</p>
-                <pre className="text-slate-300 text-xs font-mono bg-black/50 p-3 rounded overflow-x-auto mb-2">Pinging intranet.techcorp.local [192.168.10.100] with 32 bytes of data:
-Reply from 192.168.10.100: bytes=32 time&lt;1ms TTL=128
-Reply from 192.168.10.100: bytes=32 time&lt;1ms TTL=128
-...</pre>
-                <p className="text-slate-400 text-xs">Tester aussi files.techcorp.local et imprimante.techcorp.local. Si « Ping request could not find host » → DNS mal configuré.</p>
-              </div>
-              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
-                <p className="text-amber-300 font-bold mb-2">Vérification 4 — Baux DHCP (sur le routeur)</p>
+                <p className="text-amber-300 font-bold mb-2">Vérification 3 — Baux DHCP (sur le routeur)</p>
                 <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> R-Tech → CLI → mode privilégié</p>
                 <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">show ip dhcp binding</p>
                 <p className="text-slate-400 text-xs font-semibold mb-1">Output attendu :</p>
@@ -5917,7 +5893,7 @@ Reply from 192.168.10.100: bytes=32 time&lt;1ms TTL=128
                 <p className="text-slate-400 text-xs">4 lignes = 4 PC avec IP via DHCP.</p>
               </div>
               <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
-                <p className="text-amber-300 font-bold mb-2">Vérification 5 — Connexion SSH</p>
+                <p className="text-amber-300 font-bold mb-2">Vérification 4 — Connexion SSH</p>
                 <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC-B1 → Desktop → Command Prompt</p>
                 <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">ssh -l admin 192.168.10.1</p>
                 <p className="text-slate-400 text-xs font-semibold mb-1">Output attendu :</p>
