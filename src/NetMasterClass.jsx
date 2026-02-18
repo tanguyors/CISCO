@@ -5934,73 +5934,64 @@ R-Tech&gt;</pre>
       {
         type: 'intro',
         title: "Cours Théorique – Séance 2 : HTTP, FTP et ARP",
-        content: `Bienvenue ! Ce cours s'adresse aux débutants. Nous allons progresser pas à pas.
+        content: `Bienvenue ! Ce cours s'adresse aux débutants. Nous allons progresser pas à pas avec des exemples concrets.
 
-Objectif : Comprendre les protocoles HTTP, FTP et ARP et leur rôle dans la communication réseau.
+Objectif : Comprendre les protocoles HTTP, FTP et ARP — ce qu'ils font, comment ils fonctionnent, et pourquoi on en a besoin.
 
 🎯 À la fin, vous serez capable de :
-📡 Comprendre HTTP et HTTPS (client-serveur, ports 80/443)
-📂 Comprendre FTP (ports 21 et 20, modes actif/passif)
-🔗 Comprendre ARP (résolution IP → MAC, table ARP)`
+📡 Expliquer comment votre navigateur récupère une page web (HTTP/HTTPS)
+📂 Comprendre comment on transfère des fichiers sur un réseau (FTP)
+🔗 Expliquer comment un PC trouve l'adresse physique d'un autre PC (ARP)
+🛠️ Utiliser ces protocoles dans Packet Tracer`
       },
       {
         type: 'rich_text',
-        title: "1. HTTP – Le problème : afficher des pages web",
+        title: "1. HTTP – Qu'est-ce qui se passe quand vous tapez une URL ?",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed text-lg">Quand vous tapez <strong>https://www.google.fr</strong> dans votre navigateur, comment le contenu de la page arrive-t-il jusqu'à vous ?</p>
-            <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
-              <p className="text-red-200 font-bold mb-2">Sans protocole standard :</p>
-              <p className="text-slate-300 text-sm">Chaque site inventerait sa propre façon d'envoyer les pages → impossible de s'entendre entre navigateurs et serveurs.</p>
-            </div>
-            <p className="text-slate-300">La solution : le protocole <strong>HTTP</strong>, commun à tous les sites web.</p>
-          </div>
-        )
-      },
-      {
-        type: 'rich_text',
-        title: "HTTP – C'est quoi, en une phrase ?",
-        content: (
-          <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed text-xl text-center py-4">Le <strong className="text-blue-400">HTTP</strong> est le protocole qui permet à un navigateur (client) de demander une page web à un serveur et de recevoir la réponse.</p>
+            <p className="text-slate-200 leading-relaxed text-lg">Vous ouvrez votre navigateur et tapez <strong>www.google.fr</strong>. En moins d'une seconde, la page s'affiche. Mais que se passe-t-il en coulisses ?</p>
             <div className="bg-blue-900/20 border border-blue-500/40 rounded-xl p-6">
-              <p className="text-blue-200 font-bold mb-2">HyperText Transfer Protocol</p>
-              <p className="text-slate-300 text-sm">Couche application (modèle OSI). Utilisé par tous les navigateurs et serveurs web du monde.</p>
+              <p className="text-blue-200 font-bold mb-3">L'analogie du restaurant</p>
+              <p className="text-slate-300 text-sm leading-relaxed">Imaginez un restaurant. Vous (le <strong>client</strong>) commandez un plat au serveur (le <strong>serveur web</strong>). Vous ne cuisinez pas — vous demandez, et le serveur vous apporte le plat. HTTP, c'est exactement ça : <strong>un protocole de commande/livraison</strong> entre votre navigateur et un serveur web.</p>
+            </div>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 text-sm">
+              <p className="text-amber-300 font-bold mb-2">Concrètement, quand vous tapez www.google.fr :</p>
+              <ol className="text-slate-300 space-y-1 list-decimal list-inside">
+                <li>Votre navigateur envoie une <strong>requête HTTP</strong> au serveur de Google : « Envoie-moi la page d'accueil »</li>
+                <li>Le serveur reçoit la demande et prépare la réponse</li>
+                <li>Le serveur renvoie la page HTML, les images, le CSS, le JavaScript</li>
+                <li>Votre navigateur affiche le tout à l'écran</li>
+              </ol>
             </div>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "HTTP – Modèle client-serveur",
+        title: "HTTP – Le protocole en détail",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed">HTTP fonctionne selon un modèle <strong>client-serveur</strong> :</p>
-            <ol className="space-y-3 text-slate-300 list-decimal list-inside">
-              <li><strong>Le client</strong> (navigateur) envoie une requête au serveur (ex : <code className="bg-slate-900 px-1 rounded">GET /page.html</code>)</li>
-              <li><strong>Le serveur</strong> renvoie une réponse avec des en-têtes (headers) et le contenu (body)</li>
-            </ol>
-            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm">
-              <p className="text-amber-300">Requêtes courantes : GET (récupérer), POST (envoyer des données)</p>
-              <p className="text-emerald-400 mt-2">HTTP utilise le port TCP 80</p>
+            <div className="bg-blue-900/20 border border-blue-500/40 rounded-xl p-6">
+              <p className="text-blue-200 font-bold text-lg mb-1">HTTP = HyperText Transfer Protocol</p>
+              <p className="text-slate-300 text-sm">Protocole de la couche Application (couche 7 du modèle OSI). Port <strong>TCP 80</strong>.</p>
             </div>
-          </div>
-        )
-      },
-      {
-        type: 'rich_text',
-        title: "HTTP vs HTTPS – La sécurité",
-        content: (
-          <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed"><strong>HTTP</strong> transmet les données en clair. N'importe qui sur le réseau peut les lire.</p>
+            <p className="text-slate-200 leading-relaxed">HTTP fonctionne en mode <strong>requête → réponse</strong> :</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2">
+              <p className="text-amber-300 font-bold">— Le client envoie une requête —</p>
+              <p className="text-emerald-400">GET /index.html HTTP/1.1</p>
+              <p className="text-emerald-400">Host: www.netcorp.local</p>
+              <p className="text-slate-500 text-xs mt-1">↳ « Je veux la page index.html du site www.netcorp.local »</p>
+              <p className="text-amber-300 font-bold mt-3">— Le serveur renvoie une réponse —</p>
+              <p className="text-emerald-400">HTTP/1.1 200 OK</p>
+              <p className="text-emerald-400">Content-Type: text/html</p>
+              <p className="text-slate-500 text-xs mt-1">↳ « Voici la page, tout s'est bien passé (code 200) »</p>
+              <p className="text-emerald-400 mt-1">{'<'}html{'>'} Bienvenue sur NetCorp {'<'}/html{'>'}</p>
+            </div>
             <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
-              <p className="text-amber-200 font-bold mb-2">HTTPS</p>
-              <p className="text-slate-300 text-sm">HTTPS ajoute une couche de chiffrement <strong>TLS/SSL</strong>. Les données sont cryptées.</p>
-              <ul className="text-slate-300 text-sm mt-2 list-disc list-inside">
-                <li><strong>Port 443</strong> (au lieu de 80)</li>
-                <li>Confidentialité : personne ne peut lire les données</li>
-                <li>Authenticité : certificats pour vérifier l'identité du site</li>
-                <li>Intégrité : les données ne sont pas modifiées en transit</li>
+              <p className="text-amber-200 font-bold mb-2">Les méthodes HTTP les plus courantes</p>
+              <ul className="text-slate-300 text-sm space-y-1">
+                <li>• <strong>GET</strong> — Récupérer une page ou un fichier (quand vous naviguez sur un site)</li>
+                <li>• <strong>POST</strong> — Envoyer des données au serveur (quand vous remplissez un formulaire, un login)</li>
               </ul>
             </div>
           </div>
@@ -6008,44 +5999,154 @@ Objectif : Comprendre les protocoles HTTP, FTP et ARP et leur rôle dans la comm
       },
       {
         type: 'rich_text',
-        title: "HTTP – Utilisations",
+        title: "HTTP – Les codes de réponse (ceux que vous connaissez déjà !)",
         content: (
           <div className="space-y-6">
-            <ul className="space-y-3 text-slate-300">
-              <li>• <strong>Navigation web</strong> — afficher des pages HTML, images, vidéos</li>
-              <li>• <strong>APIs REST</strong> — les applications échangent des données (JSON, XML) via HTTP</li>
-              <li>• <strong>Services cloud</strong> — beaucoup de services utilisent HTTP en arrière-plan</li>
-            </ul>
-          </div>
-        )
-      },
-      {
-        type: 'rich_text',
-        title: "2. FTP – Le problème : transférer des fichiers",
-        content: (
-          <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed text-lg">Comment envoyer ou récupérer des fichiers volumineux entre deux machines (ex : publier un site web, échanger des documents) ?</p>
+            <p className="text-slate-200 leading-relaxed">Quand le serveur répond, il inclut un <strong>code de statut</strong>. Vous en avez déjà vu certains :</p>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-emerald-900/20 border border-emerald-500/40 rounded-xl p-4">
+                <p className="text-emerald-300 font-bold text-2xl mb-1">200 OK</p>
+                <p className="text-slate-300 text-sm">Tout va bien, voici la page demandée.</p>
+                <p className="text-slate-400 text-xs mt-1">Exemple : vous tapez www.google.fr → la page s'affiche</p>
+              </div>
+              <div className="bg-red-900/20 border border-red-500/40 rounded-xl p-4">
+                <p className="text-red-300 font-bold text-2xl mb-1">404 Not Found</p>
+                <p className="text-slate-300 text-sm">La page demandée n'existe pas sur le serveur.</p>
+                <p className="text-slate-400 text-xs mt-1">Exemple : www.google.fr/page-qui-existe-pas</p>
+              </div>
+              <div className="bg-amber-900/20 border border-amber-500/40 rounded-xl p-4">
+                <p className="text-amber-300 font-bold text-2xl mb-1">403 Forbidden</p>
+                <p className="text-slate-300 text-sm">Le serveur refuse l'accès (pas les droits).</p>
+                <p className="text-slate-400 text-xs mt-1">Exemple : accéder à une page admin sans être connecté</p>
+              </div>
+              <div className="bg-red-900/20 border border-red-500/40 rounded-xl p-4">
+                <p className="text-red-300 font-bold text-2xl mb-1">500 Server Error</p>
+                <p className="text-slate-300 text-sm">Le serveur a planté en traitant la requête.</p>
+                <p className="text-slate-400 text-xs mt-1">Exemple : un bug dans le code du site</p>
+              </div>
+            </div>
             <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
-              <p className="text-blue-200 font-bold mb-2">FTP – File Transfer Protocol</p>
-              <p className="text-slate-300 text-sm">Protocole de la couche application dédié au <strong>transfert de fichiers</strong> entre un client et un serveur.</p>
+              <p className="text-blue-200 font-bold mb-2">Astuce pour retenir</p>
+              <p className="text-slate-300 text-sm"><strong>2xx</strong> = tout va bien | <strong>3xx</strong> = redirection | <strong>4xx</strong> = erreur côté client (vous) | <strong>5xx</strong> = erreur côté serveur</p>
             </div>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "FTP – Deux connexions TCP",
+        title: "HTTPS – Pourquoi le cadenas dans votre navigateur ?",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed">FTP établit <strong>2 connexions TCP</strong> distinctes :</p>
+            <p className="text-slate-200 leading-relaxed text-lg">Regardez la barre d'adresse de votre navigateur. Vous voyez un <strong>cadenas</strong> ? C'est HTTPS.</p>
+            <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
+              <p className="text-red-200 font-bold mb-2">Le problème de HTTP (sans le S)</p>
+              <p className="text-slate-300 text-sm">HTTP envoie tout <strong>en clair</strong>. Si vous tapez votre mot de passe sur un site en HTTP, n'importe qui sur le même réseau Wi-Fi peut le lire. C'est comme envoyer une carte postale — tout le monde peut la lire en chemin.</p>
+            </div>
+            <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg">
+              <p className="text-emerald-200 font-bold mb-2">HTTPS = HTTP + chiffrement TLS</p>
+              <p className="text-slate-300 text-sm">HTTPS, c'est comme envoyer une lettre dans une <strong>enveloppe scellée</strong>. Même si quelqu'un l'intercepte, il ne peut pas la lire.</p>
+              <div className="grid md:grid-cols-3 gap-3 mt-3">
+                <div className="bg-slate-800/60 rounded-lg p-3 text-center">
+                  <p className="text-emerald-300 font-bold">Confidentialité</p>
+                  <p className="text-slate-400 text-xs">Les données sont chiffrées, personne ne peut les lire</p>
+                </div>
+                <div className="bg-slate-800/60 rounded-lg p-3 text-center">
+                  <p className="text-emerald-300 font-bold">Authenticité</p>
+                  <p className="text-slate-400 text-xs">Le certificat prouve que c'est bien le vrai site</p>
+                </div>
+                <div className="bg-slate-800/60 rounded-lg p-3 text-center">
+                  <p className="text-emerald-300 font-bold">Intégrité</p>
+                  <p className="text-slate-400 text-xs">Les données ne sont pas modifiées en route</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 text-sm">
+              <p className="text-slate-300"><strong>HTTP</strong> → port <strong className="text-red-400">80</strong> → en clair → pas de cadenas</p>
+              <p className="text-slate-300"><strong>HTTPS</strong> → port <strong className="text-emerald-400">443</strong> → chiffré → cadenas</p>
+              <p className="text-slate-400 text-xs mt-2">Aujourd'hui, 95% des sites utilisent HTTPS. Votre navigateur vous avertit si un site est encore en HTTP.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "HTTP en entreprise – L'intranet",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">HTTP n'est pas que pour Internet. En entreprise, on l'utilise pour l'<strong>intranet</strong> : un site web accessible uniquement depuis le réseau interne.</p>
+            <div className="bg-blue-900/20 border border-blue-500/40 rounded-xl p-6">
+              <p className="text-blue-200 font-bold mb-2">Exemple concret : l'intranet de NetCorp</p>
+              <ul className="text-slate-300 text-sm space-y-2">
+                <li>• Un serveur web héberge la page d'accueil de l'entreprise (annonces, planning, docs)</li>
+                <li>• L'adresse est <code className="bg-slate-800 px-1 rounded">http://intranet.netcorp.local</code></li>
+                <li>• Le DNS interne résout ce nom vers l'IP du serveur (192.168.10.254)</li>
+                <li>• Les employés y accèdent depuis leur navigateur, comme un site web normal</li>
+              </ul>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">C'est exactement ce qu'on va faire dans le lab !</p>
+              <p className="text-slate-300 text-sm">On va configurer un serveur HTTP dans Packet Tracer, créer une page d'accueil, et y accéder depuis un PC via le navigateur.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "2. FTP – Transférer des fichiers sur le réseau",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">HTTP c'est bien pour les pages web. Mais comment envoyer un fichier de 500 Mo à un collègue ? Ou publier les fichiers d'un site web sur le serveur ?</p>
+            <div className="bg-blue-900/20 border border-blue-500/40 rounded-xl p-6">
+              <p className="text-blue-200 font-bold mb-3">L'analogie de la Poste</p>
+              <p className="text-slate-300 text-sm leading-relaxed">HTTP c'est comme consulter un catalogue en vitrine (vous regardez, le serveur vous montre). FTP c'est comme <strong>un service de livraison de colis</strong> : vous pouvez déposer des fichiers sur le serveur (<strong>upload</strong>) ou en récupérer (<strong>download</strong>). C'est un vrai échange bidirectionnel de fichiers.</p>
+            </div>
+            <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-5">
+              <p className="text-amber-300 font-bold mb-2">FTP = File Transfer Protocol</p>
+              <p className="text-slate-300 text-sm">Protocole de la couche Application. Conçu spécifiquement pour le <strong>transfert de fichiers</strong> entre un client et un serveur.</p>
+              <p className="text-slate-400 text-xs mt-2">Exemples d'utilisation : publier un site web, partager des rapports, sauvegarder des fichiers, échanger des documents entre services.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "FTP – Deux connexions, deux rôles",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">La particularité de FTP : il utilise <strong>2 connexions TCP séparées</strong>. Pourquoi ? Parce que pendant que vous téléchargez un fichier, vous devez pouvoir continuer à taper des commandes.</p>
             <div className="grid md:grid-cols-2 gap-4">
               <div className="bg-amber-900/20 border border-amber-500/40 rounded-xl p-5">
-                <p className="text-amber-300 font-bold mb-2">Port 21 — Canal de commandes</p>
-                <p className="text-slate-300 text-sm">Authentification (login/mot de passe), navigation dans les dossiers, ordres (upload, download)</p>
+                <p className="text-amber-300 font-bold text-2xl mb-2">Port 21</p>
+                <p className="text-amber-200 font-bold mb-1">Canal de commandes</p>
+                <p className="text-slate-300 text-sm">C'est par ici que passent :</p>
+                <ul className="text-slate-300 text-sm mt-1 space-y-0.5">
+                  <li>• Le login / mot de passe</li>
+                  <li>• Les ordres : <code className="bg-slate-800 px-1 rounded text-emerald-400">dir</code> (lister), <code className="bg-slate-800 px-1 rounded text-emerald-400">get</code> (télécharger), <code className="bg-slate-800 px-1 rounded text-emerald-400">put</code> (envoyer)</li>
+                  <li>• La navigation dans les dossiers</li>
+                </ul>
               </div>
               <div className="bg-emerald-900/20 border border-emerald-500/40 rounded-xl p-5">
-                <p className="text-emerald-300 font-bold mb-2">Port 20 — Canal de données</p>
-                <p className="text-slate-300 text-sm">Transmission réelle des fichiers (téléchargement, envoi)</p>
+                <p className="text-emerald-300 font-bold text-2xl mb-2">Port 20</p>
+                <p className="text-emerald-200 font-bold mb-1">Canal de données</p>
+                <p className="text-slate-300 text-sm">C'est par ici que passent :</p>
+                <ul className="text-slate-300 text-sm mt-1 space-y-0.5">
+                  <li>• Le contenu réel des fichiers</li>
+                  <li>• Les gros transferts (upload/download)</li>
+                  <li>• Ouvert uniquement pendant un transfert</li>
+                </ul>
+              </div>
+            </div>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 text-sm">
+              <p className="text-amber-300 font-bold mb-2">Exemple concret d'une session FTP :</p>
+              <div className="font-mono space-y-1">
+                <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">ftp 192.168.10.254</span><span className="text-slate-500">     ← connexion sur le port 21</span></p>
+                <p><span className="text-slate-500">220- Welcome to FTP server</span></p>
+                <p><span className="text-slate-500">Username: </span><span className="text-emerald-400">ftpuser</span><span className="text-slate-500">           ← authentification (port 21)</span></p>
+                <p><span className="text-slate-500">Password: </span><span className="text-emerald-400">ftppass</span></p>
+                <p><span className="text-slate-500">230- User logged in.</span></p>
+                <p><span className="text-slate-500">ftp{'>'} </span><span className="text-emerald-400">dir</span><span className="text-slate-500">                     ← commande (port 21), résultat (port 20)</span></p>
+                <p><span className="text-slate-500">ftp{'>'} </span><span className="text-emerald-400">get rapport.pdf</span><span className="text-slate-500">          ← commande (port 21), fichier transite (port 20)</span></p>
+                <p><span className="text-slate-500">ftp{'>'} </span><span className="text-emerald-400">quit</span></p>
               </div>
             </div>
           </div>
@@ -6053,18 +6154,26 @@ Objectif : Comprendre les protocoles HTTP, FTP et ARP et leur rôle dans la comm
       },
       {
         type: 'rich_text',
-        title: "FTP – Mode actif vs Mode passif",
+        title: "FTP – Les codes de réponse (comme HTTP !)",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed">Pour la connexion de données (port 20), deux modes existent :</p>
-            <div className="space-y-4">
-              <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4">
-                <p className="text-amber-300 font-bold">Mode actif</p>
-                <p className="text-slate-300 text-sm">Le serveur initie la connexion de données vers le client. Problème : les pare-feux bloquent souvent les connexions entrantes.</p>
+            <p className="text-slate-200 leading-relaxed">Comme HTTP, FTP utilise des <strong>codes numériques</strong> pour indiquer ce qui se passe :</p>
+            <div className="space-y-3">
+              <div className="bg-emerald-900/20 border border-emerald-500/40 rounded-lg p-4 flex items-center gap-4">
+                <span className="text-emerald-300 font-bold text-2xl font-mono shrink-0">220</span>
+                <div><p className="text-emerald-200 font-bold">Service prêt</p><p className="text-slate-400 text-sm">Le serveur FTP est allumé et attend vos identifiants</p></div>
               </div>
-              <div className="bg-slate-800/60 border border-emerald-600/50 rounded-lg p-4">
-                <p className="text-emerald-300 font-bold">Mode passif</p>
-                <p className="text-slate-300 text-sm">Le client initie toutes les connexions. Plus adapté pour traverser les pare-feux et NAT.</p>
+              <div className="bg-emerald-900/20 border border-emerald-500/40 rounded-lg p-4 flex items-center gap-4">
+                <span className="text-emerald-300 font-bold text-2xl font-mono shrink-0">230</span>
+                <div><p className="text-emerald-200 font-bold">Login réussi</p><p className="text-slate-400 text-sm">Vos identifiants sont corrects, vous êtes connecté</p></div>
+              </div>
+              <div className="bg-red-900/20 border border-red-500/40 rounded-lg p-4 flex items-center gap-4">
+                <span className="text-red-300 font-bold text-2xl font-mono shrink-0">530</span>
+                <div><p className="text-red-200 font-bold">Login incorrect</p><p className="text-slate-400 text-sm">Mauvais nom d'utilisateur ou mot de passe</p></div>
+              </div>
+              <div className="bg-amber-900/20 border border-amber-500/40 rounded-lg p-4 flex items-center gap-4">
+                <span className="text-amber-300 font-bold text-2xl font-mono shrink-0">150</span>
+                <div><p className="text-amber-200 font-bold">Transfert en cours</p><p className="text-slate-400 text-sm">Le fichier est en train d'être envoyé sur le canal de données (port 20)</p></div>
               </div>
             </div>
           </div>
@@ -6072,131 +6181,184 @@ Objectif : Comprendre les protocoles HTTP, FTP et ARP et leur rôle dans la comm
       },
       {
         type: 'rich_text',
-        title: "FTP – Limitations et alternatives",
+        title: "FTP – Sécurité : le gros problème",
         content: (
           <div className="space-y-6">
             <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
-              <p className="text-red-200 font-bold mb-2">Limitation de FTP</p>
-              <p className="text-slate-300 text-sm">FTP transmet les données (et le mot de passe) en clair. Non sécurisé sur un réseau non fiable.</p>
+              <p className="text-red-200 font-bold mb-2">FTP transmet TOUT en clair !</p>
+              <p className="text-slate-300 text-sm">Le login, le mot de passe, et les fichiers passent <strong>sans aucun chiffrement</strong>. Comme HTTP sans le S. Si quelqu'un « écoute » le réseau (Wireshark, par exemple), il voit tout.</p>
             </div>
-            <p className="text-slate-200 leading-relaxed">Alternatives sécurisées :</p>
-            <ul className="text-slate-300 list-disc pl-6 space-y-1">
-              <li><strong>SFTP</strong> — FTP via SSH (chiffrement intégré)</li>
-              <li><strong>FTPS</strong> — FTP + TLS (chiffrement des données)</li>
-            </ul>
-          </div>
-        )
-      },
-      {
-        type: 'rich_text',
-        title: "3. ARP – Le problème : IP vs MAC",
-        content: (
-          <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed text-lg">Les applications utilisent des <strong>adresses IP</strong>. Mais sur le réseau local (Ethernet), les machines communiquent avec des <strong>adresses MAC</strong>. Comment passer de l'une à l'autre ?</p>
-            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
-              <p className="text-blue-200 font-bold mb-2">ARP – Address Resolution Protocol</p>
-              <p className="text-slate-300 text-sm">Protocole de la couche liaison (Layer 2) qui associe une adresse IP à une adresse MAC.</p>
+            <p className="text-slate-200 leading-relaxed">En production, on utilise des alternatives sécurisées :</p>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-slate-800/60 border border-emerald-600/50 rounded-lg p-4">
+                <p className="text-emerald-300 font-bold">SFTP (SSH File Transfer Protocol)</p>
+                <p className="text-slate-300 text-sm mt-1">FTP qui passe dans un tunnel SSH. Tout est chiffré. Port 22.</p>
+                <p className="text-slate-400 text-xs mt-1">Le plus courant aujourd'hui.</p>
+              </div>
+              <div className="bg-slate-800/60 border border-blue-600/50 rounded-lg p-4">
+                <p className="text-blue-300 font-bold">FTPS (FTP Secure)</p>
+                <p className="text-slate-300 text-sm mt-1">FTP + TLS (comme HTTPS pour le web). Chiffre les données.</p>
+                <p className="text-slate-400 text-xs mt-1">Moins courant que SFTP.</p>
+              </div>
             </div>
-          </div>
-        )
-      },
-      {
-        type: 'rich_text',
-        title: "ARP – Comment ça marche ?",
-        content: (
-          <div className="space-y-6">
-            <ol className="space-y-3 text-slate-300 list-decimal list-inside">
-              <li>Un hôte doit envoyer un paquet à une adresse IP locale qu'il ne connaît pas.</li>
-              <li>Il envoie une <strong>requête ARP en broadcast</strong> : « Qui a l'IP 192.168.1.10 ? »</li>
-              <li>Le destinataire répond : « Moi, mon adresse MAC est AA:BB:CC:DD:EE:FF »</li>
-              <li>L'expéditeur stocke cette correspondance dans sa <strong>table ARP</strong>.</li>
-            </ol>
-            <p className="text-slate-400 text-sm">Résultat : les prochaines communications vers cette IP utilisent directement la MAC, sans refaire de requête.</p>
-          </div>
-        )
-      },
-      {
-        type: 'rich_text',
-        title: "ARP – Caractéristiques importantes",
-        content: (
-          <div className="space-y-6">
-            <ul className="space-y-2 text-slate-300">
-              <li>• <strong>Portée : LAN uniquement</strong> — ARP utilise le broadcast Ethernet, qui ne traverse pas les routeurs.</li>
-              <li>• <strong>Table ARP</strong> — stocke les correspondances IP/MAC pour éviter de répéter les requêtes.</li>
-              <li>• <strong>Sécurité</strong> — ARP peut être exploité (ARP spoofing : usurpation d'identité pour intercepter du trafic).</li>
-            </ul>
-          </div>
-        )
-      },
-      {
-        type: 'rich_text',
-        title: "Texte à trous – À compléter",
-        content: (
-          <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed">Complétez les trous mentalement avant de consulter les réponses :</p>
-            <div className="space-y-4 text-slate-300">
-              <p>1. Le protocole _____ utilise un modèle client-serveur, où le client envoie une requête au serveur pour obtenir des ressources.</p>
-              <p>2. Pour sécuriser cette communication, _____ ajoute une couche de chiffrement, utilisant le port _____.</p>
-              <p>3. Le protocole _____ permet le transfert de fichiers. Il utilise le port _____ pour la connexion de commande.</p>
-              <p>4. Pour résoudre une adresse IP en adresse _____, le protocole _____ effectue une requête en _____. Les correspondances sont stockées dans la _____ _____.</p>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">Dans Packet Tracer</p>
+              <p className="text-slate-300 text-sm">On utilise FTP classique (non chiffré) car Packet Tracer ne supporte pas SFTP. En entreprise réelle, on utiliserait SFTP.</p>
             </div>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "Texte à trous – Réponses",
+        title: "3. ARP – Le traducteur invisible du réseau",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-400 text-sm mb-4">Vérifiez vos réponses :</p>
+            <p className="text-slate-200 leading-relaxed text-lg">Vous faites <code className="bg-slate-800 px-1 rounded">ping 192.168.10.254</code>. Le PC connaît l'adresse IP de la destination. Mais sur un réseau Ethernet (câble ou Wi-Fi), les machines communiquent avec des <strong>adresses MAC</strong>, pas des adresses IP. Comment le PC trouve-t-il l'adresse MAC ?</p>
+            <div className="bg-blue-900/20 border border-blue-500/40 rounded-xl p-6">
+              <p className="text-blue-200 font-bold mb-3">L'analogie de l'immeuble</p>
+              <p className="text-slate-300 text-sm leading-relaxed">Vous voulez livrer un colis à « Appartement 254 ». C'est l'<strong>adresse IP</strong> (le numéro logique). Mais pour déposer le colis dans la bonne boîte aux lettres, vous avez besoin du <strong>nom sur la boîte</strong> — c'est l'<strong>adresse MAC</strong> (l'adresse physique gravée sur la carte réseau). ARP, c'est le concierge qui vous dit : « L'appartement 254, c'est la boîte marquée AA:BB:CC:DD:EE:FF ».</p>
+            </div>
+            <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-5">
+              <p className="text-violet-300 font-bold mb-2">ARP = Address Resolution Protocol</p>
+              <p className="text-slate-300 text-sm">Protocole de la couche 2 (Liaison). Convertit une adresse IP en adresse MAC sur le réseau local.</p>
+              <p className="text-slate-400 text-xs mt-1">Fonctionne <strong>uniquement sur le LAN</strong> — le broadcast ARP ne traverse pas les routeurs.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "ARP – Comment ça marche ? (4 étapes)",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Imaginons que PC1 (192.168.10.11) veut envoyer un paquet à Server1 (192.168.10.254) pour la première fois :</p>
             <div className="space-y-4">
-              {[
-                { n: 1, text: "Le protocole ", blank: "HTTP", after: " utilise un modèle client-serveur, où le client envoie une requête au serveur pour obtenir des ressources." },
-                { n: 2, text: "Pour sécuriser cette communication, ", blank: "HTTPS", after: " ajoute une couche de chiffrement, utilisant le port ", blank2: "443", after2: "." },
-                { n: 3, text: "Le protocole ", blank: "FTP", after: " permet le transfert de fichiers. Il utilise le port ", blank2: "21", after2: " pour la connexion de commande." },
-                { n: 4, text: "Pour résoudre une adresse IP en adresse ", blank: "MAC", after: ", le protocole ", blank2: "ARP", after2: " effectue une requête en ", blank3: "broadcast", after3: ". Les correspondances sont stockées dans la ", blank4: "table ARP", after4: "." }
-              ].map(({ n, text, blank, after, blank2, after2, blank3, after3, blank4, after4 }) => (
-                <div key={n} className="p-4 bg-slate-800/60 rounded-lg border border-slate-600">
-                  <p className="text-slate-300">
-                    <span>{n}. {text}</span>
-                    <span className="bg-emerald-900/40 text-emerald-300 px-2 py-0.5 rounded font-semibold">{blank}</span>
-                    <span>{after}</span>
-                    {blank2 && <><span className="bg-emerald-900/40 text-emerald-300 px-2 py-0.5 rounded font-semibold">{blank2}</span><span>{after2}</span></>}
-                    {blank3 && <><span className="bg-emerald-900/40 text-emerald-300 px-2 py-0.5 rounded font-semibold">{blank3}</span><span>{after3}</span></>}
-                    {blank4 && <><span className="bg-emerald-900/40 text-emerald-300 px-2 py-0.5 rounded font-semibold">{blank4}</span><span>{after4}</span></>}
-                  </p>
-                </div>
-              ))}
+              <div className="bg-amber-900/20 border border-amber-500/40 rounded-xl p-5">
+                <p className="text-amber-300 font-bold mb-2">1. Le PC vérifie sa table ARP</p>
+                <p className="text-slate-300 text-sm">PC1 se dit : « Est-ce que je connais déjà la MAC de 192.168.10.254 ? » → Il regarde dans sa table ARP. Elle est vide (première communication).</p>
+              </div>
+              <div className="bg-red-900/20 border border-red-500/40 rounded-xl p-5">
+                <p className="text-red-300 font-bold mb-2">2. ARP Request (broadcast)</p>
+                <p className="text-slate-300 text-sm">PC1 crie à <strong>tout le réseau</strong> : « Hé ! Qui a l'adresse IP 192.168.10.254 ? Répondez-moi avec votre adresse MAC ! »</p>
+                <p className="text-slate-400 text-xs mt-1">Ce message est envoyé en <strong>broadcast</strong> (FF:FF:FF:FF:FF:FF) — tous les appareils du réseau le reçoivent.</p>
+              </div>
+              <div className="bg-emerald-900/20 border border-emerald-500/40 rounded-xl p-5">
+                <p className="text-emerald-300 font-bold mb-2">3. ARP Reply (unicast)</p>
+                <p className="text-slate-300 text-sm">Server1 reconnaît son IP et répond <strong>directement à PC1</strong> : « C'est moi ! Mon adresse MAC est 00:A1:B2:C3:D4:E5 ».</p>
+                <p className="text-slate-400 text-xs mt-1">Les autres machines ignorent la requête car ce n'est pas leur IP.</p>
+              </div>
+              <div className="bg-blue-900/20 border border-blue-500/40 rounded-xl p-5">
+                <p className="text-blue-300 font-bold mb-2">4. Mise en cache (table ARP)</p>
+                <p className="text-slate-300 text-sm">PC1 stocke l'association <strong>192.168.10.254 → 00:A1:B2:C3:D4:E5</strong> dans sa table ARP. Les prochains paquets vers .254 utiliseront directement cette MAC, sans refaire de requête.</p>
+              </div>
             </div>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "Tableau à compléter – Protocoles et couches",
+        title: "ARP – La table ARP en pratique",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Sur un vrai PC (ou dans Packet Tracer), vous pouvez voir la table ARP :</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2">
+              <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">arp -a</span></p>
+              <p className="text-cyan-300 text-xs italic">↳ Affiche toute la table ARP du PC (correspondances IP → MAC connues)</p>
+              <p className="text-slate-400 mt-1">Internet Address    Physical Address    Type</p>
+              <p className="text-slate-300">192.168.10.1        00:E0:A3:12:34:56   dynamic</p>
+              <p className="text-slate-300">192.168.10.254      00:A1:B2:C3:D4:E5   dynamic</p>
+            </div>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2 mt-2">
+              <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">arp -d</span></p>
+              <p className="text-cyan-300 text-xs italic">↳ Efface toute la table ARP (utile pour tester : au prochain ping, ARP refera un broadcast)</p>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">Pourquoi la table ARP est vide au démarrage ?</p>
+              <p className="text-slate-300 text-sm">ARP est <strong>à la demande</strong> (on-demand). La table se remplit uniquement quand le PC communique avec d'autres machines. Pas de communication = table vide. C'est pour ça que dans le lab, <code className="bg-slate-800 px-1 rounded">arp -a</code> est vide avant le premier ping, puis remplie après.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "ARP – Sécurité : l'ARP Spoofing",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">ARP a un défaut majeur : <strong>il fait confiance à tout le monde</strong>. N'importe qui peut envoyer une fausse réponse ARP.</p>
+            <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
+              <p className="text-red-200 font-bold mb-2">ARP Spoofing (empoisonnement ARP)</p>
+              <p className="text-slate-300 text-sm leading-relaxed">Un attaquant envoie de fausses réponses ARP : « L'IP 192.168.10.1 (la passerelle), c'est moi ! ». Les PC mettent à jour leur table ARP avec la MAC de l'attaquant. Résultat : tout le trafic passe par l'attaquant avant d'aller à la vraie passerelle. Il peut lire, modifier ou bloquer les données.</p>
+            </div>
+            <div className="bg-blue-900/20 border border-blue-500/40 rounded-xl p-6">
+              <p className="text-blue-200 font-bold mb-2">Contre-mesures</p>
+              <ul className="text-slate-300 text-sm space-y-1">
+                <li>• <strong>Dynamic ARP Inspection (DAI)</strong> — le switch vérifie que les réponses ARP correspondent à la table DHCP</li>
+                <li>• <strong>Entrées ARP statiques</strong> — on force manuellement les correspondances IP/MAC (pour les serveurs critiques)</li>
+                <li>• <strong>HTTPS</strong> — même si le trafic est intercepté, il est chiffré</li>
+              </ul>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Comment HTTP, FTP, DNS et ARP travaillent ensemble",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed">Quand vous tapez <code className="bg-slate-800 px-1 rounded">http://intranet.netcorp.local</code> dans le navigateur, voici <strong>tout ce qui se passe en coulisses</strong> :</p>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <span className="bg-violet-600 text-white text-xs font-bold px-2 py-1 rounded shrink-0">1. DNS</span>
+                <p className="text-slate-300 text-sm">Le PC demande au serveur DNS : « Quelle IP correspond à intranet.netcorp.local ? » → Réponse : 192.168.10.254</p>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="bg-amber-600 text-white text-xs font-bold px-2 py-1 rounded shrink-0">2. ARP</span>
+                <p className="text-slate-300 text-sm">Le PC connaît l'IP (.254) mais pas la MAC. Il envoie un broadcast ARP : « Qui a .254 ? » → Le serveur répond avec sa MAC.</p>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded shrink-0">3. TCP</span>
+                <p className="text-slate-300 text-sm">Le PC ouvre une connexion TCP vers le serveur sur le port 80 (three-way handshake : SYN, SYN-ACK, ACK).</p>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="bg-emerald-600 text-white text-xs font-bold px-2 py-1 rounded shrink-0">4. HTTP</span>
+                <p className="text-slate-300 text-sm">Le navigateur envoie <code className="bg-slate-800 px-1 rounded">GET /index.html</code> → Le serveur répond <code className="bg-slate-800 px-1 rounded">200 OK</code> + la page HTML → Le navigateur l'affiche.</p>
+              </div>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">Tout ça en moins d'une seconde !</p>
+              <p className="text-slate-300 text-sm">4 protocoles différents travaillent ensemble pour un simple clic. C'est pour ça qu'une panne à n'importe quel niveau (DNS, ARP, TCP, HTTP) casse tout.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Récap – Tableau des protocoles",
         content: (
           <div className="space-y-6 overflow-x-auto">
             <table className="w-full text-sm border-collapse">
               <thead>
                 <tr className="border-b border-slate-600">
                   <th className="text-left py-3 px-4 text-amber-300 font-bold">Protocole</th>
-                  <th className="text-left py-3 px-4 text-blue-300 font-bold">Couche OSI</th>
+                  <th className="text-left py-3 px-4 text-blue-300 font-bold">Couche</th>
                   <th className="text-left py-3 px-4 text-emerald-300 font-bold">Port(s)</th>
-                  <th className="text-left py-3 px-4 text-slate-300 font-bold">Fonction principale</th>
+                  <th className="text-left py-3 px-4 text-violet-300 font-bold">Rôle</th>
+                  <th className="text-left py-3 px-4 text-slate-300 font-bold">Analogie</th>
                 </tr>
               </thead>
               <tbody className="text-slate-300">
                 {[
-                  { proto: "HTTP", layer: "Application", port: "80", func: "Affichage de pages web" },
-                  { proto: "HTTPS", layer: "Application", port: "443", func: "Communication web sécurisée" },
-                  { proto: "FTP", layer: "Application", port: "21 (commande), 20 (données)", func: "Transfert de fichiers" },
-                  { proto: "ARP", layer: "Liaison (Layer 2)", port: "N/A", func: "Résolution IP → MAC" }
+                  { proto: "HTTP", layer: "Application (7)", port: "80", func: "Afficher des pages web", analogy: "Commander au restaurant" },
+                  { proto: "HTTPS", layer: "Application (7)", port: "443", func: "Pages web chiffrées", analogy: "Commander + enveloppe scellée" },
+                  { proto: "FTP", layer: "Application (7)", port: "21 + 20", func: "Transférer des fichiers", analogy: "Service de livraison de colis" },
+                  { proto: "ARP", layer: "Liaison (2)", port: "—", func: "IP → adresse MAC", analogy: "Le concierge de l'immeuble" }
                 ].map((row, i) => (
                   <tr key={i} className="border-b border-slate-700 hover:bg-slate-800/50">
-                    <td className="py-3 px-4 font-semibold">{row.proto}</td>
+                    <td className="py-3 px-4 font-bold">{row.proto}</td>
                     <td className="py-3 px-4">{row.layer}</td>
                     <td className="py-3 px-4 font-mono text-emerald-400">{row.port}</td>
                     <td className="py-3 px-4">{row.func}</td>
+                    <td className="py-3 px-4 text-slate-400 italic">{row.analogy}</td>
                   </tr>
                 ))}
               </tbody>
@@ -6205,35 +6367,17 @@ Objectif : Comprendre les protocoles HTTP, FTP et ARP et leur rôle dans la comm
         )
       },
       {
-        type: 'rich_text',
-        title: "Questions rapides – Réponses",
-        content: (
-          <div className="space-y-6">
-            {[
-              { q: "Quelle différence principale distingue HTTP et HTTPS ?", a: "HTTPS ajoute une couche de chiffrement (TLS/SSL), garantissant la confidentialité, l'intégrité et l'authenticité des données échangées, contrairement à HTTP qui transmet en clair." },
-              { q: "Pourquoi le protocole FTP utilise-t-il deux connexions (port 21 et port 20) ?", a: "Port 21 pour la connexion de commande (authentification, navigation, ordres). Port 20 pour la transmission réelle des données (fichiers)." },
-              { q: "Quelle est la portée d'une requête ARP (LAN ou WAN) ?", a: "ARP fonctionne uniquement sur le réseau local (LAN) car il utilise des diffusions Ethernet (broadcast) qui ne franchissent pas les routeurs." },
-              { q: "Quel est le rôle de la table ARP sur un hôte ?", a: "La table ARP stocke temporairement les correspondances IP/MAC pour éviter de renvoyer des requêtes ARP à chaque communication locale." },
-              { q: "En quoi le mode passif du FTP est-il important pour la traversée de pare-feu ?", a: "En mode passif, le client initie toutes les connexions (y compris la connexion de données). Cela évite les problèmes de pare-feu/NAT qui bloqueraient une connexion entrante depuis le serveur en mode actif." }
-            ].map((item, i) => (
-              <div key={i} className="p-4 bg-slate-800/60 rounded-lg border border-slate-600">
-                <p className="text-amber-300 font-semibold mb-2">{i + 1}. {item.q}</p>
-                <p className="text-slate-300 text-sm pl-4 border-l-2 border-emerald-500/50">→ {item.a}</p>
-              </div>
-            ))}
-          </div>
-        )
-      },
-      {
         type: 'interactive_quiz',
         title: "Quiz : HTTP, FTP et ARP",
         questions: [
-          { q: "Quelle différence principale distingue HTTP et HTTPS ?", options: ["Aucune", "HTTPS ajoute une couche de chiffrement (TLS/SSL), garantissant confidentialité et authenticité", "HTTPS est plus rapide"], a: 1, explanation: "HTTPS chiffre les échanges et utilise des certificats pour vérifier l'identité du serveur." },
-          { q: "Pourquoi FTP utilise-t-il le port 21 et le port 20 ?", options: ["Pour la vitesse", "Port 21 = commandes, port 20 = données (transfert des fichiers)", "Pour la sécurité"], a: 1, explanation: "Le canal de commandes gère l'authentification et les ordres ; le canal de données transmet les fichiers." },
-          { q: "Quelle est la portée d'une requête ARP ?", options: ["WAN (Internet)", "LAN uniquement", "Les deux"], a: 1, explanation: "ARP utilise le broadcast Ethernet qui ne traverse pas les routeurs." },
-          { q: "Quel est le rôle de la table ARP ?", options: ["Stocker des pages web", "Stocker temporairement les correspondances IP/MAC pour éviter de répéter les requêtes", "Gérer les connexions FTP"], a: 1, explanation: "Une fois l'association IP→MAC connue, elle est mise en cache." },
-          { q: "Pourquoi le mode passif FTP est-il utile pour les pare-feux ?", options: ["Il est plus rapide", "Le client initie toutes les connexions, ce qui évite les blocages des connexions entrantes", "Il chiffre les données"], a: 1, explanation: "En mode actif, le serveur tente une connexion entrante que le pare-feu peut bloquer." },
-          { q: "Quel port utilise HTTPS ?", options: ["80", "443", "21"], a: 1, explanation: "HTTP = 80, HTTPS = 443, FTP commande = 21." }
+          { q: "Quand vous tapez une URL dans votre navigateur, quel protocole votre navigateur utilise-t-il pour demander la page au serveur ?", options: ["FTP", "HTTP", "ARP"], a: 1, explanation: "HTTP (HyperText Transfer Protocol) est le protocole de communication entre navigateur et serveur web." },
+          { q: "Quel code HTTP signifie « page non trouvée » ?", options: ["200", "403", "404"], a: 2, explanation: "404 Not Found = la page demandée n'existe pas. 200 = OK, 403 = accès interdit." },
+          { q: "Quelle est la différence entre HTTP et HTTPS ?", options: ["HTTPS est plus rapide", "HTTPS chiffre les données avec TLS, HTTP envoie en clair", "Aucune différence"], a: 1, explanation: "HTTPS ajoute une couche de chiffrement TLS. HTTP (port 80) = en clair. HTTPS (port 443) = chiffré." },
+          { q: "FTP utilise 2 connexions TCP. Pourquoi ?", options: ["Pour aller plus vite", "Port 21 pour les commandes, port 20 pour le transfert de fichiers", "Pour la sécurité"], a: 1, explanation: "Séparer commandes et données permet de taper des commandes pendant qu'un fichier se transfère." },
+          { q: "Le code FTP 530 signifie quoi ?", options: ["Transfert réussi", "Service prêt", "Login incorrect"], a: 2, explanation: "530 = Not logged in. Le nom d'utilisateur ou le mot de passe est faux." },
+          { q: "ARP sert à convertir quoi en quoi ?", options: ["Un nom de domaine en IP", "Une adresse IP en adresse MAC", "Un port en protocole"], a: 1, explanation: "ARP résout une adresse IP en adresse MAC sur le réseau local. Le DNS fait nom → IP." },
+          { q: "Pourquoi la table ARP est-elle vide au démarrage du PC ?", options: ["Le PC n'a pas encore d'IP", "ARP est à la demande : la table se remplit quand le PC communique", "Il faut la configurer manuellement"], a: 1, explanation: "ARP est on-demand : pas de communication = pas d'entrées. La table se remplit au premier ping/requête." },
+          { q: "Quand vous tapez http://intranet.netcorp.local, quels protocoles interviennent dans l'ordre ?", options: ["HTTP → FTP → ARP", "DNS → ARP → TCP → HTTP", "ARP → DNS → HTTP → FTP"], a: 1, explanation: "DNS résout le nom en IP, ARP trouve la MAC, TCP ouvre la connexion, HTTP récupère la page." }
         ]
       },
       {
@@ -6241,21 +6385,1508 @@ Objectif : Comprendre les protocoles HTTP, FTP et ARP et leur rôle dans la comm
         title: "Flashcards : HTTP, FTP et ARP",
         mode: "definition_to_term",
         cards: [
-          { q: "Protocole qui permet à un navigateur de demander une page web à un serveur", a: "HTTP" },
-          { q: "Version sécurisée de HTTP avec chiffrement TLS/SSL, port 443", a: "HTTPS" },
-          { q: "Port utilisé par HTTP", a: "80" },
-          { q: "Protocole de transfert de fichiers, port 21 (commande) et 20 (données)", a: "FTP" },
-          { q: "Mode FTP où le client initie toutes les connexions (meilleur pour pare-feux)", a: "Mode passif" },
-          { q: "Protocole qui associe une adresse IP à une adresse MAC", a: "ARP" },
-          { q: "Table qui stocke les correspondances IP/MAC pour éviter de répéter les requêtes", a: "Table ARP" }
+          { q: "Protocole qui permet à un navigateur de demander une page web à un serveur (port 80)", a: "HTTP" },
+          { q: "Version chiffrée de HTTP, avec cadenas dans le navigateur (port 443)", a: "HTTPS" },
+          { q: "Code HTTP qui signifie « tout va bien, voici la page »", a: "200 OK" },
+          { q: "Code HTTP qui signifie « page non trouvée »", a: "404 Not Found" },
+          { q: "Protocole de transfert de fichiers avec 2 connexions : commandes (port 21) et données (port 20)", a: "FTP" },
+          { q: "Code FTP qui signifie « login incorrect »", a: "530" },
+          { q: "Code FTP qui signifie « connexion réussie, utilisateur connecté »", a: "230" },
+          { q: "Protocole qui convertit une adresse IP en adresse MAC sur le réseau local", a: "ARP" },
+          { q: "Type de message ARP envoyé à tout le réseau (FF:FF:FF:FF:FF:FF) pour trouver une MAC", a: "ARP Request (broadcast)" },
+          { q: "Commande pour afficher la table ARP d'un PC", a: "arp -a" },
+          { q: "Attaque qui envoie de fausses réponses ARP pour intercepter le trafic", a: "ARP Spoofing" },
+          { q: "Alternative sécurisée à FTP qui passe par un tunnel SSH (port 22)", a: "SFTP" }
         ]
       }
     ],
     lab: {
-      title: "HTTP, FTP et ARP",
-      context: "Cette séance est principalement théorique. Les protocoles HTTP, FTP et ARP sont utilisés par les applications et équipements de façon transparente.",
-      consignes: null,
-      solutionContent: null
+      title: "Lab Pratique – FTP (Session 2)",
+      context: "Mise en œuvre du transfert de fichiers FTP entre un PC client et un serveur FTP sur Cisco Packet Tracer.",
+      consignes: (
+        <div className="space-y-12 text-slate-200 text-base leading-relaxed">
+          <div className="bg-blue-900/30 border border-blue-500/40 rounded-xl p-5">
+            <p className="text-blue-100 font-semibold text-lg mb-2">Contexte général</p>
+            <p className="text-blue-200/90 text-sm leading-relaxed">
+              Ce lab permet de <strong>mettre en pratique le protocole FTP</strong> : un serveur FTP héberge des fichiers, un PC client s’y connecte (port 21 pour les commandes, port 20 pour les données) et transfère des fichiers. Topologie minimale : 1 switch, 1 PC, 1 serveur FTP.
+            </p>
+          </div>
+
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-6">
+            <h4 className="text-emerald-400 font-bold text-lg">LAB 1 – FTP : client et serveur</h4>
+            <p className="text-slate-400 text-sm">Topologie : 1 switch, 1 PC (client FTP), 1 serveur FTP. Réseau 192.168.10.0/24.</p>
+            <h5 className="text-amber-300 font-semibold mt-2">Câblage (Copper Straight-Through)</h5>
+            <div className="overflow-x-auto mb-4">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead><tr className="bg-slate-700/50"><th className="p-2 text-left">Appareil</th><th className="p-2 text-left">Port</th><th className="p-2 text-center text-slate-400">↔</th><th className="p-2 text-left">Appareil</th><th className="p-2 text-left">Port</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC-Client</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/1</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">Serveur FTP</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/2</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="text-slate-400 text-xs mb-2">Lecture : PC-Client Fa0 ↔ Switch Fa0/1 = un câble entre le port Fa0 du PC et le port Fa0/1 du switch.</p>
+
+            <h5 className="text-amber-300 font-semibold mt-4">Plan d'adressage</h5>
+            <ul className="text-slate-300 text-sm space-y-1">
+              <li>• Réseau : 192.168.10.0/24</li>
+              <li>• PC-Client : 192.168.10.11, masque 255.255.255.0 (pas de passerelle nécessaire si tout est sur le même réseau)</li>
+              <li>• Serveur FTP : 192.168.10.10, masque 255.255.255.0</li>
+            </ul>
+
+            <h5 className="text-blue-300 font-semibold mt-4">Partie 1 – Câblage et adressage</h5>
+            <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
+              <li>Placer 1 switch, 1 PC, 1 serveur (Server). Câbler selon le tableau (Copper Straight-Through).</li>
+              <li>PC : Desktop → IP Configuration → IP 192.168.10.11, masque 255.255.255.0.</li>
+              <li>Serveur : Config → IP → 192.168.10.10, masque 255.255.255.0.</li>
+            </ol>
+
+            <h5 className="text-blue-300 font-semibold mt-4">Partie 2 – Serveur FTP</h5>
+            <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
+              <li>Sur le serveur : onglet <strong>Services</strong> → <strong>FTP</strong>.</li>
+              <li>Activer le service FTP (ON).</li>
+              <li>Créer un utilisateur (ex. <strong>ftpuser</strong>) et un mot de passe (ex. <strong>ftppass</strong>).</li>
+              <li>Vérifier qu’un fichier est présent dans le répertoire FTP (ou en ajouter un pour le test).</li>
+            </ol>
+
+            <h5 className="text-blue-300 font-semibold mt-4">Partie 3 – Client FTP (depuis le PC)</h5>
+            <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
+              <li>Sur le PC : Desktop → <strong>Command Prompt</strong>.</li>
+              <li>Taper : <code className="text-emerald-400 font-mono bg-slate-800 px-1 rounded">ftp 192.168.10.10</code></li>
+              <li>Quand demandé : Name → <strong>ftpuser</strong>, Password → <strong>ftppass</strong>.</li>
+              <li>Tester : <code className="text-emerald-400 font-mono bg-slate-800 px-1 rounded">dir</code> (lister les fichiers), <code className="text-emerald-400 font-mono bg-slate-800 px-1 rounded">get nom_fichier</code> (télécharger), puis <code className="text-emerald-400 font-mono bg-slate-800 px-1 rounded">quit</code>.</li>
+            </ol>
+
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mt-6">
+              <p className="text-amber-200 font-bold mb-2">Livrables Lab 1 FTP</p>
+              <ul className="text-slate-300 text-sm space-y-1">
+                <li>• Connexion FTP établie du PC vers le serveur (port 21).</li>
+                <li>• Liste des fichiers visible avec <code className="bg-slate-800 px-1 rounded">dir</code>.</li>
+                <li>• Au moins un fichier téléchargé avec <code className="bg-slate-800 px-1 rounded">get</code>.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-6 mt-8">
+            <h4 className="text-emerald-400 font-bold text-lg">LAB 2 – HTTP, FTP et ARP (Lab complet)</h4>
+            <p className="text-slate-400 text-sm">Thématique : Mise en place d'un serveur d'entreprise pour la communication interne et le partage de fichiers.</p>
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
+              <p className="text-blue-200 font-bold mb-2">Contexte professionnel</p>
+              <p className="text-slate-300 text-sm">Vous êtes technicien réseau. Mission : concevoir un serveur centralisé pour accéder à une page d'accueil (intranet) et partager des documents via FTP. Réseau local avant mise en production.</p>
+            </div>
+
+            <h5 className="text-amber-300 font-semibold mt-4">Topologie</h5>
+            <ul className="text-slate-300 text-sm space-y-1">
+              <li>• 1 Switch (SW1)</li>
+              <li>• 2 PC (PC1 & PC2)</li>
+              <li>• 1 Serveur (Server1) — HTTP et FTP</li>
+              <li>• (Optionnel : 1 routeur pour passerelle)</li>
+            </ul>
+            <p className="text-slate-400 text-xs font-mono">PC1 ——┐  PC2 ——┼—— Switch —— Server1</p>
+
+            <h5 className="text-amber-300 font-semibold mt-4">Plan d'adressage</h5>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead><tr className="bg-slate-700/50"><th className="p-2 text-left">Appareil</th><th className="p-2 text-left">Adresse IP</th><th className="p-2 text-left">Masque</th><th className="p-2 text-left">Passerelle</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC1</td><td className="p-2 font-mono">192.168.1.10</td><td className="p-2">255.255.255.0</td><td className="p-2">192.168.1.1</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC2</td><td className="p-2 font-mono">192.168.1.20</td><td className="p-2">255.255.255.0</td><td className="p-2">192.168.1.1</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">Server1</td><td className="p-2 font-mono">192.168.1.100</td><td className="p-2">255.255.255.0</td><td className="p-2">192.168.1.1</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h5 className="text-blue-300 font-semibold mt-4">Étapes – PC1 & PC2</h5>
+            <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
+              <li>Configurer manuellement les adresses IP et la passerelle.</li>
+              <li>Vérifier la connectivité : <code className="text-emerald-400 font-mono bg-slate-800 px-1 rounded">ping 192.168.1.100</code></li>
+            </ol>
+
+            <h5 className="text-blue-300 font-semibold mt-4">Étapes – Server1</h5>
+            <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
+              <li>Attribuer l'adresse IP 192.168.1.100 (masque 255.255.255.0).</li>
+              <li>Activer HTTP et FTP (Services).</li>
+              <li>Créer une page web d'accueil (ex. « Bienvenue sur l'intranet de l'entreprise »).</li>
+              <li>Créer un dossier FTP avec un fichier exemple à télécharger.</li>
+            </ol>
+
+            <h5 className="text-blue-300 font-semibold mt-4">Tests d'accès</h5>
+            <ul className="text-slate-300 text-sm space-y-1">
+              <li>• PC1 : navigateur → <code className="text-emerald-400 font-mono bg-slate-800 px-1 rounded">http://192.168.1.100</code></li>
+              <li>• PC2 : Command Prompt → <code className="text-emerald-400 font-mono bg-slate-800 px-1 rounded">ftp 192.168.1.100</code> → télécharger le fichier d'exemple</li>
+            </ul>
+
+            <h5 className="text-blue-300 font-semibold mt-4">Diagnostic ARP</h5>
+            <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
+              <li>Sur PC1 : <code className="text-emerald-400 font-mono bg-slate-800 px-1 rounded">arp -a</code> → vérifier table ARP, IP serveur → MAC</li>
+              <li><code className="text-emerald-400 font-mono bg-slate-800 px-1 rounded">arp -d *</code> (Windows) ou <code className="text-emerald-400 font-mono bg-slate-800 px-1 rounded">clear arp-cache</code> (Packet Tracer)</li>
+              <li>Relancer un ping et observer la nouvelle résolution ARP</li>
+            </ol>
+
+            <h5 className="text-violet-300 font-semibold mt-4">Mode Simulation (Bonus)</h5>
+            <p className="text-slate-300 text-sm">Filtrer ARP, HTTP, FTP, ICMP. Analyser trames ARP Request/Reply, échanges HTTP GET, sessions FTP, connexions TCP.</p>
+
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mt-6">
+              <p className="text-amber-200 font-bold mb-2">Objectifs pédagogiques Lab 2</p>
+              <ul className="text-slate-300 text-sm space-y-1">
+                <li>• Comprendre HTTP & FTP en entreprise</li>
+                <li>• Observer le rôle d'ARP dans la communication locale</li>
+                <li>• Acquérir une méthodologie de diagnostic réseau</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="bg-slate-800/60 border border-slate-600 rounded-xl p-6 space-y-6 mt-8">
+            <h4 className="text-amber-400 font-bold text-lg">LAB 3 – Infrastructure complète : DHCP + DNS + HTTP + FTP + ARP</h4>
+            <p className="text-slate-400 text-sm">Lab de synthèse combinant toutes les notions des sessions DHCP/DNS et HTTP/FTP/ARP.</p>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">Contexte professionnel</p>
+              <p className="text-slate-300 text-sm">L'entreprise NetCorp vous confie la mise en place complète de son infrastructure réseau : les postes doivent recevoir leur configuration automatiquement (DHCP), accéder à l'intranet par nom de domaine (DNS + HTTP), et partager des fichiers (FTP). Vous devez concevoir, déployer et tester l'ensemble.</p>
+            </div>
+
+            <h5 className="text-amber-300 font-semibold mt-4">Topologie</h5>
+            <ul className="text-slate-300 text-sm space-y-1">
+              <li>• 1 Routeur (R-Net) — passerelle + serveur DHCP</li>
+              <li>• 1 Switch (SW1)</li>
+              <li>• 3 PC (PC1, PC2, PC3) — en mode DHCP</li>
+              <li>• 1 Serveur (Server1) — DNS + HTTP + FTP (IP fixe 192.168.10.254)</li>
+            </ul>
+
+            <h5 className="text-amber-300 font-semibold mt-4">Plan d'adressage</h5>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead><tr className="bg-slate-700/50"><th className="p-2 text-left">Appareil</th><th className="p-2 text-left">Adresse IP</th><th className="p-2 text-left">Méthode</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-2">R-Net (G0/0)</td><td className="p-2 font-mono">192.168.10.1</td><td className="p-2">Statique</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">Server1</td><td className="p-2 font-mono">192.168.10.254</td><td className="p-2">Statique</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC1, PC2, PC3</td><td className="p-2 font-mono">192.168.10.11+</td><td className="p-2">DHCP</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h5 className="text-blue-300 font-semibold mt-4">Étapes</h5>
+            <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
+              <li>Câbler la topologie (R-Net ↔ SW1 ↔ PC1/PC2/PC3/Server1)</li>
+              <li>Configurer l'interface du routeur (IP 192.168.10.1, no shutdown)</li>
+              <li>Configurer DHCP sur le routeur (exclusions + pool LAN-NETCORP : network, default-router, dns-server)</li>
+              <li>Configurer Server1 : IP fixe .254, activer DNS (enregistrements intranet.netcorp.local et files.netcorp.local), HTTP (page d'accueil), FTP (utilisateur ftpuser)</li>
+              <li>Mettre les 3 PC en DHCP, vérifier avec ipconfig /all</li>
+              <li>Tester HTTP via nom de domaine : http://intranet.netcorp.local</li>
+              <li>Tester FTP via nom de domaine : ftp files.netcorp.local</li>
+              <li>Diagnostic ARP : arp -a, arp -d, ping, arp -a</li>
+              <li>(Bonus) Mode Simulation : observer DHCP DORA, DNS Query, ARP, HTTP GET, FTP</li>
+            </ol>
+
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mt-6">
+              <p className="text-amber-200 font-bold mb-2">Objectifs pédagogiques Lab 3</p>
+              <ul className="text-slate-300 text-sm space-y-1">
+                <li>• Combiner DHCP, DNS, HTTP, FTP et ARP dans une infrastructure complète</li>
+                <li>• Comprendre l'interaction entre les protocoles (DHCP fournit DNS, DNS résout HTTP/FTP)</li>
+                <li>• Acquérir une vision globale du déploiement réseau d'entreprise</li>
+                <li>• Savoir diagnostiquer chaque couche indépendamment</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="bg-slate-800/60 border border-red-600/40 rounded-xl p-6 space-y-6 mt-8">
+            <h4 className="text-red-400 font-bold text-lg flex items-center gap-2"><Wrench className="w-5 h-5" /> LAB 4 – Dépannage : les 3 pannes du lundi matin</h4>
+            <p className="text-slate-400 text-sm">Lab de dépannage basé sur l'infrastructure du Lab 3. Trois pannes ont été introduites — à vous de les trouver et les corriger !</p>
+            <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
+              <p className="text-red-200 font-bold mb-2">Contexte professionnel</p>
+              <p className="text-slate-300 text-sm">Lundi matin chez NetCorp. L'infrastructure du Lab 3 était fonctionnelle vendredi soir. Ce matin, trois tickets sont ouverts :</p>
+              <ul className="text-slate-300 text-sm space-y-1 mt-2">
+                <li>• <strong>Ticket 1 (Julie, compta) :</strong> « Impossible d'accéder à http://intranet.netcorp.local, ça dit Host Name Unresolved. »</li>
+                <li>• <strong>Ticket 2 (Marc, RH) :</strong> « La page intranet affiche une erreur quand je tape l'adresse IP directement. »</li>
+                <li>• <strong>Ticket 3 (Sophie, marketing) :</strong> « Quand je tape ftp files.netcorp.local ça ne se connecte pas, mais Julie me dit que le FTP marchait par IP vendredi. »</li>
+              </ul>
+            </div>
+
+            <h5 className="text-amber-300 font-semibold mt-4">Prérequis</h5>
+            <p className="text-slate-300 text-sm">Avoir terminé le Lab 3 avec une infrastructure complètement fonctionnelle (DHCP, DNS, HTTP, FTP). Vous pouvez partir d'une sauvegarde du Lab 3.</p>
+
+            <h5 className="text-amber-300 font-semibold mt-4">Pannes à introduire (ou déjà introduites par le formateur)</h5>
+            <div className="bg-slate-900/60 border border-slate-600 rounded-lg p-4">
+              <p className="text-slate-400 text-xs mb-3">Si vous faites le lab seul, introduisez ces 3 pannes dans votre Lab 3, puis essayez de les retrouver comme si vous ne les connaissiez pas :</p>
+
+              <div className="space-y-4">
+                <div className="bg-red-900/15 border border-red-500/30 rounded-lg p-3">
+                  <p className="text-red-300 font-bold text-sm mb-1">Panne 1 — Casser le DNS dans le pool DHCP</p>
+                  <p className="text-slate-400 text-xs mb-2">Sur le routeur R-Net, en CLI :</p>
+                  <div className="bg-black/40 rounded p-2 font-mono text-xs space-y-0.5">
+                    <p><span className="text-slate-500">R-Net{'>'} </span><span className="text-emerald-400">enable</span></p>
+                    <p><span className="text-slate-500">R-Net# </span><span className="text-emerald-400">configure terminal</span></p>
+                    <p><span className="text-slate-500">R-Net(config)# </span><span className="text-emerald-400">ip dhcp pool LAN-NETCORP</span></p>
+                    <p><span className="text-slate-500">R-Net(dhcp-config)# </span><span className="text-red-400">no dns-server 192.168.10.254</span></p>
+                    <p><span className="text-slate-500">R-Net(dhcp-config)# </span><span className="text-red-400">dns-server 192.168.10.253</span></p>
+                    <p><span className="text-slate-500">R-Net(dhcp-config)# </span><span className="text-emerald-400">end</span></p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">Puis sur chaque PC : Desktop → IP Configuration → passer en <strong>Static</strong> puis revenir en <strong>DHCP</strong> pour qu'ils récupèrent la mauvaise adresse DNS.</p>
+                  <div className="bg-red-900/20 border-l-2 border-red-400 pl-3 mt-2">
+                    <p className="text-red-200 text-xs font-semibold">Symptômes visibles :</p>
+                    <ul className="text-slate-300 text-xs space-y-0.5 mt-1">
+                      <li>• Sur le PC : <code className="text-red-400 bg-black/30 px-1 rounded">ipconfig /all</code> → DNS Servers affiche <strong>192.168.10.253</strong> au lieu de .254</li>
+                      <li>• Le navigateur affiche <strong>« Host Name Unresolved »</strong> quand on tape http://intranet.netcorp.local</li>
+                      <li>• <code className="text-red-400 bg-black/30 px-1 rounded">nslookup intranet.netcorp.local</code> → <strong>Request timed out</strong></li>
+                      <li>• Mais <code className="text-emerald-400 bg-black/30 px-1 rounded">ping 192.168.10.254</code> fonctionne (le réseau est OK, seul le DNS est cassé)</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="bg-amber-900/15 border border-amber-500/30 rounded-lg p-3">
+                  <p className="text-amber-300 font-bold text-sm mb-1">Panne 2 — Désactiver le service HTTP</p>
+                  <p className="text-slate-400 text-xs mb-1">Sur <strong>Server1</strong> : cliquer dessus → onglet <strong>Services</strong> → <strong>HTTP</strong> → mettre le bouton sur <strong>OFF</strong>.</p>
+                  <div className="bg-red-900/20 border-l-2 border-amber-400 pl-3 mt-2">
+                    <p className="text-amber-200 text-xs font-semibold">Symptômes visibles :</p>
+                    <ul className="text-slate-300 text-xs space-y-0.5 mt-1">
+                      <li>• Le navigateur affiche <strong>Request Timeout</strong> ou une page blanche quand on tape http://192.168.10.254</li>
+                      <li>• Même résultat avec http://intranet.netcorp.local (si le DNS fonctionne)</li>
+                      <li>• Mais <code className="text-emerald-400 bg-black/30 px-1 rounded">ping 192.168.10.254</code> fonctionne (le serveur répond au ping, c'est juste le service web qui est éteint)</li>
+                      <li>• Le FTP continue de fonctionner normalement (c'est un service indépendant)</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="bg-yellow-900/15 border border-yellow-500/30 rounded-lg p-3">
+                  <p className="text-yellow-300 font-bold text-sm mb-1">Panne 3 — Modifier un enregistrement DNS</p>
+                  <p className="text-slate-400 text-xs mb-1">Sur <strong>Server1</strong> : onglet <strong>Services</strong> → <strong>DNS</strong> → trouver l'enregistrement <strong>files.netcorp.local</strong> → changer l'adresse de <code className="bg-black/30 px-1 rounded">192.168.10.254</code> en <code className="bg-black/30 px-1 rounded">192.168.10.100</code> → cliquer <strong>Save</strong>.</p>
+                  <div className="bg-red-900/20 border-l-2 border-yellow-400 pl-3 mt-2">
+                    <p className="text-yellow-200 text-xs font-semibold">Symptômes visibles :</p>
+                    <ul className="text-slate-300 text-xs space-y-0.5 mt-1">
+                      <li>• <code className="text-emerald-400 bg-black/30 px-1 rounded">ftp 192.168.10.254</code> → <strong>fonctionne parfaitement</strong> (220 Welcome, login OK)</li>
+                      <li>• <code className="text-red-400 bg-black/30 px-1 rounded">ftp files.netcorp.local</code> → <strong>timeout / connexion refusée</strong></li>
+                      <li>• <code className="text-emerald-400 bg-black/30 px-1 rounded">nslookup files.netcorp.local</code> → <strong>répond 192.168.10.100</strong> (le DNS « fonctionne » mais donne la mauvaise IP !)</li>
+                      <li>• http://intranet.netcorp.local fonctionne normalement (seul files.netcorp.local est cassé)</li>
+                      <li>• Le piège : le DNS répond, donc on pense que « ça marche » — mais il faut lire l'IP renvoyée !</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <h5 className="text-blue-300 font-semibold mt-4">Méthodologie de diagnostic</h5>
+            <ol className="list-decimal list-inside space-y-2 text-slate-300 text-sm">
+              <li>Commencer par le <strong>bas</strong> (couche physique) : les câbles sont-ils connectés ? Les interfaces UP ?</li>
+              <li>Vérifier la <strong>couche réseau</strong> : les PC ont-ils une IP via DHCP ? (<code className="text-emerald-400 font-mono bg-slate-800 px-1 rounded">ipconfig /all</code>)</li>
+              <li>Tester la <strong>connectivité</strong> : ping vers la passerelle, ping vers le serveur</li>
+              <li>Vérifier les <strong>services</strong> : DNS fonctionne-t-il ? (<code className="text-emerald-400 font-mono bg-slate-800 px-1 rounded">nslookup intranet.netcorp.local</code>)</li>
+              <li>Tester chaque <strong>service applicatif</strong> individuellement : HTTP par IP, FTP par IP, puis par nom</li>
+              <li>Remonter la <strong>configuration</strong> : pool DHCP, services serveur, identifiants</li>
+            </ol>
+
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mt-6">
+              <p className="text-amber-200 font-bold mb-2">Objectifs pédagogiques Lab 4</p>
+              <ul className="text-slate-300 text-sm space-y-1">
+                <li>• Appliquer une méthodologie de dépannage structurée (du bas vers le haut)</li>
+                <li>• Savoir isoler une panne parmi plusieurs services</li>
+                <li>• Comprendre les dépendances entre protocoles (DHCP → DNS → HTTP/FTP)</li>
+                <li>• Utiliser les commandes de diagnostic (<code className="font-mono text-emerald-400">ipconfig</code>, <code className="font-mono text-emerald-400">ping</code>, <code className="font-mono text-emerald-400">nslookup</code>, <code className="font-mono text-emerald-400">show run</code>)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      ),
+      solutionContent: (
+        <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16">
+          <div className="bg-gradient-to-br from-emerald-900/30 to-blue-900/20 border border-emerald-500/40 rounded-2xl p-8">
+            <h1 className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
+              <CheckCircle className="w-8 h-8 text-emerald-400 flex-shrink-0" /> Correction détaillée – Lab 1 FTP (Session 2)
+            </h1>
+            <p className="text-emerald-100/90 text-lg leading-relaxed">Mise en œuvre du transfert de fichiers FTP entre un PC client et un serveur FTP sur Packet Tracer, avec explications à chaque étape.</p>
+          </div>
+
+          <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-600 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis :</span>
+              {[
+                { id: 'lab-ftp-topo', label: 'Topologie', icon: '🔌' },
+                { id: 'lab-ftp-pc', label: 'PC client', icon: '💻' },
+                { id: 'lab-ftp-srv', label: 'Serveur FTP', icon: '📂' },
+                { id: 'lab-ftp-cli', label: 'Client FTP', icon: '⌨️' },
+                { id: 'lab-ftp-verif', label: 'Vérifications', icon: '✅' },
+                { id: 'lab-ftp-depan', label: 'Dépannage', icon: '🔧' }
+              ].map(({ id, label, icon }) => (
+                <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <section id="lab-ftp-topo" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">🔌 Étape 0 — Topologie et câblage</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Placer 1 switch, 1 PC (PC-Client), 1 serveur (Server). Utiliser des câbles <strong>Copper Straight-Through</strong>. Chaque ligne du tableau = un câble.</p>
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead><tr className="bg-slate-700/50"><th className="p-2 text-left">Appareil</th><th className="p-2 text-left">Port</th><th className="p-2 text-center text-slate-400">↔</th><th className="p-2 text-left">Appareil</th><th className="p-2 text-left">Port</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC-Client</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/1</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">Serveur FTP</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">Switch</td><td className="p-2 font-mono">Fa0/2</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi cette topologie ?</p>
+              <p className="text-slate-300 text-sm">Le switch relie le PC et le serveur sur le même réseau. FTP utilise le port 21 (commandes) et le port 20 (données) ; le PC et le serveur doivent pouvoir se joindre par IP.</p>
+            </div>
+          </section>
+
+          <section id="lab-ftp-pc" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-blue-400 mb-6">💻 Étape 1 — Configuration du PC client</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Donner une IP au PC pour qu’il soit sur le même réseau que le serveur FTP.</p>
+            <p className="text-slate-400 text-sm mb-4">Desktop → IP Configuration → Static : IP <strong>192.168.10.11</strong>, Subnet Mask <strong>255.255.255.0</strong>. Pas besoin de passerelle si tout reste en 192.168.10.0/24.</p>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi une IP statique ?</p>
+              <p className="text-slate-300 text-sm">Pour ce lab minimal (un seul réseau, pas de routeur), une IP fixe suffit. En entreprise, le PC pourrait avoir une IP via DHCP.</p>
+            </div>
+          </section>
+
+          <section id="lab-ftp-srv" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">📂 Étape 2 — Configuration du serveur FTP</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Donner une IP au serveur et activer le service FTP avec un utilisateur et un mot de passe.</p>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-semibold mb-2">Config → IP</p>
+                <p className="text-slate-400 text-sm">IP Address : <strong>192.168.10.10</strong>, Subnet Mask : <strong>255.255.255.0</strong>.</p>
+                <p className="text-slate-500 text-xs mt-1">Ce que ça fait : le serveur est joignable à l’adresse 192.168.10.10. Sans IP, le client FTP ne pourrait pas s’y connecter.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-semibold mb-2">Services → FTP</p>
+                <p className="text-slate-400 text-sm">Activer le service FTP (ON). Ajouter un utilisateur (ex. <strong>ftpuser</strong>) et un mot de passe (ex. <strong>ftppass</strong>).</p>
+                <p className="text-amber-200/90 text-xs font-semibold mt-1">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">Le serveur écoute sur le port 21. Sans utilisateur/mot de passe, la connexion FTP échoue ou reste non sécurisée. Le répertoire FTP contient les fichiers proposés au téléchargement.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab-ftp-cli" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">⌨️ Étape 3 — Connexion et commandes FTP (depuis le PC)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Ouvrir une session FTP depuis le PC vers le serveur, puis lister et télécharger un fichier.</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2 mb-4">
+              <p className="text-slate-400">C:\&gt;</p>
+              <p className="text-emerald-400">ftp 192.168.10.10</p>
+              <p className="text-slate-500 text-xs mt-1">Ce que ça fait : le client FTP établit une connexion TCP vers le serveur sur le port 21 (canal de commandes). Le serveur demande Name puis Password.</p>
+              <p className="text-slate-400 mt-2">Name: ftpuser</p>
+              <p className="text-slate-400">Password: ftppass</p>
+              <p className="text-slate-500 text-xs mt-1">Après authentification, le prompt devient <code className="bg-slate-800 px-1 rounded">ftp&gt;</code>.</p>
+            </div>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2">
+              <p className="text-emerald-400">dir</p>
+              <p className="text-slate-500 text-xs">Liste les fichiers disponibles sur le serveur (canal de commandes, port 21).</p>
+              <p className="text-emerald-400 mt-2">get nom_du_fichier</p>
+              <p className="text-slate-500 text-xs">Télécharge le fichier vers le PC (ouverture du canal de données, port 20 en mode actif ou port éphémère en mode passif).</p>
+              <p className="text-emerald-400 mt-2">quit</p>
+              <p className="text-slate-500 text-xs">Ferme la session FTP.</p>
+            </div>
+          </section>
+
+          <section id="lab-ftp-verif" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">✅ Procédures de vérification</h2>
+            <div className="space-y-6">
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 1 — Connexion FTP</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC-Client → Desktop → Command Prompt</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">ftp 192.168.10.10</p>
+                <p className="text-slate-400 text-xs font-semibold mb-1">Résultat attendu :</p>
+                <p className="text-slate-300 text-xs">Invite Name, puis Password. Après login : <code className="bg-slate-800 px-1 rounded">230 User logged in</code> et prompt <code className="bg-slate-800 px-1 rounded">ftp&gt;</code>.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 2 — Liste et téléchargement</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> à l’invite <code className="bg-slate-800 px-1 rounded">ftp&gt;</code></p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">dir</p>
+                <p className="text-slate-300 text-xs mb-2">Affiche la liste des fichiers. Puis <code className="bg-slate-800 px-1 rounded">get &lt;fichier&gt;</code> : le fichier est copié vers le répertoire courant du PC.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab-ftp-depan" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">🔧 Dépannage courant</h2>
+            <div className="space-y-4">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-bold mb-2">« Connection timed out » ou « Host unreachable »</p>
+                <p className="text-slate-400 text-sm">Vérifier : IP du serveur (192.168.10.10), IP du PC (192.168.10.11), même masque. Tester avec <code className="bg-slate-800 px-1 rounded">ping 192.168.10.10</code> depuis le PC.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-bold mb-2">« 530 Login incorrect »</p>
+                <p className="text-slate-400 text-sm">Vérifier sur le serveur (Services → FTP) : utilisateur et mot de passe corrects, service FTP activé (ON).</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      ),
+      solutionContentLab2: (
+        <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16">
+          <div className="bg-gradient-to-br from-violet-900/30 to-emerald-900/20 border border-violet-500/40 rounded-2xl p-8">
+            <h1 className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
+              <CheckCircle className="w-8 h-8 text-violet-400 flex-shrink-0" /> Correction détaillée – Lab 2 HTTP, FTP et ARP
+            </h1>
+            <p className="text-violet-100/90 text-lg leading-relaxed">Mise en place d'un serveur d'entreprise (intranet HTTP + partage de fichiers FTP) et diagnostic ARP, avec explications à chaque étape.</p>
+          </div>
+
+          <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-600 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis :</span>
+              {[
+                { id: 'lab2-topo', label: 'Topologie', icon: '🔌' },
+                { id: 'lab2-pc', label: 'PC clients', icon: '💻' },
+                { id: 'lab2-srv', label: 'Serveur', icon: '🖥️' },
+                { id: 'lab2-http', label: 'Service HTTP', icon: '🌐' },
+                { id: 'lab2-ftp', label: 'Service FTP', icon: '📂' },
+                { id: 'lab2-test-http', label: 'Test HTTP', icon: '🧪' },
+                { id: 'lab2-test-ftp', label: 'Test FTP', icon: '⌨️' },
+                { id: 'lab2-arp', label: 'Diagnostic ARP', icon: '🔗' },
+                { id: 'lab2-sim', label: 'Simulation', icon: '📡' },
+                { id: 'lab2-verif', label: 'Vérifications', icon: '✅' },
+                { id: 'lab2-depan', label: 'Dépannage', icon: '🔧' }
+              ].map(({ id, label, icon }) => (
+                <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-violet-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <section id="lab2-topo" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-violet-400 mb-6">🔌 Étape 0 — Topologie et câblage</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Placer 1 switch (SW1), 2 PC (PC1, PC2) et 1 serveur (Server1). Utiliser des câbles <strong>Copper Straight-Through</strong>. Chaque ligne du tableau = un câble.</p>
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead><tr className="bg-slate-700/50"><th className="p-2 text-left">Appareil</th><th className="p-2 text-left">Port</th><th className="p-2 text-center text-slate-400">↔</th><th className="p-2 text-left">Appareil</th><th className="p-2 text-left">Port</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC1</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">SW1</td><td className="p-2 font-mono">Fa0/1</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC2</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">SW1</td><td className="p-2 font-mono">Fa0/2</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">Server1</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">SW1</td><td className="p-2 font-mono">Fa0/3</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi cette topologie ?</p>
+              <p className="text-slate-300 text-sm">Le switch central relie tous les équipements sur le même réseau local (192.168.1.0/24). HTTP utilise le port 80, FTP les ports 21 (commandes) et 20 (données). Les trois appareils doivent pouvoir se joindre par IP.</p>
+            </div>
+          </section>
+
+          <section id="lab2-pc" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-blue-400 mb-6">💻 Étape 1 — Configuration des PC clients (PC1 & PC2)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Donner une IP statique à chaque PC pour qu'ils soient sur le même réseau que le serveur.</p>
+            <p className="text-slate-400 text-sm mb-4">Sur chaque PC : Desktop → IP Configuration → Static.</p>
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead><tr className="bg-slate-700/50"><th className="p-2 text-left">Appareil</th><th className="p-2 text-left">Adresse IP</th><th className="p-2 text-left">Masque</th><th className="p-2 text-left">Passerelle</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC1</td><td className="p-2 font-mono">192.168.1.10</td><td className="p-2">255.255.255.0</td><td className="p-2">192.168.1.1</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC2</td><td className="p-2 font-mono">192.168.1.20</td><td className="p-2">255.255.255.0</td><td className="p-2">192.168.1.1</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="text-slate-400 text-sm mb-4">Vérifier la connectivité : Desktop → Command Prompt → <code className="text-emerald-400 bg-slate-800 px-1 rounded">ping 192.168.1.100</code> depuis chaque PC.</p>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi une IP statique ?</p>
+              <p className="text-slate-300 text-sm">Pas de serveur DHCP dans ce lab. On configure manuellement chaque poste. La passerelle 192.168.1.1 est optionnelle ici (pas de routeur), mais c'est une bonne pratique de la renseigner.</p>
+            </div>
+          </section>
+
+          <section id="lab2-srv" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">🖥️ Étape 2 — Configuration IP du serveur (Server1)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Donner une IP statique au serveur pour qu'il soit joignable par les deux PC.</p>
+            <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700 mb-6">
+              <p className="text-slate-200 font-semibold mb-2">Desktop → IP Configuration → Static</p>
+              <p className="text-slate-400 text-sm">IP Address : <strong>192.168.1.100</strong>, Subnet Mask : <strong>255.255.255.0</strong>, Default Gateway : <strong>192.168.1.1</strong>.</p>
+              <p className="text-slate-500 text-xs mt-1">Ce que ça fait : le serveur est joignable à l'adresse 192.168.1.100 par tous les appareils du réseau 192.168.1.0/24.</p>
+            </div>
+          </section>
+
+          <section id="lab2-http" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">🌐 Étape 3 — Activer le service HTTP (Server1)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Activer le serveur web et créer la page d'accueil de l'intranet d'entreprise.</p>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-semibold mb-2">Services → HTTP</p>
+                <p className="text-slate-400 text-sm">Vérifier que HTTP est <strong>ON</strong> (activé par défaut sur Packet Tracer).</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-semibold mb-2">Modifier la page index.html</p>
+                <p className="text-slate-400 text-sm mb-2">Cliquer sur <strong>index.html</strong> dans la liste des fichiers, puis remplacer le contenu par :</p>
+                <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-1">
+                  <p className="text-emerald-400">{"<html>"}</p>
+                  <p className="text-emerald-400">{"<body>"}</p>
+                  <p className="text-emerald-400">{"<h1>Bienvenue sur l'intranet de l'entreprise</h1>"}</p>
+                  <p className="text-emerald-400">{"<p>Serveur interne - acces reserve aux employes.</p>"}</p>
+                  <p className="text-emerald-400">{"</body>"}</p>
+                  <p className="text-emerald-400">{"</html>"}</p>
+                </div>
+                <p className="text-slate-500 text-xs mt-2">Ce que ça fait : quand un PC accède à http://192.168.1.100, le serveur renvoie cette page HTML via le port TCP 80.</p>
+              </div>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi HTTP ?</p>
+              <p className="text-slate-300 text-sm">HTTP (port 80) est le protocole de base du web. En entreprise, un intranet permet de diffuser des informations internes (annuaire, procédures, actualités) sans passer par Internet.</p>
+            </div>
+          </section>
+
+          <section id="lab2-ftp" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">📂 Étape 4 — Activer le service FTP (Server1)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Activer le service FTP et créer un compte utilisateur pour permettre le partage de fichiers.</p>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-semibold mb-2">Services → FTP</p>
+                <p className="text-slate-400 text-sm">Activer le service FTP (<strong>ON</strong>).</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-semibold mb-2">Créer un utilisateur FTP</p>
+                <p className="text-slate-400 text-sm">Username : <strong>ftpuser</strong>, Password : <strong>ftppass</strong>.</p>
+                <p className="text-slate-400 text-sm">Cocher les permissions : <strong>Read</strong>, <strong>Write</strong>, <strong>List</strong>. Cliquer <strong>Add</strong>.</p>
+                <p className="text-amber-200/90 text-xs font-semibold mt-2">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">Le serveur FTP écoute sur le port 21. Sans utilisateur/mot de passe, la connexion FTP est refusée. Les permissions définissent ce que l'utilisateur peut faire (lire, écrire, lister les fichiers).</p>
+              </div>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi FTP ?</p>
+              <p className="text-slate-300 text-sm">FTP (port 21 + port 20) permet le transfert de fichiers entre un client et un serveur. En entreprise, c'est utilisé pour le partage de documents internes, les sauvegardes, ou la mise à jour de sites web.</p>
+            </div>
+          </section>
+
+          <section id="lab2-test-http" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">🧪 Étape 5 — Test HTTP (depuis PC1)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Accéder à la page web du serveur depuis le navigateur de PC1 pour vérifier que le service HTTP fonctionne.</p>
+            <p className="text-slate-400 text-sm mb-2">Sur PC1 : Desktop → <strong>Web Browser</strong>.</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2 mb-4">
+              <p className="text-slate-400">URL :</p>
+              <p className="text-emerald-400">http://192.168.1.100</p>
+              <p className="text-slate-500 text-xs mt-1">Ce que ça fait : le PC envoie une requête HTTP GET vers le serveur sur le port 80. Le serveur répond avec le contenu de index.html.</p>
+            </div>
+            <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-2">Résultat attendu : la page « Bienvenue sur l'intranet de l'entreprise » s'affiche dans le navigateur.</p>
+          </section>
+
+          <section id="lab2-test-ftp" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-blue-400 mb-6">⌨️ Étape 6 — Test FTP (depuis PC2)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Se connecter au serveur FTP depuis PC2, lister les fichiers et en télécharger un.</p>
+            <p className="text-slate-400 text-sm mb-2">Sur PC2 : Desktop → <strong>Command Prompt</strong>.</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2 mb-4">
+              <p className="text-slate-400">C:\&gt;</p>
+              <p className="text-emerald-400">ftp 192.168.1.100</p>
+              <p className="text-slate-500 text-xs mt-1">Ce que ça fait : le client FTP établit une connexion TCP vers le serveur sur le port 21 (canal de commandes). Le serveur demande Name puis Password.</p>
+              <p className="text-slate-400 mt-2">Name: ftpuser</p>
+              <p className="text-slate-400">Password: ftppass</p>
+              <p className="text-slate-500 text-xs mt-1">Après authentification, le prompt devient <code className="bg-slate-800 px-1 rounded">ftp&gt;</code>.</p>
+            </div>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2">
+              <p className="text-emerald-400">dir</p>
+              <p className="text-slate-500 text-xs">Liste les fichiers disponibles sur le serveur (canal de commandes, port 21).</p>
+              <p className="text-emerald-400 mt-2">get sampleFile.txt</p>
+              <p className="text-slate-500 text-xs">Télécharge le fichier vers le PC (ouverture du canal de données, port 20 en mode actif).</p>
+              <p className="text-emerald-400 mt-2">quit</p>
+              <p className="text-slate-500 text-xs">Ferme la session FTP.</p>
+            </div>
+          </section>
+
+          <section id="lab2-arp" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-violet-400 mb-6">🔗 Étape 7 — Diagnostic ARP (depuis PC1)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Vérifier la table ARP, l'effacer, puis observer la nouvelle résolution ARP après un ping.</p>
+            <p className="text-slate-400 text-sm mb-2">Sur PC1 : Desktop → <strong>Command Prompt</strong>.</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2 mb-4">
+              <p className="text-emerald-400">arp -a</p>
+              <p className="text-slate-500 text-xs">Affiche la table ARP : association IP → adresse MAC. Vous devriez voir 192.168.1.100 associé à l'adresse MAC de Server1.</p>
+              <p className="text-emerald-400 mt-2">arp -d</p>
+              <p className="text-slate-500 text-xs">Efface toute la table ARP du PC. Le PC ne connait plus les correspondances IP/MAC.</p>
+              <p className="text-emerald-400 mt-2">ping 192.168.1.100</p>
+              <p className="text-slate-500 text-xs">Force une nouvelle résolution ARP : le PC envoie un ARP Request (broadcast) pour retrouver la MAC de 192.168.1.100.</p>
+              <p className="text-emerald-400 mt-2">arp -a</p>
+              <p className="text-slate-500 text-xs">La table ARP est de nouveau remplie avec la correspondance IP/MAC fraîchement résolue.</p>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi ARP est important ?</p>
+              <p className="text-slate-300 text-sm">ARP (Address Resolution Protocol) permet de trouver l'adresse MAC d'un appareil à partir de son IP. Sans ARP, les trames Ethernet ne pourraient pas être adressées correctement sur le réseau local.</p>
+            </div>
+          </section>
+
+          <section id="lab2-sim" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-cyan-400 mb-6">📡 Étape 8 — Mode Simulation (Bonus)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Passer en mode Simulation pour observer en détail les échanges ARP, HTTP et FTP.</p>
+            <p className="text-slate-400 text-sm mb-4">En bas à droite de Packet Tracer : cliquer sur <strong>Simulation</strong>. Filtrer les protocoles : <strong>ARP</strong>, <strong>HTTP</strong>, <strong>FTP</strong>, <strong>ICMP</strong>.</p>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-violet-400 font-semibold mb-1">ARP Request / Reply</p>
+                <p className="text-slate-400 text-sm">Request (broadcast) : « Qui a 192.168.1.100 ? Dites-le à 192.168.1.10 ». Reply (unicast) : Server1 répond avec son adresse MAC.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-amber-400 font-semibold mb-1">HTTP GET</p>
+                <p className="text-slate-400 text-sm">PC1 envoie une requête GET vers le serveur (port 80). Le serveur répond avec le code 200 OK et le contenu HTML.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-emerald-400 font-semibold mb-1">Session FTP</p>
+                <p className="text-slate-400 text-sm">Connexion TCP sur le port 21 (canal de commandes), authentification, puis transfert de données sur le port 20 (canal de données).</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-blue-400 font-semibold mb-1">Connexions TCP (3-way handshake)</p>
+                <p className="text-slate-400 text-sm">Avant chaque échange HTTP ou FTP : SYN → SYN-ACK → ACK. C'est l'établissement de la connexion TCP.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab2-verif" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">✅ Procédures de vérification</h2>
+            <div className="space-y-6">
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 1 — Connectivité de base</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC1 et PC2 → Desktop → Command Prompt</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">ping 192.168.1.100</p>
+                <p className="text-slate-400 text-xs font-semibold mb-1">Résultat attendu :</p>
+                <p className="text-slate-300 text-xs">4 réponses (Reply from 192.168.1.100). Si « Request timed out » : vérifier les IP et les câbles.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 2 — Accès HTTP</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC1 → Desktop → Web Browser</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">http://192.168.1.100</p>
+                <p className="text-slate-400 text-xs font-semibold mb-1">Résultat attendu :</p>
+                <p className="text-slate-300 text-xs">La page « Bienvenue sur l'intranet de l'entreprise » s'affiche.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 3 — Connexion FTP</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC2 → Desktop → Command Prompt</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">ftp 192.168.1.100</p>
+                <p className="text-slate-400 text-xs font-semibold mb-1">Résultat attendu :</p>
+                <p className="text-slate-300 text-xs">Invite Name, puis Password. Après login : <code className="bg-slate-800 px-1 rounded">230 User logged in</code> et prompt <code className="bg-slate-800 px-1 rounded">ftp&gt;</code>. <code className="bg-slate-800 px-1 rounded">dir</code> affiche les fichiers, <code className="bg-slate-800 px-1 rounded">get</code> télécharge.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 4 — Table ARP</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC1 → Desktop → Command Prompt</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">arp -a</p>
+                <p className="text-slate-400 text-xs font-semibold mb-1">Résultat attendu :</p>
+                <p className="text-slate-300 text-xs">L'adresse 192.168.1.100 est associée à l'adresse MAC de Server1.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab2-depan" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">🔧 Dépannage courant</h2>
+            <div className="space-y-4">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-bold mb-2">« Request timed out » (ping échoue)</p>
+                <p className="text-slate-400 text-sm">Vérifier : IP du serveur (192.168.1.100), IP des PC (192.168.1.10 / .20), même masque (255.255.255.0). Vérifier que les câbles sont bien connectés et que les liens sont verts.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-bold mb-2">Page web ne s'affiche pas</p>
+                <p className="text-slate-400 text-sm">Vérifier sur Server1 : Services → HTTP → le service doit être <strong>ON</strong>. Vérifier que le fichier <strong>index.html</strong> existe. Tester le ping d'abord.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-bold mb-2">« 530 Login incorrect » (FTP)</p>
+                <p className="text-slate-400 text-sm">Vérifier sur Server1 : Services → FTP → service activé (ON), utilisateur et mot de passe corrects (ftpuser / ftppass), permissions cochées.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-bold mb-2">Table ARP vide après ping</p>
+                <p className="text-slate-400 text-sm">Normal si le ping échoue (pas de réponse = pas de résolution ARP). Résoudre d'abord le problème de connectivité, puis relancer <code className="bg-slate-800 px-1 rounded">arp -a</code>.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      ),
+      solutionContentLab3: (
+        <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16">
+          <div className="bg-gradient-to-br from-amber-900/30 to-emerald-900/20 border border-amber-500/40 rounded-2xl p-8">
+            <h1 className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
+              <CheckCircle className="w-8 h-8 text-amber-400 flex-shrink-0" /> Correction détaillée – Lab 3 : Infrastructure complète
+            </h1>
+            <p className="text-amber-100/90 text-lg leading-relaxed">Lab de synthèse combinant DHCP, DNS, HTTP, FTP et ARP. Déploiement complet d'une infrastructure réseau d'entreprise (NetCorp) sur Cisco Packet Tracer.</p>
+          </div>
+
+          <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-600 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis :</span>
+              {[
+                { id: 'lab3-topo', label: 'Topologie', icon: '🔌' },
+                { id: 'lab3-routeur', label: 'Routeur', icon: '📡' },
+                { id: 'lab3-dhcp', label: 'DHCP', icon: '🔄' },
+                { id: 'lab3-dns', label: 'DNS + HTTP + FTP', icon: '🌐' },
+                { id: 'lab3-pc', label: 'PC (DHCP)', icon: '💻' },
+                { id: 'lab3-test-http', label: 'Test HTTP', icon: '🧪' },
+                { id: 'lab3-test-ftp', label: 'Test FTP', icon: '⌨️' },
+                { id: 'lab3-arp', label: 'Diagnostic ARP', icon: '🔗' },
+                { id: 'lab3-sim', label: 'Simulation', icon: '📡' },
+                { id: 'lab3-verif', label: 'Vérifications', icon: '✅' },
+                { id: 'lab3-depan', label: 'Dépannage', icon: '🔧' }
+              ].map(({ id, label, icon }) => (
+                <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-amber-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <section id="lab3-topo" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">🔌 Étape 0 — Topologie et câblage</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Placer 1 routeur (R-Net), 1 switch (SW1), 3 PC (PC1, PC2, PC3) et 1 serveur (Server1 — DNS + HTTP + FTP). Utiliser des câbles <strong>Copper Straight-Through</strong>.</p>
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead><tr className="bg-slate-700/50"><th className="p-2 text-left">Appareil</th><th className="p-2 text-left">Port</th><th className="p-2 text-center text-slate-400">↔</th><th className="p-2 text-left">Appareil</th><th className="p-2 text-left">Port</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC1</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">SW1</td><td className="p-2 font-mono">Fa0/1</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC2</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">SW1</td><td className="p-2 font-mono">Fa0/2</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">PC3</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">SW1</td><td className="p-2 font-mono">Fa0/3</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">Server1</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">SW1</td><td className="p-2 font-mono">Fa0/4</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">SW1</td><td className="p-2 font-mono">Fa0/24</td><td className="p-2 text-center">↔</td><td className="p-2">R-Net</td><td className="p-2 font-mono">G0/0</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi cette topologie ?</p>
+              <p className="text-slate-300 text-sm">Le routeur joue deux rôles : <strong>passerelle</strong> (gateway) et <strong>serveur DHCP</strong>. Le serveur unique (Server1) cumule trois services : DNS, HTTP et FTP. C'est un scénario réaliste d'entreprise où un seul serveur centralise les services internes. Les PC reçoivent tout automatiquement via DHCP (IP, passerelle, DNS).</p>
+            </div>
+          </section>
+
+          <section id="lab3-routeur" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-blue-400 mb-6">📡 Étape 1 — Configuration du routeur (R-Net)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Configurer l'interface du routeur avec une IP, puis créer le pool DHCP pour distribuer automatiquement IP, passerelle et DNS aux PC.</p>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-semibold mb-2">Interface G0/0</p>
+                <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2">
+                  <p><span className="text-slate-500">Router(config)# </span><span className="text-emerald-400">hostname R-Net</span></p>
+                  <p><span className="text-slate-500">R-Net(config)# </span><span className="text-emerald-400">interface g0/0</span></p>
+                  <p><span className="text-slate-500">R-Net(config-if)# </span><span className="text-emerald-400">ip address 192.168.10.1 255.255.255.0</span></p>
+                  <p><span className="text-slate-500">R-Net(config-if)# </span><span className="text-emerald-400">no shutdown</span></p>
+                  <p><span className="text-slate-500">R-Net(config-if)# </span><span className="text-emerald-400">exit</span></p>
+                </div>
+                <p className="text-slate-500 text-xs mt-2">Ce que ça fait : le routeur a l'IP 192.168.10.1, il sera la passerelle pour tous les PC. Sans <code className="bg-slate-800 px-1 rounded">no shutdown</code>, l'interface reste down et rien ne fonctionne.</p>
+              </div>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi configurer le routeur en premier ?</p>
+              <p className="text-slate-300 text-sm">L'interface du routeur doit être UP avant de configurer DHCP. Les requêtes DHCP (broadcast) ne seront traitées que si l'interface est active et a une IP.</p>
+            </div>
+          </section>
+
+          <section id="lab3-dhcp" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">🔄 Étape 2 — Configuration DHCP sur le routeur</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Exclure les adresses réservées (passerelle + serveur), puis créer le pool DHCP qui distribue automatiquement IP, passerelle et adresse DNS.</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2 mb-6">
+              <p className="text-slate-500">! Exclusions (à faire AVANT le pool)</p>
+              <p><span className="text-slate-500">R-Net(config)# </span><span className="text-emerald-400">ip dhcp excluded-address 192.168.10.1 192.168.10.10</span></p>
+              <p><span className="text-slate-500">R-Net(config)# </span><span className="text-emerald-400">ip dhcp excluded-address 192.168.10.250 192.168.10.254</span></p>
+              <p className="text-slate-500 mt-3">! Création du pool</p>
+              <p><span className="text-slate-500">R-Net(config)# </span><span className="text-emerald-400">ip dhcp pool LAN-NETCORP</span></p>
+              <p><span className="text-slate-500">R-Net(dhcp-config)# </span><span className="text-emerald-400">network 192.168.10.0 255.255.255.0</span></p>
+              <p><span className="text-slate-500">R-Net(dhcp-config)# </span><span className="text-emerald-400">default-router 192.168.10.1</span></p>
+              <p><span className="text-slate-500">R-Net(dhcp-config)# </span><span className="text-emerald-400">dns-server 192.168.10.254</span></p>
+              <p><span className="text-slate-500">R-Net(dhcp-config)# </span><span className="text-emerald-400">exit</span></p>
+              <p><span className="text-slate-500">R-Net(config)# </span><span className="text-emerald-400">exit</span></p>
+              <p><span className="text-slate-500">R-Net# </span><span className="text-emerald-400">copy running-config startup-config</span></p>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mb-4">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi exclure ces adresses ?</p>
+              <p className="text-slate-300 text-sm">.1 à .10 : réservées pour la passerelle et d'éventuels équipements fixes. .250 à .254 : réservées pour le serveur (Server1 = .254). Sans exclusion, le DHCP pourrait donner .1 ou .254 à un PC → conflit d'IP.</p>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi dns-server 192.168.10.254 ?</p>
+              <p className="text-slate-300 text-sm">Les PC recevront automatiquement l'adresse du serveur DNS via DHCP. Plus besoin de configurer le DNS manuellement sur chaque poste. Quand un PC tapera <code className="bg-slate-800 px-1 rounded">intranet.netcorp.local</code>, il saura interroger 192.168.10.254.</p>
+            </div>
+          </section>
+
+          <section id="lab3-dns" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-violet-400 mb-6">🌐 Étape 3 — Configuration du serveur (Server1 : DNS + HTTP + FTP)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Donner une IP fixe au serveur, puis activer et configurer les trois services : DNS, HTTP et FTP.</p>
+
+            <div className="space-y-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-semibold mb-2">3a. IP statique du serveur</p>
+                <p className="text-slate-400 text-sm">Desktop → IP Configuration → Static : IP <strong>192.168.10.254</strong>, Masque <strong>255.255.255.0</strong>, Passerelle <strong>192.168.10.1</strong>.</p>
+                <p className="text-slate-500 text-xs mt-1">Ce que ça fait : le serveur est joignable à .254. Cette adresse est exclue du pool DHCP et sera transmise aux PC comme DNS.</p>
+              </div>
+
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-semibold mb-2">3b. Service DNS (Services → DNS)</p>
+                <p className="text-slate-400 text-sm mb-2">Activer DNS (<strong>ON</strong>). Ajouter les enregistrements :</p>
+                <div className="bg-slate-900 rounded-lg p-3 border border-slate-700 font-mono text-sm space-y-1">
+                  <p><span className="text-emerald-400">intranet.netcorp.local</span><span className="text-slate-500"> → </span><span className="text-blue-400">192.168.10.254</span></p>
+                  <p><span className="text-emerald-400">files.netcorp.local</span><span className="text-slate-500"> → </span><span className="text-blue-400">192.168.10.254</span></p>
+                </div>
+                <p className="text-slate-500 text-xs mt-2">Ce que ça fait : quand un PC demande « quelle est l'IP de intranet.netcorp.local ? », le DNS répond 192.168.10.254 (le serveur lui-même, qui héberge le site web et le FTP).</p>
+              </div>
+
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-semibold mb-2">3c. Service HTTP (Services → HTTP)</p>
+                <p className="text-slate-400 text-sm mb-2">Vérifier que HTTP est <strong>ON</strong>. Modifier la page <strong>index.html</strong> :</p>
+                <div className="bg-slate-900 rounded-lg p-3 border border-slate-700 font-mono text-sm space-y-1">
+                  <p className="text-emerald-400">{"<html>"}</p>
+                  <p className="text-emerald-400">{"<body>"}</p>
+                  <p className="text-emerald-400">{"<h1>Bienvenue sur l'intranet NetCorp</h1>"}</p>
+                  <p className="text-emerald-400">{"<p>Portail interne des employes.</p>"}</p>
+                  <p className="text-emerald-400">{"</body>"}</p>
+                  <p className="text-emerald-400">{"</html>"}</p>
+                </div>
+                <p className="text-slate-500 text-xs mt-2">Ce que ça fait : le serveur web écoute sur le port 80. Les PC pourront accéder à cette page via le navigateur.</p>
+              </div>
+
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-semibold mb-2">3d. Service FTP (Services → FTP)</p>
+                <p className="text-slate-400 text-sm">Activer FTP (<strong>ON</strong>). Créer un utilisateur :</p>
+                <p className="text-slate-400 text-sm">Username : <strong>ftpuser</strong>, Password : <strong>ftppass</strong>, Permissions : <strong>Read, Write, List</strong>. Cliquer <strong>Add</strong>.</p>
+                <p className="text-slate-500 text-xs mt-2">Ce que ça fait : le serveur FTP écoute sur le port 21. Les employés pourront se connecter pour déposer/télécharger des fichiers.</p>
+              </div>
+            </div>
+
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mt-6">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi un seul serveur pour tout ?</p>
+              <p className="text-slate-300 text-sm">En entreprise, un même serveur peut héberger plusieurs services (DNS, web, FTP). Packet Tracer le supporte nativement. L'avantage : topologie simplifiée, une seule IP à retenir (.254), un seul appareil à gérer.</p>
+            </div>
+          </section>
+
+          <section id="lab3-pc" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-blue-400 mb-6">💻 Étape 4 — Configuration des PC en DHCP</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Mettre les 3 PC en mode DHCP pour qu'ils reçoivent automatiquement leur IP, la passerelle et l'adresse du serveur DNS.</p>
+            <p className="text-slate-400 text-sm mb-4">Sur chaque PC : Desktop → IP Configuration → <strong>DHCP</strong>.</p>
+            <p className="text-slate-400 text-sm mb-4">Vérifier avec <code className="text-emerald-400 bg-slate-800 px-1 rounded">ipconfig /all</code> :</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-1 mb-4">
+              <p className="text-slate-300">IPv4 Address. . . . . . . . . : 192.168.10.1<span className="text-amber-400">x</span></p>
+              <p className="text-slate-300">Subnet Mask . . . . . . . . . : 255.255.255.0</p>
+              <p className="text-slate-300">Default Gateway . . . . . . . : 192.168.10.1</p>
+              <p className="text-slate-300">DNS Servers . . . . . . . . . : 192.168.10.254</p>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi DHCP et pas Static ?</p>
+              <p className="text-slate-300 text-sm">DHCP automatise tout : IP, masque, passerelle ET serveur DNS. Plus besoin de configurer chaque poste manuellement. C'est la différence clé avec les Labs 1 et 2 où on faisait tout en statique.</p>
+            </div>
+          </section>
+
+          <section id="lab3-test-http" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">🧪 Étape 5 — Test HTTP via DNS (depuis PC1)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Accéder au site intranet en utilisant le <strong>nom de domaine</strong> (et non l'IP), pour vérifier que DHCP + DNS + HTTP fonctionnent ensemble.</p>
+            <p className="text-slate-400 text-sm mb-2">Sur PC1 : Desktop → <strong>Web Browser</strong>.</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2 mb-4">
+              <p className="text-slate-400">URL :</p>
+              <p className="text-emerald-400">http://intranet.netcorp.local</p>
+              <p className="text-slate-500 text-xs mt-2">Ce que ça fait : (1) le PC interroge le DNS (192.168.10.254) → reçoit l'IP 192.168.10.254. (2) le PC envoie une requête HTTP GET vers .254 port 80. (3) le serveur renvoie la page HTML.</p>
+            </div>
+            <p className="text-emerald-300/90 font-medium border-l-4 border-emerald-500/50 pl-4 py-2">Résultat attendu : la page « Bienvenue sur l'intranet NetCorp » s'affiche. Cela prouve que DHCP (le PC a reçu le DNS), DNS (résolution du nom) et HTTP (page web) fonctionnent tous les trois.</p>
+            <p className="text-slate-400 text-sm mt-4">Tester aussi avec l'IP directement : <code className="text-emerald-400 bg-slate-800 px-1 rounded">http://192.168.10.254</code> — même résultat.</p>
+          </section>
+
+          <section id="lab3-test-ftp" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-blue-400 mb-6">⌨️ Étape 6 — Test FTP via DNS (depuis PC2)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Se connecter au serveur FTP en utilisant le nom de domaine pour vérifier la chaîne complète DHCP → DNS → FTP.</p>
+            <p className="text-slate-400 text-sm mb-2">Sur PC2 : Desktop → <strong>Command Prompt</strong>.</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2 mb-4">
+              <p className="text-slate-400">C:\&gt;</p>
+              <p className="text-emerald-400">ftp files.netcorp.local</p>
+              <p className="text-slate-500 text-xs mt-1">Ce que ça fait : le PC résout files.netcorp.local via DNS → 192.168.10.254, puis ouvre une connexion FTP sur le port 21.</p>
+              <p className="text-slate-400 mt-2">Name: ftpuser</p>
+              <p className="text-slate-400">Password: ftppass</p>
+            </div>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2">
+              <p className="text-emerald-400">dir</p>
+              <p className="text-slate-500 text-xs">Liste les fichiers sur le serveur FTP.</p>
+              <p className="text-emerald-400 mt-2">get sampleFile.txt</p>
+              <p className="text-slate-500 text-xs">Télécharge le fichier.</p>
+              <p className="text-emerald-400 mt-2">quit</p>
+              <p className="text-slate-500 text-xs">Ferme la session FTP.</p>
+            </div>
+            <p className="text-slate-400 text-sm mt-4">Tester aussi avec l'IP : <code className="text-emerald-400 bg-slate-800 px-1 rounded">ftp 192.168.10.254</code> — même résultat.</p>
+          </section>
+
+          <section id="lab3-arp" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-violet-400 mb-6">🔗 Étape 7 — Diagnostic ARP (depuis PC3)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Observer la table ARP pour comprendre comment les correspondances IP/MAC se construisent après les échanges DHCP, DNS, HTTP et FTP.</p>
+            <p className="text-slate-400 text-sm mb-2">Sur PC3 : Desktop → <strong>Command Prompt</strong>.</p>
+            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2 mb-4">
+              <p className="text-emerald-400">arp -a</p>
+              <p className="text-slate-500 text-xs">Affiche la table ARP. Vous devriez voir : la passerelle (192.168.10.1 → MAC du routeur) et le serveur DNS (192.168.10.254 → MAC de Server1), car le PC a déjà communiqué avec eux (DHCP + DNS).</p>
+              <p className="text-emerald-400 mt-2">ping intranet.netcorp.local</p>
+              <p className="text-slate-500 text-xs">Force une résolution DNS puis un ping. La table ARP s'enrichit si elle ne contenait pas encore l'IP résolue.</p>
+              <p className="text-emerald-400 mt-2">arp -d</p>
+              <p className="text-slate-500 text-xs">Efface toute la table ARP.</p>
+              <p className="text-emerald-400 mt-2">ping 192.168.10.254</p>
+              <p className="text-slate-500 text-xs">Force une nouvelle résolution ARP (broadcast → reply).</p>
+              <p className="text-emerald-400 mt-2">arp -a</p>
+              <p className="text-slate-500 text-xs">La table est reconstruite avec la correspondance IP/MAC fraîche.</p>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">💡 ARP et DHCP — lien souvent oublié</p>
+              <p className="text-slate-300 text-sm">Quand le PC envoie sa requête DHCP Discover (broadcast), le routeur répond avec une Offer. Ce premier échange remplit déjà la table ARP du PC avec la MAC du routeur. C'est pour ça que <code className="bg-slate-800 px-1 rounded">arp -a</code> montre la passerelle même sans avoir fait de ping.</p>
+            </div>
+          </section>
+
+          <section id="lab3-sim" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-cyan-400 mb-6">📡 Étape 8 — Mode Simulation (Bonus)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Observer en détail tous les protocoles qui interagissent dans ce lab.</p>
+            <p className="text-slate-400 text-sm mb-4">Mode Simulation (en bas à droite). Filtrer : <strong>DHCP</strong>, <strong>DNS</strong>, <strong>ARP</strong>, <strong>HTTP</strong>, <strong>FTP</strong>, <strong>ICMP</strong>.</p>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-emerald-400 font-semibold mb-1">DHCP DORA</p>
+                <p className="text-slate-400 text-sm">Discover (broadcast du PC) → Offer (le routeur propose une IP) → Request (le PC accepte) → Acknowledge (le routeur confirme). Le PC reçoit IP + passerelle + DNS en une seule séquence.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-blue-400 font-semibold mb-1">DNS Query / Response</p>
+                <p className="text-slate-400 text-sm">Le PC envoie une requête DNS (UDP port 53) vers 192.168.10.254 : « Quelle est l'IP de intranet.netcorp.local ? ». Le serveur répond avec 192.168.10.254.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-violet-400 font-semibold mb-1">ARP Request / Reply</p>
+                <p className="text-slate-400 text-sm">Avant chaque communication, si le PC ne connait pas la MAC de la destination, il envoie un ARP Request en broadcast. La cible répond en unicast.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-amber-400 font-semibold mb-1">HTTP GET / FTP Session</p>
+                <p className="text-slate-400 text-sm">HTTP : requête GET sur port 80, réponse 200 OK. FTP : connexion TCP port 21 (commandes) + port 20 (données). Observer le 3-way handshake TCP avant chaque échange.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab3-verif" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">✅ Procédures de vérification</h2>
+            <div className="space-y-6">
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 1 — DHCP fonctionne</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC1, PC2, PC3 → Command Prompt</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">ipconfig /all</p>
+                <p className="text-slate-400 text-xs font-semibold mb-1">Résultat attendu :</p>
+                <p className="text-slate-300 text-xs">IP 192.168.10.1x, Gateway 192.168.10.1, DNS Servers 192.168.10.254. Si IP = 0.0.0.0 → vérifier le routeur (interface, pool DHCP).</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 2 — Baux DHCP</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> R-Net → CLI → mode privilégié</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">show ip dhcp binding</p>
+                <p className="text-slate-400 text-xs font-semibold mb-1">Résultat attendu :</p>
+                <p className="text-slate-300 text-xs">3 lignes (PC1, PC2, PC3) avec IP 192.168.10.11, .12, .13 et leurs MAC.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 3 — DNS fonctionne</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC1 → Command Prompt</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">ping intranet.netcorp.local</p>
+                <p className="text-slate-400 text-xs font-semibold mb-1">Résultat attendu :</p>
+                <p className="text-slate-300 text-xs">Reply from 192.168.10.254. Le nom est résolu en IP → le DNS fonctionne.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 4 — HTTP via nom de domaine</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC1 → Web Browser</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">http://intranet.netcorp.local</p>
+                <p className="text-slate-300 text-xs">La page « Bienvenue sur l'intranet NetCorp » s'affiche.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 5 — FTP via nom de domaine</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC2 → Command Prompt</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">ftp files.netcorp.local</p>
+                <p className="text-slate-300 text-xs">Login ftpuser/ftppass → <code className="bg-slate-800 px-1 rounded">230 User logged in</code> → <code className="bg-slate-800 px-1 rounded">dir</code> affiche les fichiers.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700">
+                <p className="text-amber-300 font-bold mb-2">Vérification 6 — Table ARP</p>
+                <p className="text-slate-400 text-sm mb-1"><strong>Où :</strong> PC3 → Command Prompt</p>
+                <p className="text-slate-200 font-mono text-sm mb-2 bg-black/40 px-3 py-2 rounded">arp -a</p>
+                <p className="text-slate-300 text-xs">Entrées pour 192.168.10.1 (routeur) et 192.168.10.254 (serveur) avec leurs MAC.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab3-depan" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">🔧 Dépannage courant</h2>
+            <div className="space-y-4">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-bold mb-2">Le PC ne reçoit pas d'IP (reste à 0.0.0.0)</p>
+                <p className="text-slate-400 text-sm">Vérifier : interface routeur <code className="bg-slate-800 px-1 rounded">no shutdown</code>, pool DHCP créé avec <code className="bg-slate-800 px-1 rounded">network</code>, câbles verts. Sur le routeur : <code className="bg-slate-800 px-1 rounded">show ip dhcp pool</code>.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-bold mb-2">Le ping par nom échoue (« Host name unresolved »)</p>
+                <p className="text-slate-400 text-sm">Vérifier : le PC a bien reçu DNS 192.168.10.254 (<code className="bg-slate-800 px-1 rounded">ipconfig /all</code>). Le serveur a les enregistrements DNS corrects. Le service DNS est ON. L'IP du serveur est bien .254.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-bold mb-2">La page web ne s'affiche pas</p>
+                <p className="text-slate-400 text-sm">Tester d'abord avec l'IP directement (<code className="bg-slate-800 px-1 rounded">http://192.168.10.254</code>). Si ça marche → le problème est DNS. Si ça ne marche pas → vérifier HTTP ON sur le serveur et ping vers .254.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-bold mb-2">FTP « 530 Login incorrect »</p>
+                <p className="text-slate-400 text-sm">Vérifier sur Server1 : Services → FTP → service ON, utilisateur ftpuser/ftppass correct, permissions cochées (Read, Write, List).</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-200 font-bold mb-2">Table ARP vide</p>
+                <p className="text-slate-400 text-sm">Faire un <code className="bg-slate-800 px-1 rounded">ping 192.168.10.254</code> d'abord pour forcer la résolution ARP. Si le ping échoue, résoudre d'abord le problème de connectivité.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      ),
+      solutionContentLab4: (
+        <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16">
+          <div className="bg-gradient-to-br from-red-900/30 to-amber-900/20 border border-red-500/40 rounded-2xl p-8">
+            <h1 className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
+              <AlertTriangle className="w-8 h-8 text-red-400 flex-shrink-0" /> Correction Lab 4 – Dépannage Infrastructure NetCorp
+            </h1>
+            <p className="text-red-100/90 text-lg leading-relaxed">3 pannes ont été introduites dans l'infrastructure du Lab 3. Guide de diagnostic méthodique pour identifier et corriger chaque problème.</p>
+          </div>
+
+          <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-600 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis :</span>
+              {[
+                { id: 'lab4-context', label: 'Contexte', icon: '📋' },
+                { id: 'lab4-methode', label: 'Méthode', icon: '🔍' },
+                { id: 'lab4-panne1', label: 'Panne 1', icon: '🔴' },
+                { id: 'lab4-panne2', label: 'Panne 2', icon: '🟠' },
+                { id: 'lab4-panne3', label: 'Panne 3', icon: '🟡' },
+                { id: 'lab4-recap', label: 'Récap', icon: '✅' }
+              ].map(({ id, label, icon }) => (
+                <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-red-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <section id="lab4-context" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-red-400 mb-6">📋 Contexte – Le lundi matin catastrophe</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed">Vous arrivez au bureau lundi matin. Plusieurs employés signalent des problèmes :</p>
+            <div className="space-y-3 mb-6">
+              <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
+                <p className="text-red-200 font-bold">Ticket #1 — Julie (Comptabilité)</p>
+                <p className="text-slate-300 text-sm">« Je tape http://intranet.netcorp.local dans mon navigateur et ça affiche "Host Name Unresolved". Ça marchait vendredi ! »</p>
+              </div>
+              <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
+                <p className="text-red-200 font-bold">Ticket #2 — Marc (Direction)</p>
+                <p className="text-slate-300 text-sm">« J'arrive à accéder au site par l'IP (http://192.168.10.254) mais la page affiche une erreur, ce n'est plus notre intranet. »</p>
+              </div>
+              <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
+                <p className="text-red-200 font-bold">Ticket #3 — Sophie (Marketing)</p>
+                <p className="text-slate-300 text-sm">« Quand je tape ftp files.netcorp.local ça ne se connecte pas, ça mouline et ça timeout. Pourtant Julie me dit que le FTP marchait par IP vendredi. »</p>
+              </div>
+            </div>
+            <p className="text-slate-400 text-sm">Votre mission : trouver et corriger les <strong>3 pannes</strong> sans recréer la config de zéro.</p>
+          </section>
+
+          <section id="lab4-methode" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">🔍 Méthode de diagnostic</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Règle d'or :</strong> toujours tester du plus bas (couche physique) vers le plus haut (couche application). Ne pas sauter d'étapes.</p>
+            <div className="space-y-4 mb-4">
+              <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-500 font-semibold mb-1">Étape 1 — Le PC a-t-il une IP ?</p>
+                <p className="text-emerald-400 font-mono">ipconfig /all</p>
+                <p className="text-cyan-300 text-xs mt-1">Affiche la configuration IP complète du PC : adresse IP, masque, passerelle, et surtout le <strong>serveur DNS</strong> reçu via DHCP. Permet de vérifier que le PC a bien reçu une adresse et que tous les paramètres sont corrects.</p>
+              </div>
+              <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-500 font-semibold mb-1">Étape 2 — La passerelle répond ?</p>
+                <p className="text-emerald-400 font-mono">ping 192.168.10.1</p>
+                <p className="text-cyan-300 text-xs mt-1">Envoie des paquets ICMP Echo Request vers le routeur (passerelle par défaut). Si ça répond → le PC est bien connecté au réseau et peut joindre le routeur. Si ça échoue → problème de câblage, d'adressage ou le routeur est down.</p>
+              </div>
+              <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-500 font-semibold mb-1">Étape 3 — Le serveur répond par IP ?</p>
+                <p className="text-emerald-400 font-mono">ping 192.168.10.254</p>
+                <p className="text-cyan-300 text-xs mt-1">Teste la connectivité vers le serveur en utilisant directement son adresse IP (sans passer par DNS). Si ça répond → le serveur est allumé et joignable sur le réseau. On teste par IP pour isoler les problèmes DNS des problèmes réseau.</p>
+              </div>
+              <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-500 font-semibold mb-1">Étape 4 — Le DNS résout les noms ?</p>
+                <p className="text-emerald-400 font-mono">nslookup intranet.netcorp.local</p>
+                <p className="text-cyan-300 text-xs mt-1">Interroge le serveur DNS configuré sur le PC pour résoudre un nom de domaine en adresse IP. Si ça répond avec la bonne IP → le DNS fonctionne. Si timeout → le PC n'arrive pas à joindre son serveur DNS (mauvaise adresse DNS ou service DNS éteint).</p>
+              </div>
+              <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                <p className="text-slate-500 font-semibold mb-1">Étape 5 — Les services fonctionnent ?</p>
+                <p className="text-emerald-400 font-mono">http://192.168.10.254</p>
+                <p className="text-cyan-300 text-xs mt-1">Ouvre le navigateur du PC et tente d'accéder au serveur web par son IP. Teste le <strong>service HTTP (port 80)</strong> directement, sans passer par le DNS. Si la page s'affiche → HTTP fonctionne. Si erreur → le service est éteint ou mal configuré.</p>
+                <p className="text-emerald-400 font-mono mt-2">ftp 192.168.10.254</p>
+                <p className="text-cyan-300 text-xs mt-1">Lance une connexion FTP vers le serveur (port 21). Teste si le <strong>service FTP est actif</strong> et si les identifiants sont corrects. « 220 Welcome » = service OK. « 530 Login incorrect » = problème d'authentification.</p>
+              </div>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">💡 Astuce de pro</p>
+              <p className="text-slate-300 text-sm">Si le ping par IP marche mais le ping par nom échoue → problème DNS. Si le ping marche mais le service (HTTP/FTP) échoue → problème au niveau du service. Toujours isoler la couche qui casse.</p>
+            </div>
+          </section>
+
+          <section id="lab4-panne1" className="bg-slate-800/50 border border-red-500/30 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-red-400 mb-6">🔴 Panne 1 — « Host Name Unresolved » (Ticket de Julie)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Symptôme rapporté :</strong> « Je tape http://intranet.netcorp.local dans mon navigateur et ça affiche "Host Name Unresolved". »</p>
+
+            <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700 mb-6">
+              <p className="text-amber-300 font-bold mb-3">🔍 Diagnostic complet pas à pas</p>
+              <div className="space-y-5 text-sm">
+
+                <div className="border-l-2 border-blue-500/50 pl-4">
+                  <p className="text-blue-300 font-bold">Étape 1 — Le PC a-t-il une adresse IP ?</p>
+                  <div className="bg-black/40 rounded-lg p-3 font-mono mt-2 space-y-1">
+                    <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">ipconfig</span></p>
+                    <p className="text-cyan-300 text-xs italic">↳ Affiche la configuration IP de base du PC (adresse, masque, passerelle)</p>
+                    <p className="text-slate-400">IP Address...........: 192.168.10.11</p>
+                    <p className="text-slate-400">Subnet Mask..........: 255.255.255.0</p>
+                    <p className="text-slate-400">Default Gateway......: 192.168.10.1</p>
+                  </div>
+                  <p className="text-emerald-400 mt-2 font-semibold">✓ Le PC a bien une IP via DHCP. Pas un problème d'adressage.</p>
+                </div>
+
+                <div className="border-l-2 border-blue-500/50 pl-4">
+                  <p className="text-blue-300 font-bold">Étape 2 — La passerelle et le serveur répondent ?</p>
+                  <div className="bg-black/40 rounded-lg p-3 font-mono mt-2 space-y-1">
+                    <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">ping 192.168.10.1</span></p>
+                    <p className="text-cyan-300 text-xs italic">↳ Envoie un paquet ICMP vers le routeur (passerelle) pour vérifier la connectivité réseau de base</p>
+                    <p className="text-slate-400">Reply from 192.168.10.1: bytes=32 time{'<'}1ms TTL=255</p>
+                    <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">ping 192.168.10.254</span></p>
+                    <p className="text-cyan-300 text-xs italic">↳ Teste la connectivité vers le serveur par IP directement (sans DNS) pour isoler un éventuel problème réseau</p>
+                    <p className="text-slate-400">Reply from 192.168.10.254: bytes=32 time{'<'}1ms TTL=128</p>
+                  </div>
+                  <p className="text-emerald-400 mt-2 font-semibold">✓ La passerelle ET le serveur répondent par IP. Le réseau fonctionne.</p>
+                </div>
+
+                <div className="border-l-2 border-blue-500/50 pl-4">
+                  <p className="text-blue-300 font-bold">Étape 3 — La résolution DNS fonctionne ?</p>
+                  <div className="bg-black/40 rounded-lg p-3 font-mono mt-2 space-y-1">
+                    <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">nslookup intranet.netcorp.local</span></p>
+                    <p className="text-cyan-300 text-xs italic">↳ Interroge le serveur DNS du PC pour convertir le nom « intranet.netcorp.local » en adresse IP</p>
+                    <p className="text-red-400">*** Request timed out.</p>
+                  </div>
+                  <p className="text-red-400 mt-2 font-semibold">✗ Le DNS ne répond pas ! On tient une piste.</p>
+                  <p className="text-slate-400 mt-1">Le ping par IP marche mais la résolution de nom échoue → le problème est entre le PC et le serveur DNS.</p>
+                </div>
+
+                <div className="border-l-2 border-amber-500/50 pl-4">
+                  <p className="text-amber-300 font-bold">Étape 4 — Quel serveur DNS le PC utilise-t-il ?</p>
+                  <div className="bg-black/40 rounded-lg p-3 font-mono mt-2 space-y-1">
+                    <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">ipconfig /all</span></p>
+                    <p className="text-cyan-300 text-xs italic">↳ Version détaillée de ipconfig : affiche TOUS les paramètres réseau dont le serveur DNS reçu par DHCP</p>
+                    <p className="text-slate-400">IP Address...........: 192.168.10.11</p>
+                    <p className="text-slate-400">Subnet Mask..........: 255.255.255.0</p>
+                    <p className="text-slate-400">Default Gateway......: 192.168.10.1</p>
+                    <p className="text-red-400 font-bold">DNS Servers..........: 192.168.10.253</p>
+                  </div>
+                  <p className="text-red-400 mt-2 font-semibold">✗ Le PC envoie ses requêtes DNS vers .253 au lieu de .254 !</p>
+                  <p className="text-slate-400 mt-1">Le serveur DNS est à <strong>.254</strong>, mais le PC a reçu <strong>.253</strong> via DHCP. Le PC demande la résolution à une adresse qui n'existe pas → timeout → « Host Name Unresolved ».</p>
+                </div>
+
+                <div className="border-l-2 border-amber-500/50 pl-4">
+                  <p className="text-amber-300 font-bold">Étape 5 — Pourquoi le PC a .253 ? On vérifie le pool DHCP</p>
+                  <div className="bg-black/40 rounded-lg p-3 font-mono mt-2 space-y-1">
+                    <p><span className="text-slate-500">R-Net# </span><span className="text-emerald-400">show running-config | section dhcp</span></p>
+                    <p className="text-cyan-300 text-xs italic">↳ Affiche la section DHCP de la configuration du routeur (pools, exclusions, options distribuées aux PC)</p>
+                    <p className="text-slate-400">ip dhcp excluded-address 192.168.10.1 192.168.10.10</p>
+                    <p className="text-cyan-300 text-xs italic pl-4">↳ Plage d'adresses exclues du DHCP (pas distribuées aux PC)</p>
+                    <p className="text-slate-400">ip dhcp excluded-address 192.168.10.254</p>
+                    <p className="text-cyan-300 text-xs italic pl-4">↳ L'IP du serveur est aussi exclue (réservée en statique)</p>
+                    <p className="text-slate-400">ip dhcp pool LAN-NETCORP</p>
+                    <p className="text-cyan-300 text-xs italic pl-4">↳ Nom du pool DHCP</p>
+                    <p className="text-slate-400"> network 192.168.10.0 255.255.255.0</p>
+                    <p className="text-cyan-300 text-xs italic pl-4">↳ Réseau dans lequel le DHCP distribue des adresses</p>
+                    <p className="text-slate-400"> default-router 192.168.10.1</p>
+                    <p className="text-cyan-300 text-xs italic pl-4">↳ Passerelle par défaut envoyée aux PC</p>
+                    <p className="text-red-400 font-bold"> dns-server 192.168.10.253</p>
+                    <p className="text-cyan-300 text-xs italic pl-4">↳ Serveur DNS envoyé aux PC — c'est ici l'erreur ! Devrait être .254</p>
+                  </div>
+                  <p className="text-red-400 mt-2 font-semibold">✗ Trouvé ! Le pool DHCP distribue dns-server 192.168.10.253 au lieu de .254.</p>
+                </div>
+
+                <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg mt-4">
+                  <p className="text-blue-200 font-bold mb-2">💡 Raisonnement</p>
+                  <p className="text-slate-300 text-sm">ping IP ✓ mais nslookup ✗ → problème DNS. ipconfig /all montre DNS = .253 → le DHCP distribue la mauvaise adresse. On vérifie le pool DHCP sur le routeur → confirmation : <code className="bg-slate-800 px-1 rounded">dns-server 192.168.10.253</code>. La chaîne : DHCP donne .253 → PC envoie requête DNS à .253 → personne ne répond → timeout → « Host Name Unresolved ».</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg mb-6">
+              <p className="text-red-200 font-bold mb-2">La panne identifiée</p>
+              <p className="text-slate-300 text-sm">Dans le pool DHCP du routeur, <code className="bg-slate-800 px-1 rounded">dns-server</code> pointe vers <strong>192.168.10.253</strong> (adresse inexistante) au lieu de <strong>192.168.10.254</strong> (le vrai serveur DNS). Tous les PC qui reçoivent leur config DHCP obtiennent la mauvaise adresse DNS → aucune résolution de nom possible.</p>
+            </div>
+
+            <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg">
+              <p className="text-emerald-200 font-bold mb-2">Correction</p>
+              <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-1 mt-2">
+                <p><span className="text-slate-500">R-Net# </span><span className="text-emerald-400">configure terminal</span></p>
+                <p className="text-cyan-300 text-xs italic">↳ Entre en mode configuration globale du routeur</p>
+                <p><span className="text-slate-500">R-Net(config)# </span><span className="text-emerald-400">ip dhcp pool LAN-NETCORP</span></p>
+                <p className="text-cyan-300 text-xs italic">↳ Entre dans la configuration du pool DHCP nommé LAN-NETCORP</p>
+                <p><span className="text-slate-500">R-Net(dhcp-config)# </span><span className="text-red-400">no dns-server 192.168.10.253</span></p>
+                <p className="text-cyan-300 text-xs italic">↳ Supprime l'ancienne adresse DNS erronée (.253)</p>
+                <p><span className="text-slate-500">R-Net(dhcp-config)# </span><span className="text-emerald-400">dns-server 192.168.10.254</span></p>
+                <p className="text-cyan-300 text-xs italic">↳ Définit la bonne adresse du serveur DNS (.254) — sera distribuée aux futurs clients DHCP</p>
+                <p><span className="text-slate-500">R-Net(dhcp-config)# </span><span className="text-emerald-400">end</span></p>
+                <p className="text-cyan-300 text-xs italic">↳ Quitte le mode configuration et revient en mode privilégié</p>
+              </div>
+              <p className="text-amber-200 text-sm mt-3 font-semibold">⚠️ Important — Renouveler le DHCP sur chaque PC :</p>
+              <p className="text-slate-400 text-xs mt-1">Les PC ont déjà reçu l'ancienne adresse DNS (.253). Il faut forcer un renouvellement DHCP pour qu'ils reçoivent la bonne (.254).</p>
+              <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-1 mt-2">
+                <p className="text-slate-500">Sur chaque PC :</p>
+                <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">ipconfig /release</span></p>
+                <p className="text-cyan-300 text-xs italic">↳ Libère le bail DHCP actuel (le PC « oublie » sa config réseau reçue par DHCP)</p>
+                <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">ipconfig /renew</span></p>
+                <p className="text-cyan-300 text-xs italic">↳ Demande un nouveau bail DHCP au routeur (le PC reçoit la config corrigée avec DNS = .254)</p>
+                <p className="text-slate-500 mt-1">Ou bien : Desktop → IP Configuration → passer en Static puis revenir en DHCP</p>
+              </div>
+              <p className="text-emerald-300 text-sm mt-3 font-semibold">Vérification :</p>
+              <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-1 mt-2">
+                <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">ipconfig /all</span></p>
+                <p className="text-cyan-300 text-xs italic">↳ Vérifie que le DNS a bien été mis à jour après le renouvellement</p>
+                <p className="text-slate-400">DNS Servers..........: 192.168.10.254  ← corrigé !</p>
+                <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">nslookup intranet.netcorp.local</span></p>
+                <p className="text-cyan-300 text-xs italic">↳ Re-teste la résolution DNS — cette fois le PC interroge .254 (le bon serveur)</p>
+                <p className="text-slate-400">Server: 192.168.10.254</p>
+                <p className="text-slate-400">Address: 192.168.10.254</p>
+                <p className="text-slate-400">Name: intranet.netcorp.local → 192.168.10.254  ✓</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab4-panne2" className="bg-slate-800/50 border border-amber-500/30 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">🟠 Panne 2 — Page web inaccessible (Ticket de Marc)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Symptôme rapporté :</strong> « J'arrive à accéder au site par l'IP (http://192.168.10.254) mais la page affiche une erreur, ce n'est plus notre intranet. »</p>
+
+            <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700 mb-6">
+              <p className="text-amber-300 font-bold mb-3">🔍 Diagnostic complet pas à pas</p>
+              <div className="space-y-5 text-sm">
+
+                <div className="border-l-2 border-blue-500/50 pl-4">
+                  <p className="text-blue-300 font-bold">Étape 1 — Le serveur est-il joignable ?</p>
+                  <div className="bg-black/40 rounded-lg p-3 font-mono mt-2 space-y-1">
+                    <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">ping 192.168.10.254</span></p>
+                    <p className="text-cyan-300 text-xs italic">↳ Envoie un paquet ICMP vers le serveur pour vérifier qu'il est allumé et joignable sur le réseau</p>
+                    <p className="text-slate-400">Reply from 192.168.10.254: bytes=32 time{'<'}1ms TTL=128</p>
+                  </div>
+                  <p className="text-emerald-400 mt-2 font-semibold">✓ Le serveur répond au ping. Le réseau est OK.</p>
+                  <p className="text-slate-400 mt-1">Si le ping par IP fonctionne → pas un problème de câblage, d'adressage ou de routage. Le problème est au-dessus (couche application).</p>
+                </div>
+
+                <div className="border-l-2 border-blue-500/50 pl-4">
+                  <p className="text-blue-300 font-bold">Étape 2 — Le DNS fonctionne-t-il ? (après correction panne 1)</p>
+                  <div className="bg-black/40 rounded-lg p-3 font-mono mt-2 space-y-1">
+                    <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">nslookup intranet.netcorp.local</span></p>
+                    <p className="text-cyan-300 text-xs italic">↳ Demande au serveur DNS de convertir le nom « intranet.netcorp.local » en adresse IP</p>
+                    <p className="text-slate-400">Server: 192.168.10.254</p>
+                    <p className="text-slate-400">Address: 192.168.10.254</p>
+                    <p className="text-slate-400">Name: intranet.netcorp.local → 192.168.10.254</p>
+                  </div>
+                  <p className="text-emerald-400 mt-2 font-semibold">✓ Le DNS résout correctement le nom vers .254.</p>
+                  <p className="text-slate-400 mt-1">La résolution fonctionne, donc le problème n'est pas DNS.</p>
+                </div>
+
+                <div className="border-l-2 border-blue-500/50 pl-4">
+                  <p className="text-blue-300 font-bold">Étape 3 — Tester HTTP par IP directement</p>
+                  <div className="bg-black/40 rounded-lg p-3 font-mono mt-2 space-y-1">
+                    <p className="text-slate-500">PC → Desktop → Web Browser</p>
+                    <p className="text-cyan-300 text-xs italic">↳ On ouvre le navigateur intégré de Packet Tracer pour tester le service web</p>
+                    <p><span className="text-slate-500">URL: </span><span className="text-emerald-400">http://192.168.10.254</span></p>
+                    <p className="text-cyan-300 text-xs italic">↳ On tape l'IP directe du serveur (pas le nom) pour tester HTTP sans dépendre du DNS</p>
+                    <p className="text-red-400 font-bold">→ Request Timeout / page blanche / erreur</p>
+                  </div>
+                  <p className="text-red-400 mt-2 font-semibold">✗ Même par IP, la page web ne s'affiche pas !</p>
+                  <p className="text-slate-400 mt-1">Le ping marche (ICMP) mais HTTP non → le problème est spécifique au service HTTP, pas au réseau.</p>
+                </div>
+
+                <div className="border-l-2 border-amber-500/50 pl-4">
+                  <p className="text-amber-300 font-bold">Étape 4 — Éliminer les fausses pistes</p>
+                  <div className="space-y-2 mt-2">
+                    <div className="flex items-start gap-2">
+                      <span className="text-emerald-400 mt-0.5">✓</span>
+                      <p className="text-slate-400">Câblage OK (ping fonctionne)</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-emerald-400 mt-0.5">✓</span>
+                      <p className="text-slate-400">Adressage IP OK (IP correcte, passerelle correcte)</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-emerald-400 mt-0.5">✓</span>
+                      <p className="text-slate-400">DNS OK (nslookup résout le nom)</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-red-400 mt-0.5">✗</span>
+                      <p className="text-slate-400">Service HTTP → <strong>c'est ici que ça casse</strong></p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-l-2 border-amber-500/50 pl-4">
+                  <p className="text-amber-300 font-bold">Étape 5 — Vérifier le service HTTP sur le serveur</p>
+                  <div className="bg-black/40 rounded-lg p-3 font-mono mt-2 space-y-1">
+                    <p className="text-slate-500">Server1 → onglet Services → HTTP</p>
+                    <p className="text-red-400 font-bold">HTTP : OFF    HTTPS : OFF</p>
+                  </div>
+                  <p className="text-red-400 mt-2 font-semibold">✗ Trouvé ! Le service HTTP est désactivé (OFF) !</p>
+                  <p className="text-slate-400 mt-1">Le serveur ne « écoute » plus sur le port 80. Quand le navigateur envoie une requête HTTP GET, personne ne répond → timeout ou page d'erreur.</p>
+                </div>
+
+                <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg mt-4">
+                  <p className="text-blue-200 font-bold mb-2">💡 Raisonnement</p>
+                  <p className="text-slate-300 text-sm">ping ✓ mais HTTP ✗ → le réseau fonctionne, seul le service web est en panne. La distinction est clé : <strong>ping = ICMP (couche 3)</strong>, <strong>HTTP = TCP port 80 (couche 7)</strong>. Un serveur peut très bien répondre au ping tout en ayant ses services applicatifs désactivés.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg mb-6">
+              <p className="text-red-200 font-bold mb-2">La panne identifiée</p>
+              <p className="text-slate-300 text-sm">Le service <strong>HTTP a été désactivé (OFF)</strong> sur Server1. Le serveur ne répond plus sur le port 80 (TCP). Le ping fonctionne car ICMP est indépendant des services applicatifs — c'est pourquoi il faut <strong>toujours tester le service lui-même</strong>, pas juste le ping.</p>
+            </div>
+
+            <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg">
+              <p className="text-emerald-200 font-bold mb-2">Correction</p>
+              <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 text-sm space-y-1 mt-2">
+                <p className="text-slate-300">1. Cliquer sur <strong>Server1</strong> → onglet <strong>Services</strong> → <strong>HTTP</strong></p>
+                <p className="text-slate-300">2. Remettre le service sur <strong className="text-emerald-400">ON</strong></p>
+                <p className="text-slate-300">3. Vérifier que le fichier <strong>index.html</strong> est bien présent et contient le contenu de l'intranet</p>
+              </div>
+              <p className="text-emerald-300 text-sm mt-3 font-semibold">Vérification :</p>
+              <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-1 mt-2">
+                <p className="text-slate-500">PC → Desktop → Web Browser</p>
+                <p><span className="text-slate-500">URL: </span><span className="text-emerald-400">http://192.168.10.254</span></p>
+                <p className="text-cyan-300 text-xs italic">↳ Test HTTP par IP — vérifie que le service web répond maintenant qu'il est réactivé</p>
+                <p className="text-slate-400">→ Page « Bienvenue sur l'intranet NetCorp » affichée ✓</p>
+                <p><span className="text-slate-500">URL: </span><span className="text-emerald-400">http://intranet.netcorp.local</span></p>
+                <p className="text-cyan-300 text-xs italic">↳ Test HTTP par nom de domaine — vérifie que DNS + HTTP fonctionnent ensemble</p>
+                <p className="text-slate-400">→ Même page via nom de domaine ✓</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab4-panne3" className="bg-slate-800/50 border border-yellow-500/30 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-yellow-400 mb-6">🟡 Panne 3 — FTP par nom impossible (Ticket de Sophie)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Symptôme rapporté :</strong> « Quand je tape ftp files.netcorp.local ça ne se connecte pas, mais Julie me dit que le FTP marchait par IP vendredi. »</p>
+
+            <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700 mb-6">
+              <p className="text-amber-300 font-bold mb-3">🔍 Diagnostic complet pas à pas</p>
+              <div className="space-y-5 text-sm">
+
+                <div className="border-l-2 border-blue-500/50 pl-4">
+                  <p className="text-blue-300 font-bold">Étape 1 — Le FTP fonctionne-t-il par IP ?</p>
+                  <div className="bg-black/40 rounded-lg p-3 font-mono mt-2 space-y-1">
+                    <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">ftp 192.168.10.254</span></p>
+                    <p className="text-cyan-300 text-xs italic">↳ Teste le service FTP en utilisant directement l'IP du serveur (sans passer par le DNS)</p>
+                    <p className="text-slate-400">Trying to connect...192.168.10.254</p>
+                    <p className="text-slate-400">Connected to 192.168.10.254</p>
+                    <p className="text-slate-400">220- Welcome to FTP server</p>
+                    <p><span className="text-slate-500">Username: </span><span className="text-emerald-400">ftpuser</span></p>
+                    <p><span className="text-slate-500">Password: </span><span className="text-emerald-400">ftppass</span></p>
+                    <p className="text-emerald-400 font-bold">230- User logged in.</p>
+                    <p className="text-cyan-300 text-xs italic">↳ Code 230 = connexion réussie. Le service FTP fonctionne parfaitement par IP !</p>
+                  </div>
+                  <p className="text-emerald-400 mt-2 font-semibold">✓ Par IP ça marche ! Le service FTP est actif et les identifiants sont bons.</p>
+                  <p className="text-slate-400 mt-1">Si ça marche par IP mais pas par nom → le problème est forcément dans la résolution DNS du nom files.netcorp.local.</p>
+                </div>
+
+                <div className="border-l-2 border-blue-500/50 pl-4">
+                  <p className="text-blue-300 font-bold">Étape 2 — Tester le FTP par nom de domaine</p>
+                  <div className="bg-black/40 rounded-lg p-3 font-mono mt-2 space-y-1">
+                    <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">ftp files.netcorp.local</span></p>
+                    <p className="text-cyan-300 text-xs italic">↳ Tente de se connecter au FTP via le nom de domaine — le PC doit d'abord résoudre le nom via DNS</p>
+                    <p className="text-red-400 font-bold">Trying to connect...192.168.10.100</p>
+                    <p className="text-cyan-300 text-xs italic">↳ Attention ! Le PC essaie de se connecter à .100, pas à .254 ! Le DNS renvoie une mauvaise IP.</p>
+                    <p className="text-red-400">Request timed out.</p>
+                  </div>
+                  <p className="text-red-400 mt-2 font-semibold">✗ Timeout ! Le PC tente de se connecter à 192.168.10.100 — une adresse qui n'existe pas !</p>
+                  <p className="text-slate-400 mt-1">Le piège : on pourrait croire que le service FTP est cassé, mais le vrai problème est que le DNS renvoie la mauvaise adresse IP.</p>
+                </div>
+
+                <div className="border-l-2 border-blue-500/50 pl-4">
+                  <p className="text-blue-300 font-bold">Étape 3 — Vérifier ce que le DNS renvoie</p>
+                  <div className="bg-black/40 rounded-lg p-3 font-mono mt-2 space-y-1">
+                    <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">nslookup files.netcorp.local</span></p>
+                    <p className="text-cyan-300 text-xs italic">↳ Interroge le serveur DNS : « quelle IP correspond au nom files.netcorp.local ? »</p>
+                    <p className="text-slate-400">Server: 192.168.10.254</p>
+                    <p className="text-cyan-300 text-xs italic">↳ Le DNS qui répond est bien .254 (le bon serveur)</p>
+                    <p className="text-slate-400">Address: 192.168.10.254</p>
+                    <p className="text-slate-400">Name: files.netcorp.local</p>
+                    <p className="text-red-400 font-bold">Address: 192.168.10.100</p>
+                    <p className="text-cyan-300 text-xs italic">↳ Le DNS répond .100 au lieu de .254 ! L'enregistrement DNS est faux !</p>
+                  </div>
+                  <p className="text-red-400 mt-2 font-semibold">✗ Le DNS « fonctionne » (il répond) mais il donne la mauvaise IP !</p>
+                  <p className="text-slate-400 mt-1">C'est le piège de cette panne : <strong>le DNS ne timeout pas</strong> (contrairement à la panne 1). Il répond normalement, mais avec une IP erronée. Il faut <strong>lire le contenu</strong> de la réponse, pas juste vérifier si ça répond.</p>
+                </div>
+
+                <div className="border-l-2 border-amber-500/50 pl-4">
+                  <p className="text-amber-300 font-bold">Étape 4 — Comparer avec l'autre enregistrement DNS</p>
+                  <div className="bg-black/40 rounded-lg p-3 font-mono mt-2 space-y-1">
+                    <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">nslookup intranet.netcorp.local</span></p>
+                    <p className="text-cyan-300 text-xs italic">↳ On vérifie l'autre enregistrement DNS pour comparer</p>
+                    <p className="text-slate-400">Server: 192.168.10.254</p>
+                    <p className="text-slate-400">Address: 192.168.10.254</p>
+                    <p className="text-slate-400">Name: intranet.netcorp.local</p>
+                    <p className="text-emerald-400 font-bold">Address: 192.168.10.254</p>
+                    <p className="text-cyan-300 text-xs italic">↳ intranet.netcorp.local pointe vers .254 — correct !</p>
+                  </div>
+                  <p className="text-emerald-400 mt-2 font-semibold">✓ L'intranet résout correctement vers .254.</p>
+                  <p className="text-slate-400 mt-1">Seul l'enregistrement <strong>files.netcorp.local</strong> est faux (.100 au lieu de .254). L'enregistrement <strong>intranet.netcorp.local</strong> est correct. → C'est un problème d'enregistrement DNS spécifique, pas du service DNS global.</p>
+                </div>
+
+                <div className="border-l-2 border-amber-500/50 pl-4">
+                  <p className="text-amber-300 font-bold">Étape 5 — Vérifier l'enregistrement sur le serveur DNS</p>
+                  <div className="bg-black/40 rounded-lg p-3 font-mono mt-2 space-y-1">
+                    <p className="text-slate-500">Server1 → onglet Services → DNS</p>
+                    <p className="text-cyan-300 text-xs italic">↳ On ouvre la configuration DNS pour voir tous les enregistrements</p>
+                    <p className="text-slate-400">intranet.netcorp.local  →  192.168.10.254  ✓</p>
+                    <p className="text-red-400 font-bold">files.netcorp.local     →  192.168.10.100  ✗</p>
+                    <p className="text-cyan-300 text-xs italic">↳ Trouvé ! L'enregistrement files.netcorp.local pointe vers .100 au lieu de .254</p>
+                  </div>
+                  <p className="text-red-400 mt-2 font-semibold">✗ Trouvé ! L'enregistrement A de files.netcorp.local a été modifié vers 192.168.10.100 !</p>
+                </div>
+
+                <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg mt-4">
+                  <p className="text-blue-200 font-bold mb-2">💡 Raisonnement</p>
+                  <p className="text-slate-300 text-sm">FTP par IP ✓ mais FTP par nom ✗ → le service est OK, c'est la résolution du nom qui pose problème. <code className="bg-slate-800 px-1 rounded">nslookup files.netcorp.local</code> renvoie .100 au lieu de .254 → l'enregistrement DNS est faux. Cette panne est plus subtile que la panne 1 : le DNS <strong>répond</strong> (pas de timeout), mais il donne la <strong>mauvaise IP</strong>. Il ne suffit pas de vérifier « est-ce que le DNS répond ? », il faut vérifier <strong>quelle IP il renvoie</strong>.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg mb-6">
+              <p className="text-red-200 font-bold mb-2">La panne identifiée</p>
+              <p className="text-slate-300 text-sm">L'enregistrement DNS <strong>files.netcorp.local</strong> a été modifié : il pointe vers <strong>192.168.10.100</strong> (adresse inexistante) au lieu de <strong>192.168.10.254</strong> (le vrai serveur). Quand un PC fait <code className="bg-slate-800 px-1 rounded">ftp files.netcorp.local</code>, le DNS résout vers .100, le PC tente de se connecter à .100, personne ne répond → timeout.</p>
+            </div>
+
+            <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg">
+              <p className="text-emerald-200 font-bold mb-2">Correction</p>
+              <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 text-sm space-y-1 mt-2">
+                <p className="text-slate-300">1. Cliquer sur <strong>Server1</strong> → onglet <strong>Services</strong> → <strong>DNS</strong></p>
+                <p className="text-slate-300">2. Trouver l'enregistrement <strong>files.netcorp.local</strong></p>
+                <p className="text-slate-300">3. Cliquer dessus pour le sélectionner</p>
+                <p className="text-slate-300">4. Changer l'adresse de <strong className="text-red-400">192.168.10.100</strong> en <strong className="text-emerald-400">192.168.10.254</strong></p>
+                <p className="text-slate-300">5. Cliquer <strong>Save</strong></p>
+              </div>
+              <p className="text-emerald-300 text-sm mt-3 font-semibold">Vérification :</p>
+              <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-1 mt-2">
+                <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">nslookup files.netcorp.local</span></p>
+                <p className="text-cyan-300 text-xs italic">↳ Vérifie que le DNS renvoie maintenant la bonne IP</p>
+                <p className="text-slate-400">Name: files.netcorp.local</p>
+                <p className="text-emerald-400 font-bold">Address: 192.168.10.254  ← corrigé !</p>
+                <p className="mt-2"><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">ftp files.netcorp.local</span></p>
+                <p className="text-cyan-300 text-xs italic">↳ Re-tente le FTP par nom de domaine</p>
+                <p className="text-slate-400">Trying to connect...192.168.10.254</p>
+                <p className="text-cyan-300 text-xs italic">↳ Cette fois le PC se connecte à .254 (la bonne adresse) !</p>
+                <p className="text-slate-400">Connected to 192.168.10.254</p>
+                <p className="text-slate-400">220- Welcome to FTP server</p>
+                <p><span className="text-slate-500">Username: </span><span className="text-emerald-400">ftpuser</span></p>
+                <p><span className="text-slate-500">Password: </span><span className="text-emerald-400">ftppass</span></p>
+                <p className="text-emerald-400 font-bold">230- User logged in. ✓</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab4-recap" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">✅ Récapitulatif des 3 pannes</h2>
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead><tr className="bg-slate-700/50"><th className="p-3 text-left">#</th><th className="p-3 text-left">Symptôme</th><th className="p-3 text-left">Cause</th><th className="p-3 text-left">Correction</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-3 text-red-400 font-bold">1</td><td className="p-3">Host Name Unresolved</td><td className="p-3">dns-server DHCP pointe vers .253 au lieu de .254</td><td className="p-3">Corriger dans le pool DHCP + renouveler DHCP sur les PC</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-3 text-amber-400 font-bold">2</td><td className="p-3">Page web inaccessible</td><td className="p-3">Service HTTP désactivé (OFF) sur Server1</td><td className="p-3">Réactiver HTTP (ON) sur le serveur</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-3 text-yellow-400 font-bold">3</td><td className="p-3">FTP par nom timeout</td><td className="p-3">Enregistrement DNS files.netcorp.local → .100 au lieu de .254</td><td className="p-3">Corriger l'enregistrement DNS vers .254</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mb-4">
+              <p className="text-amber-200 font-bold mb-2">💡 Ce qu'il faut retenir</p>
+              <p className="text-slate-300 text-sm">Chaque panne était à une <strong>couche différente</strong> : (1) DHCP distribue le mauvais DNS → aucun nom ne se résout, (2) service HTTP éteint → le ping marche mais pas le web, (3) enregistrement DNS falsifié → le DNS « répond » mais avec la mauvaise IP. La panne 3 est la plus vicieuse : elle piège ceux qui vérifient uniquement « est-ce que le DNS répond ? » sans lire <strong>quelle IP</strong> il renvoie.</p>
+            </div>
+            <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg">
+              <p className="text-emerald-200 font-bold mb-2">Vérifications finales après correction</p>
+              <div className="bg-slate-900 rounded-lg p-4 border border-slate-700 font-mono text-sm space-y-2 mt-2">
+                <div>
+                  <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">ipconfig /all</span><span className="text-slate-500">             → DNS Servers: 192.168.10.254 ✓</span></p>
+                  <p className="text-cyan-300 text-xs italic">↳ Vérifie que le PC a reçu la bonne adresse DNS après renouvellement DHCP</p>
+                </div>
+                <div>
+                  <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">ping intranet.netcorp.local</span><span className="text-slate-500">  → Reply from 192.168.10.254 ✓</span></p>
+                  <p className="text-cyan-300 text-xs italic">↳ Teste la résolution DNS + la connectivité en une seule commande (nom → IP → ping)</p>
+                </div>
+                <div>
+                  <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">http://intranet.netcorp.local</span><span className="text-slate-500"> → Page intranet affichée ✓</span></p>
+                  <p className="text-cyan-300 text-xs italic">↳ Teste la chaîne complète : DNS résout le nom + HTTP affiche la page (panne 1 + panne 2 corrigées)</p>
+                </div>
+                <div>
+                  <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">nslookup files.netcorp.local</span><span className="text-slate-500">  → Address: 192.168.10.254 ✓</span></p>
+                  <p className="text-cyan-300 text-xs italic">↳ Vérifie que le DNS renvoie la bonne IP pour files.netcorp.local (panne 3 corrigée)</p>
+                </div>
+                <div>
+                  <p><span className="text-slate-500">PC{'>'} </span><span className="text-emerald-400">ftp files.netcorp.local</span><span className="text-slate-500">      → 230 User logged in ✓</span></p>
+                  <p className="text-cyan-300 text-xs italic">↳ Teste la chaîne complète : DNS résout vers .254 + FTP se connecte + login OK (panne 1 + 3 corrigées)</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      )
     },
     quiz: [
       { q: "Quel port utilise HTTPS ?", options: ["80", "443", "21"], a: 1, explanation: "HTTPS utilise le port TCP 443." },
@@ -8798,6 +10429,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
   const isSession2 = sessionId === 2;
   const isSession3 = sessionId === 3;
   const isSession4 = sessionId === 4;
+  const isSession5 = sessionId === 5;
   return (
     <div className="h-full flex flex-col">
       <div className="bg-slate-800 p-6 rounded-t-xl border border-slate-700 border-b-0">
@@ -8822,12 +10454,28 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
           >
             <CheckCircle className="w-4 h-4" /> {isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
           </button>
-          {(isSession2 || isSession3 || isSession4) && (
+          {(isSession2 || isSession3 || isSession4 || isSession5) && lab.solutionContentLab2 && (
             <button
               onClick={() => setLabTab('correction_lab2')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab2' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession4 ? 'Correction Lab 2 (Étendu)' : isSession3 ? 'Correction Lab 2 (Dépannage)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
+              <CheckCircle className="w-4 h-4" /> {isSession5 ? 'Correction Lab 2 (HTTP/FTP/ARP)' : isSession4 ? 'Correction Lab 2 (Étendu)' : isSession3 ? 'Correction Lab 2 (Dépannage)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
+            </button>
+          )}
+          {isSession5 && lab.solutionContentLab3 && (
+            <button
+              onClick={() => setLabTab('correction_lab3')}
+              className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab3' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+            >
+              <CheckCircle className="w-4 h-4" /> Correction Lab 3 (Synthèse)
+            </button>
+          )}
+          {isSession5 && lab.solutionContentLab4 && (
+            <button
+              onClick={() => setLabTab('correction_lab4')}
+              className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab4' ? 'bg-red-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+            >
+              <CheckCircle className="w-4 h-4" /> Correction Lab 4 (Dépannage)
             </button>
           )}
           {isSession3 && (
@@ -8861,19 +10509,33 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
       {labTab === 'correction' && (
         <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {isSession4 && lab.solutionContent ? lab.solutionContent : isSession3 ? <LabCorrectionSection3 /> : isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSection />}
+            {(isSession4 || isSession5) && lab.solutionContent ? lab.solutionContent : isSession3 ? <LabCorrectionSection3 /> : isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSection />}
           </div>
         </div>
       )}
       {labTab === 'correction_lab2' && (
         <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {isSession4 ? (lab.solutionContentLab2) : isSession3 ? <LabTroubleshootingSection3 /> : isSession2 ? (lab.solutionContentLab2 || (
+            {(isSession4 || isSession5) ? (lab.solutionContentLab2) : isSession3 ? <LabTroubleshootingSection3 /> : isSession2 ? (lab.solutionContentLab2 || (
               <div className="max-w-2xl mx-auto bg-slate-800/50 border border-slate-600 rounded-xl p-8 text-center">
                 <h3 className="text-xl font-bold text-blue-400 mb-3">Correction Lab 2 – VLAN avancés et sécurisation</h3>
                 <p className="text-slate-400">Trunk, VLAN autorisés, VLAN natif. Pour les consignes et la correction détaillée, suivre le PDF « 3 - Introduction Vlan avancés et sécurisation - LAB.pdf ».</p>
               </div>
             )) : <LabCorrectionSection2 />}
+          </div>
+        </div>
+      )}
+      {labTab === 'correction_lab3' && isSession5 && lab.solutionContentLab3 && (
+        <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl overflow-y-auto">
+          <div className="p-6">
+            {lab.solutionContentLab3}
+          </div>
+        </div>
+      )}
+      {labTab === 'correction_lab4' && isSession5 && lab.solutionContentLab4 && (
+        <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl overflow-y-auto">
+          <div className="p-6">
+            {lab.solutionContentLab4}
           </div>
         </div>
       )}
@@ -12252,7 +13914,7 @@ export default function NetMasterClass() {
               )}
             </div>
 
-            {/* Protocoles & services - Lab DHCP & DNS */}
+            {/* Protocoles & services - Labs DHCP/DNS et FTP */}
             <div className="mb-2">
               <button
                 onClick={() => setExpandedLabWeek(expandedLabWeek === 2 ? null : 2)}
@@ -12288,6 +13950,19 @@ export default function NetMasterClass() {
                       <p className="font-bold">Lab DHCP & DNS</p>
                       <p className="text-[9px] text-slate-500">Mise en œuvre TechCorp</p>
                     </div>
+                  </button>
+                  <button
+                    disabled
+                    className="w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs bg-slate-900/50 border-slate-800 text-slate-600 cursor-not-allowed opacity-50"
+                  >
+                    <div className="p-1.5 rounded bg-slate-800">
+                      <Globe className="w-4 h-4" />
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className="font-bold">Lab FTP (Session 2)</p>
+                      <p className="text-[9px] text-slate-600">HTTP, FTP et ARP</p>
+                    </div>
+                    <span className="text-[9px] bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded-full font-semibold uppercase tracking-wider">Coming soon</span>
                   </button>
                 </div>
               )}
@@ -12354,7 +14029,19 @@ export default function NetMasterClass() {
             </button>
             <div>
               <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">
-                {viewMode === 'packet_tracer' ? 'Packet Tracer – Simulateur réseau' : viewMode === 'labs' ? 'Mémo Commandes – Session 1' : viewMode === 'labs_s2' ? 'Mémo Commandes – Session 2' : viewMode === 'labs_s3' ? 'Mémo Commandes – Session 3' : viewMode === 'labs_s4' ? 'Lab DHCP & DNS' : activeSession.title}
+                {viewMode === 'packet_tracer'
+                  ? 'Packet Tracer – Simulateur réseau'
+                  : viewMode === 'labs'
+                  ? 'Mémo Commandes – Session 1'
+                  : viewMode === 'labs_s2'
+                  ? 'Mémo Commandes – Session 2'
+                  : viewMode === 'labs_s3'
+                  ? 'Mémo Commandes – Session 3'
+                  : viewMode === 'labs_s4'
+                  ? 'Lab DHCP & DNS'
+                  : viewMode === 'labs_s5'
+                  ? 'Lab FTP (Session 2)'
+                  : activeSession.title}
               </h2>
             </div>
           </div>
@@ -12415,6 +14102,15 @@ export default function NetMasterClass() {
             <div className="h-full min-h-[500px]">
               <LabsSection lab={sessions[3].lab} sessionLabel="DHCP & DNS" sessionDescription="Lab TechCorp : mise en œuvre DHCP et DNS sur Cisco Packet Tracer. Consignes et correction ci-dessous." sessionId={4} />
             </div>
+          ) : viewMode === 'labs_s5' ? (
+          <div className="h-full min-h-[500px]">
+            <LabsSection
+              lab={sessions[4].lab}
+              sessionLabel="Session 2 – HTTP, FTP et ARP"
+              sessionDescription="Lab FTP (Session 2) : mise en œuvre du transfert de fichiers entre un client et un serveur FTP sur Cisco Packet Tracer. Consignes et correction ci-dessous."
+              sessionId={5}
+            />
+          </div>
           ) : (
           <div className="max-w-6xl mx-auto h-full flex flex-col">
             {activeTab === 'theory' && <TheoryPlayer slides={activeSession.slides} lab={activeSession.lab} sessionId={activeSessionId} />}
