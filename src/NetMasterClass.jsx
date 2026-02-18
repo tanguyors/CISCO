@@ -13952,23 +13952,17 @@ export default function NetMasterClass() {
                     </div>
                   </button>
                   <button
-                    onClick={() => {
-                      setViewMode('labs_s5');
-                      if (window.innerWidth < 1024) setSidebarOpen(false);
-                    }}
-                    className={`w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs ${
-                      viewMode === 'labs_s5'
-                        ? 'bg-blue-600/20 border-blue-500 text-blue-100'
-                        : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-400 hover:border-slate-600'
-                    }`}
+                    disabled
+                    className="w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs bg-slate-900/50 border-slate-800 text-slate-600 cursor-not-allowed opacity-50"
                   >
-                    <div className={`p-1.5 rounded ${viewMode === 'labs_s5' ? 'bg-blue-600 text-white' : 'bg-slate-800'}`}>
+                    <div className="p-1.5 rounded bg-slate-800">
                       <Globe className="w-4 h-4" />
                     </div>
                     <div className="text-left flex-1">
                       <p className="font-bold">Lab FTP (Session 2)</p>
-                      <p className="text-[9px] text-slate-500">HTTP, FTP et ARP</p>
+                      <p className="text-[9px] text-slate-600">HTTP, FTP et ARP</p>
                     </div>
+                    <span className="text-[9px] bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded-full font-semibold uppercase tracking-wider">Coming soon</span>
                   </button>
                 </div>
               )}
