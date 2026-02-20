@@ -9040,7 +9040,7 @@ Objectif : Comprendre comment centraliser les logs (Syslog) et superviser les é
                 <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">SW1(config)#</span> interface FastEthernet0/2</p>
                 <p className="text-cyan-300 text-xs italic mt-1">↳ Entre dans la config du port Fa0/2 (celui connecté à PC-Admin)</p>
                 <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">SW1(config-if)#</span> switchport mode access</p>
-                <p className="text-cyan-300 text-xs italic mt-1">↳ Met le port en mode accès (un seul VLAN autorisé)</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Force le port en mode accès — désactive DTP (protocole de négociation trunk). Sans ça, le port est en « dynamic auto » par défaut et pourrait être forcé en trunk par un attaquant</p>
                 <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">SW1(config-if)#</span> switchport access vlan 10</p>
                 <p className="text-cyan-300 text-xs italic mt-1">↳ Assigne ce port au VLAN 10 (Administration)</p>
               </div>
@@ -9062,9 +9062,11 @@ Objectif : Comprendre comment centraliser les logs (Syslog) et superviser les é
               </div>
             </div>
 
-            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
-              <p className="text-blue-200 font-bold mb-2">💡 Rappel</p>
-              <p className="text-slate-300 text-sm"><code className="text-emerald-400 bg-slate-800 px-1 rounded">switchport mode access</code> configure le port en mode accès (un seul VLAN). <code className="text-emerald-400 bg-slate-800 px-1 rounded">switchport access vlan X</code> assigne le port au VLAN X.</p>
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg mb-4">
+              <p className="text-blue-200 font-bold mb-2">💡 Pourquoi « switchport mode access » avant « access vlan » ?</p>
+              <p className="text-slate-300 text-sm mb-2">Techniquement, <code className="text-emerald-400 bg-slate-800 px-1 rounded">switchport access vlan 10</code> seul suffit à assigner le VLAN. Mais par défaut, un port de switch est en mode <strong>dynamic auto</strong> : il peut accepter de devenir un trunk si un autre appareil le demande (via le protocole <strong>DTP</strong>).</p>
+              <p className="text-slate-300 text-sm mb-2"><code className="text-emerald-400 bg-slate-800 px-1 rounded">switchport mode access</code> <strong>désactive DTP</strong> et force le port en accès uniquement. C'est une <strong>bonne pratique de sécurité</strong> : sans ça, un attaquant pourrait brancher un switch, forcer un trunk et accéder à <strong>tous les VLANs</strong> du réseau.</p>
+              <p className="text-slate-400 text-xs italic">En résumé : ça marche sans, mais on le met toujours en production.</p>
             </div>
           </section>
 
@@ -15148,7 +15150,7 @@ export default function NetMasterClass() {
               >
                 <div className="text-left flex-1">
                   <p className="font-bold text-sm">Protocoles & services</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">2 labs disponibles</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">3 labs disponibles</p>
                 </div>
                 <ChevronRight className={`w-4 h-4 transition-transform ${expandedLabWeek === 2 ? 'rotate-90' : ''}`} />
               </button>
@@ -15193,15 +15195,22 @@ export default function NetMasterClass() {
                     </div>
                   </button>
                   <button
-                    disabled
-                    className="w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs bg-slate-900/50 border-slate-800 text-slate-600 cursor-not-allowed opacity-50"
+                    onClick={() => {
+                      setViewMode('labs_s6');
+                      if (window.innerWidth < 1024) setSidebarOpen(false);
+                    }}
+                    className={`w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs ${
+                      viewMode === 'labs_s6'
+                        ? 'bg-blue-600/20 border-blue-500 text-blue-100'
+                        : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-400 hover:border-slate-600'
+                    }`}
                   >
-                    <div className="p-1.5 rounded bg-slate-800">
+                    <div className={`p-1.5 rounded ${viewMode === 'labs_s6' ? 'bg-blue-600 text-white' : 'bg-slate-800'}`}>
                       <Activity className="w-4 h-4" />
                     </div>
                     <div className="text-left flex-1">
                       <p className="font-bold">Lab Syslog (Session 3)</p>
-                      <p className="text-[9px] text-slate-500">Coming soon</p>
+                      <p className="text-[9px] text-slate-500">Supervision centralisée</p>
                     </div>
                   </button>
                 </div>
