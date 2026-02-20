@@ -7903,131 +7903,238 @@ Objectif : Comprendre les protocoles HTTP, FTP et ARP — ce qu'ils font, commen
       {
         type: 'intro',
         title: "Cours Théorique – Séance 3 : Syslog & SNMP",
-        content: `Bienvenue ! Ce cours s'adresse aux débutants. Nous allons progresser pas à pas.
+        content: `Bienvenue ! Aujourd'hui on apprend à surveiller un réseau comme un pro.
 
-Objectif : Comprendre les protocoles Syslog et SNMP pour la surveillance et la gestion des équipements réseau.
+Objectif : Comprendre comment centraliser les logs (Syslog) et superviser les équipements à distance (SNMP).
 
 🎯 À la fin, vous serez capable de :
-📋 Comprendre Syslog (centralisation des logs, port UDP 514)
-📊 Comprendre SNMP (Manager-Agent, MIB, polling, trap)
-🔒 Distinguer SNMPv1/v2c et SNMPv3`
+📋 Expliquer Syslog et ses 8 niveaux de sévérité (0 à 7)
+📊 Comprendre SNMP : Manager, Agent, MIB, Polling, Trap
+🔒 Distinguer SNMPv1/v2c (non sécurisé) et SNMPv3 (chiffré)
+🔗 Comprendre comment Syslog et SNMP travaillent ensemble`
       },
       {
         type: 'rich_text',
-        title: "1. Syslog – Le problème : des logs partout",
+        title: "1. Syslog – L'analogie : la boîte noire d'un avion",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed text-lg">Un routeur, un switch, un pare-feu... Chacun génère des <strong>logs</strong> (messages de journalisation) : interface down, erreur, connexion SSH, changement de config. Si chaque équipement garde ses logs localement, comment les consulter en cas de panne ?</p>
-            <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
-              <p className="text-red-200 font-bold mb-2">Sans centralisation :</p>
-              <p className="text-slate-300 text-sm">Il faudrait se connecter à chaque équipement pour lire les logs. Impossible de corréler des événements sur plusieurs appareils.</p>
-            </div>
-            <p className="text-slate-300">La solution : <strong>Syslog</strong>, qui centralise tous les logs vers un serveur unique.</p>
-          </div>
-        )
-      },
-      {
-        type: 'rich_text',
-        title: "Syslog – C'est quoi, en une phrase ?",
-        content: (
-          <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed text-xl text-center py-4">Le <strong className="text-blue-400">Syslog</strong> est un protocole qui centralise les messages de journalisation (logs) de tous les équipements réseau vers un serveur dédié.</p>
+            <p className="text-slate-200 leading-relaxed text-lg">Chaque équipement réseau (routeur, switch, pare-feu) génère des <strong>messages de log</strong> : interface down, erreur, connexion SSH, changement de config... Mais si chaque appareil garde ses logs localement, c'est le chaos en cas de panne.</p>
             <div className="bg-blue-900/20 border border-blue-500/40 rounded-xl p-6">
-              <p className="text-blue-200 font-bold mb-2">System Logging Protocol</p>
-              <p className="text-slate-300 text-sm">Port UDP 514. Standardisé (RFC 5424). Routeurs, switches, firewalls, serveurs… envoient leurs logs vers le serveur Syslog.</p>
+              <p className="text-blue-200 font-bold text-lg mb-3">Analogie : la boîte noire d'un avion</p>
+              <p className="text-slate-300 text-sm leading-relaxed">Un avion enregistre <strong>tout</strong> ce qui se passe dans sa boîte noire : altitude, vitesse, alertes, commandes pilote. Après un incident, les enquêteurs lisent la boîte noire pour comprendre ce qui s'est passé.</p>
+              <p className="text-blue-200 text-sm mt-3 font-semibold">Le serveur Syslog, c'est la boîte noire de votre réseau. Tous les équipements y envoient leurs logs. Quand ça tombe en panne, vous avez toute l'histoire.</p>
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
+                <p className="text-red-200 font-bold mb-2">Sans Syslog :</p>
+                <p className="text-slate-300 text-sm">Se connecter à chaque équipement un par un pour lire les logs. 50 équipements = 50 connexions. Impossible de corréler les événements.</p>
+              </div>
+              <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg">
+                <p className="text-emerald-200 font-bold mb-2">Avec Syslog :</p>
+                <p className="text-slate-300 text-sm">Un seul serveur reçoit tout. On recherche par date, par équipement, par gravité. En 30 secondes, on trouve la panne.</p>
+              </div>
             </div>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "Syslog – Fonctionnement",
+        title: "Syslog – Comment ça marche concrètement ?",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed">Flux simple : les équipements <strong>poussent</strong> leurs logs vers le serveur :</p>
-            <ol className="space-y-2 text-slate-300 list-decimal list-inside">
-              <li>Un routeur détecte une interface down → il envoie un message Syslog au serveur</li>
-              <li>Un pare-feu bloque une tentative de connexion → log envoyé</li>
-              <li>Un switch enregistre une erreur → log envoyé</li>
-            </ol>
+            <div className="bg-blue-900/20 border border-blue-500/40 rounded-xl p-6">
+              <p className="text-blue-200 font-bold text-lg mb-2">System Logging Protocol — Port UDP 514</p>
+              <p className="text-slate-300 text-sm">Standardisé (RFC 5424). Flux <strong>unidirectionnel</strong> : les équipements poussent leurs logs vers le serveur. Le serveur ne demande rien, il reçoit et stocke.</p>
+            </div>
+            <p className="text-slate-200 leading-relaxed font-semibold">Le processus en 3 étapes :</p>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <span className="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shrink-0">1</span>
+                <div><p className="text-slate-200 font-semibold">Un événement se produit</p><p className="text-slate-400 text-sm">Ex : un admin tape <code className="text-emerald-400 bg-slate-800 px-1 rounded">shutdown</code> sur une interface du routeur R1</p></div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shrink-0">2</span>
+                <div><p className="text-slate-200 font-semibold">Le routeur génère un message Syslog</p><p className="text-slate-400 text-sm">Message : <code className="text-yellow-400 bg-slate-800 px-1 rounded text-xs">%LINK-5-CHANGED: Interface G0/0, changed state to administratively down</code></p></div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shrink-0">3</span>
+                <div><p className="text-slate-200 font-semibold">Le message est envoyé au serveur Syslog (UDP 514)</p><p className="text-slate-400 text-sm">Le serveur l'enregistre, l'horodate et le rend consultable</p></div>
+              </div>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Syslog – Lire un message (exemple réel)",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">Voici un vrai message Syslog tel qu'il apparaît sur le serveur :</p>
+            <div className="bg-black rounded-xl p-5 border border-slate-600 font-mono text-sm">
+              <p><span className="text-slate-500">Feb 20 14:32:07</span> <span className="text-blue-400">R1</span> <span className="text-yellow-400">%LINK</span>-<span className="text-red-400 font-bold">5</span>-<span className="text-emerald-400">CHANGED</span>: <span className="text-slate-300">Interface GigabitEthernet0/0, changed state to administratively down</span></p>
+            </div>
+            <p className="text-slate-200 font-semibold">Décomposition :</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead><tr className="bg-slate-700/50"><th className="p-2 text-left">Partie</th><th className="p-2 text-left">Valeur</th><th className="p-2 text-left">Signification</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-2 text-slate-500">Timestamp</td><td className="p-2 font-mono">Feb 20 14:32:07</td><td className="p-2">Quand l'événement s'est produit</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2 text-blue-400">Hostname</td><td className="p-2 font-mono">R1</td><td className="p-2">Quel équipement a envoyé le log</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2 text-yellow-400">Facility</td><td className="p-2 font-mono">%LINK</td><td className="p-2">Module source (ici : état des liens/interfaces)</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2 text-red-400 font-bold">Severity</td><td className="p-2 font-mono font-bold">5</td><td className="p-2">Niveau de sévérité (5 = Notification)</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2 text-emerald-400">Mnemonic</td><td className="p-2 font-mono">CHANGED</td><td className="p-2">Type d'événement</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2 text-slate-300">Description</td><td className="p-2" colSpan={2}>Interface GigabitEthernet0/0, changed state to administratively down</td></tr>
+                </tbody>
+              </table>
+            </div>
             <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
-              <p className="text-amber-200 font-bold">Niveaux de logs</p>
-              <p className="text-slate-300 text-sm">Informations, avertissements, erreurs, alertes critiques. Le serveur archive et permet la recherche.</p>
+              <p className="text-amber-200 font-bold mb-2">Ce qu'on retient</p>
+              <p className="text-slate-300 text-sm">Le chiffre après le tiret (ici <strong className="text-red-400">5</strong>) est le niveau de sévérité. Plus il est bas, plus c'est grave. On détaille les 8 niveaux dans la slide suivante.</p>
             </div>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "Syslog – Importance",
+        title: "Syslog – Les 8 niveaux de sévérité (0 à 7)",
         content: (
           <div className="space-y-6">
-            <ul className="space-y-2 text-slate-300">
-              <li>• <strong>Monitoring</strong> — surveiller l'état du réseau et détecter les anomalies</li>
-              <li>• <strong>Diagnostic</strong> — identifier la source d'une panne en consultant les logs centralisés</li>
-              <li>• <strong>Traçabilité</strong> — qui a fait quoi, quand (audit, conformité)</li>
-              <li>• <strong>Veille sécurité (SIEM)</strong> — corrélation des événements pour détecter des intrusions</li>
-            </ul>
+            <p className="text-slate-200 leading-relaxed text-lg">Le chiffre dans le message Syslog indique la <strong>gravité</strong>. Plus c'est bas, plus c'est grave. La commande <code className="text-emerald-400 bg-slate-800 px-1 rounded">logging trap [niveau]</code> envoie ce niveau <strong>et tous les niveaux inférieurs</strong> (plus graves).</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead><tr className="bg-slate-700/50"><th className="p-2 text-center">Niveau</th><th className="p-2 text-left">Nom</th><th className="p-2 text-left">Signification</th><th className="p-2 text-left">Exemple concret</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-slate-600 bg-red-900/30"><td className="p-2 text-center font-bold text-red-400">0</td><td className="p-2 font-bold text-red-300">Emergency</td><td className="p-2">Système inutilisable</td><td className="p-2 text-xs">Le routeur crash et redémarre</td></tr>
+                  <tr className="border-t border-slate-600 bg-red-900/20"><td className="p-2 text-center font-bold text-red-400">1</td><td className="p-2 font-bold text-red-300">Alert</td><td className="p-2">Action immédiate requise</td><td className="p-2 text-xs">Mémoire RAM pleine à 99%</td></tr>
+                  <tr className="border-t border-slate-600 bg-orange-900/15"><td className="p-2 text-center font-bold text-orange-400">2</td><td className="p-2 font-bold text-orange-300">Critical</td><td className="p-2">Condition critique</td><td className="p-2 text-xs">Panne d'un module matériel</td></tr>
+                  <tr className="border-t border-slate-600 bg-orange-900/10"><td className="p-2 text-center font-bold text-orange-400">3</td><td className="p-2 font-bold text-orange-300">Error</td><td className="p-2">Erreur</td><td className="p-2 text-xs">Échec de configuration OSPF</td></tr>
+                  <tr className="border-t border-slate-600 bg-amber-900/10"><td className="p-2 text-center font-bold text-amber-400">4</td><td className="p-2 font-bold text-amber-300">Warning</td><td className="p-2">Avertissement</td><td className="p-2 text-xs">Interface qui clignote (flapping)</td></tr>
+                  <tr className="border-t border-slate-600 bg-blue-900/10"><td className="p-2 text-center font-bold text-blue-400">5</td><td className="p-2 font-bold text-blue-300">Notification</td><td className="p-2">Normal mais significatif</td><td className="p-2 text-xs">Interface shutdown/no shutdown</td></tr>
+                  <tr className="border-t border-slate-600 bg-emerald-900/10"><td className="p-2 text-center font-bold text-emerald-400">6</td><td className="p-2 font-bold text-emerald-300">Informational</td><td className="p-2">Information générale</td><td className="p-2 text-xs">Connexion SSH réussie</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2 text-center font-bold text-slate-400">7</td><td className="p-2 font-bold text-slate-300">Debugging</td><td className="p-2">Messages de débogage</td><td className="p-2 text-xs">Détails internes (très verbeux)</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="bg-violet-900/20 border-l-4 border-violet-500 p-4 rounded-r-lg">
+              <p className="text-violet-200 font-bold mb-2">Astuce mnémotechnique</p>
+              <p className="text-slate-300 text-sm font-semibold">« <span className="text-red-300">E</span>very <span className="text-red-300">A</span>wesome <span className="text-orange-300">C</span>isco <span className="text-orange-300">E</span>ngineer <span className="text-amber-300">W</span>ill <span className="text-blue-300">N</span>eed <span className="text-emerald-300">I</span>ce-cream <span className="text-slate-300">D</span>aily »</p>
+              <p className="text-slate-400 text-xs mt-1">Emergency, Alert, Critical, Error, Warning, Notification, Informational, Debugging</p>
+            </div>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "2. SNMP – Le problème : superviser à distance",
+        title: "Syslog – Commandes Cisco essentielles",
         content: (
           <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed text-lg">Comment connaître la charge CPU d'un switch, le trafic sur une interface, la température d'un équipement... sans se connecter manuellement à chacun ?</p>
+            <p className="text-slate-200 leading-relaxed text-lg">Voici les commandes pour configurer Syslog sur un routeur Cisco :</p>
+            <div className="space-y-3">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm">logging 192.168.1.100</p>
+                <p className="text-slate-400 text-xs mt-1">Envoyer les logs vers le serveur Syslog à cette adresse</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm">logging trap debugging</p>
+                <p className="text-slate-400 text-xs mt-1">Envoyer les messages de niveau 7 et en dessous (= tout). En production : <code className="text-amber-400">logging trap warnings</code> (niveau 4+)</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm">service timestamps log datetime msec</p>
+                <p className="text-slate-400 text-xs mt-1">Ajouter la date/heure à chaque message — indispensable pour le diagnostic</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm">show logging</p>
+                <p className="text-slate-400 text-xs mt-1">Vérifier la configuration Syslog : serveur cible, niveau de trap, nombre de messages envoyés</p>
+                <p className="text-amber-300 text-xs mt-1 italic">⚠️ Non disponible dans Packet Tracer — fonctionne sur un vrai routeur Cisco</p>
+              </div>
+            </div>
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
+              <p className="text-blue-200 font-bold mb-2">En entreprise</p>
+              <p className="text-slate-300 text-sm">Le serveur Syslog est souvent couplé à un <strong>SIEM</strong> (Security Information and Event Management) comme Splunk ou Graylog. Le SIEM corrèle les logs de tous les équipements et génère des alertes automatiques : « 50 tentatives SSH échouées en 2 minutes sur R1 ».</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "2. SNMP – L'analogie : le vigile et l'alarme",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">Syslog enregistre ce qui <strong>s'est passé</strong>. Mais comment savoir en temps réel que le CPU d'un switch est à 95%, qu'une interface sature, ou que la température d'un routeur monte ?</p>
+            <div className="bg-emerald-900/20 border border-emerald-500/40 rounded-xl p-6">
+              <p className="text-emerald-200 font-bold text-lg mb-3">Analogie : le vigile d'un immeuble</p>
+              <div className="grid md:grid-cols-2 gap-4 mt-3">
+                <div className="bg-amber-900/20 border border-amber-500/30 rounded-lg p-4">
+                  <p className="text-amber-300 font-bold mb-2">Le vigile fait sa ronde (= Polling)</p>
+                  <p className="text-slate-300 text-sm">Toutes les heures, il passe dans chaque étage : « Tout va bien au 3e ? Et au 4e ? ». Il note l'état de chaque zone.</p>
+                </div>
+                <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
+                  <p className="text-red-300 font-bold mb-2">L'alarme incendie se déclenche (= Trap)</p>
+                  <p className="text-slate-300 text-sm">Pas besoin d'attendre la ronde ! L'alarme prévient <strong>immédiatement</strong> le vigile qu'il y a un problème au 5e étage.</p>
+                </div>
+              </div>
+            </div>
             <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
               <p className="text-blue-200 font-bold mb-2">SNMP – Simple Network Management Protocol</p>
-              <p className="text-slate-300 text-sm">Protocole de gestion réseau permettant de <strong>collecter des informations</strong> et d'<strong>agir à distance</strong> sur les équipements.</p>
+              <p className="text-slate-300 text-sm">Protocole de supervision qui permet de <strong>collecter des métriques</strong> (CPU, mémoire, trafic, température) et de <strong>recevoir des alertes</strong> en temps réel depuis les équipements réseau.</p>
             </div>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "SNMP – Architecture Manager-Agent",
+        title: "SNMP – Les 3 acteurs : Manager, Agent, MIB",
         content: (
           <div className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-3 gap-4">
               <div className="bg-amber-900/20 border border-amber-500/40 rounded-xl p-5">
-                <p className="text-amber-300 font-bold mb-2">Manager (NMS)</p>
-                <p className="text-slate-300 text-sm">Network Management Station — outil de supervision (Cacti, PRTG, SolarWinds…). Interroge les agents et affiche les graphiques.</p>
+                <p className="text-amber-300 font-bold text-lg mb-2">Manager (NMS)</p>
+                <p className="text-slate-300 text-sm mb-2">Le « vigile en chef » — la station de supervision.</p>
+                <p className="text-slate-400 text-xs">Logiciels : Cacti, PRTG, Zabbix, SolarWinds. Interroge les agents, affiche des graphiques, envoie des alertes.</p>
               </div>
               <div className="bg-emerald-900/20 border border-emerald-500/40 rounded-xl p-5">
-                <p className="text-emerald-300 font-bold mb-2">Agent SNMP</p>
-                <p className="text-slate-300 text-sm">Installé sur chaque équipement à superviser (routeur, switch…). Répond aux requêtes du manager et peut envoyer des alertes.</p>
+                <p className="text-emerald-300 font-bold text-lg mb-2">Agent SNMP</p>
+                <p className="text-slate-300 text-sm mb-2">Le « capteur » installé sur chaque équipement.</p>
+                <p className="text-slate-400 text-xs">Présent sur chaque routeur, switch, firewall. Répond aux questions du manager et peut déclencher des alertes (traps).</p>
+              </div>
+              <div className="bg-violet-900/20 border border-violet-500/40 rounded-xl p-5">
+                <p className="text-violet-300 font-bold text-lg mb-2">MIB</p>
+                <p className="text-slate-300 text-sm mb-2">Le « dictionnaire » commun entre manager et agent.</p>
+                <p className="text-slate-400 text-xs">Management Information Base. Chaque info a un identifiant unique (OID). Ex : <code className="text-emerald-400">1.3.6.1.2.1.1.5.0</code> = nom du système.</p>
               </div>
             </div>
-            <p className="text-slate-400 text-sm">Ports : 161 (agent, requêtes) et 162 (trap, alertes). Protocole UDP.</p>
-          </div>
-        )
-      },
-      {
-        type: 'rich_text',
-        title: "SNMP – La MIB",
-        content: (
-          <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed"><strong>MIB</strong> (Management Information Base) : base d'objets normalisés qui décrivent ce qu'un équipement peut exposer (CPU, mémoire, trafic par interface, etc.).</p>
-            <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
-              <p className="text-slate-300 text-sm">Le manager et l'agent partagent la même MIB : ils « parlent la même langue ». Ex. : « Donne-moi la valeur de l'objet 1.3.6.1.2.1.1.5.0 » (nom du système).</p>
+            <div className="bg-slate-900/60 rounded-xl p-4 font-mono text-sm text-center border border-slate-700">
+              <p className="text-amber-400">Manager (NMS) <span className="text-slate-500">— port 161 →</span> <span className="text-emerald-400">Agent (routeur/switch)</span></p>
+              <p className="text-emerald-400 mt-1">Agent <span className="text-slate-500">— port 162 →</span> <span className="text-amber-400">Manager (alerte trap)</span></p>
             </div>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "SNMP – Polling vs Trap",
+        title: "SNMP – Polling vs Trap (exemple concret)",
         content: (
           <div className="space-y-6">
             <div className="space-y-4">
-              <div className="bg-amber-900/20 border border-amber-500/40 rounded-lg p-4">
-                <p className="text-amber-300 font-bold">Polling (get, set)</p>
-                <p className="text-slate-300 text-sm">Le manager interroge <strong>périodiquement</strong> les agents pour récupérer des informations (CPU, trafic…). Communication bidirectionnelle.</p>
+              <div className="bg-amber-900/20 border border-amber-500/40 rounded-xl p-5">
+                <p className="text-amber-300 font-bold text-lg mb-3">Polling (GET / SET) — Le vigile fait sa ronde</p>
+                <p className="text-slate-300 text-sm mb-3">Le manager interroge l'agent <strong>toutes les X minutes</strong> pour récupérer des données :</p>
+                <div className="bg-black rounded-lg p-4 font-mono text-xs space-y-2">
+                  <p><span className="text-amber-400">Manager →</span> <span className="text-slate-400">GET request :</span> <span className="text-slate-200">« Quel est le trafic sur ton interface G0/0 ? »</span></p>
+                  <p><span className="text-emerald-400">Agent ←</span> <span className="text-slate-400">Response :</span> <span className="text-slate-200">« 847 302 octets entrants, 1 203 448 octets sortants »</span></p>
+                  <p className="mt-2"><span className="text-amber-400">Manager →</span> <span className="text-slate-400">GET request :</span> <span className="text-slate-200">« Quelle est ta charge CPU ? »</span></p>
+                  <p><span className="text-emerald-400">Agent ←</span> <span className="text-slate-400">Response :</span> <span className="text-slate-200">« 23% »</span></p>
+                </div>
+                <p className="text-slate-400 text-xs mt-2">Communication <strong>bidirectionnelle</strong> sur le port <strong>161</strong>.</p>
               </div>
-              <div className="bg-emerald-900/20 border border-emerald-500/40 rounded-lg p-4">
-                <p className="text-emerald-300 font-bold">Trap</p>
-                <p className="text-slate-300 text-sm">L'agent envoie une <strong>alerte spontanée</strong> au manager lors d'un événement critique (interface down, température élevée…). Communication unidirectionnelle (agent → manager).</p>
+              <div className="bg-red-900/20 border border-red-500/40 rounded-xl p-5">
+                <p className="text-red-300 font-bold text-lg mb-3">Trap — L'alarme se déclenche toute seule</p>
+                <p className="text-slate-300 text-sm mb-3">L'agent envoie une alerte <strong>spontanément</strong>, sans que le manager demande :</p>
+                <div className="bg-black rounded-lg p-4 font-mono text-xs space-y-2">
+                  <p><span className="text-red-400">Agent →</span> <span className="text-slate-400">TRAP :</span> <span className="text-red-200">« ALERTE ! Interface G0/0 vient de tomber ! »</span></p>
+                  <p><span className="text-red-400">Agent →</span> <span className="text-slate-400">TRAP :</span> <span className="text-red-200">« ALERTE ! Température CPU à 87°C (seuil : 75°C) »</span></p>
+                </div>
+                <p className="text-slate-400 text-xs mt-2">Communication <strong>unidirectionnelle</strong> (agent → manager) sur le port <strong>162</strong>.</p>
               </div>
             </div>
           </div>
@@ -8038,78 +8145,109 @@ Objectif : Comprendre les protocoles Syslog et SNMP pour la surveillance et la g
         title: "SNMP – Versions et sécurité",
         content: (
           <div className="space-y-6">
-            <div className="space-y-3">
-              <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4">
-                <p className="text-red-300 font-bold">SNMPv1 & v2c</p>
-                <p className="text-slate-300 text-sm">Basés sur des <strong>communautés</strong> (mot de passe en clair). Sécurité faible. À éviter en environnement sensible.</p>
-              </div>
-              <div className="bg-emerald-900/20 border border-emerald-500/40 rounded-lg p-4">
-                <p className="text-emerald-300 font-bold">SNMPv3</p>
-                <p className="text-slate-300 text-sm">Authentification et chiffrement. Préféré en environnement sécurisé.</p>
-              </div>
-            </div>
-          </div>
-        )
-      },
-      {
-        type: 'rich_text',
-        title: "Syslog vs SNMP – Comparaison",
-        content: (
-          <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed">Log Syslog : message de journalisation régulier (interface, événements, erreurs). Centralisé sur le serveur.</p>
-            <p className="text-slate-200 leading-relaxed">Trap SNMP : alerte <strong>immédiate</strong> lors d'un événement critique. L'agent prévient le manager spontanément.</p>
-            <div className="bg-slate-800/60 border border-slate-600 rounded-lg p-4">
-              <p className="text-slate-300 text-sm">Syslog = centralisation des logs. SNMP = supervision + alertes en temps réel.</p>
-            </div>
-          </div>
-        )
-      },
-      {
-        type: 'rich_text',
-        title: "Texte à trous – À compléter",
-        content: (
-          <div className="space-y-6">
-            <p className="text-slate-200 leading-relaxed">Complétez avec : UDP 514, NMS, trap, polling, MIB, SNMPv3, logs, authentification.</p>
-            <div className="space-y-4 text-slate-300 text-sm">
-              <p>1. Syslog utilise le port _____ pour transmettre les _____ vers un serveur centralisé.</p>
-              <p>2. SNMP repose sur un modèle Manager-Agent. Le _____ interroge les agents via des requêtes appelées _____.</p>
-              <p>3. Lors d'un événement critique, l'agent envoie une alerte spontanée appelée _____.</p>
-              <p>4. Tous les objets SNMP sont définis dans une base appelée _____.</p>
-              <p>5. _____ introduit _____ et chiffrement pour renforcer la sécurité.</p>
-            </div>
-          </div>
-        )
-      },
-      {
-        type: 'rich_text',
-        title: "Texte à trous – Réponses",
-        content: (
-          <div className="space-y-6">
-            <p className="text-slate-400 text-sm mb-4">Vérifiez vos réponses :</p>
+            <p className="text-slate-200 leading-relaxed text-lg">SNMP a évolué en 3 versions. La différence principale : la <strong>sécurité</strong>.</p>
             <div className="space-y-4">
-              {[
-                { n: 1, text: "Syslog utilise le port ", blank: "UDP 514", after: " pour transmettre les ", blank2: "logs", after2: " vers un serveur centralisé." },
-                { n: 2, text: "Le ", blank: "NMS", after: " interroge les agents via des requêtes appelées ", blank2: "polling", after2: "." },
-                { n: 3, text: "Lors d'un événement critique, l'agent envoie une alerte spontanée appelée ", blank: "trap", after: "." },
-                { n: 4, text: "Tous les objets SNMP sont définis dans une base appelée ", blank: "MIB", after: "." },
-                { n: 5, text: "", blank: "SNMPv3", after: " introduit ", blank2: "authentification", after2: " et chiffrement." }
-              ].map(({ n, text, blank, after, blank2, after2 }) => (
-                <div key={n} className="p-4 bg-slate-800/60 rounded-lg border border-slate-600">
-                  <p className="text-slate-300">
-                    <span>{n}. {text}</span>
-                    <span className="bg-emerald-900/40 text-emerald-300 px-2 py-0.5 rounded font-semibold">{blank}</span>
-                    <span>{after}</span>
-                    {blank2 && <><span className="bg-emerald-900/40 text-emerald-300 px-2 py-0.5 rounded font-semibold">{blank2}</span><span>{after2}</span></>}
-                  </p>
+              <div className="bg-red-900/20 border border-red-500/40 rounded-xl p-5">
+                <div className="flex items-center gap-2 mb-2"><p className="text-red-300 font-bold text-lg">SNMPv1 & v2c — Non sécurisé</p></div>
+                <p className="text-slate-300 text-sm mb-2">Utilisent des <strong>community strings</strong> (mots de passe) transmis <strong>en clair</strong> sur le réseau.</p>
+                <div className="bg-black rounded-lg p-3 font-mono text-xs">
+                  <p className="text-slate-400">Community string par défaut :</p>
+                  <p className="text-red-400 mt-1">Lecture : <strong>public</strong> — Écriture : <strong>private</strong></p>
                 </div>
-              ))}
+                <p className="text-red-200 text-xs mt-2 font-semibold">Problème : n'importe qui sur le réseau peut capturer le mot de passe avec Wireshark. Comme envoyer un mot de passe par carte postale.</p>
+              </div>
+              <div className="bg-emerald-900/20 border border-emerald-500/40 rounded-xl p-5">
+                <div className="flex items-center gap-2 mb-2"><p className="text-emerald-300 font-bold text-lg">SNMPv3 — Sécurisé</p></div>
+                <p className="text-slate-300 text-sm mb-2">Introduit <strong>authentification</strong> (vérifier l'identité) et <strong>chiffrement</strong> (protéger les données).</p>
+                <div className="bg-black rounded-lg p-3 font-mono text-xs">
+                  <p className="text-slate-400">3 niveaux de sécurité :</p>
+                  <p className="text-slate-300 mt-1"><strong>noAuthNoPriv</strong> — pas d'auth, pas de chiffrement (comme v2c)</p>
+                  <p className="text-amber-300"><strong>authNoPriv</strong> — authentification, mais pas de chiffrement</p>
+                  <p className="text-emerald-300"><strong>authPriv</strong> — authentification + chiffrement (le plus sûr)</p>
+                </div>
+                <p className="text-emerald-200 text-xs mt-2 font-semibold">En entreprise, on utilise toujours SNMPv3 authPriv. Comme envoyer un mot de passe dans une lettre scellée et chiffrée.</p>
+              </div>
             </div>
           </div>
         )
       },
       {
         type: 'rich_text',
-        title: "Tableau à compléter – Syslog & SNMP",
+        title: "Syslog vs SNMP – Comparaison complète",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">Les deux protocoles sont <strong>complémentaires</strong>, pas concurrents :</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead><tr className="bg-slate-700/50"><th className="p-3 text-left"></th><th className="p-3 text-left text-blue-300">Syslog</th><th className="p-3 text-left text-emerald-300">SNMP</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-3 font-semibold text-amber-300">Analogie</td><td className="p-3">Boîte noire d'avion</td><td className="p-3">Vigile + alarme incendie</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-3 font-semibold text-amber-300">Rôle</td><td className="p-3">Enregistrer ce qui s'est passé (logs)</td><td className="p-3">Surveiller en temps réel (métriques + alertes)</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-3 font-semibold text-amber-300">Port(s)</td><td className="p-3 font-mono text-blue-400">UDP 514</td><td className="p-3 font-mono text-emerald-400">161 (agent) + 162 (trap)</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-3 font-semibold text-amber-300">Direction</td><td className="p-3">Unidirectionnelle (équipement → serveur)</td><td className="p-3">Polling bidirectionnel + Trap unidirectionnel</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-3 font-semibold text-amber-300">Données</td><td className="p-3">Messages texte (événements, erreurs)</td><td className="p-3">Métriques numériques (CPU, trafic, température)</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-3 font-semibold text-amber-300">Quand ?</td><td className="p-3">Après coup (analyse post-incident)</td><td className="p-3">En temps réel (monitoring continu)</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
+              <p className="text-blue-200 font-bold mb-2">En résumé</p>
+              <p className="text-slate-300 text-sm"><strong>Syslog</strong> = « Qu'est-ce qui s'est passé ? » (journal). <strong>SNMP</strong> = « Comment ça va en ce moment ? » (tableau de bord).</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Scénario réel — Panne du lundi matin",
+        content: (
+          <div className="space-y-6">
+            <p className="text-slate-200 leading-relaxed text-lg">Lundi 8h30, les utilisateurs n'accèdent plus à Internet. Voici comment Syslog et SNMP aident à diagnostiquer :</p>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <span className="bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shrink-0">1</span>
+                <div className="bg-red-900/15 border border-red-500/30 rounded-lg p-3 flex-1">
+                  <p className="text-red-300 font-bold text-sm">SNMP Trap — Alerte immédiate (8h27)</p>
+                  <p className="text-slate-300 text-xs">L'agent SNMP du routeur R1 envoie un trap : <code className="text-red-400 bg-slate-800 px-1 rounded">Interface G0/1 DOWN</code>. Le NMS affiche une alerte rouge.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="bg-amber-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shrink-0">2</span>
+                <div className="bg-amber-900/15 border border-amber-500/30 rounded-lg p-3 flex-1">
+                  <p className="text-amber-300 font-bold text-sm">SNMP Polling — État actuel (8h30)</p>
+                  <p className="text-slate-300 text-xs">Le NMS interroge R1 : « État de G0/1 ? » → Réponse : <code className="text-red-400 bg-slate-800 px-1 rounded">DOWN</code>. Le graphique de trafic tombe à zéro.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="bg-blue-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shrink-0">3</span>
+                <div className="bg-blue-900/15 border border-blue-500/30 rounded-lg p-3 flex-1">
+                  <p className="text-blue-300 font-bold text-sm">Syslog — Comprendre la cause (8h31)</p>
+                  <p className="text-slate-300 text-xs">L'admin consulte les logs sur le serveur Syslog :</p>
+                  <div className="bg-black rounded-lg p-2 mt-1 font-mono text-[10px]">
+                    <p className="text-yellow-400">8h25 - R1 - %LINK-4-ERROR: G0/1 - excessive CRC errors</p>
+                    <p className="text-yellow-400">8h26 - R1 - %LINK-4-ERROR: G0/1 - excessive CRC errors</p>
+                    <p className="text-red-400">8h27 - R1 - %LINK-3-UPDOWN: G0/1 changed state to down</p>
+                  </div>
+                  <p className="text-slate-400 text-[10px] mt-1">→ Des erreurs CRC (câble défectueux) ont fait tomber l'interface. Solution : remplacer le câble.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="bg-emerald-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shrink-0">4</span>
+                <div className="bg-emerald-900/15 border border-emerald-500/30 rounded-lg p-3 flex-1">
+                  <p className="text-emerald-300 font-bold text-sm">Résolution (8h35)</p>
+                  <p className="text-slate-300 text-xs">Câble remplacé → SNMP confirme G0/1 UP → Syslog enregistre le retour → Internet rétabli.</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg">
+              <p className="text-emerald-200 font-bold">SNMP a détecté la panne en temps réel. Syslog a expliqué la cause. Ensemble, diagnostic en 5 minutes au lieu de 2 heures.</p>
+            </div>
+          </div>
+        )
+      },
+      {
+        type: 'rich_text',
+        title: "Tableau récapitulatif — Tout retenir d'un coup",
         content: (
           <div className="space-y-6 overflow-x-auto">
             <table className="w-full text-sm border-collapse">
@@ -8117,43 +8255,35 @@ Objectif : Comprendre les protocoles Syslog et SNMP pour la surveillance et la g
                 <tr className="border-b border-slate-600">
                   <th className="text-left py-3 px-4 text-amber-300 font-bold">Protocole</th>
                   <th className="text-left py-3 px-4 text-blue-300 font-bold">Port(s)</th>
-                  <th className="text-left py-3 px-4 text-emerald-300 font-bold">Fonction principale</th>
-                  <th className="text-left py-3 px-4 text-slate-300 font-bold">Type de communication</th>
+                  <th className="text-left py-3 px-4 text-emerald-300 font-bold">Fonction</th>
+                  <th className="text-left py-3 px-4 text-violet-300 font-bold">Analogie</th>
+                  <th className="text-left py-3 px-4 text-slate-300 font-bold">Commande Cisco clé</th>
                 </tr>
               </thead>
               <tbody className="text-slate-300">
-                {[
-                  { proto: "Syslog", port: "UDP 514", func: "Centralisation des logs", comm: "Unidirectionnelle (push vers serveur)" },
-                  { proto: "SNMP", port: "161 (agent), 162 (trap)", func: "Supervision et gestion des équipements", comm: "Polling bidirectionnelle + trap unidirectionnel" }
-                ].map((row, i) => (
-                  <tr key={i} className="border-b border-slate-700 hover:bg-slate-800/50">
-                    <td className="py-3 px-4 font-semibold">{row.proto}</td>
-                    <td className="py-3 px-4 font-mono text-emerald-400">{row.port}</td>
-                    <td className="py-3 px-4">{row.func}</td>
-                    <td className="py-3 px-4 text-sm">{row.comm}</td>
-                  </tr>
-                ))}
+                <tr className="border-b border-slate-700 hover:bg-slate-800/50">
+                  <td className="py-3 px-4 font-semibold">Syslog</td>
+                  <td className="py-3 px-4 font-mono text-blue-400">UDP 514</td>
+                  <td className="py-3 px-4">Centralisation des logs</td>
+                  <td className="py-3 px-4 text-sm">Boîte noire d'avion</td>
+                  <td className="py-3 px-4 font-mono text-emerald-400 text-xs">logging [IP]</td>
+                </tr>
+                <tr className="border-b border-slate-700 hover:bg-slate-800/50">
+                  <td className="py-3 px-4 font-semibold">SNMP Polling</td>
+                  <td className="py-3 px-4 font-mono text-blue-400">UDP 161</td>
+                  <td className="py-3 px-4">Supervision (métriques)</td>
+                  <td className="py-3 px-4 text-sm">Vigile en ronde</td>
+                  <td className="py-3 px-4 font-mono text-emerald-400 text-xs">snmp-server community</td>
+                </tr>
+                <tr className="border-b border-slate-700 hover:bg-slate-800/50">
+                  <td className="py-3 px-4 font-semibold">SNMP Trap</td>
+                  <td className="py-3 px-4 font-mono text-blue-400">UDP 162</td>
+                  <td className="py-3 px-4">Alertes en temps réel</td>
+                  <td className="py-3 px-4 text-sm">Alarme incendie</td>
+                  <td className="py-3 px-4 font-mono text-emerald-400 text-xs">snmp-server host [IP] traps</td>
+                </tr>
               </tbody>
             </table>
-          </div>
-        )
-      },
-      {
-        type: 'rich_text',
-        title: "Questions rapides – Réponses",
-        content: (
-          <div className="space-y-6">
-            {[
-              { q: "Quelle est la différence entre un log Syslog et un trap SNMP ?", a: "Syslog : centralisation des logs (messages de journalisation réguliers). Trap SNMP : alerte immédiate lors d'un événement critique détecté par l'agent." },
-              { q: "Pourquoi SNMPv3 est-il préféré aux versions v1 et v2c en environnement sécurisé ?", a: "SNMPv3 intègre authentification et chiffrement. Les versions v1/v2c utilisent des communautés en clair." },
-              { q: "Comment un serveur Syslog peut-il aider à diagnostiquer des pannes réseau ?", a: "Il centralise les logs des équipements (interfaces, déconnexions, erreurs), facilitant l'identification de la source de la panne." },
-              { q: "Quelle est la différence entre polling SNMP et trap SNMP ?", a: "Polling : le NMS interroge périodiquement les agents pour récupérer des infos. Trap : l'agent envoie spontanément une alerte au NMS lors d'un événement significatif." }
-            ].map((item, i) => (
-              <div key={i} className="p-4 bg-slate-800/60 rounded-lg border border-slate-600">
-                <p className="text-amber-300 font-semibold mb-2">{i + 1}. {item.q}</p>
-                <p className="text-slate-300 text-sm pl-4 border-l-2 border-emerald-500/50">→ {item.a}</p>
-              </div>
-            ))}
           </div>
         )
       },
@@ -8161,12 +8291,14 @@ Objectif : Comprendre les protocoles Syslog et SNMP pour la surveillance et la g
         type: 'interactive_quiz',
         title: "Quiz : Syslog & SNMP",
         questions: [
-          { q: "Quel port utilise Syslog ?", options: ["TCP 80", "UDP 514", "UDP 161"], a: 1, explanation: "Syslog utilise le port UDP 514 pour la transmission des logs." },
-          { q: "Quelle est la différence entre un log Syslog et un trap SNMP ?", options: ["Aucune", "Syslog = logs réguliers centralisés ; Trap = alerte immédiate sur événement critique", "Le trap est plus lent"], a: 1, explanation: "Syslog archive les messages ; le trap SNMP alerte en temps réel." },
-          { q: "Pourquoi SNMPv3 est-il préféré à v1/v2c ?", options: ["Il est plus rapide", "Il intègre authentification et chiffrement", "Il utilise moins de bande passante"], a: 1, explanation: "SNMPv3 renforce la sécurité avec authentification et chiffrement." },
-          { q: "Qu'est-ce que la MIB en SNMP ?", options: ["Un type de trap", "La base d'objets normalisés décrivant les données exposées par les équipements", "Un protocole"], a: 1, explanation: "Management Information Base — vocabulaire commun entre manager et agents." },
-          { q: "Polling SNMP vs Trap SNMP : quelle différence ?", options: ["Identique", "Polling = manager interroge ; Trap = agent alerte spontanément", "Le trap est bidirectionnel"], a: 1, explanation: "Polling : requêtes périodiques. Trap : alerte envoyée par l'agent quand un événement survient." },
-          { q: "Quels ports utilise SNMP ?", options: ["80 et 443", "21 et 20", "161 (agent) et 162 (trap)"], a: 2, explanation: "Port 161 pour les requêtes, 162 pour les traps." }
+          { q: "Quel port utilise Syslog ?", options: ["UDP 161", "TCP 80", "UDP 514", "UDP 162"], a: 2, explanation: "Syslog utilise le port UDP 514 pour la transmission des logs." },
+          { q: "Dans un message Syslog, que signifie le chiffre 5 dans %LINK-5-CHANGED ?", options: ["Le numéro d'interface", "Le niveau de sévérité (Notification)", "Le nombre d'erreurs", "Le numéro de la MIB"], a: 1, explanation: "Le chiffre après le premier tiret est le niveau de sévérité. 5 = Notification." },
+          { q: "Quel est le niveau de sévérité le PLUS grave en Syslog ?", options: ["7 (Debugging)", "4 (Warning)", "1 (Alert)", "0 (Emergency)"], a: 3, explanation: "0 = Emergency = système inutilisable. Plus le chiffre est bas, plus c'est grave." },
+          { q: "Quelle est la différence entre Polling et Trap en SNMP ?", options: ["Trap est bidirectionnel, Polling est unidirectionnel", "Polling = le manager interroge ; Trap = l'agent alerte spontanément", "Ils sont identiques", "Polling utilise le port 162"], a: 1, explanation: "Polling : le NMS interroge périodiquement (GET). Trap : l'agent envoie une alerte spontanée au NMS." },
+          { q: "Pourquoi SNMPv3 est-il préféré à v1/v2c ?", options: ["Il est plus rapide", "Il utilise TCP au lieu d'UDP", "Il intègre authentification et chiffrement", "Il n'utilise pas de MIB"], a: 2, explanation: "SNMPv3 ajoute l'authentification et le chiffrement. v1/v2c transmettent les community strings en clair." },
+          { q: "Qu'est-ce que la MIB ?", options: ["Un type de log Syslog", "Un port réseau", "La base d'objets normalisés décrivant les données des équipements", "Un logiciel de supervision"], a: 2, explanation: "Management Information Base — le dictionnaire commun entre manager et agent SNMP." },
+          { q: "Quelle commande Cisco active l'envoi des logs vers un serveur Syslog ?", options: ["snmp-server host 192.168.1.100", "service timestamps log", "logging trap debugging", "logging 192.168.1.100"], a: 3, explanation: "La commande 'logging [IP]' indique au routeur d'envoyer ses logs vers le serveur Syslog." },
+          { q: "SNMP Trap utilise quel port ?", options: ["UDP 514", "TCP 443", "UDP 161", "UDP 162"], a: 3, explanation: "Les traps SNMP sont envoyés sur le port UDP 162. Le port 161 est pour les requêtes polling." }
         ]
       },
       {
@@ -8174,21 +8306,1110 @@ Objectif : Comprendre les protocoles Syslog et SNMP pour la surveillance et la g
         title: "Flashcards : Syslog & SNMP",
         mode: "definition_to_term",
         cards: [
-          { q: "Protocole de centralisation des logs, port UDP 514", a: "Syslog" },
-          { q: "Port utilisé par Syslog", a: "UDP 514" },
-          { q: "Outil de supervision SNMP (Network Management Station)", a: "NMS" },
-          { q: "Requêtes périodiques du manager vers les agents SNMP", a: "Polling" },
-          { q: "Alerte spontanée envoyée par l'agent SNMP au manager", a: "Trap" },
-          { q: "Base d'objets normalisés en SNMP", a: "MIB" },
-          { q: "Version SNMP avec authentification et chiffrement", a: "SNMPv3" }
+          { q: "Protocole qui centralise les logs réseau sur un serveur unique (port UDP 514)", a: "Syslog" },
+          { q: "Port utilisé par Syslog pour recevoir les logs", a: "UDP 514" },
+          { q: "Niveau de sévérité Syslog le plus grave (système inutilisable)", a: "0 — Emergency" },
+          { q: "Niveau de sévérité Syslog pour les messages de débogage (le moins grave)", a: "7 — Debugging" },
+          { q: "Commande Cisco pour envoyer les logs au serveur 192.168.1.100", a: "logging 192.168.1.100" },
+          { q: "Commande Cisco pour définir le niveau de logs envoyés au serveur Syslog", a: "logging trap [niveau]" },
+          { q: "Station de supervision SNMP qui interroge les agents", a: "NMS (Manager)" },
+          { q: "Composant SNMP installé sur chaque équipement supervisé", a: "Agent SNMP" },
+          { q: "Base de données normalisée partagée entre manager et agent SNMP", a: "MIB" },
+          { q: "Requêtes périodiques du manager vers les agents (port 161)", a: "Polling (GET)" },
+          { q: "Alerte spontanée envoyée par l'agent au manager (port 162)", a: "Trap SNMP" },
+          { q: "Version SNMP avec authentification et chiffrement", a: "SNMPv3" },
+          { q: "Mot de passe SNMP v1/v2c transmis en clair sur le réseau", a: "Community string" },
+          { q: "Mnémotechnique : Every Awesome Cisco Engineer Will Need Ice-cream Daily", a: "Emergency, Alert, Critical, Error, Warning, Notification, Informational, Debugging" }
         ]
       }
     ],
     lab: {
       title: "Syslog & SNMP",
-      context: "Cette séance est principalement théorique. Syslog et SNMP sont configurés sur les équipements pour la supervision en production.",
-      consignes: null,
-      solutionContent: null
+      context: "Lab Syslog : supervision centralisée d'une infrastructure réseau. Configuration d'un serveur Syslog, envoi de logs depuis un routeur, vérification de la réception.",
+      consignes: (
+        <div className="space-y-6">
+          <div className="bg-gradient-to-br from-blue-900/30 to-emerald-900/20 border border-blue-500/40 rounded-2xl p-6">
+            <h2 className="text-xl font-bold text-white mb-3">LAB Complet — Syslog</h2>
+            <p className="text-blue-100/90 text-base leading-relaxed">Supervision centralisée d'une infrastructure réseau</p>
+          </div>
+
+          <div className="bg-slate-800/50 border border-slate-600 rounded-xl p-5">
+            <h3 className="text-lg font-bold text-blue-400 mb-3">Contexte professionnel</h3>
+            <p className="text-slate-300 text-sm leading-relaxed mb-3">Vous êtes en charge de la supervision d'un réseau d'entreprise. La direction souhaite une <strong>visibilité centralisée</strong> des événements réseau et un suivi de l'état des équipements.</p>
+            <p className="text-slate-300 text-sm leading-relaxed">Vous devez configurer :</p>
+            <ul className="text-slate-300 text-sm mt-2 space-y-1 ml-4">
+              <li>• Un <strong>serveur Syslog</strong> pour collecter les logs</li>
+              <li>• Un routeur qui envoie ses logs vers ce serveur</li>
+            </ul>
+          </div>
+
+          <div className="bg-slate-800/50 border border-slate-600 rounded-xl p-5">
+            <h3 className="text-lg font-bold text-emerald-400 mb-3">Topologie à réaliser</h3>
+            <p className="text-slate-300 text-sm mb-3">Placez les équipements suivants dans Packet Tracer :</p>
+            <ul className="text-slate-300 text-sm space-y-1 ml-4">
+              <li>• 1 Switch (SW1)</li>
+              <li>• 1 Routeur (R1)</li>
+              <li>• 1 PC superviseur (NMS)</li>
+              <li>• 1 Serveur (SyslogServer)</li>
+            </ul>
+            <div className="bg-slate-900/60 rounded-lg p-3 mt-3 font-mono text-sm text-emerald-400 text-center">
+              NMS —— SW1 —— R1 —— SyslogServer
+            </div>
+          </div>
+
+          <div className="bg-slate-800/50 border border-slate-600 rounded-xl p-5">
+            <h3 className="text-lg font-bold text-amber-400 mb-3">Plan d'adressage IP</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead>
+                  <tr className="bg-slate-700/50">
+                    <th className="p-2 text-left">Appareil</th>
+                    <th className="p-2 text-left">Adresse IP</th>
+                    <th className="p-2 text-left">Masque</th>
+                    <th className="p-2 text-left">Passerelle</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-2">NMS (PC)</td><td className="p-2 font-mono">192.168.1.10</td><td className="p-2">255.255.255.0</td><td className="p-2">192.168.1.1</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">R1 (G0/0)</td><td className="p-2 font-mono">192.168.1.1</td><td className="p-2">255.255.255.0</td><td className="p-2">—</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">SyslogServer</td><td className="p-2 font-mono">192.168.1.100</td><td className="p-2">255.255.255.0</td><td className="p-2">192.168.1.1</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="bg-slate-800/50 border border-slate-600 rounded-xl p-5">
+            <h3 className="text-lg font-bold text-violet-400 mb-3">Étapes à réaliser</h3>
+            <div className="space-y-4">
+              <div className="bg-blue-900/15 border border-blue-500/30 rounded-lg p-3">
+                <p className="text-blue-300 font-bold text-sm mb-1">Étape 1 — Configuration de base</p>
+                <ul className="text-slate-400 text-xs space-y-1 ml-4">
+                  <li>• Affecter les adresses IP à tous les équipements</li>
+                  <li>• Vérifier la connectivité réseau (ping entre tous les appareils)</li>
+                </ul>
+              </div>
+              <div className="bg-emerald-900/15 border border-emerald-500/30 rounded-lg p-3">
+                <p className="text-emerald-300 font-bold text-sm mb-1">Étape 2 — Configuration du serveur Syslog</p>
+                <ul className="text-slate-400 text-xs space-y-1 ml-4">
+                  <li>• Sur le serveur : onglet <strong>Services</strong> → <strong>Syslog</strong></li>
+                  <li>• Activer le service Syslog (ON)</li>
+                </ul>
+              </div>
+              <div className="bg-amber-900/15 border border-amber-500/30 rounded-lg p-3">
+                <p className="text-amber-300 font-bold text-sm mb-1">Étape 3 — Configuration du routeur R1</p>
+                <ul className="text-slate-400 text-xs space-y-1 ml-4">
+                  <li>• Configurer R1 pour envoyer ses logs vers le serveur Syslog</li>
+                  <li>• Commande clé : <code className="text-emerald-400 bg-slate-800 px-1 rounded">logging 192.168.1.100</code></li>
+                </ul>
+              </div>
+              <div className="bg-violet-900/15 border border-violet-500/30 rounded-lg p-3">
+                <p className="text-violet-300 font-bold text-sm mb-1">Étape 4 — Tests et vérifications</p>
+                <ul className="text-slate-400 text-xs space-y-1 ml-4">
+                  <li>• Simuler un événement sur R1 (ex : shutdown d'une interface)</li>
+                  <li>• Observer les messages Syslog dans le CLI du routeur</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+            <p className="text-amber-200 font-bold mb-2">Objectifs pédagogiques</p>
+            <ul className="text-slate-300 text-sm space-y-1 ml-2">
+              <li>• Comprendre le rôle d'un serveur Syslog dans la supervision réseau</li>
+              <li>• Savoir configurer l'envoi de logs depuis un équipement Cisco</li>
+              <li>• Observer et interpréter les messages Syslog dans le CLI</li>
+              <li>• Comprendre les niveaux de sévérité Syslog (0 à 7)</li>
+            </ul>
+          </div>
+
+          {/* ═══ LAB 2 — SYNTHÈSE ═══ */}
+          <div className="border-t-2 border-violet-500/40 pt-8 mt-8">
+            <div className="bg-gradient-to-br from-violet-900/30 to-blue-900/20 border border-violet-500/40 rounded-2xl p-6">
+              <h2 className="text-xl font-bold text-white mb-3">LAB Synthèse — VLAN + DHCP + DNS + HTTP</h2>
+              <p className="text-violet-100/90 text-base leading-relaxed">Infrastructure complète WebAgency avec segmentation réseau et services</p>
+            </div>
+
+            <div className="bg-slate-800/50 border border-slate-600 rounded-xl p-5 mt-6">
+              <h3 className="text-lg font-bold text-blue-400 mb-3">Contexte professionnel</h3>
+              <p className="text-slate-300 text-sm leading-relaxed mb-3">L'agence web <strong>WebAgency</strong> souhaite segmenter son réseau en 2 départements (Administration et Employés) avec des <strong>VLANs</strong>, un serveur <strong>DHCP</strong> pour l'attribution automatique des adresses, un serveur <strong>DNS</strong> pour la résolution de noms et un site <strong>HTTP</strong> interne.</p>
+              <p className="text-slate-300 text-sm leading-relaxed">Vous devez configurer l'ensemble de l'infrastructure :</p>
+              <ul className="text-slate-300 text-sm mt-2 space-y-1 ml-4">
+                <li>• <strong>VLANs</strong> pour séparer les départements</li>
+                <li>• <strong>Router-on-a-Stick</strong> pour le routage inter-VLAN</li>
+                <li>• <strong>DHCP</strong> sur le routeur pour chaque VLAN</li>
+                <li>• <strong>DNS + HTTP</strong> sur un serveur interne</li>
+              </ul>
+            </div>
+
+            <div className="bg-slate-800/50 border border-slate-600 rounded-xl p-5 mt-4">
+              <h3 className="text-lg font-bold text-emerald-400 mb-3">Topologie à réaliser</h3>
+              <p className="text-slate-300 text-sm mb-3">Placez les équipements suivants dans Packet Tracer :</p>
+              <ul className="text-slate-300 text-sm space-y-1 ml-4">
+                <li>• 1 Routeur (R1 — modèle 2911)</li>
+                <li>• 1 Switch (SW1 — modèle 2960)</li>
+                <li>• 1 PC Administration (PC-Admin)</li>
+                <li>• 1 PC Employé (PC-Employe)</li>
+                <li>• 1 Serveur (SRV1 — DNS + HTTP)</li>
+              </ul>
+              <div className="bg-slate-900/60 rounded-lg p-3 mt-3 font-mono text-sm text-emerald-400 text-center">
+                <p>PC-Admin (VLAN 10) ——┐</p>
+                <p className="ml-16">├—— SW1 ════ R1</p>
+                <p>PC-Employe (VLAN 20) ——┘        │</p>
+                <p className="ml-24">SRV1 (VLAN 10) ——┘</p>
+              </div>
+              <p className="text-slate-400 text-xs mt-2 italic">═══ = lien trunk entre SW1 et R1 • —— = liens access</p>
+            </div>
+
+            <div className="bg-slate-800/50 border border-slate-600 rounded-xl p-5 mt-4">
+              <h3 className="text-lg font-bold text-amber-400 mb-3">Plan d'adressage IP</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                  <thead>
+                    <tr className="bg-slate-700/50">
+                      <th className="p-2 text-left">Appareil</th>
+                      <th className="p-2 text-left">Interface</th>
+                      <th className="p-2 text-left">Adresse IP</th>
+                      <th className="p-2 text-left">VLAN</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t border-slate-600"><td className="p-2">R1</td><td className="p-2 font-mono">G0/0.10</td><td className="p-2 font-mono">192.168.10.1/24</td><td className="p-2">10 (Admin)</td></tr>
+                    <tr className="border-t border-slate-600"><td className="p-2">R1</td><td className="p-2 font-mono">G0/0.20</td><td className="p-2 font-mono">192.168.20.1/24</td><td className="p-2">20 (Employés)</td></tr>
+                    <tr className="border-t border-slate-600"><td className="p-2">SRV1</td><td className="p-2 font-mono">Fa0</td><td className="p-2 font-mono">192.168.10.100/24</td><td className="p-2">10 (Admin)</td></tr>
+                    <tr className="border-t border-slate-600"><td className="p-2">PC-Admin</td><td className="p-2 font-mono">Fa0</td><td className="p-2 font-mono">DHCP</td><td className="p-2">10 (Admin)</td></tr>
+                    <tr className="border-t border-slate-600"><td className="p-2">PC-Employe</td><td className="p-2 font-mono">Fa0</td><td className="p-2 font-mono">DHCP</td><td className="p-2">20 (Employés)</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="bg-slate-800/50 border border-slate-600 rounded-xl p-5 mt-4">
+              <h3 className="text-lg font-bold text-violet-400 mb-3">Étapes à réaliser</h3>
+              <div className="space-y-4">
+                <div className="bg-blue-900/15 border border-blue-500/30 rounded-lg p-3">
+                  <p className="text-blue-300 font-bold text-sm mb-1">Étape 1 — Câblage et VLANs</p>
+                  <ul className="text-slate-400 text-xs space-y-1 ml-4">
+                    <li>• Câbler tous les équipements</li>
+                    <li>• Créer VLAN 10 (Admin) et VLAN 20 (Employés) sur SW1</li>
+                    <li>• Attribuer les ports aux bons VLANs</li>
+                  </ul>
+                </div>
+                <div className="bg-emerald-900/15 border border-emerald-500/30 rounded-lg p-3">
+                  <p className="text-emerald-300 font-bold text-sm mb-1">Étape 2 — Trunk et Router-on-a-Stick</p>
+                  <ul className="text-slate-400 text-xs space-y-1 ml-4">
+                    <li>• Configurer le trunk entre SW1 et R1</li>
+                    <li>• Créer les sous-interfaces G0/0.10 et G0/0.20 avec encapsulation dot1q</li>
+                  </ul>
+                </div>
+                <div className="bg-amber-900/15 border border-amber-500/30 rounded-lg p-3">
+                  <p className="text-amber-300 font-bold text-sm mb-1">Étape 3 — DHCP sur le routeur</p>
+                  <ul className="text-slate-400 text-xs space-y-1 ml-4">
+                    <li>• Exclure les adresses statiques (gateway + serveur)</li>
+                    <li>• Créer un pool DHCP pour chaque VLAN</li>
+                  </ul>
+                </div>
+                <div className="bg-violet-900/15 border border-violet-500/30 rounded-lg p-3">
+                  <p className="text-violet-300 font-bold text-sm mb-1">Étape 4 — DNS et HTTP sur SRV1</p>
+                  <ul className="text-slate-400 text-xs space-y-1 ml-4">
+                    <li>• Configurer l'IP statique du serveur</li>
+                    <li>• Activer DNS avec l'entrée <strong>www.webagency.local</strong></li>
+                    <li>• Activer le service HTTP</li>
+                  </ul>
+                </div>
+                <div className="bg-red-900/15 border border-red-500/30 rounded-lg p-3">
+                  <p className="text-red-300 font-bold text-sm mb-1">Étape 5 — Tests complets</p>
+                  <ul className="text-slate-400 text-xs space-y-1 ml-4">
+                    <li>• Vérifier que les PCs reçoivent une IP en DHCP</li>
+                    <li>• Tester le ping inter-VLAN</li>
+                    <li>• Accéder à <strong>www.webagency.local</strong> depuis les 2 PCs</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-violet-900/20 border-l-4 border-violet-500 p-4 rounded-r-lg mt-4">
+              <p className="text-violet-200 font-bold mb-2">Objectifs pédagogiques</p>
+              <ul className="text-slate-300 text-sm space-y-1 ml-2">
+                <li>• Maîtriser la création de VLANs et l'attribution des ports</li>
+                <li>• Configurer un trunk et le routage inter-VLAN (Router-on-a-Stick)</li>
+                <li>• Mettre en place un serveur DHCP sur un routeur Cisco</li>
+                <li>• Configurer les services DNS et HTTP sur un serveur</li>
+                <li>• Valider la connectivité de bout en bout entre tous les VLANs</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      ),
+      solutionContent: (
+        <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16">
+          <div className="bg-gradient-to-br from-blue-900/30 to-emerald-900/20 border border-blue-500/40 rounded-2xl p-8">
+            <h1 className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
+              <CheckCircle className="w-8 h-8 text-blue-400 flex-shrink-0" /> Correction Lab Syslog — Supervision centralisée
+            </h1>
+            <p className="text-blue-100/90 text-lg leading-relaxed">Configuration complète : topologie, adressage IP, activation Syslog sur le serveur, envoi des logs depuis R1, test par shutdown d'interface, vérification sur le serveur.</p>
+          </div>
+
+          <nav className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-slate-600 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis :</span>
+              {[
+                { id: 'syslog-topo', label: 'Topologie', icon: '🔌' },
+                { id: 'syslog-ip', label: 'Adressage IP', icon: '🌐' },
+                { id: 'syslog-routeur', label: 'Routeur R1', icon: '📡' },
+                { id: 'syslog-server', label: 'Serveur Syslog', icon: '🖥️' },
+                { id: 'syslog-logging', label: 'Config Logging', icon: '📋' },
+                { id: 'syslog-test', label: 'Test & Vérif', icon: '🧪' },
+                { id: 'syslog-niveaux', label: 'Niveaux Syslog', icon: '📊' },
+                { id: 'syslog-recap', label: 'Récap', icon: '✅' }
+              ].map(({ id, label, icon }) => (
+                <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-slate-700/80 hover:bg-blue-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          {/* Étape 0 — Topologie */}
+          <section id="syslog-topo" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-blue-400 mb-6">🔌 Étape 0 — Topologie et câblage</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Placer 1 routeur (R1), 1 switch (SW1), 1 PC superviseur (NMS) et 1 serveur (SyslogServer). Câbles <strong>Copper Straight-Through</strong> partout.</p>
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead>
+                  <tr className="bg-slate-700/50">
+                    <th className="p-2 text-left">Appareil</th>
+                    <th className="p-2 text-left">Port</th>
+                    <th className="p-2 text-center text-slate-400">↔</th>
+                    <th className="p-2 text-left">Appareil</th>
+                    <th className="p-2 text-left">Port</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-2">NMS</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">SW1</td><td className="p-2 font-mono">Fa0/1</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">SyslogServer</td><td className="p-2 font-mono">Fa0</td><td className="p-2 text-center">↔</td><td className="p-2">SW1</td><td className="p-2 font-mono">Fa0/2</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">R1</td><td className="p-2 font-mono">G0/0</td><td className="p-2 text-center">↔</td><td className="p-2">SW1</td><td className="p-2 font-mono">Fa0/24</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="bg-slate-900/60 rounded-lg p-4 font-mono text-sm text-center mb-4">
+              <p className="text-emerald-400">NMS (Fa0) ——— SW1 (Fa0/1)</p>
+              <p className="text-amber-400 mt-1">SyslogServer (Fa0) ——— SW1 (Fa0/2)</p>
+              <p className="text-blue-400 mt-1">R1 (G0/0) ——— SW1 (Fa0/24)</p>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi cette topologie ?</p>
+              <p className="text-slate-300 text-sm">Le switch relie tous les appareils sur le même réseau local 192.168.1.0/24. Le routeur R1 va envoyer ses logs au serveur Syslog. Le PC NMS sert de poste de supervision pour consulter les logs.</p>
+            </div>
+          </section>
+
+          {/* Étape 1 — Adressage IP */}
+          <section id="syslog-ip" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">🌐 Étape 1 — Adressage IP des équipements</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Configurer les IP statiques sur le PC superviseur (NMS) et le serveur Syslog. Tous sur le même réseau 192.168.1.0/24.</p>
+
+            <h3 className="text-lg font-semibold text-blue-300 mb-3">NMS (PC superviseur)</h3>
+            <p className="text-slate-400 text-sm mb-3">Sur le PC NMS : Desktop → IP Configuration → Static</p>
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead><tr className="bg-slate-700/50"><th className="p-2 text-left">Champ</th><th className="p-2 text-left">Valeur</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-2">IP Address</td><td className="p-2 font-mono">192.168.1.10</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">Subnet Mask</td><td className="p-2 font-mono">255.255.255.0</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">Default Gateway</td><td className="p-2 font-mono">192.168.1.1</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="text-lg font-semibold text-amber-300 mb-3">SyslogServer</h3>
+            <p className="text-slate-400 text-sm mb-3">Sur le serveur : Desktop → IP Configuration → Static</p>
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead><tr className="bg-slate-700/50"><th className="p-2 text-left">Champ</th><th className="p-2 text-left">Valeur</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-2">IP Address</td><td className="p-2 font-mono">192.168.1.100</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">Subnet Mask</td><td className="p-2 font-mono">255.255.255.0</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2">Default Gateway</td><td className="p-2 font-mono">192.168.1.1</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">💡 Pourquoi des IP statiques ?</p>
+              <p className="text-slate-300 text-sm">Pas de serveur DHCP dans ce lab. On configure manuellement chaque appareil. Le serveur Syslog <strong>doit</strong> avoir une IP fixe car le routeur envoie ses logs vers cette adresse précise.</p>
+            </div>
+          </section>
+
+          {/* Étape 2 — Configuration du routeur */}
+          <section id="syslog-routeur" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-violet-400 mb-6">📡 Étape 2 — Configuration du routeur R1</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Configurer l'interface G0/0 du routeur avec l'IP 192.168.1.1/24. C'est la passerelle du réseau.</p>
+
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">Router{'>'}</span> enable</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Passe du mode utilisateur au mode privilégié (accès aux commandes avancées)</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">Router#</span> configure terminal</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Entre en mode configuration globale pour modifier la config du routeur</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">Router(config)#</span> hostname R1</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Donne un nom au routeur — bonne pratique pour identifier l'appareil dans les logs</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config)#</span> interface GigabitEthernet0/0</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Entre dans la configuration de l'interface G0/0 (celle connectée au switch)</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config-if)#</span> ip address 192.168.1.1 255.255.255.0</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Attribue l'IP 192.168.1.1/24 — c'est la passerelle pour tout le réseau</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config-if)#</span> no shutdown</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Active le port. Sans ça, l'interface reste « administratively down » et aucun trafic ne passe</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config-if)#</span> exit</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Retourne en mode config globale</p>
+              </div>
+            </div>
+
+            <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg mb-4">
+              <p className="text-emerald-200 font-bold mb-2">✅ Vérification</p>
+              <p className="text-slate-300 text-sm">Depuis le PC NMS, ouvrir le Command Prompt et taper : <code className="text-emerald-400 bg-slate-800 px-1 rounded">ping 192.168.1.1</code></p>
+              <p className="text-slate-400 text-xs mt-1">Si le ping passe → le routeur est bien configuré et joignable.</p>
+            </div>
+            <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg">
+              <p className="text-emerald-200 font-bold mb-2">✅ Vérification croisée</p>
+              <p className="text-slate-300 text-sm">Depuis le PC NMS : <code className="text-emerald-400 bg-slate-800 px-1 rounded">ping 192.168.1.100</code> → doit fonctionner (NMS vers serveur).</p>
+              <p className="text-slate-300 text-sm mt-1">Depuis le serveur : <code className="text-emerald-400 bg-slate-800 px-1 rounded">ping 192.168.1.1</code> → doit fonctionner (serveur vers routeur).</p>
+            </div>
+          </section>
+
+          {/* Étape 3 — Serveur Syslog */}
+          <section id="syslog-server" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">🖥️ Étape 3 — Activation du service Syslog sur le serveur</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Activer le service Syslog sur le serveur pour qu'il puisse recevoir et stocker les logs des équipements réseau.</p>
+
+            <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700 mb-6">
+              <p className="text-white font-bold mb-3">Procédure sur Packet Tracer :</p>
+              <ol className="text-slate-300 text-sm space-y-2 list-decimal list-inside">
+                <li>Cliquer sur <strong>SyslogServer</strong></li>
+                <li>Aller dans l'onglet <strong>Services</strong></li>
+                <li>Dans le menu à gauche, cliquer sur <strong>Syslog</strong></li>
+                <li>Vérifier que le service est <strong>ON</strong> (activé par défaut dans Packet Tracer)</li>
+              </ol>
+            </div>
+
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg mb-4">
+              <p className="text-blue-200 font-bold mb-2">💡 Comment fonctionne Syslog ?</p>
+              <p className="text-slate-300 text-sm">Le serveur Syslog écoute sur le <strong>port UDP 514</strong>. Quand un équipement réseau (routeur, switch) envoie un message de log, le serveur le reçoit et l'affiche dans sa liste. C'est un flux <strong>unidirectionnel</strong> : l'équipement pousse les logs vers le serveur.</p>
+            </div>
+
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg mb-4">
+              <p className="text-amber-200 font-bold mb-2">⚠️ Important</p>
+              <p className="text-slate-300 text-sm">Le service Syslog est activé par défaut dans Packet Tracer. Si ce n'est pas le cas, basculez le bouton sur <strong>ON</strong>. La liste des logs sera vide au départ — c'est normal, il n'y a encore rien à recevoir.</p>
+            </div>
+
+            <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
+              <p className="text-red-200 font-bold mb-2">⚠️ Limitation Packet Tracer</p>
+              <p className="text-slate-300 text-sm">Le service Syslog de Packet Tracer est <strong>parfois instable</strong> et peut ne pas afficher les logs reçus. Ce n'est pas un problème de votre configuration ! En entreprise, un vrai serveur Syslog (rsyslog, Graylog, Splunk) fonctionne parfaitement. Pour ce lab, on vérifiera les logs <strong>directement dans le CLI du routeur</strong> à l'étape 5.</p>
+            </div>
+          </section>
+
+          {/* Étape 4 — Configuration logging sur R1 */}
+          <section id="syslog-logging" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-red-400 mb-6">📋 Étape 4 — Configuration de l'envoi des logs sur R1</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Dire au routeur R1 d'envoyer tous ses messages de log vers le serveur Syslog (192.168.1.100). On configure aussi le niveau de sévérité et l'horodatage.</p>
+
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config)#</span> logging 192.168.1.100</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Commande clé ! Indique au routeur d'envoyer ses logs vers le serveur Syslog à l'adresse 192.168.1.100</p>
+                <p className="text-amber-200/90 text-xs font-semibold mt-2">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">Sans cette commande, les logs restent uniquement dans la mémoire locale du routeur. Avec elle, chaque événement est aussi envoyé au serveur centralisé.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config)#</span> logging trap debugging</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Définit le niveau de sévérité minimum des logs envoyés au serveur. « debugging » (niveau 7) = TOUT envoyer</p>
+                <p className="text-amber-200/90 text-xs font-semibold mt-2">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">Pour le lab, on veut voir tous les messages. En production, on utiliserait « informational » (niveau 6) ou « warnings » (niveau 4) pour réduire le volume.</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config)#</span> service timestamps log datetime msec</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Ajoute la date et l'heure précise (en millisecondes) à chaque message de log</p>
+                <p className="text-amber-200/90 text-xs font-semibold mt-2">Pourquoi :</p>
+                <p className="text-slate-400 text-xs">Indispensable pour le diagnostic ! Sans horodatage, impossible de savoir quand un événement s'est produit ni de corréler avec d'autres logs.</p>
+              </div>
+            </div>
+
+            <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg mb-4">
+              <p className="text-emerald-200 font-bold mb-2">✅ Vérification</p>
+              <p className="text-slate-300 text-sm">La vérification se fera à l'étape suivante : on va provoquer un événement (shutdown d'interface) et observer les messages Syslog <strong>directement dans le CLI du routeur</strong>.</p>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">⚠️ Note Packet Tracer</p>
+              <p className="text-slate-300 text-sm">Les commandes <code className="text-slate-400 bg-slate-800 px-1 rounded">show logging</code> et <code className="text-slate-400 bg-slate-800 px-1 rounded">logging source-interface</code> existent sur un vrai routeur Cisco mais ne sont <strong>pas supportées dans Packet Tracer</strong>. Pas d'inquiétude, les 3 commandes ci-dessus suffisent.</p>
+            </div>
+          </section>
+
+          {/* Étape 5 — Test : simuler un événement */}
+          <section id="syslog-test" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">🧪 Étape 5 — Test : simuler un événement et observer les logs</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Provoquer un événement sur R1 (shutdown/no shutdown d'interface) pour générer des messages Syslog et les observer <strong>directement dans le CLI du routeur</strong>.</p>
+
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg mb-6">
+              <p className="text-blue-200 font-bold mb-2">💡 Où voir les logs ?</p>
+              <p className="text-slate-300 text-sm">Les messages Syslog s'affichent <strong>directement dans le CLI du routeur</strong> en temps réel. C'est la méthode la plus fiable dans Packet Tracer. Le serveur Syslog de Packet Tracer est parfois instable et peut ne pas afficher les logs reçus.</p>
+            </div>
+
+            <h3 className="text-lg font-semibold text-red-300 mb-3">A. Provoquer l'événement — shutdown de l'interface</h3>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config)#</span> interface GigabitEthernet0/0</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Entre dans la config de l'interface G0/0</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config-if)#</span> shutdown</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Éteint l'interface — le routeur génère immédiatement un message Syslog</p>
+              </div>
+            </div>
+
+            <h3 className="text-lg font-semibold text-amber-300 mb-3">B. Observer les logs dans le CLI</h3>
+            <p className="text-slate-300 text-sm mb-3">Juste après le <code className="text-emerald-400 bg-slate-800 px-1 rounded">shutdown</code>, vous verrez apparaître ces messages directement dans le terminal :</p>
+            <div className="bg-slate-900/80 rounded-lg p-4 border border-slate-600 font-mono text-xs mb-6">
+              <p className="text-yellow-400">%LINK-5-CHANGED: Interface GigabitEthernet0/0, changed state to administratively down</p>
+              <p className="text-yellow-400 mt-1">%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0, changed state to down</p>
+            </div>
+
+            <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg mb-6">
+              <p className="text-red-200 font-bold mb-2">⚠️ Attention</p>
+              <p className="text-slate-300 text-sm">Le shutdown coupe la connexion réseau du routeur. C'est normal et voulu ! Le but est de générer un log. On remonte l'interface juste après.</p>
+            </div>
+
+            <h3 className="text-lg font-semibold text-emerald-300 mb-3">C. Remonter l'interface et observer les nouveaux logs</h3>
+            <div className="space-y-4 mb-4">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config-if)#</span> no shutdown</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Réactive l'interface — génère de nouveaux messages Syslog</p>
+              </div>
+            </div>
+            <p className="text-slate-300 text-sm mb-3">Nouveaux messages visibles dans le CLI :</p>
+            <div className="bg-slate-900/80 rounded-lg p-4 border border-slate-600 font-mono text-xs mb-6">
+              <p className="text-emerald-400">%LINK-3-UPDOWN: Interface GigabitEthernet0/0, changed state to up</p>
+              <p className="text-emerald-400 mt-1">%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0, changed state to up</p>
+            </div>
+
+            <h3 className="text-lg font-semibold text-violet-300 mb-3">D. Vérifier l'historique des logs avec show logging</h3>
+            <p className="text-slate-300 text-sm mb-3">Pour afficher <strong>tous les logs enregistrés</strong> dans la mémoire du routeur, utilisez :</p>
+            <div className="space-y-4 mb-4">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1#</span> show logging</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Affiche la configuration Syslog du routeur et l'historique complet des logs stockés en mémoire</p>
+              </div>
+            </div>
+            <p className="text-slate-300 text-sm mb-3">Vous verrez un résultat similaire à :</p>
+            <div className="bg-slate-900/80 rounded-lg p-4 border border-slate-600 font-mono text-xs mb-6">
+              <p className="text-slate-400">Syslog logging: enabled</p>
+              <p className="text-slate-400">  Console logging: level debugging, 4 messages logged</p>
+              <p className="text-slate-400">  Monitor logging: level debugging, 0 messages logged</p>
+              <p className="text-slate-400">  Trap logging: level debugging, 4 messages logged</p>
+              <p className="text-slate-400 mt-2">Log Buffer (4096 bytes):</p>
+              <p className="text-yellow-400 mt-1">%LINK-5-CHANGED: Interface GigabitEthernet0/0, changed state to administratively down</p>
+              <p className="text-yellow-400">%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0, changed state to down</p>
+              <p className="text-emerald-400">%LINK-3-UPDOWN: Interface GigabitEthernet0/0, changed state to up</p>
+              <p className="text-emerald-400">%LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/0, changed state to up</p>
+            </div>
+
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg mb-4">
+              <p className="text-blue-200 font-bold mb-2">💡 Que montre show logging ?</p>
+              <ul className="text-slate-300 text-sm space-y-1 ml-2">
+                <li>• <strong>Syslog logging: enabled</strong> → le logging est bien activé</li>
+                <li>• <strong>Trap logging: level debugging</strong> → confirme que la commande <code className="text-emerald-400 bg-slate-800 px-1 rounded">logging trap debugging</code> est appliquée</li>
+                <li>• <strong>Log Buffer</strong> → l'historique complet des messages Syslog stockés dans la RAM du routeur</li>
+              </ul>
+            </div>
+
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg mb-4">
+              <p className="text-blue-200 font-bold mb-2">💡 Lire un message Syslog</p>
+              <div className="bg-slate-900/50 rounded-lg p-3 mt-2 border border-slate-700 font-mono text-xs text-slate-300">
+                <p>%LINK-<span className="text-red-400 font-bold">5</span>-CHANGED: Interface GigabitEthernet0/0, changed state to down</p>
+              </div>
+              <ul className="text-slate-300 text-sm mt-3 space-y-1 ml-2">
+                <li>• <strong>%LINK</strong> → la source du message (module LINK = état des interfaces)</li>
+                <li>• <strong className="text-red-400">5</strong> → le niveau de sévérité (5 = Notification)</li>
+                <li>• <strong>CHANGED</strong> → le type d'événement</li>
+                <li>• Le reste → description de l'événement</li>
+              </ul>
+            </div>
+
+            <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg mb-4">
+              <p className="text-emerald-200 font-bold mb-2">✅ Si vous voyez ces messages dans le CLI → le lab est réussi !</p>
+              <p className="text-slate-300 text-sm">Le routeur génère bien des messages Syslog à chaque changement d'état d'interface. Ces messages contiennent le niveau de sévérité, la source et la description — exactement le format Syslog standard.</p>
+            </div>
+
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">📝 Et le serveur Syslog ?</p>
+              <p className="text-slate-300 text-sm">En entreprise, ces mêmes messages sont envoyés au serveur Syslog centralisé grâce à la commande <code className="text-emerald-400 bg-slate-800 px-1 rounded">logging 192.168.1.100</code> configurée à l'étape précédente. Le serveur les stocke et permet de les consulter plus tard. Dans Packet Tracer, le service Syslog du serveur peut être instable — l'important est de comprendre le <strong>format des messages</strong> et le <strong>principe de la supervision centralisée</strong>.</p>
+            </div>
+          </section>
+
+          {/* Niveaux de sévérité Syslog */}
+          <section id="syslog-niveaux" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-violet-400 mb-6">📊 Rappel — Les 8 niveaux de sévérité Syslog</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on retient :</strong> Plus le numéro est bas, plus c'est grave. La commande <code className="text-emerald-400 bg-slate-800 px-1 rounded">logging trap [niveau]</code> envoie tous les messages du niveau choisi <strong>et en dessous</strong> (plus graves).</p>
+
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead>
+                  <tr className="bg-slate-700/50">
+                    <th className="p-2 text-center">Niveau</th>
+                    <th className="p-2 text-left">Nom</th>
+                    <th className="p-2 text-left">Description</th>
+                    <th className="p-2 text-left">Exemple</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-t border-slate-600 bg-red-900/20"><td className="p-2 text-center font-bold text-red-400">0</td><td className="p-2 font-bold text-red-300">Emergency</td><td className="p-2">Système inutilisable</td><td className="p-2 text-xs">Crash complet du routeur</td></tr>
+                  <tr className="border-t border-slate-600 bg-red-900/10"><td className="p-2 text-center font-bold text-red-400">1</td><td className="p-2 font-bold text-red-300">Alert</td><td className="p-2">Action immédiate requise</td><td className="p-2 text-xs">Mémoire critique</td></tr>
+                  <tr className="border-t border-slate-600 bg-orange-900/10"><td className="p-2 text-center font-bold text-orange-400">2</td><td className="p-2 font-bold text-orange-300">Critical</td><td className="p-2">Condition critique</td><td className="p-2 text-xs">Panne matérielle</td></tr>
+                  <tr className="border-t border-slate-600 bg-orange-900/10"><td className="p-2 text-center font-bold text-orange-400">3</td><td className="p-2 font-bold text-orange-300">Error</td><td className="p-2">Erreur</td><td className="p-2 text-xs">Erreur de configuration</td></tr>
+                  <tr className="border-t border-slate-600 bg-amber-900/10"><td className="p-2 text-center font-bold text-amber-400">4</td><td className="p-2 font-bold text-amber-300">Warning</td><td className="p-2">Avertissement</td><td className="p-2 text-xs">Interface instable (flapping)</td></tr>
+                  <tr className="border-t border-slate-600 bg-blue-900/10"><td className="p-2 text-center font-bold text-blue-400">5</td><td className="p-2 font-bold text-blue-300">Notification</td><td className="p-2">Événement normal mais significatif</td><td className="p-2 text-xs">Interface up/down</td></tr>
+                  <tr className="border-t border-slate-600 bg-emerald-900/10"><td className="p-2 text-center font-bold text-emerald-400">6</td><td className="p-2 font-bold text-emerald-300">Informational</td><td className="p-2">Information générale</td><td className="p-2 text-xs">Connexion SSH réussie</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2 text-center font-bold text-slate-400">7</td><td className="p-2 font-bold text-slate-300">Debugging</td><td className="p-2">Messages de débogage</td><td className="p-2 text-xs">Détails internes (verbose)</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">💡 Astuce mnémotechnique</p>
+              <p className="text-slate-300 text-sm"><strong>« Every Awesome Cisco Engineer Will Need Ice-cream Daily »</strong></p>
+              <p className="text-slate-400 text-xs mt-1">Emergency, Alert, Critical, Error, Warning, Notification, Informational, Debugging</p>
+            </div>
+          </section>
+
+          {/* Récap */}
+          <section id="syslog-recap" className="bg-slate-800/50 border border-emerald-500/30 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">✅ Récapitulatif — Commandes du lab</h2>
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead>
+                  <tr className="bg-slate-700/50">
+                    <th className="p-2 text-left">Commande</th>
+                    <th className="p-2 text-left">Où ?</th>
+                    <th className="p-2 text-left">Rôle</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-2 font-mono text-emerald-400 text-xs">hostname R1</td><td className="p-2">R1 (config)</td><td className="p-2">Nommer le routeur</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2 font-mono text-emerald-400 text-xs">ip address 192.168.1.1 255.255.255.0</td><td className="p-2">R1 (config-if)</td><td className="p-2">IP de la passerelle</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2 font-mono text-emerald-400 text-xs">no shutdown</td><td className="p-2">R1 (config-if)</td><td className="p-2">Activer l'interface</td></tr>
+                  <tr className="border-t border-slate-600 bg-blue-900/10"><td className="p-2 font-mono text-blue-400 text-xs">logging 192.168.1.100</td><td className="p-2">R1 (config)</td><td className="p-2">Envoyer les logs au serveur Syslog</td></tr>
+                  <tr className="border-t border-slate-600 bg-blue-900/10"><td className="p-2 font-mono text-blue-400 text-xs">logging trap debugging</td><td className="p-2">R1 (config)</td><td className="p-2">Niveau de sévérité : tout envoyer</td></tr>
+                  <tr className="border-t border-slate-600 bg-blue-900/10"><td className="p-2 font-mono text-blue-400 text-xs">service timestamps log datetime msec</td><td className="p-2">R1 (config)</td><td className="p-2">Horodatage des logs</td></tr>
+                  <tr className="border-t border-slate-600 bg-red-900/10"><td className="p-2 font-mono text-red-400 text-xs">shutdown / no shutdown</td><td className="p-2">R1 (config-if)</td><td className="p-2">Simuler un événement (test)</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg mb-4">
+              <p className="text-emerald-200 font-bold mb-2">🎯 Ce qu'il faut retenir</p>
+              <ul className="text-slate-300 text-sm space-y-1 ml-2">
+                <li>• <strong>Syslog</strong> centralise les logs sur un serveur unique (port UDP 514)</li>
+                <li>• La commande <code className="text-emerald-400 bg-slate-800 px-1 rounded">logging [IP]</code> active l'envoi des logs</li>
+                <li>• <code className="text-emerald-400 bg-slate-800 px-1 rounded">logging trap [niveau]</code> filtre par sévérité (0 = le plus grave, 7 = tout)</li>
+                <li>• L'horodatage (<code className="text-emerald-400 bg-slate-800 px-1 rounded">service timestamps</code>) est indispensable pour le diagnostic</li>
+                <li>• En production, on combine Syslog avec un <strong>SIEM</strong> pour la corrélation et les alertes</li>
+              </ul>
+            </div>
+
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
+              <p className="text-blue-200 font-bold mb-2">🔗 Lien avec le cours</p>
+              <p className="text-slate-300 text-sm">Ce lab met en pratique la partie <strong>Syslog</strong> du cours. Le routeur joue le rôle de <strong>source de logs</strong>, le serveur celui de <strong>collecteur centralisé</strong>. En entreprise, des dizaines de routeurs, switches et firewalls envoient leurs logs au même serveur pour une supervision unifiée.</p>
+            </div>
+          </section>
+        </div>
+      ),
+      solutionContentLab2: (
+        <div className="max-w-4xl mx-auto space-y-12 text-slate-200 text-base leading-loose pb-16">
+          <div className="bg-gradient-to-br from-violet-900/30 to-blue-900/20 border border-violet-500/40 rounded-2xl p-8">
+            <h1 className="text-2xl font-bold text-white flex items-center gap-3 mb-3">
+              🏢 Correction Lab Synthèse — VLAN + DHCP + DNS + HTTP
+            </h1>
+            <p className="text-violet-100/90 text-lg leading-relaxed">Infrastructure complète WebAgency</p>
+            <p className="text-slate-300 text-sm mt-2 leading-relaxed">Ce lab regroupe VLAN, Trunk, Router-on-a-Stick, DHCP, DNS et HTTP dans une infrastructure unique.</p>
+          </div>
+
+          {/* Navigation sticky */}
+          <div className="sticky top-0 z-10 bg-slate-900/95 backdrop-blur border border-slate-700 rounded-xl p-3 flex flex-wrap gap-2">
+            {[
+              { id: 'synth-topo', label: '0. Topologie', color: 'text-blue-400' },
+              { id: 'synth-vlan', label: '1. VLANs', color: 'text-emerald-400' },
+              { id: 'synth-trunk', label: '2. Trunk', color: 'text-amber-400' },
+              { id: 'synth-roas', label: '3. Router-on-a-Stick', color: 'text-red-400' },
+              { id: 'synth-dhcp', label: '4. DHCP', color: 'text-violet-400' },
+              { id: 'synth-srv', label: '5. Serveur SRV1', color: 'text-blue-400' },
+              { id: 'synth-dns', label: '6. DNS', color: 'text-emerald-400' },
+              { id: 'synth-http', label: '7. HTTP', color: 'text-amber-400' },
+              { id: 'synth-tests', label: '8. Tests', color: 'text-red-400' },
+              { id: 'synth-recap', label: '9. Récap', color: 'text-emerald-400' }
+            ].map(item => (
+              <a key={item.id} href={`#${item.id}`} className={`${item.color} text-xs font-bold hover:underline bg-slate-800 px-2 py-1 rounded-md border border-slate-700`}>
+                {item.label}
+              </a>
+            ))}
+          </div>
+
+          {/* Étape 0 — Topologie */}
+          <section id="synth-topo" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-blue-400 mb-6">🖥️ Étape 0 — Topologie et câblage</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Placer les équipements dans Packet Tracer et les câbler.</p>
+
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead>
+                  <tr className="bg-slate-700/50">
+                    <th className="p-2 text-left">Appareil</th>
+                    <th className="p-2 text-left">Modèle</th>
+                    <th className="p-2 text-left">Interface</th>
+                    <th className="p-2 text-left">IP</th>
+                    <th className="p-2 text-left">VLAN</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-t border-slate-600"><td className="p-2 font-bold">R1</td><td className="p-2">2911</td><td className="p-2 font-mono">G0/0.10</td><td className="p-2 font-mono">192.168.10.1/24</td><td className="p-2">10</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2 font-bold">R1</td><td className="p-2">2911</td><td className="p-2 font-mono">G0/0.20</td><td className="p-2 font-mono">192.168.20.1/24</td><td className="p-2">20</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2 font-bold">SW1</td><td className="p-2">2960</td><td className="p-2 font-mono">—</td><td className="p-2 font-mono">—</td><td className="p-2">—</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2 font-bold">SRV1</td><td className="p-2">Server</td><td className="p-2 font-mono">Fa0</td><td className="p-2 font-mono">192.168.10.100/24</td><td className="p-2">10</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2 font-bold">PC-Admin</td><td className="p-2">PC</td><td className="p-2 font-mono">Fa0</td><td className="p-2 font-mono">DHCP</td><td className="p-2">10</td></tr>
+                  <tr className="border-t border-slate-600"><td className="p-2 font-bold">PC-Employe</td><td className="p-2">PC</td><td className="p-2 font-mono">Fa0</td><td className="p-2 font-mono">DHCP</td><td className="p-2">20</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="bg-slate-900/60 rounded-lg p-4 border border-slate-700 mb-4">
+              <p className="text-white font-bold mb-3">Câblage :</p>
+              <ul className="text-slate-300 text-sm space-y-2">
+                <li>• <strong>R1 G0/0</strong> → <strong>SW1 Fa0/1</strong> (câble droit — ce sera le trunk)</li>
+                <li>• <strong>PC-Admin Fa0</strong> → <strong>SW1 Fa0/2</strong> (câble droit)</li>
+                <li>• <strong>PC-Employe Fa0</strong> → <strong>SW1 Fa0/3</strong> (câble droit)</li>
+                <li>• <strong>SRV1 Fa0</strong> → <strong>SW1 Fa0/4</strong> (câble droit)</li>
+              </ul>
+            </div>
+
+            <div className="bg-slate-900/60 rounded-lg p-4 border border-slate-700 font-mono text-sm text-emerald-400 text-center">
+              <p>PC-Admin (Fa0/2) ——┐</p>
+              <p className="ml-14">├—— SW1 ════ R1 (G0/0)</p>
+              <p>PC-Employe (Fa0/3) ——┤    (Fa0/1)</p>
+              <p>SRV1 (Fa0/4) ————————┘</p>
+            </div>
+          </section>
+
+          {/* Étape 1 — VLANs */}
+          <section id="synth-vlan" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">🏷️ Étape 1 — Création des VLANs sur SW1</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Créer les deux VLANs (Administration et Employés) sur le switch et attribuer les ports.</p>
+
+            <h3 className="text-lg font-semibold text-blue-300 mb-3">A. Créer les VLANs</h3>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">SW1&gt;</span> enable</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Passe en mode privilégié</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">SW1#</span> configure terminal</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Entre en mode configuration globale</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">SW1(config)#</span> vlan 10</p>
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">SW1(config-vlan)#</span> name Administration</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ VLAN 10 pour le département Administration (PC-Admin + SRV1)</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">SW1(config-vlan)#</span> vlan 20</p>
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">SW1(config-vlan)#</span> name Employes</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ VLAN 20 pour les employés</p>
+              </div>
+            </div>
+
+            <h3 className="text-lg font-semibold text-amber-300 mb-3">B. Attribuer les ports aux VLANs</h3>
+            <div className="space-y-4 mb-4">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">SW1(config)#</span> interface FastEthernet0/2</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Entre dans la config du port Fa0/2 (celui connecté à PC-Admin)</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">SW1(config-if)#</span> switchport mode access</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Met le port en mode accès (un seul VLAN autorisé)</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">SW1(config-if)#</span> switchport access vlan 10</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Assigne ce port au VLAN 10 (Administration)</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">SW1(config-if)#</span> interface FastEthernet0/3</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Passe au port Fa0/3 (celui connecté à PC-Employe)</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">SW1(config-if)#</span> switchport mode access</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Mode accès</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">SW1(config-if)#</span> switchport access vlan 20</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Assigne ce port au VLAN 20 (Employés)</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">SW1(config-if)#</span> interface FastEthernet0/4</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Passe au port Fa0/4 (celui connecté au serveur SRV1)</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">SW1(config-if)#</span> switchport mode access</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Mode accès</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">SW1(config-if)#</span> switchport access vlan 10</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Assigne au VLAN 10 — le serveur est dans le même VLAN que l'admin</p>
+              </div>
+            </div>
+
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
+              <p className="text-blue-200 font-bold mb-2">💡 Rappel</p>
+              <p className="text-slate-300 text-sm"><code className="text-emerald-400 bg-slate-800 px-1 rounded">switchport mode access</code> configure le port en mode accès (un seul VLAN). <code className="text-emerald-400 bg-slate-800 px-1 rounded">switchport access vlan X</code> assigne le port au VLAN X.</p>
+            </div>
+          </section>
+
+          {/* Étape 2 — Trunk */}
+          <section id="synth-trunk" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">🔗 Étape 2 — Configuration du Trunk (SW1 → R1)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Le port Fa0/1 du switch (connecté au routeur) doit transporter les 2 VLANs. On le configure en trunk.</p>
+
+            <div className="space-y-4 mb-4">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">SW1(config)#</span> interface FastEthernet0/1</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Entre dans la config du port Fa0/1 (celui connecté au routeur R1)</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">SW1(config-if)#</span> switchport mode trunk</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Active le mode trunk — ce port peut transporter plusieurs VLANs</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">SW1(config-if)#</span> switchport trunk allowed vlan 10,20</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Limite le trunk aux VLANs 10 et 20 uniquement — bonne pratique de sécurité, on n'autorise que ce qui est nécessaire</p>
+              </div>
+            </div>
+
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
+              <p className="text-blue-200 font-bold mb-2">💡 Trunk = autoroute multi-VLANs</p>
+              <p className="text-slate-300 text-sm">Sans trunk, le routeur ne verrait qu'un seul VLAN. Le trunk utilise l'encapsulation <strong>802.1Q</strong> pour ajouter un tag VLAN à chaque trame, permettant au routeur de savoir de quel VLAN provient chaque paquet. La commande <code className="text-emerald-400 bg-slate-800 px-1 rounded">allowed vlan</code> empêche les VLANs non autorisés de passer sur ce lien.</p>
+            </div>
+          </section>
+
+          {/* Étape 3 — Router-on-a-Stick */}
+          <section id="synth-roas" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-red-400 mb-6">🚀 Étape 3 — Router-on-a-Stick (sous-interfaces)</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Créer des sous-interfaces sur R1 pour que le routeur puisse router le trafic entre les 2 VLANs. Chaque sous-interface = une passerelle pour un VLAN.</p>
+
+            <h3 className="text-lg font-semibold text-blue-300 mb-3">A. Sécurisation de base du routeur</h3>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">Router&gt;</span> enable</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Passe en mode privilégié</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">Router#</span> configure terminal</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Entre en mode configuration globale</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">Router(config)#</span> hostname R1</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Nomme le routeur « R1 » — bonne pratique pour identifier l'équipement</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config)#</span> enable secret class</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Mot de passe chiffré pour accéder au mode privilégié (enable). « class » = mot de passe du lab</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config)#</span> line console 0</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Entre dans la configuration de la ligne console (accès physique au routeur)</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">R1(config-line)#</span> password cisco</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Définit le mot de passe console à « cisco »</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">R1(config-line)#</span> login</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Active la demande de mot de passe à la connexion console</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">R1(config-line)#</span> exit</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Retourne en mode config globale</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config)#</span> no ip domain-lookup</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Désactive la recherche DNS automatique — évite les longs blocages quand on tape une commande invalide</p>
+              </div>
+            </div>
+
+            <h3 className="text-lg font-semibold text-amber-300 mb-3">B. Activer l'interface physique</h3>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config)#</span> interface GigabitEthernet0/0</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Entre dans la config de l'interface physique G0/0</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">R1(config-if)#</span> no shutdown</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Active l'interface physique — les sous-interfaces en héritent automatiquement</p>
+              </div>
+            </div>
+
+            <h3 className="text-lg font-semibold text-amber-300 mb-3">C. Sous-interface VLAN 10 (Admin)</h3>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config)#</span> interface GigabitEthernet0/0.10</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Crée la sous-interface .10 (le numéro correspond au VLAN par convention)</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config-subif)#</span> encapsulation dot1Q 10</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Associe cette sous-interface au VLAN 10 (tag 802.1Q)</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config-subif)#</span> ip address 192.168.10.1 255.255.255.0</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ IP de la passerelle pour le VLAN 10 — les PCs et serveurs du VLAN 10 utiliseront cette adresse comme gateway</p>
+              </div>
+            </div>
+
+            <h3 className="text-lg font-semibold text-emerald-300 mb-3">D. Sous-interface VLAN 20 (Employés)</h3>
+            <div className="space-y-4 mb-4">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config)#</span> interface GigabitEthernet0/0.20</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Crée la sous-interface .20 pour le VLAN 20</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">R1(config-subif)#</span> encapsulation dot1Q 20</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Associe au VLAN 20 (tag 802.1Q)</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">R1(config-subif)#</span> ip address 192.168.20.1 255.255.255.0</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Passerelle pour le VLAN 20 (Employés)</p>
+              </div>
+            </div>
+
+            <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg">
+              <p className="text-emerald-200 font-bold mb-2">✅ Résultat</p>
+              <p className="text-slate-300 text-sm">Le routeur a maintenant 2 passerelles : <code className="text-emerald-400 bg-slate-800 px-1 rounded">192.168.10.1</code> (VLAN 10) et <code className="text-emerald-400 bg-slate-800 px-1 rounded">192.168.20.1</code> (VLAN 20). Il peut router le trafic entre les 2 VLANs.</p>
+            </div>
+          </section>
+
+          {/* Étape 4 — DHCP */}
+          <section id="synth-dhcp" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-violet-400 mb-6">📡 Étape 4 — Configuration DHCP sur R1</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Configurer R1 comme serveur DHCP pour distribuer automatiquement les adresses IP aux PCs de chaque VLAN.</p>
+
+            <h3 className="text-lg font-semibold text-red-300 mb-3">A. Exclure les adresses statiques</h3>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config)#</span> ip dhcp excluded-address 192.168.10.1 192.168.10.10</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Réserve les adresses .1 à .10 du VLAN 10 (gateway + serveur). Le DHCP ne les distribuera pas</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config)#</span> ip dhcp excluded-address 192.168.20.1 192.168.20.10</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Réserve les adresses .1 à .10 du VLAN 20</p>
+              </div>
+            </div>
+
+            <h3 className="text-lg font-semibold text-blue-300 mb-3">B. Pool DHCP pour VLAN 10 (Admin)</h3>
+            <div className="space-y-4 mb-6">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(config)#</span> ip dhcp pool VLAN10-ADMIN</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Crée un pool DHCP nommé « VLAN10-ADMIN » — les PCs du VLAN 10 recevront leurs IP depuis ce pool</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">R1(dhcp-config)#</span> network 192.168.10.0 255.255.255.0</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Plage d'adresses à distribuer : tout le réseau 192.168.10.0/24 (sauf les adresses exclues)</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">R1(dhcp-config)#</span> default-router 192.168.10.1</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Passerelle par défaut envoyée aux PCs — c'est la sous-interface du routeur</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">R1(dhcp-config)#</span> dns-server 192.168.10.100</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Serveur DNS envoyé aux PCs — c'est SRV1 qui héberge le DNS</p>
+              </div>
+            </div>
+
+            <h3 className="text-lg font-semibold text-amber-300 mb-3">C. Pool DHCP pour VLAN 20 (Employés)</h3>
+            <div className="space-y-4 mb-4">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                <p className="font-mono text-emerald-400 text-sm"><span className="text-slate-500">R1(dhcp-config)#</span> ip dhcp pool VLAN20-EMPLOYES</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Crée un second pool pour les employés (VLAN 20)</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">R1(dhcp-config)#</span> network 192.168.20.0 255.255.255.0</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Plage d'adresses du VLAN 20</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">R1(dhcp-config)#</span> default-router 192.168.20.1</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Passerelle du VLAN 20</p>
+                <p className="font-mono text-emerald-400 text-sm mt-2"><span className="text-slate-500">R1(dhcp-config)#</span> dns-server 192.168.10.100</p>
+                <p className="text-cyan-300 text-xs italic mt-1">↳ Même DNS que le VLAN 10 — SRV1 est accessible grâce au routage inter-VLAN</p>
+              </div>
+            </div>
+
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
+              <p className="text-blue-200 font-bold mb-2">💡 Le DNS inter-VLAN</p>
+              <p className="text-slate-300 text-sm">Le serveur DNS (192.168.10.100) est dans le VLAN 10, mais les PCs du VLAN 20 pourront l'utiliser grâce au <strong>routage inter-VLAN</strong> configuré à l'étape 3. C'est tout l'intérêt du Router-on-a-Stick !</p>
+            </div>
+          </section>
+
+          {/* Étape 5 — IP statique SRV1 */}
+          <section id="synth-srv" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-blue-400 mb-6">🖥️ Étape 5 — Configuration IP du serveur SRV1</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Configurer manuellement l'adresse IP du serveur. Un serveur doit toujours avoir une IP statique (pas de DHCP).</p>
+
+            <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700 mb-4">
+              <p className="text-white font-bold mb-3">Sur SRV1 → Desktop → IP Configuration :</p>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-slate-400 text-xs mb-1">IPv4 Address</p>
+                  <p className="font-mono text-emerald-400">192.168.10.100</p>
+                </div>
+                <div>
+                  <p className="text-slate-400 text-xs mb-1">Subnet Mask</p>
+                  <p className="font-mono text-emerald-400">255.255.255.0</p>
+                </div>
+                <div>
+                  <p className="text-slate-400 text-xs mb-1">Default Gateway</p>
+                  <p className="font-mono text-emerald-400">192.168.10.1</p>
+                </div>
+                <div>
+                  <p className="text-slate-400 text-xs mb-1">DNS Server</p>
+                  <p className="font-mono text-emerald-400">192.168.10.100</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+              <p className="text-amber-200 font-bold mb-2">⚠️ Pourquoi IP statique ?</p>
+              <p className="text-slate-300 text-sm">Si le serveur recevait son IP par DHCP, elle pourrait changer au redémarrage. Or tous les clients comptent sur cette adresse pour DNS et HTTP — une IP qui change = tous les services en panne.</p>
+            </div>
+          </section>
+
+          {/* Étape 6 — DNS */}
+          <section id="synth-dns" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">🌐 Étape 6 — Configuration du service DNS</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Activer le service DNS sur SRV1 et créer un enregistrement pour que <strong>www.webagency.local</strong> pointe vers l'IP du serveur.</p>
+
+            <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700 mb-4">
+              <p className="text-white font-bold mb-3">Sur SRV1 → Services → DNS :</p>
+              <ol className="text-slate-300 text-sm space-y-2 list-decimal list-inside">
+                <li>Vérifier que le service DNS est <strong>ON</strong></li>
+                <li>Dans le champ <strong>Name</strong>, taper : <code className="text-emerald-400 bg-slate-800 px-1 rounded">www.webagency.local</code></li>
+                <li>Dans le champ <strong>Address</strong>, taper : <code className="text-emerald-400 bg-slate-800 px-1 rounded">192.168.10.100</code></li>
+                <li>Cliquer sur <strong>Add</strong></li>
+              </ol>
+            </div>
+
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
+              <p className="text-blue-200 font-bold mb-2">💡 Comment ça marche ?</p>
+              <p className="text-slate-300 text-sm">Quand un PC tapera <strong>www.webagency.local</strong> dans le navigateur, il demandera d'abord au serveur DNS « quelle est l'IP de ce nom ? ». Le DNS répondra <strong>192.168.10.100</strong>, et le PC pourra se connecter au serveur HTTP.</p>
+            </div>
+          </section>
+
+          {/* Étape 7 — HTTP */}
+          <section id="synth-http" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">🌍 Étape 7 — Configuration du service HTTP</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Activer le serveur web sur SRV1 pour que les employés puissent accéder au site interne de WebAgency.</p>
+
+            <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700 mb-4">
+              <p className="text-white font-bold mb-3">Sur SRV1 → Services → HTTP :</p>
+              <ol className="text-slate-300 text-sm space-y-2 list-decimal list-inside">
+                <li>Vérifier que <strong>HTTP</strong> est sur <strong>ON</strong></li>
+                <li>Optionnel : modifier le fichier <strong>index.html</strong> pour personnaliser la page d'accueil</li>
+              </ol>
+            </div>
+
+            <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg">
+              <p className="text-emerald-200 font-bold mb-2">✅ C'est tout !</p>
+              <p className="text-slate-300 text-sm">Le service HTTP est activé par défaut dans Packet Tracer avec une page d'accueil Cisco. Les PCs pourront y accéder via le navigateur web.</p>
+            </div>
+          </section>
+
+          {/* Étape 8 — Tests */}
+          <section id="synth-tests" className="bg-slate-800/50 border border-slate-600 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-red-400 mb-6">🧪 Étape 8 — Tests complets</h2>
+            <p className="text-slate-300 mb-4 leading-relaxed"><strong>Ce qu'on fait :</strong> Vérifier que toute l'infrastructure fonctionne de bout en bout.</p>
+
+            <h3 className="text-lg font-semibold text-blue-300 mb-3">A. Activer DHCP sur les PCs</h3>
+            <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700 mb-6">
+              <p className="text-white font-bold mb-3">Sur chaque PC → Desktop → IP Configuration :</p>
+              <ol className="text-slate-300 text-sm space-y-2 list-decimal list-inside">
+                <li>Cocher <strong>DHCP</strong> (au lieu de Static)</li>
+                <li>Attendre que le PC reçoive une adresse IP</li>
+              </ol>
+              <div className="bg-slate-900/80 rounded-lg p-3 mt-3 border border-slate-600">
+                <p className="text-slate-400 text-xs font-bold mb-2">Résultat attendu :</p>
+                <p className="font-mono text-emerald-400 text-xs">PC-Admin : IP = 192.168.10.11, Mask = 255.255.255.0, GW = 192.168.10.1, DNS = 192.168.10.100</p>
+                <p className="font-mono text-emerald-400 text-xs mt-1">PC-Employe : IP = 192.168.20.11, Mask = 255.255.255.0, GW = 192.168.20.1, DNS = 192.168.10.100</p>
+              </div>
+            </div>
+
+            <h3 className="text-lg font-semibold text-amber-300 mb-3">B. Test ping inter-VLAN</h3>
+            <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700 mb-6">
+              <p className="text-white font-bold mb-3">Depuis PC-Employe → Desktop → Command Prompt :</p>
+              <div className="bg-slate-900/80 rounded-lg p-3 mt-2 border border-slate-600 font-mono text-xs">
+                <p className="text-slate-400">C:\&gt; ping 192.168.10.100</p>
+                <p className="text-emerald-400 mt-1">Reply from 192.168.10.100: bytes=32 time&lt;1ms TTL=127</p>
+              </div>
+              <p className="text-slate-400 text-xs mt-2 italic">Si le ping passe → le routage inter-VLAN fonctionne ! Le PC du VLAN 20 communique avec le serveur du VLAN 10.</p>
+            </div>
+
+            <h3 className="text-lg font-semibold text-emerald-300 mb-3">C. Test DNS + HTTP</h3>
+            <div className="bg-slate-900/50 rounded-lg p-5 border border-slate-700 mb-4">
+              <p className="text-white font-bold mb-3">Depuis n'importe quel PC → Desktop → Web Browser :</p>
+              <ol className="text-slate-300 text-sm space-y-2 list-decimal list-inside">
+                <li>Taper <strong>www.webagency.local</strong> dans la barre d'adresse</li>
+                <li>Appuyer sur <strong>Go</strong></li>
+                <li>La page web du serveur doit s'afficher</li>
+              </ol>
+              <div className="bg-slate-900/80 rounded-lg p-3 mt-3 border border-slate-600">
+                <p className="text-slate-400 text-xs font-bold mb-2">Ce qui se passe en coulisses :</p>
+                <p className="text-slate-300 text-xs">1. Le PC demande au DNS : « Quelle est l'IP de www.webagency.local ? »</p>
+                <p className="text-slate-300 text-xs">2. Le DNS répond : « 192.168.10.100 »</p>
+                <p className="text-slate-300 text-xs">3. Le PC envoie une requête HTTP GET à 192.168.10.100</p>
+                <p className="text-slate-300 text-xs">4. Le serveur répond avec la page HTML</p>
+              </div>
+            </div>
+
+            <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg mb-4">
+              <p className="text-emerald-200 font-bold mb-2">✅ Si la page s'affiche depuis les 2 PCs → le lab est réussi !</p>
+              <p className="text-slate-300 text-sm">Vous avez configuré une infrastructure complète : segmentation VLAN, routage inter-VLAN, DHCP automatique, résolution DNS et accès HTTP. Bravo !</p>
+            </div>
+
+            <div className="bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-lg">
+              <p className="text-red-200 font-bold mb-2">❌ Si ça ne marche pas — checklist de dépannage</p>
+              <ul className="text-slate-300 text-sm space-y-1 ml-2">
+                <li>• <strong>Pas d'IP DHCP ?</strong> → Vérifier que les pools DHCP ont le bon réseau et que les exclusions ne couvrent pas tout</li>
+                <li>• <strong>Ping inter-VLAN échoue ?</strong> → Vérifier <code className="text-emerald-400 bg-slate-800 px-1 rounded">encapsulation dot1Q</code> sur les sous-interfaces et que le trunk est actif</li>
+                <li>• <strong>DNS ne résout pas ?</strong> → Vérifier que le <code className="text-emerald-400 bg-slate-800 px-1 rounded">dns-server</code> dans le pool DHCP pointe vers 192.168.10.100</li>
+                <li>• <strong>Page HTTP ne s'affiche pas ?</strong> → Vérifier que le service HTTP est ON sur SRV1</li>
+              </ul>
+            </div>
+          </section>
+
+          {/* Étape 9 — Récap */}
+          <section id="synth-recap" className="bg-slate-800/50 border border-emerald-500/30 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">✅ Récapitulatif — Toutes les commandes du lab</h2>
+            <div className="overflow-x-auto mb-6">
+              <table className="w-full text-sm text-slate-300 border border-slate-600 rounded-lg">
+                <thead>
+                  <tr className="bg-slate-700/50">
+                    <th className="p-2 text-left">Commande</th>
+                    <th className="p-2 text-left">Où ?</th>
+                    <th className="p-2 text-left">Rôle</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-t border-slate-600 bg-blue-900/10"><td className="p-2 font-mono text-blue-400 text-xs">hostname R1</td><td className="p-2">R1 (config)</td><td className="p-2">Nommer le routeur</td></tr>
+                  <tr className="border-t border-slate-600 bg-blue-900/10"><td className="p-2 font-mono text-blue-400 text-xs">enable secret class</td><td className="p-2">R1 (config)</td><td className="p-2">MdP chiffré mode privilégié</td></tr>
+                  <tr className="border-t border-slate-600 bg-blue-900/10"><td className="p-2 font-mono text-blue-400 text-xs">line console 0 / password / login</td><td className="p-2">R1 (config-line)</td><td className="p-2">Sécuriser l'accès console</td></tr>
+                  <tr className="border-t border-slate-600 bg-blue-900/10"><td className="p-2 font-mono text-blue-400 text-xs">no ip domain-lookup</td><td className="p-2">R1 (config)</td><td className="p-2">Désactiver recherche DNS auto</td></tr>
+                  <tr className="border-t border-slate-600 bg-emerald-900/10"><td className="p-2 font-mono text-emerald-400 text-xs">vlan 10 / name Administration</td><td className="p-2">SW1 (config)</td><td className="p-2">Créer le VLAN 10</td></tr>
+                  <tr className="border-t border-slate-600 bg-emerald-900/10"><td className="p-2 font-mono text-emerald-400 text-xs">switchport mode access</td><td className="p-2">SW1 (config-if)</td><td className="p-2">Port en mode accès</td></tr>
+                  <tr className="border-t border-slate-600 bg-emerald-900/10"><td className="p-2 font-mono text-emerald-400 text-xs">switchport access vlan 10</td><td className="p-2">SW1 (config-if)</td><td className="p-2">Assigner au VLAN 10</td></tr>
+                  <tr className="border-t border-slate-600 bg-amber-900/10"><td className="p-2 font-mono text-amber-400 text-xs">switchport mode trunk</td><td className="p-2">SW1 (config-if)</td><td className="p-2">Activer le trunk</td></tr>
+                  <tr className="border-t border-slate-600 bg-amber-900/10"><td className="p-2 font-mono text-amber-400 text-xs">switchport trunk allowed vlan 10,20</td><td className="p-2">SW1 (config-if)</td><td className="p-2">Limiter les VLANs autorisés</td></tr>
+                  <tr className="border-t border-slate-600 bg-red-900/10"><td className="p-2 font-mono text-red-400 text-xs">interface G0/0.10</td><td className="p-2">R1 (config)</td><td className="p-2">Créer sous-interface</td></tr>
+                  <tr className="border-t border-slate-600 bg-red-900/10"><td className="p-2 font-mono text-red-400 text-xs">encapsulation dot1Q 10</td><td className="p-2">R1 (config-subif)</td><td className="p-2">Associer au VLAN 10</td></tr>
+                  <tr className="border-t border-slate-600 bg-red-900/10"><td className="p-2 font-mono text-red-400 text-xs">ip address 192.168.10.1 255.255.255.0</td><td className="p-2">R1 (config-subif)</td><td className="p-2">Passerelle VLAN 10</td></tr>
+                  <tr className="border-t border-slate-600 bg-violet-900/10"><td className="p-2 font-mono text-violet-400 text-xs">ip dhcp excluded-address ...</td><td className="p-2">R1 (config)</td><td className="p-2">Réserver des IP</td></tr>
+                  <tr className="border-t border-slate-600 bg-violet-900/10"><td className="p-2 font-mono text-violet-400 text-xs">ip dhcp pool VLAN10-ADMIN</td><td className="p-2">R1 (config)</td><td className="p-2">Créer pool DHCP</td></tr>
+                  <tr className="border-t border-slate-600 bg-violet-900/10"><td className="p-2 font-mono text-violet-400 text-xs">network / default-router / dns-server</td><td className="p-2">R1 (dhcp-config)</td><td className="p-2">Paramètres du pool</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg mb-4">
+              <p className="text-emerald-200 font-bold mb-2">🎯 Ce qu'il faut retenir</p>
+              <ul className="text-slate-300 text-sm space-y-1 ml-2">
+                <li>• <strong>VLAN</strong> = segmentation logique du réseau (sécurité + organisation)</li>
+                <li>• <strong>Trunk</strong> = lien qui transporte plusieurs VLANs entre switch et routeur</li>
+                <li>• <strong>Router-on-a-Stick</strong> = sous-interfaces avec encapsulation dot1Q pour router entre VLANs</li>
+                <li>• <strong>DHCP</strong> = attribution automatique des IP (un pool par VLAN)</li>
+                <li>• <strong>DNS</strong> = traduction nom de domaine → adresse IP</li>
+                <li>• <strong>HTTP</strong> = protocole web pour accéder aux pages</li>
+              </ul>
+            </div>
+
+            <div className="bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-lg">
+              <p className="text-blue-200 font-bold mb-2">🔗 Compétences mobilisées</p>
+              <p className="text-slate-300 text-sm">Ce lab synthèse utilise les compétences des sessions 2 (VLAN), 3 (Trunk/Inter-VLAN), 4 (DHCP/DNS) et 5 (HTTP). C'est exactement ce type d'infrastructure qu'un technicien réseau configure en entreprise.</p>
+            </div>
+          </section>
+        </div>
+      )
     },
     quiz: [
       { q: "Quel port utilise Syslog ?", options: ["TCP 514", "UDP 514", "UDP 161"], a: 1, explanation: "Syslog utilise UDP 514." },
@@ -10430,6 +11651,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
   const isSession3 = sessionId === 3;
   const isSession4 = sessionId === 4;
   const isSession5 = sessionId === 5;
+  const isSession6 = sessionId === 6;
   return (
     <div className="h-full flex flex-col">
       <div className="bg-slate-800 p-6 rounded-t-xl border border-slate-700 border-b-0">
@@ -10452,14 +11674,14 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
             onClick={() => setLabTab('correction')}
             className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
           >
-            <CheckCircle className="w-4 h-4" /> {isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
+            <CheckCircle className="w-4 h-4" /> {isSession6 ? 'Correction Lab Syslog' : isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
           </button>
-          {(isSession2 || isSession3 || isSession4 || isSession5) && lab.solutionContentLab2 && (
+          {(isSession2 || isSession3 || isSession4 || isSession5 || isSession6) && lab.solutionContentLab2 && (
             <button
               onClick={() => setLabTab('correction_lab2')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab2' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession5 ? 'Correction Lab 2 (HTTP/FTP/ARP)' : isSession4 ? 'Correction Lab 2 (Étendu)' : isSession3 ? 'Correction Lab 2 (Dépannage)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
+              <CheckCircle className="w-4 h-4" /> {isSession6 ? 'Correction Lab 2 (Synthèse)' : isSession5 ? 'Correction Lab 2 (HTTP/FTP/ARP)' : isSession4 ? 'Correction Lab 2 (Étendu)' : isSession3 ? 'Correction Lab 2 (Dépannage)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
             </button>
           )}
           {isSession5 && lab.solutionContentLab3 && (
@@ -10499,7 +11721,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
       {labTab === 'consignes' && lab.consignes && (
         <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl px-6 py-5 overflow-y-auto">
           <h4 className="text-white font-bold flex items-center gap-2 mb-4 text-base">
-            <BookOpen className="w-5 h-5 text-amber-400" /> {isSession4 ? 'Consignes des deux labs DHCP & DNS – à réaliser sur Cisco Packet Tracer' : isSession3 ? 'Consignes du lab – à réaliser sur Cisco Packet Tracer' : isSession2 ? 'Consignes des deux labs Session 2' : 'Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer'}
+            <BookOpen className="w-5 h-5 text-amber-400" /> {isSession6 ? 'Consignes Labs Syslog & Synthèse – à réaliser sur Cisco Packet Tracer' : isSession4 ? 'Consignes des deux labs DHCP & DNS – à réaliser sur Cisco Packet Tracer' : isSession3 ? 'Consignes du lab – à réaliser sur Cisco Packet Tracer' : isSession2 ? 'Consignes des deux labs Session 2' : 'Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer'}
           </h4>
           <div className="pr-4 space-y-1 text-slate-300">
             {lab.consignes}
@@ -10509,14 +11731,14 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
       {labTab === 'correction' && (
         <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {(isSession4 || isSession5) && lab.solutionContent ? lab.solutionContent : isSession3 ? <LabCorrectionSection3 /> : isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSection />}
+            {(isSession4 || isSession5 || isSession6) && lab.solutionContent ? lab.solutionContent : isSession3 ? <LabCorrectionSection3 /> : isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSection />}
           </div>
         </div>
       )}
       {labTab === 'correction_lab2' && (
         <div className="flex-1 bg-slate-900/90 border border-slate-700 rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {(isSession4 || isSession5) ? (lab.solutionContentLab2) : isSession3 ? <LabTroubleshootingSection3 /> : isSession2 ? (lab.solutionContentLab2 || (
+            {(isSession4 || isSession5 || isSession6) ? (lab.solutionContentLab2) : isSession3 ? <LabTroubleshootingSection3 /> : isSession2 ? (lab.solutionContentLab2 || (
               <div className="max-w-2xl mx-auto bg-slate-800/50 border border-slate-600 rounded-xl p-8 text-center">
                 <h3 className="text-xl font-bold text-blue-400 mb-3">Correction Lab 2 – VLAN avancés et sécurisation</h3>
                 <p className="text-slate-400">Trunk, VLAN autorisés, VLAN natif. Pour les consignes et la correction détaillée, suivre le PDF « 3 - Introduction Vlan avancés et sécurisation - LAB.pdf ».</p>
@@ -13629,7 +14851,7 @@ const weeks = [
 // --- MAIN APP : THÉORIE + LAB + QUIZ ---
 
 export default function NetMasterClass() {
-  const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer' | 'labs' | 'labs_s2' | 'labs_s3' | 'labs_s4'
+  const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer' | 'labs' | 'labs_s2' | 'labs_s3' | 'labs_s4' | 'labs_s5' | 'labs_s6'
   const [activeSessionId, setActiveSessionId] = useState(1);
   const [activeTab, setActiveTab] = useState('theory');
   const [completedSessions, setCompletedSessions] = useState([]);
@@ -13970,6 +15192,18 @@ export default function NetMasterClass() {
                       <p className="text-[9px] text-slate-500">HTTP, FTP et ARP</p>
                     </div>
                   </button>
+                  <button
+                    disabled
+                    className="w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs bg-slate-900/50 border-slate-800 text-slate-600 cursor-not-allowed opacity-50"
+                  >
+                    <div className="p-1.5 rounded bg-slate-800">
+                      <Activity className="w-4 h-4" />
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className="font-bold">Lab Syslog (Session 3)</p>
+                      <p className="text-[9px] text-slate-500">Coming soon</p>
+                    </div>
+                  </button>
                 </div>
               )}
             </div>
@@ -14047,6 +15281,8 @@ export default function NetMasterClass() {
                   ? 'Lab DHCP & DNS'
                   : viewMode === 'labs_s5'
                   ? 'Lab FTP (Session 2)'
+                  : viewMode === 'labs_s6'
+                  ? 'Lab Syslog (Session 3)'
                   : activeSession.title}
               </h2>
             </div>
@@ -14115,6 +15351,15 @@ export default function NetMasterClass() {
               sessionLabel="Session 2 – HTTP, FTP et ARP"
               sessionDescription="Lab FTP (Session 2) : mise en œuvre du transfert de fichiers entre un client et un serveur FTP sur Cisco Packet Tracer. Consignes et correction ci-dessous."
               sessionId={5}
+            />
+          </div>
+          ) : viewMode === 'labs_s6' ? (
+          <div className="h-full min-h-[500px]">
+            <LabsSection
+              lab={sessions[5].lab}
+              sessionLabel="Session 3 – Syslog"
+              sessionDescription="Lab Syslog : supervision centralisée d'une infrastructure réseau. Configuration du serveur Syslog et envoi des logs depuis un routeur Cisco."
+              sessionId={6}
             />
           </div>
           ) : (
