@@ -2,10 +2,16 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from './AuthContext';
 import LoginPage from './LoginPage';
+import RegisterPage from './RegisterPage';
 import NetMasterClass from './NetMasterClass';
 import AdminDashboard from './AdminDashboard';
 import StudentStats from './StudentStats';
 import { Terminal, Loader2, Lock, ChevronRight } from 'lucide-react';
+
+function getPromoToken() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('promo') || null;
+}
 
 function SetPasswordPage() {
   const { setupPassword, profile } = useAuth();
@@ -154,6 +160,7 @@ function SetPasswordPage() {
 export default function App() {
   const { user, profile, loading, needsPasswordSetup } = useAuth();
   const [page, setPage] = useState('stats'); // 'stats' | 'courses' | 'admin'
+  const [promoToken] = useState(getPromoToken);
 
   if (loading) {
     return (
@@ -162,6 +169,18 @@ export default function App() {
         <Loader2 className="w-6 h-6 text-emerald-400 animate-spin" />
         <p className="text-slate-500 text-sm font-mono">Initializing connection...</p>
       </div>
+    );
+  }
+
+  if (!user && promoToken) {
+    return (
+      <RegisterPage
+        promoToken={promoToken}
+        onGoLogin={() => {
+          window.history.replaceState({}, '', window.location.pathname);
+          window.location.reload();
+        }}
+      />
     );
   }
 
@@ -174,7 +193,7 @@ export default function App() {
   }
 
   if (page === 'courses') {
-    return <NetMasterClass onShowStats={() => setPage('stats')} />;
+    return <NetMasterClass onShowStats={() => setPage('stats')} onShowAdmin={() => setPage('admin')} />;
   }
 
   return (

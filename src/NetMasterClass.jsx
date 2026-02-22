@@ -12,7 +12,7 @@ import { useAuth } from './AuthContext';
 import { supabase } from './supabaseClient';
 
 // Constante pour activer/désactiver la section Validation des acquis
-const QUIZ_ENABLED = false; // Mettre à true pour réactiver le quiz et les exercices pratiques
+const QUIZ_ENABLED = true; // Mettre à true pour réactiver le quiz et les exercices pratiques
 
 // ═══════════════════════════════════════════════════════════════
 // COMPOSANTS VIBE 2 — Purple Glassmorphism Design System
@@ -8754,56 +8754,85 @@ const session4Commands = [
   { command: "show ip dhcp binding", description: "Afficher les baux DHCP attribués (IP, MAC, bail)", syntax: "show ip dhcp binding" }
 ];
 
+const session5Commands = [
+  { command: "ip http server", description: "Activer le serveur HTTP intégré sur l'équipement Cisco", syntax: "ip http server" },
+  { command: "ip http secure-server", description: "Activer le serveur HTTPS (SSL/TLS) sur l'équipement", syntax: "ip http secure-server" },
+  { command: "show arp", description: "Afficher la table ARP (correspondances IP ↔ MAC)", syntax: "show arp" },
+  { command: "clear arp-cache", description: "Vider la table ARP pour forcer une nouvelle résolution", syntax: "clear arp-cache" },
+  { command: "ping", description: "Tester la connectivité réseau vers une adresse IP (ICMP echo)", syntax: "ping [adresse_ip]" },
+  { command: "traceroute", description: "Afficher le chemin emprunté par les paquets vers une destination", syntax: "traceroute [adresse_ip]" },
+  { command: "show ip interface brief", description: "Résumé de l'état et de l'adresse IP de toutes les interfaces", syntax: "show ip interface brief" },
+  { command: "show ip nat translations", description: "Afficher les traductions NAT actives (IP privée ↔ IP publique)", syntax: "show ip nat translations" }
+];
+
+const session6Commands = [
+  { command: "logging host", description: "Définir l'adresse IP du serveur Syslog distant", syntax: "logging host [ip_serveur]" },
+  { command: "logging trap", description: "Définir le niveau de sévérité minimum des logs envoyés (0-7)", syntax: "logging trap [niveau]" },
+  { command: "logging on", description: "Activer l'envoi des messages de log", syntax: "logging on" },
+  { command: "show logging", description: "Afficher les logs stockés localement et la configuration Syslog", syntax: "show logging" },
+  { command: "snmp-server community", description: "Créer une communauté SNMP avec droits de lecture (ro) ou écriture (rw)", syntax: "snmp-server community [nom] [ro|rw]" },
+  { command: "snmp-server host", description: "Configurer l'adresse du serveur NMS pour recevoir les traps", syntax: "snmp-server host [ip] version [v2c|v3] [communauté]" },
+  { command: "snmp-server enable traps", description: "Activer l'envoi des traps SNMP (notifications d'événements)", syntax: "snmp-server enable traps" },
+  { command: "show snmp", description: "Afficher les statistiques SNMP (paquets envoyés/reçus, erreurs)", syntax: "show snmp" }
+];
+
 // --- LISTE PÉDAGOGIQUE DES COMMANDES ---
 
 const CommandsLearningList = ({ commands }) => {
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-slate-900 to-slate-950 rounded-xl overflow-hidden border border-white/[0.15] shadow-2xl">
-      <div className="bg-[#1a1035] p-4 border-b border-white/[0.15]">
-        <h3 className="text-white font-bold flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-purple-400" /> 
-          Commandes à apprendre
-        </h3>
-        <p className="text-slate-400 text-sm mt-1">
-          Liste des commandes utilisées dans la partie théorie
-        </p>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto p-5 space-y-4">
         {commands.map((cmd, idx) => (
           <div
             key={idx}
-            className="bg-[#1a1035]/50 border border-white/[0.15] rounded-lg p-4 hover:bg-[#1a1035]/70 transition-all"
+            className="relative group hover:-translate-y-1 transition-transform duration-300"
           >
-            <div className="flex items-start gap-3">
-              <div className="bg-purple-500/20 text-purple-400 rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 font-bold text-sm">
-                {idx + 1}
-              </div>
-              <div className="flex-1">
-                <div className="font-mono text-emerald-400 font-bold text-base mb-2">
-                  {cmd.command}
-                </div>
-                <div className="text-slate-300 text-sm leading-relaxed">
-                  {cmd.description}
-                </div>
-                {cmd.syntax && (
-                  <div className="mt-2 pt-2 border-t border-white/[0.15]">
-                    <span className="text-xs text-slate-500 uppercase tracking-wider">Syntaxe complète :</span>
-                    <div className="font-mono text-amber-400 text-sm mt-1">
-                      {cmd.syntax}
-                    </div>
+            {/* Glow on hover */}
+            <div className="absolute -inset-px rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl bg-gradient-to-r from-purple-500/20 to-blue-500/20" />
+            {/* Glass card */}
+            <div className="relative bg-white/[0.03] backdrop-blur-md border border-white/10 rounded-xl p-4 flex flex-col gap-3 overflow-hidden">
+              {/* Corner shine */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-purple-400">
+                    <Terminal size={14} />
                   </div>
-                )}
+                  <h3 className="font-mono text-[13px] font-semibold text-white tracking-tight">
+                    {cmd.command}
+                  </h3>
+                </div>
+                <span className="px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-[10px] font-medium text-purple-300 uppercase tracking-wider">
+                  Cisco IOS
+                </span>
               </div>
+              {/* Description */}
+              <p className="text-xs text-slate-400 leading-relaxed">{cmd.description}</p>
+              {/* Syntax */}
+              {cmd.syntax && (
+                <div>
+                  <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-1.5 flex items-center gap-1.5">
+                    <span className="w-1 h-1 rounded-full bg-purple-500" />
+                    Syntaxe
+                  </div>
+                  <div className="bg-black/40 rounded-lg p-3 border border-white/5 group-hover:border-purple-500/30 transition-colors duration-300">
+                    <code className="text-[11px] font-mono text-purple-200/90">{cmd.syntax}</code>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="bg-[#1a1035]/50 p-4 border-t border-white/[0.15]">
-        <p className="text-slate-400 text-xs text-center">
-          💡 Astuce : Pratiquez ces commandes dans Cisco Packet Tracer
-        </p>
+      {/* Footer */}
+      <div className="px-6 py-4 border-t border-white/5 flex items-center justify-between">
+        <span className="text-[10px] text-slate-500 flex items-center gap-1.5">
+          <div className="w-1 h-1 rounded-full bg-emerald-500" />
+          Pratiquez ces commandes dans Cisco Packet Tracer
+        </span>
+        <span className="text-[10px] text-slate-600 font-mono">{commands.length} commandes</span>
       </div>
     </div>
   );
@@ -9086,58 +9115,335 @@ const PracticeExercises = ({ sessionId }) => {
     );
   }
   
-  const exercises = sessionId === 1 ? [
-    {
-      type: 'terminal_sim',
-      title: 'Simulation de Terminal Cisco',
-      description: 'Tapez les commandes dans le bon ordre pour configurer un routeur',
-      objective: 'Configurer le hostname, le mot de passe enable et sauvegarder',
-      commands: [
-        { cmd: 'enable', prompt: 'Router>', nextPrompt: 'Router#', desc: 'Passer en mode privilégié' },
-        { cmd: 'configure terminal', prompt: 'Router#', nextPrompt: 'Router(config)#', desc: 'Entrer en mode configuration' },
-        { cmd: 'hostname R-Nova', prompt: 'Router(config)#', nextPrompt: 'R-Nova(config)#', desc: 'Renommer le routeur' },
-        { cmd: 'enable secret cisco123', prompt: 'R-Nova(config)#', nextPrompt: 'R-Nova(config)#', desc: 'Définir le mot de passe enable' },
-        { cmd: 'copy running-config startup-config', prompt: 'R-Nova(config)#', nextPrompt: 'R-Nova#', desc: 'Sauvegarder la configuration' }
-      ]
-    },
-    {
-      type: 'command_order',
-      title: 'Mise en Ordre des Commandes',
-      description: 'Réorganisez les commandes dans le bon ordre pour sécuriser l\'accès console',
-      objective: 'Sécuriser l\'accès console avec un mot de passe',
-      commands: [
-        { cmd: 'line console 0', desc: 'Entrer en mode configuration console' },
-        { cmd: 'password cisco', desc: 'Définir le mot de passe console' },
-        { cmd: 'login', desc: 'Activer la demande de mot de passe' },
-        { cmd: 'exit', desc: 'Quitter le mode configuration ligne' }
-      ],
-      correctOrder: [0, 1, 2, 3]
-    },
-    {
-      type: 'fill_config',
-      title: 'Complétion de Configuration',
-      description: 'Complétez la configuration SSH en remplissant les champs manquants',
-      objective: 'Configurer SSH sur un routeur',
-      config: {
-        domainName: { value: '', placeholder: 'Ex: novatech.local', correct: 'novatech.local' },
-        username: { value: '', placeholder: 'Nom d\'utilisateur admin', correct: 'admin' },
-        privilege: { value: '', placeholder: 'Niveau de privilège (0-15)', correct: '15' },
-        rsaBits: { value: '', placeholder: 'Taille des clés RSA (ex: 1024)', correct: '1024' }
+  const exercisesBySession = {
+    1: [
+      {
+        type: 'terminal_sim',
+        title: 'Simulation de Terminal Cisco',
+        description: 'Tapez les commandes dans le bon ordre pour configurer un routeur',
+        objective: 'Configurer le hostname, le mot de passe enable et sauvegarder',
+        commands: [
+          { cmd: 'enable', prompt: 'Router>', nextPrompt: 'Router#', desc: 'Passer en mode privilégié' },
+          { cmd: 'configure terminal', prompt: 'Router#', nextPrompt: 'Router(config)#', desc: 'Entrer en mode configuration' },
+          { cmd: 'hostname R-Nova', prompt: 'Router(config)#', nextPrompt: 'R-Nova(config)#', desc: 'Renommer le routeur' },
+          { cmd: 'enable secret cisco123', prompt: 'R-Nova(config)#', nextPrompt: 'R-Nova(config)#', desc: 'Définir le mot de passe enable' },
+          { cmd: 'copy running-config startup-config', prompt: 'R-Nova(config)#', nextPrompt: 'R-Nova#', desc: 'Sauvegarder la configuration' }
+        ]
+      },
+      {
+        type: 'command_order',
+        title: 'Mise en Ordre des Commandes',
+        description: 'Réorganisez les commandes dans le bon ordre pour sécuriser l\'accès console',
+        objective: 'Sécuriser l\'accès console avec un mot de passe',
+        commands: [
+          { cmd: 'line console 0', desc: 'Entrer en mode configuration console' },
+          { cmd: 'password cisco', desc: 'Définir le mot de passe console' },
+          { cmd: 'login', desc: 'Activer la demande de mot de passe' },
+          { cmd: 'exit', desc: 'Quitter le mode configuration ligne' }
+        ],
+        correctOrder: [0, 1, 2, 3]
+      },
+      {
+        type: 'fill_config',
+        title: 'Complétion de Configuration',
+        description: 'Complétez la configuration SSH en remplissant les champs manquants',
+        objective: 'Configurer SSH sur un routeur',
+        config: {
+          domainName: { value: '', placeholder: 'Ex: novatech.local', correct: 'novatech.local' },
+          username: { value: '', placeholder: 'Nom d\'utilisateur admin', correct: 'admin' },
+          privilege: { value: '', placeholder: 'Niveau de privilège (0-15)', correct: '15' },
+          rsaBits: { value: '', placeholder: 'Taille des clés RSA (ex: 1024)', correct: '1024' }
+        }
+      },
+      {
+        type: 'troubleshooting',
+        title: 'Dépannage Interactif',
+        description: 'Diagnostiquez et réparez une configuration cassée',
+        objective: 'Trouver et corriger l\'erreur dans la configuration',
+        scenario: 'Le routeur ne peut pas être configuré via SSH. Les utilisateurs locaux existent mais la connexion échoue.',
+        steps: [
+          { action: 'Vérifier la configuration SSH', cmd: 'show ip ssh', expected: 'SSH Enabled' },
+          { action: 'Vérifier les lignes VTY', cmd: 'show running-config | section line vty', expected: 'login local' },
+          { action: 'Corriger la configuration', cmd: 'line vty 0 4\nlogin local', expected: 'Configuration corrigée' }
+        ]
       }
-    },
-    {
-      type: 'troubleshooting',
-      title: 'Dépannage Interactif',
-      description: 'Diagnostiquez et réparez une configuration cassée',
-      objective: 'Trouver et corriger l\'erreur dans la configuration',
-      scenario: 'Le routeur ne peut pas être configuré via SSH. Les utilisateurs locaux existent mais la connexion échoue.',
-      steps: [
-        { action: 'Vérifier la configuration SSH', cmd: 'show ip ssh', expected: 'SSH Enabled' },
-        { action: 'Vérifier les lignes VTY', cmd: 'show running-config | section line vty', expected: 'login local' },
-        { action: 'Corriger la configuration', cmd: 'line vty 0 4\nlogin local', expected: 'Configuration corrigée' }
-      ]
-    }
-  ] : [];
+    ],
+    2: [
+      {
+        type: 'terminal_sim',
+        title: 'Création et Attribution de VLANs',
+        description: 'Créez des VLANs et assignez-les aux ports du switch',
+        objective: 'Créer le VLAN 10 (Comptabilité) et assigner le port Fa0/1',
+        commands: [
+          { cmd: 'enable', prompt: 'Switch>', nextPrompt: 'Switch#', desc: 'Passer en mode privilégié' },
+          { cmd: 'configure terminal', prompt: 'Switch#', nextPrompt: 'Switch(config)#', desc: 'Entrer en mode configuration' },
+          { cmd: 'vlan 10', prompt: 'Switch(config)#', nextPrompt: 'Switch(config-vlan)#', desc: 'Créer le VLAN 10' },
+          { cmd: 'name Comptabilite', prompt: 'Switch(config-vlan)#', nextPrompt: 'Switch(config-vlan)#', desc: 'Nommer le VLAN' },
+          { cmd: 'exit', prompt: 'Switch(config-vlan)#', nextPrompt: 'Switch(config)#', desc: 'Quitter la config VLAN' },
+          { cmd: 'interface fa0/1', prompt: 'Switch(config)#', nextPrompt: 'Switch(config-if)#', desc: 'Sélectionner le port Fa0/1' },
+          { cmd: 'switchport mode access', prompt: 'Switch(config-if)#', nextPrompt: 'Switch(config-if)#', desc: 'Passer le port en mode access' },
+          { cmd: 'switchport access vlan 10', prompt: 'Switch(config-if)#', nextPrompt: 'Switch(config-if)#', desc: 'Assigner le VLAN 10 au port' }
+        ]
+      },
+      {
+        type: 'command_order',
+        title: 'Séquence de Configuration VLAN',
+        description: 'Remettez dans l\'ordre les commandes pour créer un VLAN et l\'assigner à un port',
+        objective: 'Créer le VLAN 20 (Direction) et l\'assigner au port Fa0/5',
+        commands: [
+          { cmd: 'vlan 20', desc: 'Créer le VLAN 20' },
+          { cmd: 'name Direction', desc: 'Nommer le VLAN Direction' },
+          { cmd: 'interface fa0/5', desc: 'Sélectionner le port Fa0/5' },
+          { cmd: 'switchport mode access', desc: 'Mettre le port en mode access' },
+          { cmd: 'switchport access vlan 20', desc: 'Assigner le VLAN 20 au port' }
+        ],
+        correctOrder: [0, 1, 2, 3, 4]
+      },
+      {
+        type: 'fill_config',
+        title: 'Configuration Multi-VLAN',
+        description: 'Complétez la configuration pour créer plusieurs VLANs sur un switch',
+        objective: 'Configurer les VLANs 10, 20 et 30 avec leurs noms',
+        config: {
+          vlan10Name: { value: '', placeholder: 'Nom du VLAN 10', correct: 'Comptabilite' },
+          vlan20Name: { value: '', placeholder: 'Nom du VLAN 20', correct: 'Direction' },
+          vlan30Name: { value: '', placeholder: 'Nom du VLAN 30', correct: 'Informatique' },
+          accessPort: { value: '', placeholder: 'Mode du port (access ou trunk)', correct: 'access' }
+        }
+      },
+      {
+        type: 'troubleshooting',
+        title: 'Dépannage VLAN',
+        description: 'Un PC ne communique pas avec les autres dans son VLAN',
+        objective: 'Identifier et corriger le problème de VLAN',
+        scenario: 'Le PC de la comptabilité (VLAN 10) connecté sur Fa0/3 ne peut pas communiquer avec les autres PC du VLAN 10. Les autres PC fonctionnent correctement.',
+        steps: [
+          { action: 'Vérifier le VLAN du port', cmd: 'show vlan brief', expected: 'Fa0/3 dans VLAN 1 (mauvais VLAN)' },
+          { action: 'Vérifier le mode du port', cmd: 'show interface fa0/3 switchport', expected: 'Mode access' },
+          { action: 'Corriger l\'assignation VLAN', cmd: 'interface fa0/3\nswitchport access vlan 10', expected: 'Port assigné au VLAN 10' }
+        ]
+      }
+    ],
+    3: [
+      {
+        type: 'terminal_sim',
+        title: 'Configuration d\'un Trunk 802.1Q',
+        description: 'Configurez un lien trunk entre deux switches',
+        objective: 'Activer le trunk sur Gi0/1 et autoriser les VLANs 10 et 20',
+        commands: [
+          { cmd: 'enable', prompt: 'Switch>', nextPrompt: 'Switch#', desc: 'Passer en mode privilégié' },
+          { cmd: 'configure terminal', prompt: 'Switch#', nextPrompt: 'Switch(config)#', desc: 'Entrer en mode configuration' },
+          { cmd: 'interface gi0/1', prompt: 'Switch(config)#', nextPrompt: 'Switch(config-if)#', desc: 'Sélectionner l\'interface Gi0/1' },
+          { cmd: 'switchport mode trunk', prompt: 'Switch(config-if)#', nextPrompt: 'Switch(config-if)#', desc: 'Activer le mode trunk' },
+          { cmd: 'switchport trunk allowed vlan 10,20', prompt: 'Switch(config-if)#', nextPrompt: 'Switch(config-if)#', desc: 'Autoriser les VLANs 10 et 20' }
+        ]
+      },
+      {
+        type: 'terminal_sim',
+        title: 'Routage Inter-VLAN (Router-on-a-Stick)',
+        description: 'Configurez les sous-interfaces du routeur pour le routage inter-VLAN',
+        objective: 'Créer les sous-interfaces pour VLAN 10 et VLAN 20',
+        commands: [
+          { cmd: 'enable', prompt: 'Router>', nextPrompt: 'Router#', desc: 'Passer en mode privilégié' },
+          { cmd: 'configure terminal', prompt: 'Router#', nextPrompt: 'Router(config)#', desc: 'Entrer en mode configuration' },
+          { cmd: 'interface gi0/0.10', prompt: 'Router(config)#', nextPrompt: 'Router(config-subif)#', desc: 'Créer la sous-interface pour VLAN 10' },
+          { cmd: 'encapsulation dot1q 10', prompt: 'Router(config-subif)#', nextPrompt: 'Router(config-subif)#', desc: 'Encapsulation 802.1Q VLAN 10' },
+          { cmd: 'ip address 192.168.10.1 255.255.255.0', prompt: 'Router(config-subif)#', nextPrompt: 'Router(config-subif)#', desc: 'Assigner l\'IP passerelle VLAN 10' },
+          { cmd: 'interface gi0/0.20', prompt: 'Router(config-subif)#', nextPrompt: 'Router(config-subif)#', desc: 'Créer la sous-interface pour VLAN 20' },
+          { cmd: 'encapsulation dot1q 20', prompt: 'Router(config-subif)#', nextPrompt: 'Router(config-subif)#', desc: 'Encapsulation 802.1Q VLAN 20' },
+          { cmd: 'ip address 192.168.20.1 255.255.255.0', prompt: 'Router(config-subif)#', nextPrompt: 'Router(config-subif)#', desc: 'Assigner l\'IP passerelle VLAN 20' }
+        ]
+      },
+      {
+        type: 'command_order',
+        title: 'Séquence Trunk + Routage',
+        description: 'Remettez dans l\'ordre les étapes pour configurer un trunk et le routage inter-VLAN',
+        objective: 'Ordonner les étapes de configuration complète',
+        commands: [
+          { cmd: 'switchport mode trunk', desc: 'Activer le trunk sur le switch' },
+          { cmd: 'switchport trunk allowed vlan 10,20', desc: 'Filtrer les VLANs autorisés' },
+          { cmd: 'interface gi0/0.10', desc: 'Créer la sous-interface côté routeur' },
+          { cmd: 'encapsulation dot1q 10', desc: 'Associer la sous-interface au VLAN 10' },
+          { cmd: 'ip address 192.168.10.1 255.255.255.0', desc: 'Configurer la passerelle du VLAN' }
+        ],
+        correctOrder: [0, 1, 2, 3, 4]
+      },
+      {
+        type: 'troubleshooting',
+        title: 'Dépannage Inter-VLAN',
+        description: 'Le VLAN 10 ne peut pas communiquer avec le VLAN 20 malgré la configuration du routeur',
+        objective: 'Trouver et corriger le problème de routage inter-VLAN',
+        scenario: 'Le routeur a les sous-interfaces configurées mais les PCs du VLAN 10 ne pingent pas ceux du VLAN 20. Le trunk est actif entre le switch et le routeur.',
+        steps: [
+          { action: 'Vérifier les sous-interfaces', cmd: 'show ip interface brief', expected: 'Sous-interfaces UP/UP' },
+          { action: 'Vérifier l\'encapsulation', cmd: 'show interfaces gi0/0.10', expected: 'Encapsulation dot1Q, VLAN 10' },
+          { action: 'Vérifier l\'interface physique', cmd: 'interface gi0/0\nno shutdown', expected: 'Interface physique activée' }
+        ]
+      }
+    ],
+    4: [
+      {
+        type: 'terminal_sim',
+        title: 'Configuration du Serveur DHCP',
+        description: 'Configurez un pool DHCP sur un routeur Cisco',
+        objective: 'Créer un pool DHCP pour le réseau 192.168.1.0/24',
+        commands: [
+          { cmd: 'enable', prompt: 'Router>', nextPrompt: 'Router#', desc: 'Passer en mode privilégié' },
+          { cmd: 'configure terminal', prompt: 'Router#', nextPrompt: 'Router(config)#', desc: 'Entrer en mode configuration' },
+          { cmd: 'ip dhcp excluded-address 192.168.1.1 192.168.1.10', prompt: 'Router(config)#', nextPrompt: 'Router(config)#', desc: 'Exclure les adresses réservées' },
+          { cmd: 'ip dhcp pool LAN_POOL', prompt: 'Router(config)#', nextPrompt: 'Router(dhcp-config)#', desc: 'Créer le pool DHCP' },
+          { cmd: 'network 192.168.1.0 255.255.255.0', prompt: 'Router(dhcp-config)#', nextPrompt: 'Router(dhcp-config)#', desc: 'Définir le réseau du pool' },
+          { cmd: 'default-router 192.168.1.1', prompt: 'Router(dhcp-config)#', nextPrompt: 'Router(dhcp-config)#', desc: 'Définir la passerelle par défaut' },
+          { cmd: 'dns-server 8.8.8.8', prompt: 'Router(dhcp-config)#', nextPrompt: 'Router(dhcp-config)#', desc: 'Définir le serveur DNS' }
+        ]
+      },
+      {
+        type: 'command_order',
+        title: 'Processus DORA du DHCP',
+        description: 'Remettez dans l\'ordre les 4 étapes du processus DHCP (DORA)',
+        objective: 'Comprendre l\'échange DHCP entre client et serveur',
+        commands: [
+          { cmd: 'DHCP Discover', desc: 'Le client envoie un broadcast pour trouver un serveur DHCP' },
+          { cmd: 'DHCP Offer', desc: 'Le serveur propose une adresse IP au client' },
+          { cmd: 'DHCP Request', desc: 'Le client accepte l\'offre et demande l\'adresse' },
+          { cmd: 'DHCP Acknowledgment', desc: 'Le serveur confirme l\'attribution de l\'adresse' }
+        ],
+        correctOrder: [0, 1, 2, 3]
+      },
+      {
+        type: 'fill_config',
+        title: 'Configuration DNS & DHCP',
+        description: 'Complétez les paramètres DHCP et DNS',
+        objective: 'Configurer un pool DHCP complet avec DNS',
+        config: {
+          network: { value: '', placeholder: 'Réseau (ex: 192.168.1.0)', correct: '192.168.1.0' },
+          mask: { value: '', placeholder: 'Masque (ex: 255.255.255.0)', correct: '255.255.255.0' },
+          gateway: { value: '', placeholder: 'Passerelle (ex: 192.168.1.1)', correct: '192.168.1.1' },
+          dns: { value: '', placeholder: 'Serveur DNS (ex: 8.8.8.8)', correct: '8.8.8.8' }
+        }
+      },
+      {
+        type: 'troubleshooting',
+        title: 'Dépannage DHCP',
+        description: 'Les clients ne reçoivent pas d\'adresse IP automatiquement',
+        objective: 'Diagnostiquer un problème DHCP',
+        scenario: 'Les PCs du réseau 192.168.1.0/24 ne reçoivent pas d\'adresse IP via DHCP. Le pool a été configuré mais les clients restent en APIPA (169.254.x.x).',
+        steps: [
+          { action: 'Vérifier le pool DHCP', cmd: 'show ip dhcp pool', expected: 'Pool configuré correctement' },
+          { action: 'Vérifier les baux actifs', cmd: 'show ip dhcp binding', expected: 'Aucun bail actif' },
+          { action: 'Vérifier les exclusions', cmd: 'show running-config | section dhcp', expected: 'Toutes les adresses exclues par erreur — corriger les exclusions' }
+        ]
+      }
+    ],
+    5: [
+      {
+        type: 'terminal_sim',
+        title: 'Vérification de la Table ARP',
+        description: 'Utilisez les commandes de diagnostic réseau sur un routeur',
+        objective: 'Vérifier les tables ARP et les connexions réseau',
+        commands: [
+          { cmd: 'enable', prompt: 'Router>', nextPrompt: 'Router#', desc: 'Passer en mode privilégié' },
+          { cmd: 'show arp', prompt: 'Router#', nextPrompt: 'Router#', desc: 'Afficher la table ARP' },
+          { cmd: 'show ip interface brief', prompt: 'Router#', nextPrompt: 'Router#', desc: 'Vérifier l\'état des interfaces' },
+          { cmd: 'ping 192.168.1.10', prompt: 'Router#', nextPrompt: 'Router#', desc: 'Tester la connectivité vers un hôte' },
+          { cmd: 'show arp', prompt: 'Router#', nextPrompt: 'Router#', desc: 'Vérifier la nouvelle entrée ARP' }
+        ]
+      },
+      {
+        type: 'command_order',
+        title: 'Couches du Modèle OSI — Protocoles',
+        description: 'Associez chaque protocole à sa couche dans l\'ordre de la couche la plus basse à la plus haute',
+        objective: 'Comprendre la position de HTTP, FTP et ARP dans le modèle OSI',
+        commands: [
+          { cmd: 'ARP (Couche 2-3)', desc: 'Résolution adresse IP → MAC, entre Liaison et Réseau' },
+          { cmd: 'IP (Couche 3)', desc: 'Protocole de routage, couche Réseau' },
+          { cmd: 'TCP (Couche 4)', desc: 'Transport fiable, couche Transport' },
+          { cmd: 'HTTP/FTP (Couche 7)', desc: 'Protocoles applicatifs, couche Application' }
+        ],
+        correctOrder: [0, 1, 2, 3]
+      },
+      {
+        type: 'fill_config',
+        title: 'Ports des Services Réseau',
+        description: 'Indiquez les numéros de port associés à chaque service',
+        objective: 'Connaître les ports standards des services réseau',
+        config: {
+          httpPort: { value: '', placeholder: 'Port HTTP', correct: '80' },
+          httpsPort: { value: '', placeholder: 'Port HTTPS', correct: '443' },
+          ftpDataPort: { value: '', placeholder: 'Port FTP données', correct: '20' },
+          ftpCmdPort: { value: '', placeholder: 'Port FTP commandes', correct: '21' }
+        }
+      },
+      {
+        type: 'troubleshooting',
+        title: 'Dépannage Connectivité',
+        description: 'Un serveur HTTP n\'est pas accessible depuis le réseau local',
+        objective: 'Diagnostiquer le problème de connectivité vers le serveur web',
+        scenario: 'Le serveur web (192.168.1.100) est configuré mais aucun PC du réseau ne peut y accéder via le navigateur. Le ping vers le serveur fonctionne.',
+        steps: [
+          { action: 'Vérifier la connectivité IP', cmd: 'ping 192.168.1.100', expected: 'Ping réussi (ICMP OK)' },
+          { action: 'Vérifier le port HTTP', cmd: 'show ip nat translations', expected: 'Pas de NAT bloquant le port 80' },
+          { action: 'Vérifier les ACL', cmd: 'show access-lists', expected: 'ACL bloquant le port 80 — supprimer la règle' }
+        ]
+      }
+    ],
+    6: [
+      {
+        type: 'terminal_sim',
+        title: 'Configuration Syslog',
+        description: 'Configurez l\'envoi des logs vers un serveur Syslog externe',
+        objective: 'Configurer le routeur pour envoyer les logs au serveur 192.168.1.200',
+        commands: [
+          { cmd: 'enable', prompt: 'Router>', nextPrompt: 'Router#', desc: 'Passer en mode privilégié' },
+          { cmd: 'configure terminal', prompt: 'Router#', nextPrompt: 'Router(config)#', desc: 'Entrer en mode configuration' },
+          { cmd: 'logging host 192.168.1.200', prompt: 'Router(config)#', nextPrompt: 'Router(config)#', desc: 'Définir le serveur Syslog' },
+          { cmd: 'logging trap informational', prompt: 'Router(config)#', nextPrompt: 'Router(config)#', desc: 'Niveau de sévérité minimum' },
+          { cmd: 'logging on', prompt: 'Router(config)#', nextPrompt: 'Router(config)#', desc: 'Activer le logging' }
+        ]
+      },
+      {
+        type: 'terminal_sim',
+        title: 'Configuration SNMP',
+        description: 'Configurez SNMP v2c pour le monitoring réseau',
+        objective: 'Activer SNMP avec la communauté "netacad" en lecture seule',
+        commands: [
+          { cmd: 'enable', prompt: 'Router>', nextPrompt: 'Router#', desc: 'Passer en mode privilégié' },
+          { cmd: 'configure terminal', prompt: 'Router#', nextPrompt: 'Router(config)#', desc: 'Entrer en mode configuration' },
+          { cmd: 'snmp-server community netacad ro', prompt: 'Router(config)#', nextPrompt: 'Router(config)#', desc: 'Créer la communauté SNMP en lecture seule' },
+          { cmd: 'snmp-server host 192.168.1.200 version 2c netacad', prompt: 'Router(config)#', nextPrompt: 'Router(config)#', desc: 'Configurer le serveur SNMP' },
+          { cmd: 'snmp-server enable traps', prompt: 'Router(config)#', nextPrompt: 'Router(config)#', desc: 'Activer les traps SNMP' }
+        ]
+      },
+      {
+        type: 'command_order',
+        title: 'Niveaux de Sévérité Syslog',
+        description: 'Remettez les niveaux de sévérité Syslog dans l\'ordre du plus critique au moins critique',
+        objective: 'Connaître l\'échelle de sévérité Syslog (0-7)',
+        commands: [
+          { cmd: 'Emergency (0)', desc: 'Système inutilisable' },
+          { cmd: 'Alert (1)', desc: 'Action immédiate requise' },
+          { cmd: 'Critical (2)', desc: 'Condition critique' },
+          { cmd: 'Warning (4)', desc: 'Condition d\'avertissement' },
+          { cmd: 'Informational (6)', desc: 'Messages informatifs' }
+        ],
+        correctOrder: [0, 1, 2, 3, 4]
+      },
+      {
+        type: 'fill_config',
+        title: 'Ports et Protocoles de Monitoring',
+        description: 'Complétez les informations sur les protocoles de monitoring',
+        objective: 'Connaître les ports et fonctions de Syslog et SNMP',
+        config: {
+          syslogPort: { value: '', placeholder: 'Port Syslog (UDP)', correct: '514' },
+          snmpGetPort: { value: '', placeholder: 'Port SNMP Get/Set', correct: '161' },
+          snmpTrapPort: { value: '', placeholder: 'Port SNMP Traps', correct: '162' },
+          snmpVersion: { value: '', placeholder: 'Version SNMP recommandée (v2c ou v3)', correct: 'v3' }
+        }
+      }
+    ]
+  };
+
+  const exercises = exercisesBySession[sessionId] || [];
 
   if (exercises.length === 0) {
     return (
@@ -13869,7 +14175,7 @@ const weeks = [
 
 // --- MAIN APP : THÉORIE + LAB + QUIZ ---
 
-export default function NetMasterClass({ onShowAdmin }) {
+export default function NetMasterClass({ onShowAdmin, onShowStats }) {
   const { user, profile, signOut } = useAuth();
   const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer' | 'labs' | 'labs_s2' | 'labs_s3' | 'labs_s4' | 'labs_s5' | 'labs_s6'
   const [activeSessionId, setActiveSessionId] = useState(1);
@@ -14303,7 +14609,13 @@ export default function NetMasterClass({ onShowAdmin }) {
               <p className="text-[10px] text-slate-500 capitalize">{profile?.role === 'admin' ? 'Administrateur' : profile?.role === 'prof' ? 'Professeur' : 'Étudiant'}</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            {onShowStats && (
+              <button onClick={onShowStats}
+                className="flex-1 px-3 py-1.5 text-xs rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-300 hover:bg-blue-600/30 transition-colors flex items-center justify-center gap-1.5">
+                <BarChart3 size={12} /> Dashboard
+              </button>
+            )}
             {profile?.role && ['admin', 'prof'].includes(profile.role) && (
               <button onClick={onShowAdmin}
                 className="flex-1 px-3 py-1.5 text-xs rounded-lg bg-purple-600/20 border border-purple-500/30 text-purple-300 hover:bg-purple-600/30 transition-colors flex items-center justify-center gap-1.5">
@@ -14442,31 +14754,38 @@ export default function NetMasterClass({ onShowAdmin }) {
 
             {activeTab === 'lab' && (
               <div className="h-full flex flex-col">
-                <div className="bg-[#1a1035] p-6 rounded-t-xl border border-white/[0.15] border-b-0 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                  <div>
-                    <h3 className="font-bold text-white flex items-center gap-2 text-xl">
-                      <Terminal className="text-emerald-500 w-5 h-5" /> {activeSession.lab.title}
+                {/* Glass header */}
+                <div className="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-2">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-purple-400 text-xs font-bold tracking-[0.2em] uppercase">
+                      <div className="w-8 h-[1px] bg-purple-500/50" />
+                      <span>Référence Technique</span>
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-bold tracking-tight text-white">
+                      {activeSession.lab.title} <span className="text-purple-500">.</span>
                     </h3>
-                    <p className="text-sm text-slate-400 mt-2 max-w-2xl leading-relaxed">
+                    <p className="text-sm text-slate-500 max-w-2xl leading-relaxed">
                       {activeSession.lab.context}
                     </p>
                   </div>
                   {QUIZ_ENABLED && (
                     <button
                       onClick={() => setActiveTab('quiz')}
-                      className="px-4 py-2 bg-[#251845] hover:bg-slate-600 rounded text-xs md:text-sm text-slate-200 transition-colors flex items-center gap-1.5"
+                      className="group shrink-0 px-5 py-2.5 bg-white text-black rounded-full font-bold text-xs flex items-center gap-2 hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all"
                     >
-                      Passer au Quiz <ChevronRight size={14} />
+                      Passer au Quiz <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                     </button>
                   )}
                 </div>
-                <div className="flex-1 rounded-b-xl overflow-hidden border border-white/[0.15] shadow-2xl min-h-[420px]">
-                  <CommandsLearningList 
+                <div className="flex-1 rounded-xl overflow-hidden border border-white/10 bg-white/[0.01] min-h-[420px]">
+                  <CommandsLearningList
                     commands={
                       activeSessionId === 1 ? session1Commands :
                       activeSessionId === 2 ? session2Commands :
                       activeSessionId === 3 ? session3Commands :
                       activeSessionId === 4 ? session4Commands :
+                      activeSessionId === 5 ? session5Commands :
+                      activeSessionId === 6 ? session6Commands :
                       []
                     }
                   />

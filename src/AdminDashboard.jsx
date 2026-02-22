@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Users, Clock, BookOpen, Globe, Search, ChevronDown, ChevronUp, Mail, User, Send, Copy, Check, Loader2, Link as LinkIcon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Users, Clock, BookOpen, Search, ChevronDown, ChevronUp, Copy, Check, Loader2, Link as LinkIcon, Plus, Calendar, X, ToggleLeft, ToggleRight, GraduationCap } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { useAuth } from './AuthContext';
 
@@ -17,97 +17,121 @@ function avgQuizScore(attempts) {
   return `${Math.round(avg)}%`;
 }
 
+function formatPromoDate(dateStr) {
+  return new Date(dateStr).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
 export default function AdminDashboard({ onBack }) {
   const { profile } = useAuth();
   const [students, setStudents] = useState([]);
+  const [promos, setPromos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [expandedId, setExpandedId] = useState(null);
+  const [expandedPromos, setExpandedPromos] = useState({});
 
-  // Invite state
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteName, setInviteName] = useState('');
-  const [inviteLoading, setInviteLoading] = useState(false);
-  const [inviteLink, setInviteLink] = useState('');
-  const [inviteError, setInviteError] = useState('');
-  const [copied, setCopied] = useState(false);
+  // Create promo state
+  const [showCreatePromo, setShowCreatePromo] = useState(false);
+  const [promoName, setPromoName] = useState('');
+  const [promoDate, setPromoDate] = useState('');
+  const [promoCreating, setPromoCreating] = useState(false);
+  const [promoError, setPromoError] = useState('');
+
+  // Copy link state
+  const [copiedPromoId, setCopiedPromoId] = useState(null);
 
   useEffect(() => {
-    loadStudents();
+    loadData();
   }, []);
 
-  async function loadStudents() {
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false });
+  async function loadData() {
+    const [profilesRes, progressRes, promosRes] = await Promise.all([
+      supabase.from('profiles').select('*').order('created_at', { ascending: false }),
+      supabase.from('student_progress').select('*'),
+      supabase.from('promos').select('*').order('date', { ascending: false }),
+    ]);
 
-    const { data: progress } = await supabase
-      .from('student_progress')
-      .select('*');
+    const profiles = profilesRes.data || [];
+    const progress = progressRes.data || [];
+    const promosData = promosRes.data || [];
 
-    if (profiles && progress) {
-      const merged = profiles.map(p => ({
-        ...p,
-        progress: progress.find(pr => pr.user_id === p.id) || null
-      }));
-      setStudents(merged);
-    }
+    const merged = profiles.map(p => ({
+      ...p,
+      progress: progress.find(pr => pr.user_id === p.id) || null
+    }));
+
+    setStudents(merged);
+    setPromos(promosData);
+
+    // Auto-expand all promos
+    const expanded = {};
+    promosData.forEach(p => { expanded[p.id] = true; });
+    expanded['other'] = true;
+    setExpandedPromos(expanded);
+
     setLoading(false);
   }
 
-  async function handleInvite(e) {
+  async function handleCreatePromo(e) {
     e.preventDefault();
-    setInviteError('');
-    setInviteLink('');
-    setCopied(false);
-
-    if (!inviteEmail.trim()) {
-      setInviteError('Email requis');
+    setPromoError('');
+    if (!promoName.trim() || !promoDate) {
+      setPromoError('Nom et date requis');
       return;
     }
-
-    setInviteLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('invite-user', {
-        body: {
-          email: inviteEmail.trim(),
-          full_name: inviteName.trim(),
-          redirectTo: window.location.origin
-        }
-      });
-
-      if (error) {
-        setInviteError(error.message || 'Erreur lors de l\'invitation');
-      } else if (data?.error) {
-        setInviteError(data.error);
-      } else if (data?.link) {
-        setInviteLink(data.link);
-        setInviteEmail('');
-        setInviteName('');
-        loadStudents();
-      }
-    } catch (err) {
-      setInviteError('Erreur réseau');
+    setPromoCreating(true);
+    const { error } = await supabase.from('promos').insert({
+      name: promoName.trim(),
+      date: promoDate,
+      created_by: profile?.id,
+    });
+    if (error) {
+      setPromoError(error.message);
+    } else {
+      setPromoName('');
+      setPromoDate('');
+      setShowCreatePromo(false);
+      await loadData();
     }
-    setInviteLoading(false);
+    setPromoCreating(false);
   }
 
-  function copyLink() {
-    navigator.clipboard.writeText(inviteLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  async function togglePromoActive(promoId, currentActive) {
+    await supabase.from('promos').update({ is_active: !currentActive }).eq('id', promoId);
+    await loadData();
   }
 
-  const filtered = students.filter(s =>
-    s.role === 'student' && (
-      s.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-      s.email?.toLowerCase().includes(search.toLowerCase())
-    )
+  function copyPromoLink(promo) {
+    const link = `${window.location.origin}?promo=${promo.token}`;
+    navigator.clipboard.writeText(link);
+    setCopiedPromoId(promo.id);
+    setTimeout(() => setCopiedPromoId(null), 2000);
+  }
+
+  function togglePromoExpand(promoId) {
+    setExpandedPromos(prev => ({ ...prev, [promoId]: !prev[promoId] }));
+  }
+
+  const allStudents = students.filter(s => s.role === 'student');
+  const filtered = allStudents.filter(s =>
+    s.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+    s.email?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const totalStudents = students.filter(s => s.role === 'student').length;
-  const activeStudents = students.filter(s => s.role === 'student' && s.progress?.stats?.totalTimeSpent > 0).length;
+  // Group students by promo
+  const studentsByPromo = {};
+  promos.forEach(p => { studentsByPromo[p.id] = []; });
+  studentsByPromo['other'] = [];
+  filtered.forEach(s => {
+    if (s.promo_id && studentsByPromo[s.promo_id]) {
+      studentsByPromo[s.promo_id].push(s);
+    } else {
+      studentsByPromo['other'].push(s);
+    }
+  });
+
+  const totalStudents = allStudents.length;
+  const activeStudents = allStudents.filter(s => s.progress?.stats?.totalTimeSpent > 0).length;
 
   if (profile?.role !== 'admin' && profile?.role !== 'prof') {
     return (
@@ -116,6 +140,79 @@ export default function AdminDashboard({ onBack }) {
       </div>
     );
   }
+
+  const StudentRow = ({ student }) => {
+    const stats = student.progress?.stats || {};
+    const completed = student.progress?.completed_sessions || [];
+    const isExpanded = expandedId === student.id;
+
+    return (
+      <motion.div layout className={`transition-colors ${isExpanded ? 'bg-white/[0.05]' : 'hover:bg-white/[0.02]'}`}>
+        <button
+          onClick={() => setExpandedId(isExpanded ? null : student.id)}
+          className="w-full grid grid-cols-12 gap-4 px-6 py-4 items-center text-left"
+        >
+          <div className="col-span-4 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-xs font-bold shrink-0 shadow-lg shadow-purple-500/20">
+              {student.full_name?.split(' ').map(n => n[0]).join('').toUpperCase() || '?'}
+            </div>
+            <div className="min-w-0">
+              <p className="font-medium text-slate-200 truncate">{student.full_name || 'Sans nom'}</p>
+              <p className="text-slate-500 text-xs truncate">{student.email}</p>
+            </div>
+          </div>
+          <div className="col-span-2 text-sm text-slate-300">{formatTime(stats.totalTimeSpent)}</div>
+          <div className="col-span-2 flex flex-col items-center gap-1">
+            <div className="flex gap-1">
+              {[1,2,3,4,5,6].map(s => (
+                <div key={s} className={`w-1.5 h-1.5 rounded-full transition-all ${completed.includes(s) ? 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]' : 'bg-white/10'}`} />
+              ))}
+            </div>
+            <span className="text-[10px] text-slate-500">{completed.length}/6</span>
+          </div>
+          <div className="col-span-2 text-sm text-slate-300 font-mono">{avgQuizScore(stats.quizAttempts)}</div>
+          <div className="col-span-2 flex items-center justify-between">
+            <span className="text-sm text-slate-300">{stats.commandsExecuted || 0}</span>
+            {isExpanded
+              ? <ChevronUp size={14} className="text-slate-500" />
+              : <ChevronDown size={14} className="text-slate-500" />
+            }
+          </div>
+        </button>
+
+        {isExpanded && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+            className="px-6 pb-5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { label: "Commandes correctes", value: `${stats.commandsCorrect || 0} / ${stats.commandsExecuted || 0}` },
+                { label: "Quiz tentés", value: stats.quizAttempts?.length || 0 },
+                { label: "Labs tentés", value: stats.labAttempts?.length || 0 },
+                { label: "Inscrit le", value: new Date(student.created_at).toLocaleDateString('fr-FR') },
+              ].map((d, i) => (
+                <div key={i} className="p-3 rounded-xl bg-black/20 border border-white/5">
+                  <p className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold mb-1">{d.label}</p>
+                  <p className="font-medium text-sm text-slate-200">{d.value}</p>
+                </div>
+              ))}
+            </div>
+            {completed.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-white/[0.06]">
+                <p className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold mb-2">Sessions complétées</p>
+                <div className="flex gap-2">
+                  {[1,2,3,4,5,6].map(s => (
+                    <div key={s} className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${completed.includes(s) ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]' : 'bg-white/5 text-slate-600 border border-white/10'}`}>
+                      {s}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </motion.div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-[#0f0a1e] text-slate-100 relative">
@@ -147,7 +244,7 @@ export default function AdminDashboard({ onBack }) {
           {[
             { label: "Étudiants inscrits", value: totalStudents, icon: Users, color: "text-blue-400" },
             { label: "Étudiants actifs", value: activeStudents, icon: Clock, color: "text-purple-400" },
-            { label: "Sessions disponibles", value: 6, icon: BookOpen, color: "text-emerald-400" },
+            { label: "Promos actives", value: promos.filter(p => p.is_active).length, icon: GraduationCap, color: "text-emerald-400" },
           ].map((s, i) => (
             <motion.div key={i}
               initial={{ opacity: 0, y: 20 }}
@@ -169,83 +266,127 @@ export default function AdminDashboard({ onBack }) {
           ))}
         </div>
 
-        {/* Invite section */}
+        {/* Promos management section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6"
         >
-          <div className="flex items-center gap-3 mb-5">
-            <div className="p-2.5 rounded-xl bg-purple-500/20 border border-purple-500/30">
-              <Send size={16} className="text-purple-400" />
-            </div>
-            <div>
-              <h2 className="font-bold text-lg">Inviter un étudiant</h2>
-              <p className="text-slate-500 text-xs">Générez un lien d'invitation à envoyer</p>
-            </div>
-          </div>
-
-          <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-              <input
-                type="email"
-                placeholder="Email de l'étudiant"
-                value={inviteEmail}
-                onChange={e => setInviteEmail(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pl-10 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all text-sm"
-                required
-              />
-            </div>
-            <div className="relative flex-1">
-              <User size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-              <input
-                type="text"
-                placeholder="Nom complet (optionnel)"
-                value={inviteName}
-                onChange={e => setInviteName(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pl-10 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all text-sm"
-              />
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-purple-500/20 border border-purple-500/30">
+                <GraduationCap size={16} className="text-purple-400" />
+              </div>
+              <div>
+                <h2 className="font-bold text-lg">Gestion des Promos</h2>
+                <p className="text-slate-500 text-xs">Créez un lien d'invitation par promo</p>
+              </div>
             </div>
             <button
-              type="submit"
-              disabled={inviteLoading}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold text-sm hover:from-purple-500 hover:to-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-900/30 flex items-center gap-2 shrink-0"
+              onClick={() => setShowCreatePromo(!showCreatePromo)}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold text-sm hover:from-purple-500 hover:to-blue-500 transition-all shadow-lg shadow-purple-900/30 flex items-center gap-2"
             >
-              {inviteLoading ? <Loader2 size={14} className="animate-spin" /> : <LinkIcon size={14} />}
-              {inviteLoading ? 'Génération...' : 'Générer le lien'}
+              {showCreatePromo ? <X size={14} /> : <Plus size={14} />}
+              {showCreatePromo ? 'Annuler' : 'Nouvelle Promo'}
             </button>
-          </form>
+          </div>
 
-          {inviteError && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="mt-3 bg-red-500/10 border border-red-500/20 rounded-xl p-3">
-              <p className="text-red-400 text-sm">{inviteError}</p>
-            </motion.div>
-          )}
+          {/* Create promo form */}
+          <AnimatePresence>
+            {showCreatePromo && (
+              <motion.form
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                onSubmit={handleCreatePromo}
+                className="overflow-hidden"
+              >
+                <div className="flex flex-col sm:flex-row gap-3 mb-4 p-4 rounded-xl bg-black/20 border border-white/5">
+                  <div className="flex-1">
+                    <label className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1.5 block">Nom de la promo</label>
+                    <input
+                      type="text"
+                      placeholder="ex: Promo 24 Février 2026"
+                      value={promoName}
+                      onChange={e => setPromoName(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all text-sm"
+                      required
+                    />
+                  </div>
+                  <div className="sm:w-56">
+                    <label className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1.5 flex items-center gap-1.5"><Calendar size={10} /> Date de début</label>
+                    <input
+                      type="date"
+                      value={promoDate}
+                      onChange={e => setPromoDate(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all text-sm [color-scheme:dark]"
+                      required
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <button
+                      type="submit"
+                      disabled={promoCreating}
+                      className="px-6 py-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold text-sm hover:bg-emerald-500/30 transition-all disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {promoCreating ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+                      Créer
+                    </button>
+                  </div>
+                </div>
+                {promoError && (
+                  <p className="text-red-400 text-sm mb-3">{promoError}</p>
+                )}
+              </motion.form>
+            )}
+          </AnimatePresence>
 
-          {inviteLink && (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-              className="mt-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-4">
-              <p className="text-emerald-400 text-xs font-semibold mb-2">Lien d'invitation généré :</p>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={inviteLink}
-                  readOnly
-                  className="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-slate-300 text-xs font-mono"
-                />
-                <button
-                  onClick={copyLink}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all ${copied ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10'}`}
-                >
-                  {copied ? <Check size={14} /> : <Copy size={14} />}
-                  {copied ? 'Copié !' : 'Copier'}
-                </button>
-              </div>
-              <p className="text-slate-600 text-xs mt-2">Envoyez ce lien à l'étudiant. Il pourra définir son mot de passe lors de sa première connexion.</p>
-            </motion.div>
+          {/* Promos list */}
+          {promos.length === 0 ? (
+            <div className="text-center py-8">
+              <GraduationCap size={24} className="text-slate-600 mx-auto mb-2" />
+              <p className="text-slate-500 text-sm">Aucune promo créée</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {promos.map(promo => {
+                const studentCount = allStudents.filter(s => s.promo_id === promo.id).length;
+                const isCopied = copiedPromoId === promo.id;
+                return (
+                  <div key={promo.id} className={`rounded-xl border p-4 transition-all ${promo.is_active ? 'border-white/10 bg-white/[0.02]' : 'border-white/5 bg-white/[0.01] opacity-60'}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`p-2 rounded-lg ${promo.is_active ? 'bg-purple-500/15 text-purple-400' : 'bg-white/5 text-slate-500'}`}>
+                          <GraduationCap size={16} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-sm text-slate-200 truncate">{promo.name}</p>
+                          <p className="text-slate-500 text-xs">{formatPromoDate(promo.date)} — {studentCount} étudiant{studentCount !== 1 ? 's' : ''}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => copyPromoLink(promo)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${isCopied ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 hover:text-slate-200'}`}
+                          title="Copier le lien d'inscription"
+                        >
+                          {isCopied ? <Check size={12} /> : <Copy size={12} />}
+                          {isCopied ? 'Copié !' : 'Copier le lien'}
+                        </button>
+                        <button
+                          onClick={() => togglePromoActive(promo.id, promo.is_active)}
+                          className={`p-1.5 rounded-lg transition-all ${promo.is_active ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-slate-500 hover:bg-white/5'}`}
+                          title={promo.is_active ? 'Désactiver la promo' : 'Réactiver la promo'}
+                        >
+                          {promo.is_active ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </motion.div>
 
@@ -261,7 +402,7 @@ export default function AdminDashboard({ onBack }) {
           />
         </div>
 
-        {/* Student list */}
+        {/* Student list grouped by promo */}
         {loading ? (
           <div className="text-center py-20">
             <Loader2 size={24} className="text-purple-400 animate-spin mx-auto mb-3" />
@@ -273,98 +414,98 @@ export default function AdminDashboard({ onBack }) {
             <p className="text-slate-500">{search ? 'Aucun résultat' : 'Aucun étudiant inscrit'}</p>
           </div>
         ) : (
-          <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden">
-            {/* Table header */}
-            <div className="border-b border-white/10 px-6 py-4">
-              <h2 className="text-lg font-semibold flex items-center gap-3">
-                Suivi des Étudiants
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-slate-400 font-mono">{filtered.length}</span>
-              </h2>
-            </div>
+          <div className="space-y-4">
+            {/* Promos groups */}
+            {promos.map(promo => {
+              const promoStudents = studentsByPromo[promo.id] || [];
+              if (promoStudents.length === 0 && search) return null;
+              const isOpen = expandedPromos[promo.id];
 
-            <div className="hidden sm:grid grid-cols-12 gap-4 px-6 py-3 text-[11px] text-slate-500 uppercase tracking-[0.15em] font-bold border-b border-white/[0.06]">
-              <div className="col-span-4">Étudiant</div>
-              <div className="col-span-2">Temps total</div>
-              <div className="col-span-2 text-center">Sessions</div>
-              <div className="col-span-2">Quiz moyen</div>
-              <div className="col-span-2">Commandes</div>
-            </div>
-
-            <div className="divide-y divide-white/[0.06]">
-              {filtered.map(student => {
-                const stats = student.progress?.stats || {};
-                const completed = student.progress?.completed_sessions || [];
-                const isExpanded = expandedId === student.id;
-
-                return (
-                  <motion.div key={student.id} layout
-                    className={`transition-colors ${isExpanded ? 'bg-white/[0.05]' : 'hover:bg-white/[0.02]'}`}>
-                    <button
-                      onClick={() => setExpandedId(isExpanded ? null : student.id)}
-                      className="w-full grid grid-cols-12 gap-4 px-6 py-4 items-center text-left"
-                    >
-                      <div className="col-span-4 flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-xs font-bold shrink-0 shadow-lg shadow-purple-500/20">
-                          {student.full_name?.split(' ').map(n => n[0]).join('').toUpperCase() || '?'}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-slate-200 truncate">{student.full_name || 'Sans nom'}</p>
-                          <p className="text-slate-500 text-xs truncate">{student.email}</p>
-                        </div>
+              return (
+                <div key={promo.id} className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden">
+                  <button
+                    onClick={() => togglePromoExpand(promo.id)}
+                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-purple-500/15 text-purple-400">
+                        <GraduationCap size={16} />
                       </div>
-                      <div className="col-span-2 text-sm text-slate-300">{formatTime(stats.totalTimeSpent)}</div>
-                      <div className="col-span-2 flex flex-col items-center gap-1">
-                        <div className="flex gap-1">
-                          {[1,2,3,4,5,6].map(s => (
-                            <div key={s} className={`w-1.5 h-1.5 rounded-full transition-all ${completed.includes(s) ? 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]' : 'bg-white/10'}`} />
-                          ))}
-                        </div>
-                        <span className="text-[10px] text-slate-500">{completed.length}/6</span>
+                      <div className="text-left">
+                        <h3 className="font-semibold text-white">{promo.name}</h3>
+                        <p className="text-slate-500 text-xs">{formatPromoDate(promo.date)}</p>
                       </div>
-                      <div className="col-span-2 text-sm text-slate-300 font-mono">{avgQuizScore(stats.quizAttempts)}</div>
-                      <div className="col-span-2 flex items-center justify-between">
-                        <span className="text-sm text-slate-300">{stats.commandsExecuted || 0}</span>
-                        {isExpanded
-                          ? <ChevronUp size={14} className="text-slate-500" />
-                          : <ChevronDown size={14} className="text-slate-500" />
-                        }
-                      </div>
-                    </button>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-slate-400 font-mono ml-2">{promoStudents.length}</span>
+                    </div>
+                    {isOpen ? <ChevronUp size={16} className="text-slate-500" /> : <ChevronDown size={16} className="text-slate-500" />}
+                  </button>
 
-                    {isExpanded && (
-                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
-                        className="px-6 pb-5">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                          {[
-                            { label: "Commandes correctes", value: `${stats.commandsCorrect || 0} / ${stats.commandsExecuted || 0}` },
-                            { label: "Quiz tentés", value: stats.quizAttempts?.length || 0 },
-                            { label: "Labs tentés", value: stats.labAttempts?.length || 0 },
-                            { label: "Inscrit le", value: new Date(student.created_at).toLocaleDateString('fr-FR') },
-                          ].map((d, i) => (
-                            <div key={i} className="p-3 rounded-xl bg-black/20 border border-white/5">
-                              <p className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold mb-1">{d.label}</p>
-                              <p className="font-medium text-sm text-slate-200">{d.value}</p>
-                            </div>
-                          ))}
+                  {isOpen && (
+                    <>
+                      {promoStudents.length === 0 ? (
+                        <div className="px-6 pb-4">
+                          <p className="text-slate-600 text-sm text-center py-4">Aucun étudiant dans cette promo</p>
                         </div>
-                        {completed.length > 0 && (
-                          <div className="mt-3 pt-3 border-t border-white/[0.06]">
-                            <p className="text-slate-500 text-[10px] uppercase tracking-wider font-semibold mb-2">Sessions complétées</p>
-                            <div className="flex gap-2">
-                              {[1,2,3,4,5,6].map(s => (
-                                <div key={s} className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${completed.includes(s) ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]' : 'bg-white/5 text-slate-600 border border-white/10'}`}>
-                                  {s}
-                                </div>
-                              ))}
-                            </div>
+                      ) : (
+                        <>
+                          <div className="hidden sm:grid grid-cols-12 gap-4 px-6 py-3 text-[11px] text-slate-500 uppercase tracking-[0.15em] font-bold border-t border-b border-white/[0.06]">
+                            <div className="col-span-4">Étudiant</div>
+                            <div className="col-span-2">Temps total</div>
+                            <div className="col-span-2 text-center">Sessions</div>
+                            <div className="col-span-2">Quiz moyen</div>
+                            <div className="col-span-2">Commandes</div>
                           </div>
-                        )}
-                      </motion.div>
-                    )}
-                  </motion.div>
-                );
-              })}
-            </div>
+                          <div className="divide-y divide-white/[0.06]">
+                            {promoStudents.map(student => (
+                              <StudentRow key={student.id} student={student} />
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* "Autres" group for students without promo */}
+            {studentsByPromo['other'].length > 0 && (
+              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden">
+                <button
+                  onClick={() => togglePromoExpand('other')}
+                  className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-white/5 text-slate-400">
+                      <Users size={16} />
+                    </div>
+                    <div className="text-left">
+                      <h3 className="font-semibold text-white">Autres</h3>
+                      <p className="text-slate-500 text-xs">Étudiants sans promo assignée</p>
+                    </div>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-slate-400 font-mono ml-2">{studentsByPromo['other'].length}</span>
+                  </div>
+                  {expandedPromos['other'] ? <ChevronUp size={16} className="text-slate-500" /> : <ChevronDown size={16} className="text-slate-500" />}
+                </button>
+
+                {expandedPromos['other'] && (
+                  <>
+                    <div className="hidden sm:grid grid-cols-12 gap-4 px-6 py-3 text-[11px] text-slate-500 uppercase tracking-[0.15em] font-bold border-t border-b border-white/[0.06]">
+                      <div className="col-span-4">Étudiant</div>
+                      <div className="col-span-2">Temps total</div>
+                      <div className="col-span-2 text-center">Sessions</div>
+                      <div className="col-span-2">Quiz moyen</div>
+                      <div className="col-span-2">Commandes</div>
+                    </div>
+                    <div className="divide-y divide-white/[0.06]">
+                      {studentsByPromo['other'].map(student => (
+                        <StudentRow key={student.id} student={student} />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
       </main>
