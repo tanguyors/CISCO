@@ -1,10 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import NetMasterClass from './NetMasterClass.jsx';
+import { AuthProvider } from './AuthContext';
+import App from './App';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <NetMasterClass />
+    <AuthProvider>
+      <App />
+    </AuthProvider>
   </React.StrictMode>
 );
-
