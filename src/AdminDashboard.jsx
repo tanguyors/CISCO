@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Users, Clock, BookOpen, Search, ChevronDown, ChevronUp, Copy, Check, Loader2, Link as LinkIcon, Plus, Calendar, X, ToggleLeft, ToggleRight, GraduationCap } from 'lucide-react';
+import { ArrowLeft, Users, Clock, BookOpen, Search, ChevronDown, ChevronUp, Copy, Check, Loader2, Link as LinkIcon, Plus, Calendar, X, ToggleLeft, ToggleRight, GraduationCap, Video, Trash2, Edit3 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { useAuth } from './AuthContext';
 
@@ -40,15 +40,29 @@ export default function AdminDashboard({ onBack }) {
   // Copy link state
   const [copiedPromoId, setCopiedPromoId] = useState(null);
 
+  // Lives management state
+  const [lives, setLives] = useState([]);
+  const [showCreateLive, setShowCreateLive] = useState(false);
+  const [liveTitle, setLiveTitle] = useState('');
+  const [liveDescription, setLiveDescription] = useState('');
+  const [liveVideoUrl, setLiveVideoUrl] = useState('');
+  const [liveThumbnailUrl, setLiveThumbnailUrl] = useState('');
+  const [liveDuration, setLiveDuration] = useState('');
+  const [liveSession, setLiveSession] = useState('');
+  const [livePromoIds, setLivePromoIds] = useState([]);
+  const [liveCreating, setLiveCreating] = useState(false);
+  const [liveError, setLiveError] = useState('');
+
   useEffect(() => {
     loadData();
   }, []);
 
   async function loadData() {
-    const [profilesRes, progressRes, promosRes] = await Promise.all([
+    const [profilesRes, progressRes, promosRes, livesRes] = await Promise.all([
       supabase.from('profiles').select('*').order('created_at', { ascending: false }),
       supabase.from('student_progress').select('*'),
       supabase.from('promos').select('*').order('date', { ascending: false }),
+      supabase.from('lives').select('*').order('created_at', { ascending: false }),
     ]);
 
     const profiles = profilesRes.data || [];
@@ -62,6 +76,7 @@ export default function AdminDashboard({ onBack }) {
 
     setStudents(merged);
     setPromos(promosData);
+    setLives(livesRes.data || []);
 
     // Auto-expand all promos
     const expanded = {};
@@ -99,6 +114,64 @@ export default function AdminDashboard({ onBack }) {
   async function togglePromoActive(promoId, currentActive) {
     await supabase.from('promos').update({ is_active: !currentActive }).eq('id', promoId);
     await loadData();
+  }
+
+  async function handleCreateLive(e) {
+    e.preventDefault();
+    setLiveError('');
+    if (!liveTitle.trim() || !liveVideoUrl.trim()) {
+      setLiveError('Titre et URL vidéo requis');
+      return;
+    }
+    if (livePromoIds.length === 0) {
+      setLiveError('Sélectionnez au moins une promo');
+      return;
+    }
+    setLiveCreating(true);
+    const { error } = await supabase.from('lives').insert({
+      title: liveTitle.trim(),
+      description: liveDescription.trim(),
+      video_url: liveVideoUrl.trim(),
+      thumbnail_url: liveThumbnailUrl.trim(),
+      duration: liveDuration.trim(),
+      session_number: liveSession ? parseInt(liveSession) : null,
+      promo_ids: livePromoIds,
+      created_by: profile?.id,
+    });
+    if (error) {
+      setLiveError(error.message);
+    } else {
+      setLiveTitle('');
+      setLiveDescription('');
+      setLiveVideoUrl('');
+      setLiveThumbnailUrl('');
+      setLiveDuration('');
+      setLiveSession('');
+      setLivePromoIds([]);
+      setShowCreateLive(false);
+      await loadData();
+    }
+    setLiveCreating(false);
+  }
+
+  async function toggleLiveActive(liveId, currentActive) {
+    await supabase.from('lives').update({ is_active: !currentActive }).eq('id', liveId);
+    await loadData();
+  }
+
+  async function deleteLive(liveId) {
+    await supabase.from('lives').delete().eq('id', liveId);
+    await loadData();
+  }
+
+  function toggleLivePromo(promoId) {
+    setLivePromoIds(prev =>
+      prev.includes(promoId) ? prev.filter(id => id !== promoId) : [...prev, promoId]
+    );
+  }
+
+  function getPromoName(promoId) {
+    return promos.find(p => p.id === promoId)?.name || 'Inconnue';
   }
 
   function copyPromoLink(promo) {
@@ -386,6 +459,163 @@ export default function AdminDashboard({ onBack }) {
                   </div>
                 );
               })}
+            </div>
+          )}
+        </motion.div>
+
+        {/* Lives management section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6"
+        >
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-blue-500/20 border border-blue-500/30">
+                <Video size={16} className="text-blue-400" />
+              </div>
+              <div>
+                <h2 className="font-bold text-lg">Gestion des Lives</h2>
+                <p className="text-slate-500 text-xs">Ajoutez des rediffusions et assignez-les aux promos</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowCreateLive(!showCreateLive)}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-sm hover:from-blue-500 hover:to-purple-500 transition-all shadow-lg shadow-blue-900/30 flex items-center gap-2"
+            >
+              {showCreateLive ? <X size={14} /> : <Plus size={14} />}
+              {showCreateLive ? 'Annuler' : 'Ajouter un live'}
+            </button>
+          </div>
+
+          {/* Create live form */}
+          <AnimatePresence>
+            {showCreateLive && (
+              <motion.form
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                onSubmit={handleCreateLive}
+                className="overflow-hidden"
+              >
+                <div className="p-4 rounded-xl bg-black/20 border border-white/5 space-y-3 mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1.5 block">Titre *</label>
+                      <input type="text" placeholder="ex: Live Session 1 - SSH & Sécurité" value={liveTitle} onChange={e => setLiveTitle(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm" required />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1.5 block">URL Vidéo (Cloudflare R2) *</label>
+                      <input type="url" placeholder="https://..." value={liveVideoUrl} onChange={e => setLiveVideoUrl(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm" required />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1.5 block">Description</label>
+                    <input type="text" placeholder="Résumé du contenu du live..." value={liveDescription} onChange={e => setLiveDescription(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm" />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1.5 block">URL Miniature</label>
+                      <input type="url" placeholder="https://..." value={liveThumbnailUrl} onChange={e => setLiveThumbnailUrl(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1.5 block">Durée</label>
+                      <input type="text" placeholder="ex: 1h30" value={liveDuration} onChange={e => setLiveDuration(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1.5 block">Session associée</label>
+                      <select value={liveSession} onChange={e => setLiveSession(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-sm [color-scheme:dark]">
+                        <option value="">Aucune</option>
+                        {[1,2,3,4,5,6].map(n => <option key={n} value={n}>Session {n}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  {/* Promo selection */}
+                  <div>
+                    <label className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-2 block">Promos autorisées *</label>
+                    <div className="flex flex-wrap gap-2">
+                      {promos.map(p => (
+                        <button key={p.id} type="button" onClick={() => toggleLivePromo(p.id)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                            livePromoIds.includes(p.id)
+                              ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400'
+                              : 'bg-white/5 border border-white/10 text-slate-400 hover:bg-white/10'
+                          }`}>
+                          {p.name}
+                        </button>
+                      ))}
+                      {promos.length === 0 && <p className="text-slate-600 text-xs">Créez d'abord une promo</p>}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between pt-2">
+                    <button type="submit" disabled={liveCreating}
+                      className="px-6 py-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold text-sm hover:bg-emerald-500/30 transition-all disabled:opacity-50 flex items-center gap-2">
+                      {liveCreating ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+                      Ajouter
+                    </button>
+                  </div>
+                </div>
+                {liveError && <p className="text-red-400 text-sm mb-3">{liveError}</p>}
+              </motion.form>
+            )}
+          </AnimatePresence>
+
+          {/* Lives list */}
+          {lives.length === 0 ? (
+            <div className="text-center py-8">
+              <Video size={24} className="text-slate-600 mx-auto mb-2" />
+              <p className="text-slate-500 text-sm">Aucun live ajouté</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {lives.map(live => (
+                <div key={live.id} className={`rounded-xl border p-4 transition-all ${live.is_active ? 'border-white/10 bg-white/[0.02]' : 'border-white/5 bg-white/[0.01] opacity-60'}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className={`p-2 rounded-lg shrink-0 ${live.is_active ? 'bg-blue-500/15 text-blue-400' : 'bg-white/5 text-slate-500'}`}>
+                        <Video size={16} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-semibold text-sm text-slate-200 truncate">{live.title}</p>
+                          {live.session_number && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 font-mono shrink-0">S{live.session_number}</span>
+                          )}
+                          {live.duration && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-slate-500 font-mono shrink-0">{live.duration}</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                          {live.promo_ids?.map(pid => (
+                            <span key={pid} className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400/70 border border-blue-500/20">
+                              {getPromoName(pid)}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0 ml-3">
+                      <button onClick={() => toggleLiveActive(live.id, live.is_active)}
+                        className={`p-1.5 rounded-lg transition-all ${live.is_active ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-slate-500 hover:bg-white/5'}`}
+                        title={live.is_active ? 'Désactiver' : 'Réactiver'}>
+                        {live.is_active ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
+                      </button>
+                      <button onClick={() => deleteLive(live.id)}
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                        title="Supprimer">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </motion.div>

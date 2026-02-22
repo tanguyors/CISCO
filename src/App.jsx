@@ -6,6 +6,7 @@ import RegisterPage from './RegisterPage';
 import NetMasterClass from './NetMasterClass';
 import AdminDashboard from './AdminDashboard';
 import StudentStats from './StudentStats';
+import LivesPage from './LivesPage';
 import { Terminal, Loader2, Lock, ChevronRight } from 'lucide-react';
 
 function getPromoToken() {
@@ -159,7 +160,7 @@ function SetPasswordPage() {
 
 export default function App() {
   const { user, profile, loading, needsPasswordSetup } = useAuth();
-  const [page, setPage] = useState('stats'); // 'stats' | 'courses' | 'admin'
+  const [page, setPage] = useState('stats'); // 'stats' | 'courses' | 'admin' | 'lives'
   const [promoToken] = useState(getPromoToken);
 
   if (loading) {
@@ -192,6 +193,10 @@ export default function App() {
     return <AdminDashboard onBack={() => setPage('stats')} />;
   }
 
+  if (page === 'lives') {
+    return <LivesPage onBack={() => setPage('stats')} />;
+  }
+
   if (page === 'courses') {
     return <NetMasterClass onShowStats={() => setPage('stats')} onShowAdmin={() => setPage('admin')} />;
   }
@@ -200,6 +205,7 @@ export default function App() {
     <StudentStats
       onContinue={() => setPage('courses')}
       onShowAdmin={() => setPage('admin')}
+      onShowLives={() => setPage('lives')}
     />
   );
 }

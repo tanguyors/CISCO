@@ -81,21 +81,43 @@ export default function RegisterPage({ promoToken, onGoLogin }) {
 
     setLoading(true);
     const fullName = `${firstName.trim()} ${lastName.trim()}`;
-    const { error: signUpError } = await supabase.auth.signUp({
-      email: email.trim(),
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          promo_id: promo.id,
-        }
-      }
-    });
 
-    if (signUpError) {
-      setError(translateError(signUpError.message));
-    } else {
-      setSuccess(true);
+    try {
+      // Call Edge Function to create user with auto-confirmed email
+      const { data: fnData, error: fnError } = await supabase.functions.invoke('register-student', {
+        body: {
+          email: email.trim(),
+          password,
+          full_name: fullName,
+          promo_token: promoToken,
+        }
+      });
+
+      if (fnError) {
+        setError(translateError(fnError.message || 'Erreur lors de l\'inscription'));
+        setLoading(false);
+        return;
+      }
+
+      if (fnData?.error) {
+        setError(translateError(fnData.error));
+        setLoading(false);
+        return;
+      }
+
+      // Auto-login after successful registration
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInError) {
+        setError(translateError(signInError.message));
+      } else {
+        setSuccess(true);
+      }
+    } catch (err) {
+      setError('Erreur réseau');
     }
     setLoading(false);
   };

@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Terminal, Award, Play, CheckCircle2, Zap, Settings, LogOut, Loader2, Lock, BookOpen, ChevronRight, Shield, Target, TrendingUp } from 'lucide-react';
+import { Clock, Terminal, Award, Play, CheckCircle2, Zap, Settings, LogOut, Loader2, Lock, BookOpen, ChevronRight, Shield, Target, TrendingUp, Video } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { supabase } from './supabaseClient';
 
@@ -32,7 +32,7 @@ const sessions = [
   { id: 6, title: "Syslog & SNMP", desc: "Journalisation, monitoring réseau, traps SNMP", week: 2 },
 ];
 
-export default function StudentStats({ onContinue, onShowAdmin }) {
+export default function StudentStats({ onContinue, onShowAdmin, onShowLives }) {
   const { user, profile, signOut } = useAuth();
   const [progress, setProgress] = useState(null);
   const [loadingProgress, setLoadingProgress] = useState(true);
@@ -97,6 +97,13 @@ export default function StudentStats({ onContinue, onShowAdmin }) {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={onShowLives}
+              className="flex items-center gap-2 px-4 py-3 bg-white/5 border border-white/10 text-slate-300 text-sm font-medium rounded-xl hover:bg-white/10 transition-all"
+            >
+              <Video size={16} />
+              Rediffusions
+            </button>
             {isAdmin && (
               <button
                 onClick={onShowAdmin}
