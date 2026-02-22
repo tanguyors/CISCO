@@ -4,6 +4,7 @@ import { useAuth } from './AuthContext';
 import LoginPage from './LoginPage';
 import NetMasterClass from './NetMasterClass';
 import AdminDashboard from './AdminDashboard';
+import StudentStats from './StudentStats';
 import { Terminal, Loader2, Lock, ChevronRight } from 'lucide-react';
 
 function SetPasswordPage() {
@@ -152,7 +153,7 @@ function SetPasswordPage() {
 
 export default function App() {
   const { user, profile, loading, needsPasswordSetup } = useAuth();
-  const [showAdmin, setShowAdmin] = useState(false);
+  const [page, setPage] = useState('stats'); // 'stats' | 'courses' | 'admin'
 
   if (loading) {
     return (
@@ -168,9 +169,18 @@ export default function App() {
 
   if (needsPasswordSetup) return <SetPasswordPage />;
 
-  if (showAdmin && profile?.role && ['admin', 'prof'].includes(profile.role)) {
-    return <AdminDashboard onBack={() => setShowAdmin(false)} />;
+  if (page === 'admin' && profile?.role && ['admin', 'prof'].includes(profile.role)) {
+    return <AdminDashboard onBack={() => setPage('stats')} />;
   }
 
-  return <NetMasterClass onShowAdmin={() => setShowAdmin(true)} />;
+  if (page === 'courses') {
+    return <NetMasterClass onShowStats={() => setPage('stats')} />;
+  }
+
+  return (
+    <StudentStats
+      onContinue={() => setPage('courses')}
+      onShowAdmin={() => setPage('admin')}
+    />
+  );
 }
