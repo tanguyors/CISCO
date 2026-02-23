@@ -9708,123 +9708,246 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               </div>
             </section>
 
-            {/* ÉTAPE 5 : CONFIG IP */}
+            {/* ÉTAPE 5 : CONFIG IP — BUREAU A */}
             <section id="lab7-ip" className="scroll-mt-4">
-              <div className="bg-gradient-to-r from-red-900/20 to-purple-900/20 rounded-xl p-6 border border-red-500/30">
-                <h2 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">{"⚙️ Étape 5 — Configurer les adresses IP"}</h2>
+              <div className="bg-gradient-to-r from-purple-900/20 to-red-900/20 rounded-xl p-6 border border-purple-500/30">
+                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"⚙️ Étape 5 — Configurer les IPs du Bureau A"}</h2>
 
                 <div className="bg-black/30 rounded-lg p-4 mb-4">
-                  <p className="text-amber-300 font-bold text-sm mb-2">{"Comment configurer une IP sur un PC dans Packet Tracer ?"}</p>
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Rappel : comment configurer une IP sur un PC ?"}</p>
+                  <p className="text-slate-300 text-sm mb-2">{"Pour CHAQUE PC, on fait la même manipulation :"}</p>
                   <ol className="text-slate-300 text-sm space-y-1">
-                    <li>{"1. Cliquez sur le PC"}</li>
-                    <li>{"2. Allez dans l'onglet Desktop"}</li>
-                    <li>{"3. Cliquez sur IP Configuration"}</li>
-                    <li>{"4. Sélectionnez Static (pas DHCP, on configure à la main)"}</li>
-                    <li>{"5. Remplissez IP Address et Subnet Mask"}</li>
-                    <li>{"6. Laissez Default Gateway vide (pas de routeur dans ce lab)"}</li>
+                    <li>{"1. Cliquer sur le PC"}</li>
+                    <li>{"2. Onglet Desktop"}</li>
+                    <li>{"3. IP Configuration"}</li>
+                    <li>{"4. Cocher Static (pas DHCP !)"}</li>
+                    <li>{"5. Remplir IP Address + Subnet Mask"}</li>
+                    <li>{"6. Laisser Default Gateway VIDE"}</li>
                   </ol>
                 </div>
 
-                <div className="bg-black/30 rounded-lg p-4 mb-4">
-                  <p className="text-purple-300 font-bold text-sm mb-2">{"Pourquoi Static et pas DHCP ?"}</p>
-                  <p className="text-slate-300 text-sm">{"DHCP = un serveur attribue les IPs automatiquement. Ici on n'a pas de serveur DHCP, donc on configure chaque IP manuellement (Static). C'est important de savoir le faire car en entreprise, certains équipements (serveurs, imprimantes) ont des IPs fixes."}</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/20">
-                    <p className="text-purple-300 font-bold text-sm mb-3">{"Bureau A — Réseau 192.168.1.0/24"}</p>
-                    <div className="space-y-3">
-                      <div className="bg-black/30 rounded p-3">
-                        <p className="text-white font-bold text-xs mb-1">PC-A1</p>
-                        <p className="text-slate-300 text-xs">{"IP Address : "}<span className="text-emerald-400 font-mono font-bold">192.168.1.1</span></p>
-                        <p className="text-slate-300 text-xs">{"Subnet Mask : "}<span className="font-mono">255.255.255.0</span></p>
-                        <p className="text-slate-400 text-[10px] mt-1">{"→ .1 = première adresse utilisable du réseau"}</p>
-                      </div>
-                      <div className="bg-black/30 rounded p-3">
-                        <p className="text-white font-bold text-xs mb-1">PC-A2</p>
-                        <p className="text-slate-300 text-xs">{"IP Address : "}<span className="text-emerald-400 font-mono font-bold">192.168.1.2</span></p>
-                        <p className="text-slate-300 text-xs">{"Subnet Mask : "}<span className="font-mono">255.255.255.0</span></p>
-                        <p className="text-slate-400 text-[10px] mt-1">{"→ .2 = deuxième adresse utilisable"}</p>
-                      </div>
-                      <div className="bg-black/30 rounded p-3">
-                        <p className="text-white font-bold text-xs mb-1">PC-A3</p>
-                        <p className="text-slate-300 text-xs">{"IP Address : "}<span className="text-emerald-400 font-mono font-bold">192.168.1.3</span></p>
-                        <p className="text-slate-300 text-xs">{"Subnet Mask : "}<span className="font-mono">255.255.255.0</span></p>
-                        <p className="text-slate-400 text-[10px] mt-1">{"→ .3 = troisième adresse utilisable"}</p>
-                      </div>
+                {/* PC-A1 */}
+                <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/20 mb-3">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="bg-purple-500/20 text-purple-400 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black">A1</span>
+                    <p className="text-purple-300 font-bold text-sm">{"PC-A1"}</p>
+                  </div>
+                  <div className="bg-black/40 rounded-lg p-4 space-y-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs w-24 shrink-0">IP Address :</span>
+                      <span className="text-emerald-400 font-mono font-bold text-lg">192.168.1.1</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs w-24 shrink-0">Subnet Mask :</span>
+                      <span className="text-white font-mono">255.255.255.0</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs w-24 shrink-0">Gateway :</span>
+                      <span className="text-slate-600 font-mono italic">vide</span>
                     </div>
                   </div>
-                  <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
-                    <p className="text-blue-300 font-bold text-sm mb-3">{"Bureau B — Réseau 192.168.2.0/24"}</p>
-                    <div className="space-y-3">
-                      <div className="bg-black/30 rounded p-3">
-                        <p className="text-white font-bold text-xs mb-1">PC-B1</p>
-                        <p className="text-slate-300 text-xs">{"IP Address : "}<span className="text-emerald-400 font-mono font-bold">192.168.2.1</span></p>
-                        <p className="text-slate-300 text-xs">{"Subnet Mask : "}<span className="font-mono">255.255.255.0</span></p>
-                        <p className="text-slate-400 text-[10px] mt-1">{"→ Même principe, mais réseau .2.X"}</p>
-                      </div>
-                      <div className="bg-black/30 rounded p-3">
-                        <p className="text-white font-bold text-xs mb-1">PC-B2</p>
-                        <p className="text-slate-300 text-xs">{"IP Address : "}<span className="text-emerald-400 font-mono font-bold">192.168.2.2</span></p>
-                        <p className="text-slate-300 text-xs">{"Subnet Mask : "}<span className="font-mono">255.255.255.0</span></p>
-                      </div>
-                      <div className="bg-black/30 rounded p-3">
-                        <p className="text-white font-bold text-xs mb-1">PC-B3</p>
-                        <p className="text-slate-300 text-xs">{"IP Address : "}<span className="text-emerald-400 font-mono font-bold">192.168.2.3</span></p>
-                        <p className="text-slate-300 text-xs">{"Subnet Mask : "}<span className="font-mono">255.255.255.0</span></p>
-                      </div>
+                  <p className="text-slate-400 text-xs mt-2">{"192.168.1 = partie réseau (Bureau A) | .1 = partie hôte (1ère adresse utilisable)"}</p>
+                </div>
+
+                {/* PC-A2 */}
+                <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/20 mb-3">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="bg-purple-500/20 text-purple-400 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black">A2</span>
+                    <p className="text-purple-300 font-bold text-sm">{"PC-A2"}</p>
+                  </div>
+                  <div className="bg-black/40 rounded-lg p-4 space-y-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs w-24 shrink-0">IP Address :</span>
+                      <span className="text-emerald-400 font-mono font-bold text-lg">192.168.1.2</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs w-24 shrink-0">Subnet Mask :</span>
+                      <span className="text-white font-mono">255.255.255.0</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs w-24 shrink-0">Gateway :</span>
+                      <span className="text-slate-600 font-mono italic">vide</span>
+                    </div>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Même réseau que PC-A1 (192.168.1.X), juste le dernier octet change : .2"}</p>
+                </div>
+
+                {/* PC-A3 */}
+                <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/20 mb-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="bg-purple-500/20 text-purple-400 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black">A3</span>
+                    <p className="text-purple-300 font-bold text-sm">{"PC-A3"}</p>
+                  </div>
+                  <div className="bg-black/40 rounded-lg p-4 space-y-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs w-24 shrink-0">IP Address :</span>
+                      <span className="text-emerald-400 font-mono font-bold text-lg">192.168.1.3</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs w-24 shrink-0">Subnet Mask :</span>
+                      <span className="text-white font-mono">255.255.255.0</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs w-24 shrink-0">Gateway :</span>
+                      <span className="text-slate-600 font-mono italic">vide</span>
+                    </div>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Même réseau, dernier octet : .3"}</p>
+                </div>
+
+                <div className="bg-emerald-900/20 rounded p-3 border border-emerald-500/20">
+                  <p className="text-emerald-300 font-bold text-xs">{"Bureau A terminé ! Les 3 PC ont :"}</p>
+                  <p className="text-slate-300 text-xs">{"Le même réseau (192.168.1.X), le même masque (255.255.255.0), et des IPs différentes (.1, .2, .3)."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 5b : CONFIG IP — BUREAU B */}
+            <section className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-blue-900/20 to-red-900/20 rounded-xl p-6 border border-blue-500/30">
+                <h2 className="text-lg font-bold text-blue-300 mb-3 flex items-center gap-2">{"⚙️ Étape 5b — Configurer les IPs du Bureau B"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Même manipulation que pour le Bureau A, mais avec le réseau 192.168.2.0/24."}</p>
+
+                {/* PC-B1 */}
+                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20 mb-3">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="bg-blue-500/20 text-blue-400 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black">B1</span>
+                    <p className="text-blue-300 font-bold text-sm">{"PC-B1"}</p>
+                  </div>
+                  <div className="bg-black/40 rounded-lg p-4 space-y-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs w-24 shrink-0">IP Address :</span>
+                      <span className="text-emerald-400 font-mono font-bold text-lg">192.168.2.1</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs w-24 shrink-0">Subnet Mask :</span>
+                      <span className="text-white font-mono">255.255.255.0</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs w-24 shrink-0">Gateway :</span>
+                      <span className="text-slate-600 font-mono italic">vide</span>
+                    </div>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"192.168.2 = partie réseau (Bureau B, différent du Bureau A !) | .1 = partie hôte"}</p>
+                </div>
+
+                {/* PC-B2 */}
+                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20 mb-3">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="bg-blue-500/20 text-blue-400 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black">B2</span>
+                    <p className="text-blue-300 font-bold text-sm">{"PC-B2"}</p>
+                  </div>
+                  <div className="bg-black/40 rounded-lg p-4 space-y-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs w-24 shrink-0">IP Address :</span>
+                      <span className="text-emerald-400 font-mono font-bold text-lg">192.168.2.2</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs w-24 shrink-0">Subnet Mask :</span>
+                      <span className="text-white font-mono">255.255.255.0</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs w-24 shrink-0">Gateway :</span>
+                      <span className="text-slate-600 font-mono italic">vide</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* PC-B3 */}
+                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20 mb-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="bg-blue-500/20 text-blue-400 w-7 h-7 rounded-full flex items-center justify-center text-xs font-black">B3</span>
+                    <p className="text-blue-300 font-bold text-sm">{"PC-B3"}</p>
+                  </div>
+                  <div className="bg-black/40 rounded-lg p-4 space-y-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs w-24 shrink-0">IP Address :</span>
+                      <span className="text-emerald-400 font-mono font-bold text-lg">192.168.2.3</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs w-24 shrink-0">Subnet Mask :</span>
+                      <span className="text-white font-mono">255.255.255.0</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-500 text-xs w-24 shrink-0">Gateway :</span>
+                      <span className="text-slate-600 font-mono italic">vide</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20">
-                  <p className="text-amber-300 font-bold text-sm mb-2">{"Ce qu'il faut remarquer :"}</p>
-                  <ul className="text-slate-300 text-sm space-y-1">
-                    <li>{"• Le masque est IDENTIQUE partout : 255.255.255.0 (/24)"}</li>
-                    <li>{"• Ce qui différencie les 2 réseaux c'est le 3ème octet : 192.168.1.X vs 192.168.2.X"}</li>
-                    <li>{"• Les 3 premiers octets (192.168.1) = partie réseau. Le dernier octet (.1, .2, .3) = partie hôte"}</li>
-                    <li>{"• On n'utilise pas .0 (réseau) ni .255 (broadcast)"}</li>
-                    <li>{"• La Gateway reste vide car on n'a pas de routeur"}</li>
-                  </ul>
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Différence entre Bureau A et Bureau B :"}</p>
+                  <p className="text-slate-300 text-sm mb-2">{"Le masque est le MÊME partout (255.255.255.0). La seule différence :"}</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-purple-900/20 rounded p-3 text-center">
+                      <p className="text-purple-300 font-bold text-xs mb-1">Bureau A</p>
+                      <p className="text-white font-mono text-sm">192.168.<span className="text-purple-400 font-bold text-lg">1</span>.X</p>
+                    </div>
+                    <div className="bg-blue-900/20 rounded p-3 text-center">
+                      <p className="text-blue-300 font-bold text-xs mb-1">Bureau B</p>
+                      <p className="text-white font-mono text-sm">192.168.<span className="text-blue-400 font-bold text-lg">2</span>.X</p>
+                    </div>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Le 3ème octet (1 vs 2) est différent → ce sont 2 réseaux SÉPARÉS."}</p>
                 </div>
               </div>
             </section>
 
-            {/* ÉTAPE 6 : VÉRIFICATION */}
+            {/* ÉTAPE 6 : VÉRIFICATION — PC PAR PC */}
             <section id="lab7-verif" className="scroll-mt-4">
               <div className="bg-gradient-to-r from-cyan-900/20 to-purple-900/20 rounded-xl p-6 border border-cyan-500/30">
-                <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center gap-2">{"🔍 Étape 6 — Vérifier la configuration"}</h2>
-                <p className="text-slate-300 text-sm mb-4">{"Avant de tester avec ping, on vérifie que nos IPs sont bien configurées. C'est une bonne habitude à prendre !"}</p>
+                <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center gap-2">{"🔍 Étape 6 — Vérifier chaque PC avec ipconfig"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Sur CHAQUE PC : clic → Desktop → Command Prompt → taper "}<code className="text-emerald-400 font-mono bg-black/40 px-1 rounded">ipconfig</code>{" → vérifier."}</p>
 
-                <div className="bg-black/30 rounded-lg p-4 mb-4">
-                  <p className="text-amber-300 font-bold text-sm mb-2">{"Comment vérifier ?"}</p>
-                  <ol className="text-slate-300 text-sm space-y-1">
-                    <li>{"1. Cliquez sur chaque PC → Desktop → Command Prompt"}</li>
-                    <li>{"2. Tapez la commande : "}<code className="text-emerald-400 font-mono bg-black/40 px-1 rounded">ipconfig</code></li>
-                    <li>{"3. Vérifiez que l'IP et le masque correspondent à votre plan"}</li>
-                  </ol>
+                {/* Vérif PC-A1 */}
+                <div className="bg-purple-900/10 rounded-lg p-4 border border-purple-500/15 mb-3">
+                  <p className="text-purple-300 font-bold text-xs mb-2">{"PC-A1 → ipconfig"}</p>
+                  <pre className="text-[11px] font-mono text-slate-300 leading-relaxed bg-black/50 p-3 rounded overflow-x-auto">{"C:\\> ipconfig\n\n   IPv4 Address..........: 192.168.1.1\n   Subnet Mask...........: 255.255.255.0\n   Default Gateway.......: "}</pre>
+                  <p className="text-emerald-400 text-xs mt-1">{"IP = 192.168.1.1 ✓ | Masque = 255.255.255.0 ✓ | Gateway = vide ✓"}</p>
                 </div>
 
-                <div className="bg-black/30 rounded-lg p-4 mb-4">
-                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Résultat attendu sur PC-A1 :"}</p>
-                  <pre className="text-xs font-mono text-slate-300 leading-relaxed bg-black/50 p-3 rounded overflow-x-auto">{`C:\\> ipconfig
+                {/* Vérif PC-A2 */}
+                <div className="bg-purple-900/10 rounded-lg p-4 border border-purple-500/15 mb-3">
+                  <p className="text-purple-300 font-bold text-xs mb-2">{"PC-A2 → ipconfig"}</p>
+                  <pre className="text-[11px] font-mono text-slate-300 leading-relaxed bg-black/50 p-3 rounded overflow-x-auto">{"C:\\> ipconfig\n\n   IPv4 Address..........: 192.168.1.2\n   Subnet Mask...........: 255.255.255.0\n   Default Gateway.......: "}</pre>
+                  <p className="text-emerald-400 text-xs mt-1">{"IP = 192.168.1.2 ✓ | Masque = 255.255.255.0 ✓"}</p>
+                </div>
 
-FastEthernet0 Connection:(default port)
+                {/* Vérif PC-A3 */}
+                <div className="bg-purple-900/10 rounded-lg p-4 border border-purple-500/15 mb-3">
+                  <p className="text-purple-300 font-bold text-xs mb-2">{"PC-A3 → ipconfig"}</p>
+                  <pre className="text-[11px] font-mono text-slate-300 leading-relaxed bg-black/50 p-3 rounded overflow-x-auto">{"C:\\> ipconfig\n\n   IPv4 Address..........: 192.168.1.3\n   Subnet Mask...........: 255.255.255.0\n   Default Gateway.......: "}</pre>
+                  <p className="text-emerald-400 text-xs mt-1">{"IP = 192.168.1.3 ✓"}</p>
+                </div>
 
-   Link-local IPv6 Address.........: FE80::...
-   IPv6 Address....................: ::
-   IPv4 Address....................: 192.168.1.1
-   Subnet Mask.....................: 255.255.255.0
-   Default Gateway.................: `}</pre>
-                  <p className="text-slate-400 text-xs mt-2">{"On vérifie : IP = 192.168.1.1 ✓ | Masque = 255.255.255.0 ✓ | Gateway = vide ✓"}</p>
+                {/* Vérif PC-B1 */}
+                <div className="bg-blue-900/10 rounded-lg p-4 border border-blue-500/15 mb-3">
+                  <p className="text-blue-300 font-bold text-xs mb-2">{"PC-B1 → ipconfig"}</p>
+                  <pre className="text-[11px] font-mono text-slate-300 leading-relaxed bg-black/50 p-3 rounded overflow-x-auto">{"C:\\> ipconfig\n\n   IPv4 Address..........: 192.168.2.1\n   Subnet Mask...........: 255.255.255.0\n   Default Gateway.......: "}</pre>
+                  <p className="text-emerald-400 text-xs mt-1">{"IP = 192.168.2.1 ✓ | Attention : 192.168.2.X et pas 192.168.1.X !"}</p>
+                </div>
+
+                {/* Vérif PC-B2 */}
+                <div className="bg-blue-900/10 rounded-lg p-4 border border-blue-500/15 mb-3">
+                  <p className="text-blue-300 font-bold text-xs mb-2">{"PC-B2 → ipconfig"}</p>
+                  <pre className="text-[11px] font-mono text-slate-300 leading-relaxed bg-black/50 p-3 rounded overflow-x-auto">{"C:\\> ipconfig\n\n   IPv4 Address..........: 192.168.2.2\n   Subnet Mask...........: 255.255.255.0\n   Default Gateway.......: "}</pre>
+                  <p className="text-emerald-400 text-xs mt-1">{"IP = 192.168.2.2 ✓"}</p>
+                </div>
+
+                {/* Vérif PC-B3 */}
+                <div className="bg-blue-900/10 rounded-lg p-4 border border-blue-500/15 mb-4">
+                  <p className="text-blue-300 font-bold text-xs mb-2">{"PC-B3 → ipconfig"}</p>
+                  <pre className="text-[11px] font-mono text-slate-300 leading-relaxed bg-black/50 p-3 rounded overflow-x-auto">{"C:\\> ipconfig\n\n   IPv4 Address..........: 192.168.2.3\n   Subnet Mask...........: 255.255.255.0\n   Default Gateway.......: "}</pre>
+                  <p className="text-emerald-400 text-xs mt-1">{"IP = 192.168.2.3 ✓"}</p>
                 </div>
 
                 <div className="bg-red-900/20 rounded-lg p-4 border border-red-500/20">
-                  <p className="text-red-300 font-bold text-sm mb-2">{"Si l'IP ne s'affiche pas ou est différente :"}</p>
+                  <p className="text-red-300 font-bold text-sm mb-2">{"Si une IP est mauvaise ou manquante :"}</p>
                   <ul className="text-slate-300 text-sm space-y-1">
-                    <li>{"• Vérifiez que vous avez bien sélectionné Static (et pas DHCP)"}</li>
-                    <li>{"• Vérifiez que le câble est bien branché (voyant vert sur le port)"}</li>
-                    <li>{"• Retournez dans IP Configuration et corrigez"}</li>
+                    <li>{"• Vérifiez que Static est coché (pas DHCP)"}</li>
+                    <li>{"• Vérifiez que le câble est branché (voyant vert sur le port)"}</li>
+                    <li>{"• Retournez dans Desktop → IP Configuration et corrigez"}</li>
+                    <li>{"• Erreur fréquente : mettre 192.168.1.X sur un PC du Bureau B"}</li>
                   </ul>
                 </div>
               </div>
