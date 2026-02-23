@@ -8512,6 +8512,538 @@ Objectif : Comprendre comment centraliser les logs (Syslog) et superviser les é
       { q: "Quel port reçoit les traps SNMP ?", options: ["161", "162", "514"], a: 1, explanation: "Port 162 pour les traps." },
       { q: "Qu'est-ce que la MIB ?", options: ["Un type de log", "La base d'objets SNMP", "Un protocole"], a: 1, explanation: "Management Information Base." }
     ]
+  },
+  // ═══════════════════════════════════════════════════════════════
+  // SESSION 7 — ROUTAGE STATIQUE (Semaine 3, Session 1)
+  // ═══════════════════════════════════════════════════════════════
+  {
+    id: 7,
+    title: "Session 1 : Adressage IP & Masques de sous-réseau",
+    duration: "1h30",
+    icon: <Network className="w-5 h-5" />,
+    slides: [
+      // ── SLIDE 1 : INTRO ──
+      {
+        type: 'intro',
+        title: "Introduction à l'Adressage IP & Masques de sous-réseau",
+        content: `Bienvenue dans cette session ! Aujourd'hui, on va apprendre à comprendre les ADRESSES IP et les MASQUES DE SOUS-RÉSEAU.
+
+C'est LA base de tout en réseau. Avant de configurer quoi que ce soit (switch, routeur, serveur...), il faut comprendre comment les machines s'identifient sur un réseau.
+
+On va aller étape par étape, avec des exemples concrets et des analogies simples.
+
+🎯 À la fin de cette session, vous serez capable de :
+
+✅ Comprendre ce qu'est une adresse IP et sa structure
+🔢 Différencier la partie réseau et la partie hôte
+🎭 Comprendre le rôle du masque de sous-réseau
+📍 Calculer l'adresse réseau, le broadcast et la plage utilisable
+🏠 Connaître les adresses IP privées
+✂️ Calculer le bon masque en fonction du nombre de machines`
+      },
+      // ── SLIDE 2 : C'EST QUOI UNE ADRESSE IP ? ──
+      {
+        type: 'rich_text',
+        title: "C'est quoi une adresse IP ?",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Adresse IP" title="L'identité de chaque machine" description="Une adresse IP, c'est comme une adresse postale pour un ordinateur. Sans adresse, impossible de recevoir ou d'envoyer du courrier. Sans adresse IP, impossible de communiquer sur un réseau." />
+            <V2InfoCards cards={[
+              { title: "Définition", color: "purple", icon: Network, items: ["Une adresse IP = identification UNIQUE d'une machine", "Chaque appareil sur un réseau a sa propre IP", "En IPv4 : composée de 32 bits (4 octets)", "Exemple : 192.168.1.1"] },
+              { title: "Analogie", color: "amber", icon: Lightbulb, items: ["Ton adresse postale = ta maison dans une rue", "Ton adresse IP = ta machine dans un réseau", "Sans adresse → le facteur ne sait pas où livrer", "Sans IP → les données ne savent pas où aller"] }
+            ]} />
+            <V2Tip title="À retenir">Une adresse IP est composée de 32 bits, divisés en 4 octets séparés par des points. Exemple : 192.168.1.1 — chaque nombre va de 0 à 255.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 3 : STRUCTURE D'UNE ADRESSE IP ──
+      {
+        type: 'rich_text',
+        title: "Structure d'une adresse IP",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Structure" title="Deux parties dans chaque adresse" description="Une adresse IP est divisée en DEUX parties. C'est comme une adresse postale : il y a le nom de la RUE (le réseau) et le NUMÉRO de la maison (l'hôte). Le masque détermine où se situe la séparation." />
+            <V2InfoCards cards={[
+              { title: "Partie Réseau (Network)", color: "purple", icon: Network, items: ["Identifie QUEL réseau", "C'est le nom de la rue", "Tous les appareils du même réseau partagent cette partie", "Exemple : 192.168.1 (pour un /24)"] },
+              { title: "Partie Hôte (Host)", color: "emerald", icon: CheckCircle2, items: ["Identifie QUEL appareil dans le réseau", "C'est le numéro de la maison", "Unique pour chaque machine du réseau", "Exemple : .1, .10, .254..."] }
+            ]} />
+            <V2Terminal title="Exemple concret" code={"! Adresse IP : 192.168.1.10 avec un masque /24\n!\n! Décomposition :\n!\n!   192.168.1  .  10\n!   ─────────     ──\n!   Partie        Partie\n!   RÉSEAU        HÔTE\n!\n! → Partie réseau : 192.168.1  (= le nom de la rue)\n! → Partie hôte   : .10        (= le numéro de maison)\n!\n! Tous les PC en 192.168.1.X sont dans le MÊME réseau"} />
+            <V2Tip title="Analogie">Adresse postale : 12 rue de la Paix → 'rue de la Paix' = le réseau, '12' = l'hôte. Si deux personnes habitent la même rue, elles sont dans le même réseau !</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 4 : LE MASQUE DE SOUS-RÉSEAU ──
+      {
+        type: 'rich_text',
+        title: "Le masque de sous-réseau",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Masque" title="La frontière entre réseau et hôte" description="Comment l'ordinateur sait où se sépare la partie réseau de la partie hôte ? Grâce au MASQUE DE SOUS-RÉSEAU. C'est lui qui trace la ligne de séparation." />
+            <V2InfoCards cards={[
+              { title: "C'est quoi ?", color: "purple", icon: Network, items: ["Le masque DÉTERMINE la frontière réseau/hôte", "Il dit combien de bits sont pour le réseau", "Et combien sont pour les hôtes", "Sans masque → impossible de savoir qui est dans quel réseau"] },
+              { title: "Deux notations", color: "amber", icon: Lightbulb, items: ["Notation décimale : 255.255.255.0", "Notation CIDR : /24", "C'est la MÊME chose, juste écrit différemment", "/24 = les 24 premiers bits sont pour le réseau"] }
+            ]} />
+            <V2Terminal title="Exemples de masques" code={"! Masque /24 (le plus courant) :\n! Décimal : 255.255.255.0\n! Binaire : 11111111.11111111.11111111.00000000\n!           ────────── réseau ──────── ─ hôte ─\n!           24 bits réseau            8 bits hôte\n!\n! Masque /26 :\n! Décimal : 255.255.255.192\n! CIDR    : /26\n! 26 bits réseau, 6 bits hôte\n!\n! Plus le masque est grand (/24 → /26 → /28)\n! → Plus le réseau est PETIT (moins de machines)"} />
+            <V2Tip title="Astuce">Retiens : /24 = 255.255.255.0 = 254 machines max. C'est le masque le plus utilisé en entreprise pour un réseau local classique.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 5 : L'ADRESSE RÉSEAU ──
+      {
+        type: 'rich_text',
+        title: "L'adresse réseau",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Adresse réseau" title="La première adresse d'un sous-réseau" description="Dans chaque réseau, la PREMIÈRE adresse est spéciale : c'est l'adresse réseau. Elle identifie le réseau lui-même. On ne peut PAS la donner à une machine." />
+            <V2InfoCards cards={[
+              { title: "C'est quoi ?", color: "purple", icon: Network, items: ["C'est la première adresse du sous-réseau", "Tous les bits de la partie hôte sont à 0", "Elle IDENTIFIE le réseau lui-même", "On ne l'attribue JAMAIS à une machine"] },
+              { title: "Analogie", color: "amber", icon: Lightbulb, items: ["C'est comme le nom de la rue", "'Rue de la Paix' = le nom du réseau", "Personne n'habite AU nom de la rue", "Les gens habitent au numéro 1, 2, 3... de la rue"] }
+            ]} />
+            <V2Terminal title="Exemples" code={"! Réseau 192.168.1.0/24 :\n! → Adresse réseau = 192.168.1.0\n! → C'est la première adresse\n! → On NE PEUT PAS la donner à un PC\n!\n! Réseau 10.0.0.0/8 :\n! → Adresse réseau = 10.0.0.0\n!\n! Réseau 192.168.0.128/26 :\n! → Adresse réseau = 192.168.0.128\n!\n! Règle : les bits de la partie hôte = tous à 0"} />
+            <V2Tip title="Règle simple">L'adresse réseau = première adresse = RÉSERVÉE. Elle sert à identifier le réseau, jamais à une machine.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 6 : L'ADRESSE DE BROADCAST ──
+      {
+        type: 'rich_text',
+        title: "L'adresse de broadcast",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Broadcast" title="La dernière adresse d'un sous-réseau" description="La DERNIÈRE adresse d'un réseau est aussi spéciale : c'est l'adresse de BROADCAST. Elle permet d'envoyer un message à TOUTES les machines du réseau en même temps." />
+            <V2InfoCards cards={[
+              { title: "C'est quoi ?", color: "purple", icon: Network, items: ["C'est la dernière adresse du sous-réseau", "Tous les bits de la partie hôte sont à 1", "Envoie un message à TOUS les hôtes du réseau", "On ne l'attribue JAMAIS à une machine non plus"] },
+              { title: "Analogie", color: "amber", icon: Lightbulb, items: ["C'est comme un mégaphone dans la rue", "Tu cries un message → tout le monde entend", "L'adresse broadcast = 'à tous les habitants'", "Utile pour des annonces réseau (DHCP, ARP...)"] }
+            ]} />
+            <V2Terminal title="Exemples" code={"! Réseau 192.168.1.0/24 :\n! → Broadcast = 192.168.1.255\n! → C'est la DERNIÈRE adresse\n!\n! Réseau 10.0.0.0/8 :\n! → Broadcast = 10.255.255.255\n!\n! Réseau 192.168.0.128/26 :\n! → Broadcast = 192.168.0.191\n! (128 + 64 - 1 = 191)\n!\n! Règle : les bits de la partie hôte = tous à 1"} />
+            <V2Tip title="Règle simple">L'adresse broadcast = dernière adresse = RÉSERVÉE. Un paquet envoyé au broadcast est reçu par toutes les machines du réseau.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 7 : PLAGE D'ADRESSES UTILISABLES ──
+      {
+        type: 'rich_text',
+        title: "La plage d'adresses utilisables",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Plage utilisable" title="Les adresses qu'on peut donner aux machines" description="Dans un réseau, on ne peut PAS utiliser toutes les adresses. La première (réseau) et la dernière (broadcast) sont réservées. Les adresses ENTRE les deux sont celles qu'on attribue aux PC, imprimantes, routeurs, etc." />
+            <V2InfoCards cards={[
+              { title: "Les 3 types d'adresses", color: "purple", icon: Network, items: ["Adresse réseau = PREMIÈRE adresse (réservée)", "Adresses utilisables = ENTRE les deux", "Adresse broadcast = DERNIÈRE adresse (réservée)", "Nb utilisables = total - 2"] },
+              { title: "Exemple avec /24", color: "emerald", icon: CheckCircle2, items: ["Réseau 192.168.1.0/24 : 256 adresses au total", "Réseau : 192.168.1.0 (réservée)", "Broadcast : 192.168.1.255 (réservée)", "Utilisables : 192.168.1.1 → 192.168.1.254 = 254 hôtes"] }
+            ]} />
+            <V2Terminal title="Résumé visuel" code={"! Réseau 192.168.1.0/24\n!\n! 192.168.1.0   → Adresse RÉSEAU    (réservée)\n! 192.168.1.1   → 1ère adresse utilisable\n! 192.168.1.2   → ...\n! ...           → ...\n! 192.168.1.254 → Dernière adresse utilisable\n! 192.168.1.255 → Adresse BROADCAST (réservée)\n!\n! Total : 256 adresses\n! Utilisables : 256 - 2 = 254 hôtes\n!\n! Ces 254 adresses sont celles qu'on donne\n! aux PC, imprimantes, serveurs, routeurs..."} />
+            <V2Tip title="Formule magique">Nombre d'hôtes utilisables = 2^(bits hôte) - 2. Le '-2' c'est pour le réseau et le broadcast.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 8 : EXEMPLE COMPLET ──
+      {
+        type: 'rich_text',
+        title: "Exemple complet : décomposer une adresse",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Exercice guidé" title="Décomposons 192.168.1.10 /24" description="Prenons une adresse concrète et trouvons TOUT : l'adresse réseau, le broadcast, la première et la dernière adresse utilisable, et le nombre d'hôtes." />
+            <V2InfoCards cards={[
+              { title: "Les données", color: "purple", icon: Network, items: ["Adresse IP : 192.168.1.10", "Masque : /24 (255.255.255.0)", "→ 24 bits réseau, 8 bits hôte", "→ 2^8 = 256 adresses au total"] },
+              { title: "Les résultats", color: "emerald", icon: CheckCircle2, items: ["Adresse réseau : 192.168.1.0", "Broadcast : 192.168.1.255", "1ère utilisable : 192.168.1.1", "Dernière utilisable : 192.168.1.254", "Nb hôtes : 254"] }
+            ]} />
+            <V2Terminal title="Décomposition pas à pas" code={"! Adresse : 192.168.1.10 /24\n!\n! Étape 1 : Masque /24 → 8 bits pour les hôtes\n! Étape 2 : 2^8 = 256 adresses dans ce bloc\n! Étape 3 : Adresse réseau = 192.168.1.0\n!           (le .10 devient .0)\n! Étape 4 : Broadcast = 192.168.1.255\n!           (le .10 devient .255)\n! Étape 5 : 1ère hôte = 192.168.1.1\n! Étape 6 : Dernière hôte = 192.168.1.254\n! Étape 7 : Nb hôtes = 256 - 2 = 254\n!\n! Résumé :\n! .0 = réseau | .1 à .254 = hôtes | .255 = broadcast"} />
+            <V2Tip title="Méthode">Pour un /24 c'est simple : réseau = .0, broadcast = .255, hôtes de .1 à .254. Ça se complique avec les masques plus petits (/26, /28...) qu'on va voir ensuite.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 9 : EXEMPLE AVEC /26 ──
+      {
+        type: 'rich_text',
+        title: "Exemple plus complexe : /26",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Exercice guidé" title="Décomposons 192.168.0.130 /26" description="Maintenant un cas un peu plus dur. Avec un masque /26, le réseau est plus petit. Il faut comprendre la notion de BLOC pour trouver l'adresse réseau et le broadcast." />
+            <V2InfoCards cards={[
+              { title: "Les données", color: "purple", icon: Network, items: ["Adresse IP : 192.168.0.130", "Masque : /26 (255.255.255.192)", "→ 26 bits réseau, 6 bits hôte", "→ 2^6 = 64 adresses par bloc"] },
+              { title: "Trouver le bloc", color: "amber", icon: Lightbulb, items: ["Blocs de 64 : 0, 64, 128, 192...", "130 tombe entre 128 et 192", "→ Réseau = 192.168.0.128", "→ Broadcast = 192.168.0.191 (128+64-1)"] }
+            ]} />
+            <V2Terminal title="Résultat complet" code={"! Adresse : 192.168.0.130 /26\n!\n! Bloc = 256 - 192 = 64\n! Les blocs : .0 | .64 | .128 | .192\n! 130 tombe dans le bloc .128\n!\n! Adresse réseau   : 192.168.0.128\n! 1ère utilisable  : 192.168.0.129\n! Dernière utilisable : 192.168.0.190\n! Broadcast        : 192.168.0.191\n! Nb hôtes         : 64 - 2 = 62\n!\n! Vérification : 128 + 64 = 192 (début du bloc suivant)\n! Donc broadcast = 192 - 1 = 191 ✓"} />
+            <V2Tip title="Astuce du bloc">Pour trouver l'adresse réseau : calcule le bloc (256 - masque dernier octet). Puis cherche le multiple du bloc juste INFÉRIEUR ou ÉGAL à ton adresse. C'est l'adresse réseau.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 10 : LES ADRESSES PRIVÉES ──
+      {
+        type: 'rich_text',
+        title: "Les adresses IP privées",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Adresses privées" title="Des adresses réservées pour les réseaux internes" description="Certaines plages d'adresses IP sont réservées pour un usage INTERNE (dans ton entreprise, ta maison...). Elles ne sont PAS utilisables sur Internet. C'est ce qu'on appelle les adresses privées." />
+            <V2InfoCards cards={[
+              { title: "Les 3 plages privées", color: "purple", icon: Network, items: ["Classe A : 10.0.0.0 → 10.255.255.255", "Classe B : 172.16.0.0 → 172.31.255.255", "Classe C : 192.168.0.0 → 192.168.255.255", "Tu les croises partout en réseau local !"] },
+              { title: "Pourquoi des adresses privées ?", color: "amber", icon: Lightbulb, items: ["Les adresses publiques (Internet) sont limitées", "Les adresses privées sont gratuites et réutilisables", "Ta box Internet fait la traduction (NAT)", "192.168.1.1 chez toi ≠ 192.168.1.1 chez ton voisin"] }
+            ]} />
+            <V2Terminal title="Récapitulatif des plages privées" code={"! Classe A : 10.0.0.0/8\n!   De 10.0.0.0 à 10.255.255.255\n!   → Très grand réseau (16 millions d'adresses)\n!   → Utilisé dans les grandes entreprises\n!\n! Classe B : 172.16.0.0/12\n!   De 172.16.0.0 à 172.31.255.255\n!   → Réseau moyen\n!\n! Classe C : 192.168.0.0/16\n!   De 192.168.0.0 à 192.168.255.255\n!   → Le plus courant (ta box : 192.168.1.X)\n!\n! Tout le reste = adresses PUBLIQUES (Internet)"} />
+            <V2Tip title="Astuce exam">Si on te demande 'est-ce que cette adresse est privée ?', vérifie si elle commence par 10., 172.16-31., ou 192.168. Si oui → privée. Sinon → publique.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 11 : POURQUOI SOUS-RÉSEAUTER ? ──
+      {
+        type: 'rich_text',
+        title: "Pourquoi sous-réseauter ?",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Sous-réseaux" title="Diviser un grand réseau en petits morceaux" description="Maintenant qu'on comprend les adresses IP, on va voir pourquoi on DIVISE les réseaux en sous-réseaux. C'est comme découper un grand terrain en parcelles pour mieux l'organiser." />
+            <V2InfoCards cards={[
+              { title: "3 raisons de sous-réseauter", color: "purple", icon: Network, items: ["1. DIVISER un grand réseau en petits réseaux", "2. OPTIMISER l'utilisation des adresses IP", "3. ISOLER les services (sécurité, organisation)", "C'est la base de l'architecture réseau !"] },
+              { title: "Exemple concret", color: "amber", icon: Lightbulb, items: ["Entreprise avec 3 services :", "→ RH : 12 machines", "→ Technique : 28 machines", "→ Direction : 50 machines", "Un seul /24 pour tous ? Pas optimal !"] }
+            ]} />
+            <V2Terminal title="Le problème sans sous-réseaux" code={"! Sans sous-réseaux : tout le monde dans 192.168.1.0/24\n!\n! RH, Technique, Direction... tous mélangés\n! → Pas de séparation entre services\n! → Un virus dans un service touche TOUT le monde\n! → On ne sait pas qui est qui\n!\n! Avec sous-réseaux :\n! RH        → 192.168.1.0/28    (14 hôtes max)\n! Technique → 192.168.1.32/27   (30 hôtes max)\n! Direction → 192.168.1.64/26   (62 hôtes max)\n!\n! → Chaque service est isolé et organisé"} />
+            <V2Tip title="En résumé">Sous-réseauter = découper un réseau en morceaux adaptés aux besoins. Chaque service a son propre espace, ni trop grand ni trop petit.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 12 : MÉTHODOLOGIE ÉTAPES 1-2 ──
+      {
+        type: 'rich_text',
+        title: "Calculer un masque — Étapes 1 et 2",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Méthodologie" title="Combien de machines ? + 2 !" description="Pour trouver le bon masque, on part du BESOIN : combien de machines je veux dans ce sous-réseau ? Ensuite on ajoute 2 adresses réservées (réseau + broadcast)." />
+            <V2InfoCards cards={[
+              { title: "Étape 1 : Le besoin", color: "purple", icon: Network, items: ["Combien de machines dans ce sous-réseau ?", "Exemple : 'Je veux 50 machines'", "C'est le nombre d'hôtes requis", "On part toujours du besoin réel"] },
+              { title: "Étape 2 : Ajouter 2", color: "amber", icon: Lightbulb, items: ["Il faut ajouter 2 adresses réservées :", "→ 1 pour l'adresse réseau", "→ 1 pour l'adresse broadcast", "50 machines → besoin de 52 adresses minimum"] }
+            ]} />
+            <V2Terminal title="Exemple pas à pas" code={"! Besoin : 50 machines\n!\n! Étape 1 : Nombre d'hôtes requis = 50\n!\n! Étape 2 : On ajoute les 2 adresses réservées\n!   50 + 2 = 52 adresses nécessaires\n!\n! Pourquoi +2 ?\n!   → 1 adresse pour le RÉSEAU (première)\n!   → 1 adresse pour le BROADCAST (dernière)\n!   → Ces 2 adresses ne sont pas utilisables\n!\n! Donc il faut un bloc d'au moins 52 adresses\n! → On cherche la puissance de 2 suivante..."} />
+            <V2Tip title="Règle">TOUJOURS ajouter 2 au nombre de machines demandé. C'est l'erreur classique en exam : oublier le réseau et le broadcast !</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 13 : MÉTHODOLOGIE ÉTAPES 3-4 ──
+      {
+        type: 'rich_text',
+        title: "Calculer un masque — Étapes 3 et 4",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Méthodologie" title="Trouver la bonne puissance de 2" description="On a besoin de 52 adresses minimum. Maintenant il faut trouver la puissance de 2 SUPÉRIEURE ou ÉGALE à 52. Les blocs réseau sont TOUJOURS des puissances de 2 (2, 4, 8, 16, 32, 64, 128, 256...)." />
+            <V2InfoCards cards={[
+              { title: "Étape 3 : Puissance de 2", color: "purple", icon: Network, items: ["Besoin : 52 adresses minimum", "2^5 = 32 → pas assez (32 < 52)", "2^6 = 64 → suffisant ! (64 >= 52)", "On prend 64 adresses"] },
+              { title: "Étape 4 : Bits hôte", color: "emerald", icon: CheckCircle2, items: ["2^6 = 64 → on a besoin de 6 bits pour les hôtes", "6 bits hôte = on peut coder 64 adresses", "Nb hôtes utilisables = 64 - 2 = 62", "62 >= 50 machines → c'est bon !"] }
+            ]} />
+            <V2Terminal title="Les puissances de 2 à connaître" code={"! Les puissances de 2 (à apprendre par coeur) :\n!\n! 2^1 =    2       2^5 =   32       2^9  = 512\n! 2^2 =    4       2^6 =   64       2^10 = 1024\n! 2^3 =    8       2^7 =  128\n! 2^4 =   16       2^8 =  256\n!\n! Pour 50 machines :\n! 50 + 2 = 52 adresses nécessaires\n! 2^5 = 32 → trop petit (32 < 52)\n! 2^6 = 64 → parfait ! (64 >= 52)\n!\n! → On a besoin de 6 bits pour les hôtes\n! → Hôtes utilisables : 64 - 2 = 62"} />
+            <V2Tip title="Méthode">Monte dans les puissances de 2 jusqu'à trouver un nombre SUPÉRIEUR ou ÉGAL au besoin (machines + 2). Le nombre de l'exposant = le nombre de bits hôte.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 14 : MÉTHODOLOGIE ÉTAPES 5-6-7 ──
+      {
+        type: 'rich_text',
+        title: "Calculer un masque — Étapes 5, 6 et 7",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Méthodologie" title="Trouver le CIDR et le masque décimal" description="On sait qu'il faut 6 bits hôte. Maintenant on calcule le masque CIDR puis on le convertit en notation décimale. C'est la dernière étape !" />
+            <V2InfoCards cards={[
+              { title: "Étape 5 : CIDR", color: "purple", icon: Network, items: ["Une adresse IP = 32 bits au total", "32 bits - 6 bits hôte = 26 bits réseau", "→ Masque CIDR = /26", "C'est aussi simple que ça !"] },
+              { title: "Étape 6 : Décimal", color: "emerald", icon: CheckCircle2, items: ["/26 = 255.255.255.192", "Comment ? 256 - 64 = 192", "(64 = la taille du bloc = 2^6)", "Étape 7 : Vérif → 64 - 2 = 62 hôtes OK"] }
+            ]} />
+            <V2Terminal title="Récapitulatif complet pour 50 machines" code={"! MÉTHODOLOGIE COMPLÈTE :\n!\n! 1. Besoin = 50 machines\n! 2. 50 + 2 = 52 adresses nécessaires\n! 3. Puissance de 2 : 2^6 = 64 >= 52 ✓\n! 4. Bits hôte = 6\n! 5. CIDR = 32 - 6 = /26\n! 6. Masque décimal : 256 - 64 = 192\n!    → 255.255.255.192\n! 7. Vérification : 64 - 2 = 62 hôtes utilisables\n!    62 >= 50 ✓\n!\n! Résultat : pour 50 machines → /26 (255.255.255.192)"} />
+            <V2Tip title="Astuce pour le masque décimal">Pour convertir le CIDR en décimal dans le dernier octet : fais 256 - (taille du bloc). /26 → bloc de 64 → 256 - 64 = 192 → 255.255.255.192</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 15 : TABLE DE CORRESPONDANCE CIDR ──
+      {
+        type: 'rich_text',
+        title: "Table de correspondance CIDR",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Table CIDR" title="Le tableau à connaître par coeur" description="Voici le tableau des masques les plus utilisés. C'est TON aide-mémoire pour les exercices et les exams. Apprends-le !" />
+            <V2InfoCards cards={[
+              { title: "Les petits réseaux", color: "purple", icon: Network, items: ["/30 = 255.255.255.252 → 2 hôtes", "/29 = 255.255.255.248 → 6 hôtes", "/28 = 255.255.255.240 → 14 hôtes", "/27 = 255.255.255.224 → 30 hôtes"] },
+              { title: "Les réseaux moyens/grands", color: "emerald", icon: CheckCircle2, items: ["/26 = 255.255.255.192 → 62 hôtes", "/25 = 255.255.255.128 → 126 hôtes", "/24 = 255.255.255.0 → 254 hôtes", "/16 = 255.255.0.0 → 65 534 hôtes"] }
+            ]} />
+            <V2Terminal title="Tableau récapitulatif" code={"! CIDR │ Masque décimal      │ Bits hôte │ Hôtes utilisables\n! ─────┼─────────────────────┼───────────┼───────────────────\n! /30  │ 255.255.255.252     │     2     │        2\n! /29  │ 255.255.255.248     │     3     │        6\n! /28  │ 255.255.255.240     │     4     │       14\n! /27  │ 255.255.255.224     │     5     │       30\n! /26  │ 255.255.255.192     │     6     │       62\n! /25  │ 255.255.255.128     │     7     │      126\n! /24  │ 255.255.255.0       │     8     │      254\n! /22  │ 255.255.252.0       │    10     │     1022\n!\n! Formule : hôtes = 2^(bits hôte) - 2"} />
+            <V2Tip title="Astuce exam">Ce tableau revient dans TOUS les examens réseau. Retiens au minimum : /24 = 254, /26 = 62, /28 = 14, /30 = 2. Ça couvre 90% des cas.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 16 : EXEMPLE CONCRET — 3 SERVICES ──
+      {
+        type: 'rich_text',
+        title: "Exemple : une entreprise avec 3 services",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Exercice guidé" title="Trouver le masque pour chaque service" description="Voici un cas réel : une entreprise a 3 services avec des besoins différents. Pour chacun, on applique la méthodologie pour trouver le bon masque." />
+            <V2InfoCards cards={[
+              { title: "Les besoins", color: "purple", icon: Network, items: ["Service RH : 12 machines", "Service Technique : 28 machines", "Service Direction : 50 machines", "Quel masque pour chacun ?"] },
+              { title: "Les résultats", color: "emerald", icon: CheckCircle2, items: ["RH : 12+2=14 → 2^4=16 → /28", "Technique : 28+2=30 → 2^5=32 → /27", "Direction : 50+2=52 → 2^6=64 → /26", "On prend le plus petit bloc suffisant !"] }
+            ]} />
+            <V2Terminal title="Calcul détaillé" code={"! Service RH (12 machines) :\n! 12 + 2 = 14 → 2^4 = 16 → /28 (255.255.255.240)\n! Hôtes utilisables : 16 - 2 = 14 >= 12 ✓\n!\n! Service Technique (28 machines) :\n! 28 + 2 = 30 → 2^5 = 32 → /27 (255.255.255.224)\n! Hôtes utilisables : 32 - 2 = 30 >= 28 ✓\n!\n! Service Direction (50 machines) :\n! 50 + 2 = 52 → 2^6 = 64 → /26 (255.255.255.192)\n! Hôtes utilisables : 64 - 2 = 62 >= 50 ✓\n!\n! ATTENTION : Technique 28 machines → /27 (30 hôtes)\n! Pas /28 (14 hôtes) car 14 < 28 !"} />
+            <V2Tip title="Piège classique">{"28 machines → certains pensent /28. Erreur ! /28 = 14 hôtes, c'est insuffisant. Il faut /27 (30 hôtes). Vérifie TOUJOURS que le nombre d'hôtes utilisables >= le besoin."}</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 17 : TABLEAU À COMPLÉTER ──
+      {
+        type: 'rich_text',
+        title: "Tableau pratique : calcul rapide",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Exercice" title="Entraîne-toi à trouver le bon masque" description="Voici des cas pratiques. Pour chaque nombre de machines, applique la méthodologie : +2, puissance de 2, CIDR, masque décimal. Essaie de les faire de tête avant de regarder la réponse !" />
+            <V2InfoCards cards={[
+              { title: "Essaie d'abord !", color: "amber", icon: Lightbulb, items: ["6 machines → quel masque ?", "14 machines → quel masque ?", "50 machines → quel masque ?", "126 machines → quel masque ?"] },
+              { title: "Rappel méthode", color: "purple", icon: Network, items: ["1. Machines + 2 = adresses nécessaires", "2. Trouver la puissance de 2 >= ce nombre", "3. CIDR = 32 - exposant", "4. Masque = 256 - taille du bloc"] }
+            ]} />
+            <V2Terminal title="Réponses" code={"! Nb machines │ +2  │ Puissance de 2 │ CIDR │ Masque décimal\n! ────────────┼─────┼────────────────┼──────┼──────────────────\n!     6       │  8  │  2^3 = 8       │ /29  │ 255.255.255.248\n!    14       │ 16  │  2^4 = 16      │ /28  │ 255.255.255.240\n!    50       │ 52  │  2^6 = 64      │ /26  │ 255.255.255.192\n!   126       │ 128 │  2^7 = 128     │ /25  │ 255.255.255.128\n!\n! Bonus : 1000 machines ?\n! 1000 + 2 = 1002\n! 2^10 = 1024 >= 1002\n! CIDR = 32 - 10 = /22\n! Masque = 255.255.252.0"} />
+            <V2Tip title="Exercice bonus">Et pour 1000 hôtes ? 1002 → 2^10 = 1024 → /22 = 255.255.252.0. Quand ça dépasse le dernier octet (/24), le masque change aussi dans le 3ème octet !</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 18 : EXERCICE TABLEAU COMPLET ──
+      {
+        type: 'rich_text',
+        title: "Exercice : décomposer des adresses",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Exercice" title="Trouve réseau, broadcast, plage et nombre d'hôtes" description="Pour chaque adresse ci-dessous, trouve l'adresse réseau, le broadcast, la première et dernière hôte, et le nombre d'hôtes utilisables. Essaie AVANT de regarder !" />
+            <V2InfoCards cards={[
+              { title: "Les adresses à décomposer", color: "purple", icon: Network, items: ["192.168.1.10 /24", "10.0.0.100 /8", "192.168.0.130 /26", "172.16.5.40 /23"] },
+              { title: "Rappel méthode", color: "amber", icon: Lightbulb, items: ["1. Trouver la taille du bloc (2^bits hôte)", "2. Trouver dans quel bloc tombe l'adresse", "3. Réseau = début du bloc", "4. Broadcast = fin du bloc (début + bloc - 1)"] }
+            ]} />
+            <V2Terminal title="Correction" code={"! Adresse       │ Masque │ Réseau         │ Broadcast       │ 1ère hôte      │ Dernière hôte   │ Hôtes\n! ──────────────┼────────┼────────────────┼─────────────────┼────────────────┼─────────────────┼──────\n! 192.168.1.10  │ /24    │ 192.168.1.0    │ 192.168.1.255   │ 192.168.1.1    │ 192.168.1.254   │ 254\n! 10.0.0.100    │ /8     │ 10.0.0.0       │ 10.255.255.255  │ 10.0.0.1       │ 10.255.255.254  │ 16M\n! 192.168.0.130 │ /26    │ 192.168.0.128  │ 192.168.0.191   │ 192.168.0.129  │ 192.168.0.190   │ 62\n! 172.16.5.40   │ /23    │ 172.16.4.0     │ 172.16.5.255    │ 172.16.4.1     │ 172.16.5.254    │ 510"} />
+            <V2Tip title="Le cas /23">Pour 172.16.5.40 /23, le bloc est de 512 (2^9). Le 3ème octet change par blocs de 2 : 0-1, 2-3, 4-5... Donc 5 tombe dans le bloc 4-5. Réseau = 172.16.4.0, broadcast = 172.16.5.255.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 19 : CONFIGURER UNE IP SUR PACKET TRACER ──
+      {
+        type: 'rich_text',
+        title: "Configurer une IP dans Packet Tracer",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Packet Tracer" title="Appliquer tout ça en pratique" description="Maintenant qu'on comprend la théorie, voyons comment configurer les adresses IP sur les appareils dans Cisco Packet Tracer. Sur un PC c'est graphique, sur un switch/routeur c'est en ligne de commande." />
+            <V2InfoCards cards={[
+              { title: "Sur un PC", color: "purple", icon: Network, items: ["Cliquer sur le PC → Desktop", "→ IP Configuration → Static", "Remplir : IPv4 Address, Subnet Mask", "Remplir : Default Gateway (passerelle)"] },
+              { title: "Sur un Switch (interface VLAN)", color: "emerald", icon: CheckCircle2, items: ["Switch(config)# interface vlan 1", "Switch(config-if)# ip address [IP] [masque]", "Switch(config-if)# no shutdown", "Attention : bien mettre le bon masque !"] }
+            ]} />
+            <V2Terminal title="Exemples de configuration" code={"! === Sur un PC (interface graphique) ===\n! Desktop → IP Configuration → Static\n!\n! IPv4 Address   : 192.168.1.10\n! Subnet Mask    : 255.255.255.0     ← /24\n! Default Gateway: 192.168.1.1\n!\n! === Sur un Switch (CLI) ===\n!\nSwitch(config)# interface vlan 1\nSwitch(config-if)# ip address 192.168.1.2 255.255.255.0\nSwitch(config-if)# no shutdown\nSwitch(config-if)# exit\n!\n! Le masque DOIT correspondre au réseau du PC !"} />
+            <V2Tip title="Erreur fréquente">Mettre un mauvais masque sur le PC (ex: 255.255.255.192 au lieu de 255.255.255.0). Si le masque ne correspond pas, les machines ne communiqueront pas correctement.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 20 : LE VLSM ──
+      {
+        type: 'rich_text',
+        title: "Le VLSM : des masques différents par service",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="VLSM" title="Variable Length Subnet Masking" description="Le VLSM, c'est la technique qui permet d'utiliser des masques de TAILLE DIFFÉRENTE pour chaque sous-réseau. Au lieu d'un seul masque pour toute l'entreprise, chaque service a le masque adapté à son besoin." />
+            <V2InfoCards cards={[
+              { title: "Sans VLSM (gaspillage)", color: "red", icon: AlertTriangle, items: ["Tout le monde en /24 (254 hôtes)", "RH : 12 machines → 242 adresses gaspillées", "Direction : 50 machines → 204 gaspillées", "Total : des centaines d'adresses perdues !"] },
+              { title: "Avec VLSM (optimisé)", color: "emerald", icon: CheckCircle2, items: ["RH : /28 → 14 hôtes (juste assez)", "Technique : /27 → 30 hôtes (adapté)", "Direction : /26 → 62 hôtes (adapté)", "On utilise les adresses efficacement !"] }
+            ]} />
+            <V2Terminal title="VLSM en action" code={"! Réseau de base : 192.168.1.0/24\n! On le découpe en sous-réseaux VLSM :\n!\n! Direction (50 machines) → /26\n!   192.168.1.0/26   (62 hôtes, .1 à .62)\n!\n! Technique (28 machines) → /27\n!   192.168.1.64/27  (30 hôtes, .65 à .94)\n!\n! RH (12 machines) → /28\n!   192.168.1.96/28  (14 hôtes, .97 à .110)\n!\n! Règle VLSM : toujours commencer par\n! le plus GRAND sous-réseau d'abord !"} />
+            <V2Tip title="Règle VLSM">En VLSM, on commence toujours par le plus grand sous-réseau (celui qui a besoin du plus de machines). Ensuite on remplit avec les plus petits. Ça évite les chevauchements.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 21 : RÉSUMÉ FINAL ──
+      {
+        type: 'rich_text',
+        title: "Résumé de la session",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Résumé" title="Tout ce qu'on a appris" description="Récapitulatif complet de la session sur l'adressage IP et les masques de sous-réseau. Garde cette slide comme aide-mémoire !" />
+            <V2InfoCards cards={[
+              { title: "Adressage IP", color: "purple", icon: Network, items: ["Adresse IP = 32 bits (4 octets)", "Partie réseau + partie hôte", "Masque = frontière entre les deux", "Réseau = 1ère adresse, Broadcast = dernière", "Hôtes = entre les deux (total - 2)"] },
+              { title: "Adresses privées", color: "emerald", icon: CheckCircle2, items: ["Classe A : 10.0.0.0/8", "Classe B : 172.16.0.0/12", "Classe C : 192.168.0.0/16", "Non routables sur Internet"] }
+            ]} />
+            <V2InfoCards cards={[
+              { title: "Calcul de masque", color: "amber", icon: Lightbulb, items: ["1. Nb machines + 2", "2. Puissance de 2 supérieure", "3. CIDR = 32 - bits hôte", "4. Masque = 256 - taille bloc", "5. Vérifier : hôtes = bloc - 2"] },
+              { title: "Table CIDR essentielle", color: "red", icon: AlertTriangle, items: ["/30 = 2 hôtes | /28 = 14 hôtes", "/27 = 30 hôtes | /26 = 62 hôtes", "/25 = 126 hôtes | /24 = 254 hôtes", "VLSM = masques différents par service"] }
+            ]} />
+            <V2Tip title="Prêt pour le lab !">{"Tu as tous les concepts. Dans le lab, tu vas t'entraîner à décomposer des adresses et calculer des masques. C'est en pratiquant qu'on retient !"}</V2Tip>
+          </div>
+        )
+      }
+    ],
+    lab: {
+      consignes: (
+        <div className="space-y-8 text-sm">
+          <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-xl p-6 border border-purple-500/20">
+            <h3 className="text-xl font-bold text-white mb-2">Lab Adressage IP & Masques — Entreprise NetSolutions</h3>
+            <p className="text-slate-300">{"L'entreprise NetSolutions a 3 services à mettre en réseau. Vous devez calculer les bons masques, créer un plan d'adressage et configurer le tout dans Packet Tracer."}</p>
+          </div>
+
+          <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
+            <h4 className="text-purple-300 font-bold mb-3">Partie 1 — Exercices de calcul (sur papier)</h4>
+            <div className="space-y-4">
+              <div className="bg-black/30 rounded-lg p-4">
+                <p className="text-amber-300 font-bold mb-2">Exercice 1 : Texte à trou</p>
+                <p className="text-slate-300 text-xs leading-relaxed">{"Complétez : Une adresse IP est composée de ___ bits répartis en ___ octets. Elle contient une partie ___ et une partie ___. Le masque de sous-réseau permet de différencier ces deux parties. L'adresse ___ est la première adresse d'un sous-réseau, et l'adresse de ___ est la dernière adresse. Les adresses utilisables sont celles entre ces deux adresses. Le masque /26 correspond en décimal à ___."}</p>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4">
+                <p className="text-amber-300 font-bold mb-2">Exercice 2 : Trouver le bon masque</p>
+                <p className="text-slate-300 text-xs mb-2">Pour chaque nombre de machines, trouvez le CIDR et le masque décimal :</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-slate-300 border border-white/20 rounded">
+                    <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Nb machines</th><th className="p-2 text-left">Nb adresses (+2)</th><th className="p-2 text-left">Puissance de 2</th><th className="p-2 text-left">CIDR</th><th className="p-2 text-left">Masque décimal</th></tr></thead>
+                    <tbody>
+                      <tr className="border-t border-white/10"><td className="p-2">6</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
+                      <tr className="border-t border-white/10"><td className="p-2">14</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
+                      <tr className="border-t border-white/10"><td className="p-2">50</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
+                      <tr className="border-t border-white/10"><td className="p-2">126</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4">
+                <p className="text-amber-300 font-bold mb-2">Exercice 3 : Décomposer des adresses</p>
+                <p className="text-slate-300 text-xs mb-2">Pour chaque adresse, trouvez : adresse réseau, broadcast, 1ère hôte, dernière hôte, nombre d'hôtes.</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-slate-300 border border-white/20 rounded">
+                    <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Adresse IP</th><th className="p-2 text-left">Masque</th><th className="p-2 text-left">Réseau</th><th className="p-2 text-left">Broadcast</th><th className="p-2 text-left">1ère hôte</th><th className="p-2 text-left">Dernière hôte</th><th className="p-2 text-left">Nb hôtes</th></tr></thead>
+                    <tbody>
+                      <tr className="border-t border-white/10"><td className="p-2">192.168.1.10</td><td className="p-2">/24</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
+                      <tr className="border-t border-white/10"><td className="p-2">10.0.0.100</td><td className="p-2">/8</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
+                      <tr className="border-t border-white/10"><td className="p-2">192.168.0.130</td><td className="p-2">/26</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
+                      <tr className="border-t border-white/10"><td className="p-2">172.16.5.130</td><td className="p-2">/20</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
+            <h4 className="text-emerald-300 font-bold mb-3">Partie 2 — Packet Tracer</h4>
+            <p className="text-slate-300 text-xs mb-3">{"L'entreprise NetSolutions a 3 services. Créez un plan d'adressage VLSM à partir du réseau 192.168.1.0/24 :"}</p>
+            <div className="overflow-x-auto mb-4">
+              <table className="w-full text-xs text-slate-300 border border-white/20 rounded">
+                <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Service</th><th className="p-2 text-left">Nb machines</th><th className="p-2 text-left">Masque à trouver</th><th className="p-2 text-left">Sous-réseau à trouver</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-white/10"><td className="p-2">Direction</td><td className="p-2">50</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2">Technique</td><td className="p-2">25</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2">RH</td><td className="p-2">10</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <ol className="text-slate-300 space-y-3 list-decimal list-inside">
+              <li><strong>Calculer</strong> le masque et le sous-réseau pour chaque service (VLSM)</li>
+              <li><strong>Construire la topologie</strong> : 1 switch par service + 2 PC par service</li>
+              <li><strong>Configurer les PC</strong> avec les bonnes IP et masques</li>
+              <li><strong>Tester</strong> : ping entre PC du même service (doit marcher)</li>
+              <li><strong>Vérifier</strong> : ping entre PC de services différents (ne doit PAS marcher sans routeur)</li>
+            </ol>
+          </div>
+
+          <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
+            <p className="text-amber-200 font-bold">Questions bonus</p>
+            <p className="text-slate-300 text-sm mt-1">{"1) Qu'est-ce qu'une adresse de broadcast ? 2) Pourquoi ne peut-on pas utiliser la 1ère et dernière adresse ? 3) Quelles sont les 3 plages d'adresses privées ? 4) Quel masque pour 1000 hôtes ? 5) Qu'est-ce que le VLSM ?"}</p>
+          </div>
+        </div>
+      ),
+      solutionContent: (
+        <div className="space-y-6 max-w-4xl mx-auto">
+          <div className="bg-gradient-to-r from-emerald-900/30 to-purple-900/30 rounded-xl p-6 border border-emerald-500/20 mb-6">
+            <h3 className="text-xl font-bold text-white mb-2">{"Correction — Lab Adressage IP & Masques"}</h3>
+            <p className="text-slate-300 text-sm">Correction complète des exercices de calcul et du plan d'adressage VLSM.</p>
+          </div>
+
+          <section className="bg-[#1a1035]/50 border border-white/20 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-purple-400 mb-6">Exercice 1 — Texte à trou</h2>
+            <p className="text-slate-300 text-sm leading-relaxed">{"Une adresse IP est composée de "}<strong className="text-emerald-400">32</strong>{" bits répartis en "}<strong className="text-emerald-400">4</strong>{" octets. Elle contient une partie "}<strong className="text-emerald-400">réseau</strong>{" et une partie "}<strong className="text-emerald-400">hôte</strong>{". Le masque de sous-réseau permet de différencier ces deux parties. L'adresse "}<strong className="text-emerald-400">réseau</strong>{" est la première adresse d'un sous-réseau, et l'adresse de "}<strong className="text-emerald-400">broadcast</strong>{" est la dernière adresse. Le masque /26 correspond en décimal à "}<strong className="text-emerald-400">255.255.255.192</strong>.</p>
+          </section>
+
+          <section className="bg-[#1a1035]/50 border border-white/20 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-blue-400 mb-6">Exercice 2 — Trouver le bon masque</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-slate-300 border border-white/20 rounded">
+                <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Nb machines</th><th className="p-2 text-left">Nb adresses (+2)</th><th className="p-2 text-left">Puissance de 2</th><th className="p-2 text-left">CIDR</th><th className="p-2 text-left">Masque décimal</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-white/10"><td className="p-2">6</td><td className="p-2 font-mono text-emerald-400">8</td><td className="p-2 font-mono text-emerald-400">{"2^3 = 8"}</td><td className="p-2 font-mono text-emerald-400">/29</td><td className="p-2 font-mono text-emerald-400">255.255.255.248</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2">14</td><td className="p-2 font-mono text-emerald-400">16</td><td className="p-2 font-mono text-emerald-400">{"2^4 = 16"}</td><td className="p-2 font-mono text-emerald-400">/28</td><td className="p-2 font-mono text-emerald-400">255.255.255.240</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2">50</td><td className="p-2 font-mono text-emerald-400">52</td><td className="p-2 font-mono text-emerald-400">{"2^6 = 64"}</td><td className="p-2 font-mono text-emerald-400">/26</td><td className="p-2 font-mono text-emerald-400">255.255.255.192</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2">126</td><td className="p-2 font-mono text-emerald-400">128</td><td className="p-2 font-mono text-emerald-400">{"2^7 = 128"}</td><td className="p-2 font-mono text-emerald-400">/25</td><td className="p-2 font-mono text-emerald-400">255.255.255.128</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="bg-[#1a1035]/50 border border-white/20 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-amber-400 mb-6">Exercice 3 — Décomposer des adresses</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-slate-300 border border-white/20 rounded">
+                <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Adresse IP</th><th className="p-2 text-left">Masque</th><th className="p-2 text-left">Réseau</th><th className="p-2 text-left">Broadcast</th><th className="p-2 text-left">1ère hôte</th><th className="p-2 text-left">Dernière hôte</th><th className="p-2 text-left">Nb hôtes</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-white/10"><td className="p-2">192.168.1.10</td><td className="p-2">/24</td><td className="p-2 font-mono text-emerald-400">192.168.1.0</td><td className="p-2 font-mono text-emerald-400">192.168.1.255</td><td className="p-2 font-mono text-emerald-400">192.168.1.1</td><td className="p-2 font-mono text-emerald-400">192.168.1.254</td><td className="p-2 font-mono text-emerald-400">254</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2">10.0.0.100</td><td className="p-2">/8</td><td className="p-2 font-mono text-emerald-400">10.0.0.0</td><td className="p-2 font-mono text-emerald-400">10.255.255.255</td><td className="p-2 font-mono text-emerald-400">10.0.0.1</td><td className="p-2 font-mono text-emerald-400">10.255.255.254</td><td className="p-2 font-mono text-emerald-400">16 777 214</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2">192.168.0.130</td><td className="p-2">/26</td><td className="p-2 font-mono text-emerald-400">192.168.0.128</td><td className="p-2 font-mono text-emerald-400">192.168.0.191</td><td className="p-2 font-mono text-emerald-400">192.168.0.129</td><td className="p-2 font-mono text-emerald-400">192.168.0.190</td><td className="p-2 font-mono text-emerald-400">62</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2">172.16.5.130</td><td className="p-2">/20</td><td className="p-2 font-mono text-emerald-400">172.16.0.0</td><td className="p-2 font-mono text-emerald-400">172.16.15.255</td><td className="p-2 font-mono text-emerald-400">172.16.0.1</td><td className="p-2 font-mono text-emerald-400">172.16.15.254</td><td className="p-2 font-mono text-emerald-400">4094</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="bg-[#1a1035]/50 border border-white/20 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-emerald-400 mb-6">{"Partie 2 — Plan d'adressage VLSM NetSolutions"}</h2>
+            <p className="text-slate-300 text-sm mb-4">{"Réseau de base : 192.168.1.0/24 — On commence par le plus grand service."}</p>
+            <div className="overflow-x-auto mb-4">
+              <table className="w-full text-xs text-slate-300 border border-white/20 rounded">
+                <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Service</th><th className="p-2 text-left">Machines</th><th className="p-2 text-left">Masque</th><th className="p-2 text-left">Sous-réseau</th><th className="p-2 text-left">Plage hôtes</th><th className="p-2 text-left">Broadcast</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-purple-300">Direction</td><td className="p-2">50</td><td className="p-2 font-mono text-emerald-400">/26</td><td className="p-2 font-mono text-emerald-400">192.168.1.0/26</td><td className="p-2 font-mono text-emerald-400">.1 — .62</td><td className="p-2 font-mono text-emerald-400">.63</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-blue-300">Technique</td><td className="p-2">25</td><td className="p-2 font-mono text-emerald-400">/27</td><td className="p-2 font-mono text-emerald-400">192.168.1.64/27</td><td className="p-2 font-mono text-emerald-400">.65 — .94</td><td className="p-2 font-mono text-emerald-400">.95</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-amber-300">RH</td><td className="p-2">10</td><td className="p-2 font-mono text-emerald-400">/28</td><td className="p-2 font-mono text-emerald-400">192.168.1.96/28</td><td className="p-2 font-mono text-emerald-400">.97 — .110</td><td className="p-2 font-mono text-emerald-400">.111</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <h3 className="text-slate-200 font-bold mb-3 border-b border-white/20 pb-2">Exemple de configuration PC (Direction)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
+                <p className="text-purple-300 font-bold mb-2">PC-Direction-1</p>
+                <div className="mt-2 space-y-1 font-mono text-xs">
+                  <p className="text-emerald-400">IP : 192.168.1.1</p>
+                  <p className="text-emerald-400">Mask : 255.255.255.192</p>
+                  <p className="text-emerald-400">Gateway : (pas encore de routeur)</p>
+                </div>
+              </div>
+              <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
+                <p className="text-purple-300 font-bold mb-2">PC-Direction-2</p>
+                <div className="mt-2 space-y-1 font-mono text-xs">
+                  <p className="text-emerald-400">IP : 192.168.1.2</p>
+                  <p className="text-emerald-400">Mask : 255.255.255.192</p>
+                  <p className="text-emerald-400">Gateway : (pas encore de routeur)</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="bg-[#1a1035]/50 border border-white/20 rounded-2xl p-8 scroll-mt-4">
+            <h2 className="text-xl font-bold text-red-400 mb-6">Questions bonus — Réponses</h2>
+            <div className="space-y-3 text-sm text-slate-300">
+              <p><strong className="text-amber-300">{"1)"}</strong>{" L'adresse broadcast permet d'envoyer un message à TOUTES les machines du même sous-réseau."}</p>
+              <p><strong className="text-amber-300">{"2)"}</strong>{" La 1ère est l'adresse réseau et la dernière est le broadcast — elles sont réservées."}</p>
+              <p><strong className="text-amber-300">{"3)"}</strong>{" Classe A : 10.0.0.0/8 | Classe B : 172.16.0.0/12 | Classe C : 192.168.0.0/16"}</p>
+              <p><strong className="text-amber-300">{"4)"}</strong>{" 1000+2=1002 → 2^10=1024 → /22 = 255.255.252.0"}</p>
+              <p><strong className="text-amber-300">{"5)"}</strong>{" VLSM = Variable Length Subnet Masking. Permet d'utiliser des masques de taille différente par sous-réseau pour optimiser l'utilisation des adresses."}</p>
+            </div>
+          </section>
+
+          <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg">
+            <p className="text-emerald-200 font-bold">Récapitulatif</p>
+            <p className="text-slate-300 text-sm mt-1">{"Vous avez appris à calculer des masques, décomposer des adresses IP, et créer un plan d'adressage VLSM pour une entreprise. La clé : toujours partir du besoin en machines, ajouter 2, et trouver la puissance de 2 supérieure."}</p>
+          </div>
+        </div>
+      )
+    },
+    quiz: [
+      { q: "Combien de bits compose une adresse IPv4 ?", options: ["16 bits", "32 bits", "64 bits"], a: 1, explanation: "Une adresse IPv4 est composée de 32 bits, divisés en 4 octets de 8 bits chacun." },
+      { q: "Que permet le masque de sous-réseau ?", options: ["De chiffrer les données", "De séparer la partie réseau de la partie hôte", "De trouver l'adresse MAC"], a: 1, explanation: "Le masque détermine la frontière entre la partie réseau et la partie hôte d'une adresse IP." },
+      { q: "Pourquoi faut-il ajouter 2 au nombre de machines pour calculer un masque ?", options: ["Pour la sécurité", "Pour l'adresse réseau et le broadcast", "Pour les routeurs"], a: 1, explanation: "La 1ère adresse (réseau) et la dernière (broadcast) sont réservées et ne peuvent pas être attribuées à des machines." },
+      { q: "Quel masque choisir pour 20 hôtes ?", options: ["/28 (14 hôtes utilisables)", "/27 (30 hôtes utilisables)", "/26 (62 hôtes utilisables)"], a: 1, explanation: "/28 = 14 hôtes, insuffisant. /27 = 30 hôtes, c'est le plus petit masque suffisant pour 20 machines (20+2=22, 2^5=32)." },
+      { q: "Le masque /26 correspond à quel masque décimal ?", options: ["255.255.255.128", "255.255.255.192", "255.255.255.224"], a: 1, explanation: "/26 = 6 bits hôte = bloc de 64. Masque = 256-64 = 192 → 255.255.255.192." },
+      { q: "Quelle est la plage d'adresses privées de classe C ?", options: ["10.0.0.0 – 10.255.255.255", "172.16.0.0 – 172.31.255.255", "192.168.0.0 – 192.168.255.255"], a: 2, explanation: "La classe C privée va de 192.168.0.0 à 192.168.255.255. C'est la plage la plus courante en réseau local." },
+      { q: "Quelle est l'adresse de broadcast du réseau 192.168.0.128/26 ?", options: ["192.168.0.255", "192.168.0.191", "192.168.0.192"], a: 1, explanation: "Bloc de 64, début à .128 → broadcast = 128+64-1 = .191." },
+      { q: "Qu'est-ce que le VLSM ?", options: ["Un protocole de routage", "Une technique pour utiliser des masques de taille différente par sous-réseau", "Un type de câble réseau"], a: 1, explanation: "VLSM = Variable Length Subnet Masking. Permet d'adapter le masque à chaque sous-réseau selon le besoin en machines." }
+    ]
   }
 ];
 
@@ -11140,6 +11672,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
   const isSession4 = sessionId === 4;
   const isSession5 = sessionId === 5;
   const isSession6 = sessionId === 6;
+  const isSession7 = sessionId === 7;
   return (
     <div className="h-full flex flex-col">
       <div className="bg-[#1a1035] p-6 rounded-t-xl border border-white/[0.15] border-b-0">
@@ -11162,7 +11695,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
             onClick={() => setLabTab('correction')}
             className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
           >
-            <CheckCircle className="w-4 h-4" /> {isSession6 ? 'Correction Lab Syslog' : isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
+            <CheckCircle className="w-4 h-4" /> {isSession7 ? 'Correction Lab Adressage' : isSession6 ? 'Correction Lab Syslog' : isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
           </button>
           {(isSession2 || isSession3 || isSession4 || isSession5 || isSession6) && lab.solutionContentLab2 && (
             <button
@@ -11209,7 +11742,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
       {labTab === 'consignes' && lab.consignes && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl px-6 py-5 overflow-y-auto">
           <h4 className="text-white font-bold flex items-center gap-2 mb-4 text-base">
-            <BookOpen className="w-5 h-5 text-amber-400" /> {isSession6 ? 'Consignes Labs Syslog & Synthèse – à réaliser sur Cisco Packet Tracer' : isSession4 ? 'Consignes des deux labs DHCP & DNS – à réaliser sur Cisco Packet Tracer' : isSession3 ? 'Consignes du lab – à réaliser sur Cisco Packet Tracer' : isSession2 ? 'Consignes des deux labs Session 2' : 'Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer'}
+            <BookOpen className="w-5 h-5 text-amber-400" /> {isSession7 ? 'Consignes Lab Adressage IP & Masques' : isSession6 ? 'Consignes Labs Syslog & Synthèse – à réaliser sur Cisco Packet Tracer' : isSession4 ? 'Consignes des deux labs DHCP & DNS – à réaliser sur Cisco Packet Tracer' : isSession3 ? 'Consignes du lab – à réaliser sur Cisco Packet Tracer' : isSession2 ? 'Consignes des deux labs Session 2' : 'Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer'}
           </h4>
           <div className="pr-4 space-y-1 text-slate-300">
             {lab.consignes}
@@ -11219,7 +11752,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
       {labTab === 'correction' && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {(isSession4 || isSession5 || isSession6) && lab.solutionContent ? lab.solutionContent : isSession3 ? <LabCorrectionSection3Verbose /> : isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSectionVerbose />}
+            {(isSession4 || isSession5 || isSession6 || isSession7) && lab.solutionContent ? lab.solutionContent : isSession3 ? <LabCorrectionSection3Verbose /> : isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSectionVerbose />}
           </div>
         </div>
       )}
@@ -14159,10 +14692,10 @@ const weeks = [
   },
   {
     id: 3,
-    title: "Routage",
-    subtitle: "À venir",
-    sessions: [],
-    available: false
+    title: "Adressage IP",
+    subtitle: "Adressage IP, masques de sous-réseau, VLSM",
+    sessions: [7],
+    available: true
   },
   {
     id: 4,
@@ -14177,7 +14710,7 @@ const weeks = [
 
 export default function NetMasterClass({ onShowAdmin, onShowStats }) {
   const { user, profile, signOut } = useAuth();
-  const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer' | 'labs' | 'labs_s2' | 'labs_s3' | 'labs_s4' | 'labs_s5' | 'labs_s6'
+  const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer' | 'labs' | 'labs_s2' | 'labs_s3' | 'labs_s4' | 'labs_s5' | 'labs_s6' | 'labs_s7'
   const [activeSessionId, setActiveSessionId] = useState(1);
   const [activeTab, setActiveTab] = useState('theory');
   const [completedSessions, setCompletedSessions] = useState([]);
@@ -14567,19 +15100,46 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
               )}
             </div>
 
-            {/* Routage - Coming Soon */}
-            <button
-              disabled
-              className="w-full p-3 rounded-xl flex items-center justify-between transition-all border bg-[#0e0920]/50 border-white/10/50 text-slate-600 cursor-not-allowed opacity-60"
-            >
-              <div className="text-left flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-bold text-sm">Routage</p>
-                  <span className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 rounded-full text-[9px] font-bold text-amber-400 uppercase">Soon</span>
+            {/* Adressage IP - Labs */}
+            <div className="mb-2">
+              <button
+                onClick={() => setExpandedLabWeek(expandedLabWeek === 3 ? null : 3)}
+                className={`w-full p-3 rounded-xl flex items-center justify-between transition-all border ${
+                  expandedLabWeek === 3
+                    ? 'bg-purple-600/10 border-purple-500/50 text-purple-100'
+                    : 'bg-[#0e0920] border-white/10 hover:bg-[#1a1035] text-slate-300 hover:border-white/20'
+                }`}
+              >
+                <div className="text-left flex-1">
+                  <p className="font-bold text-sm">Adressage IP</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">1 lab disponible</p>
                 </div>
-                <p className="text-[10px] text-slate-600 mt-0.5">À venir</p>
-              </div>
-            </button>
+                <ChevronRight className={`w-4 h-4 transition-transform ${expandedLabWeek === 3 ? 'rotate-90' : ''}`} />
+              </button>
+              {expandedLabWeek === 3 && (
+                <div className="mt-2 ml-3 space-y-2 border-l-2 border-white/10 pl-3">
+                  <button
+                    onClick={() => {
+                      setViewMode('labs_s7');
+                      if (window.innerWidth < 1024) setSidebarOpen(false);
+                    }}
+                    className={`w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs ${
+                      viewMode === 'labs_s7'
+                        ? 'bg-purple-600/20 border-purple-500 text-purple-100'
+                        : 'bg-[#0e0920] border-white/10 hover:bg-[#1a1035] text-slate-400 hover:border-white/20'
+                    }`}
+                  >
+                    <div className={`p-1.5 rounded ${viewMode === 'labs_s7' ? 'bg-purple-600 text-white' : 'bg-[#1a1035]'}`}>
+                      <Network className="w-4 h-4" />
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className="font-bold">Lab Adressage & Masques</p>
+                      <p className="text-[9px] text-slate-500">NetSolutions — 3 services</p>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Commutation - Coming Soon */}
             <button
@@ -14669,6 +15229,8 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
                   ? 'Lab FTP (Session 2)'
                   : viewMode === 'labs_s6'
                   ? 'Lab Syslog (Session 3)'
+                  : viewMode === 'labs_s7'
+                  ? 'Lab Adressage IP & Masques'
                   : activeSession.title}
               </h2>
             </div>
@@ -14746,6 +15308,15 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
               sessionLabel="Session 3 – Syslog"
               sessionDescription="Lab Syslog : supervision centralisée d'une infrastructure réseau. Configuration du serveur Syslog et envoi des logs depuis un routeur Cisco."
               sessionId={6}
+            />
+          </div>
+          ) : viewMode === 'labs_s7' ? (
+          <div className="h-full min-h-[500px]">
+            <LabsSection
+              lab={sessions[6].lab}
+              sessionLabel="Adressage IP & Masques"
+              sessionDescription="Lab NetSolutions : exercices de calcul de masques, décomposition d'adresses et plan d'adressage VLSM pour une entreprise avec 3 services."
+              sessionId={7}
             />
           </div>
           ) : (
