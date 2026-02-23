@@ -242,60 +242,39 @@ const SubnetQuiz = () => {
       };
     },
 
-    // TYPE 6 : Même réseau ou pas ?
-    sameNetwork: () => {
-      const cidr = pick([24, 25, 26, 27, 28]);
-      const m = maskFromCidr(cidr);
-      const block = blockFromCidr(cidr);
-      const base = randIp();
-      const net1 = (base.num & m) >>> 0;
-      const sameNet = Math.random() > 0.4;
-      const ip1host = randInt(1, block - 2);
-      const ip1 = (net1 + ip1host) >>> 0;
-      let ip2;
-      if (sameNet) {
-        let ip2host;
-        do { ip2host = randInt(1, block - 2); } while (ip2host === ip1host);
-        ip2 = (net1 + ip2host) >>> 0;
-      } else {
-        const offset = pick([-1, 1]) * block;
-        const net2 = (net1 + offset) >>> 0;
-        ip2 = (net2 + randInt(1, block - 2)) >>> 0;
-      }
-      const answer = sameNet ? 'Oui' : 'Non';
-      return {
-        type: 'sameNetwork',
-        prompt: `Ces 2 machines sont-elles dans le MÊME réseau ? (masque /${cidr})`,
-        display: `${toIp(ip1)}  &  ${toIp(ip2)}  (/${cidr})`,
-        fields: [{ id: 'same', label: 'Même réseau ?', answer, placeholder: 'Oui ou Non', choices: ['Oui', 'Non'] }],
-        explanation: `${toIp(ip1)} → réseau ${toIp((ip1 & m) >>> 0)}\n${toIp(ip2)} → réseau ${toIp((ip2 & m) >>> 0)}\n→ ${answer}, ${sameNet ? 'même réseau' : 'réseaux différents'}`
-      };
-    },
   };
+
+  const QUESTIONS_PER_TYPE = 5;
 
   const exerciseTypes = [
     { key: 'decompose', label: 'Décomposition', icon: Network, color: 'purple' },
     { key: 'cidrMask', label: 'CIDR ↔ Masque', icon: ArrowUpDown, color: 'blue' },
     { key: 'hostCount', label: "Nb d'hôtes", icon: Monitor, color: 'emerald' },
     { key: 'findMask', label: 'Bon masque', icon: Target, color: 'amber' },
-    { key: 'privatePublic', label: 'Privée/Publique', icon: Globe, color: 'cyan' },
-    { key: 'sameNetwork', label: 'Même réseau ?', icon: HelpCircle, color: 'red' },
   ];
 
+  const generateSet = (key) => Array.from({ length: QUESTIONS_PER_TYPE }, () => generators[key]());
+
   const [activeType, setActiveType] = useState('decompose');
-  const [q, setQ] = useState(() => generators.decompose());
+  const [questions, setQuestions] = useState(() => generateSet('decompose'));
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
-  const [score, setScore] = useState({ correct: 0, total: 0 });
+  const [typeScores, setTypeScores] = useState({});
   const [showExplanation, setShowExplanation] = useState(false);
-  const [streak, setStreak] = useState(0);
+  const [finished, setFinished] = useState(false);
+
+  const q = questions[currentIndex];
+  const currentScore = typeScores[activeType] || 0;
 
   const switchType = (key) => {
     setActiveType(key);
-    setQ(generators[key]());
+    setQuestions(generateSet(key));
+    setCurrentIndex(0);
     setAnswers({});
     setResult(null);
     setShowExplanation(false);
+    setFinished(false);
   };
 
   const check = () => {
@@ -308,15 +287,28 @@ const SubnetQuiz = () => {
       if (!ok) allOk = false;
     });
     setResult({ fields: results, allOk });
-    setScore(s => ({ correct: s.correct + (allOk ? 1 : 0), total: s.total + 1 }));
-    setStreak(s => allOk ? s + 1 : 0);
+    if (allOk) setTypeScores(s => ({ ...s, [activeType]: (s[activeType] || 0) + 1 }));
   };
 
   const next = () => {
-    setQ(generators[activeType]());
+    if (currentIndex + 1 >= QUESTIONS_PER_TYPE) {
+      setFinished(true);
+    } else {
+      setCurrentIndex(currentIndex + 1);
+      setAnswers({});
+      setResult(null);
+      setShowExplanation(false);
+    }
+  };
+
+  const retry = () => {
+    setQuestions(generateSet(activeType));
+    setCurrentIndex(0);
     setAnswers({});
     setResult(null);
     setShowExplanation(false);
+    setFinished(false);
+    setTypeScores(s => ({ ...s, [activeType]: 0 }));
   };
 
   const handleKeyDown = (e) => { if (e.key === 'Enter' && !result) check(); };
@@ -326,11 +318,14 @@ const SubnetQuiz = () => {
   const tabColors = { purple: 'from-purple-600 to-purple-500', blue: 'from-blue-600 to-blue-500', emerald: 'from-emerald-600 to-emerald-500', amber: 'from-amber-600 to-amber-500', cyan: 'from-cyan-600 to-cyan-500', red: 'from-red-600 to-red-500' };
   const activeColor = exerciseTypes.find(t => t.key === activeType)?.color || 'purple';
 
+  const totalAllTypes = exerciseTypes.reduce((sum, t) => sum + (typeScores[t.key] || 0), 0);
+  const totalAllMax = exerciseTypes.length * QUESTIONS_PER_TYPE;
+
   return (
     <div className="mt-8">
       <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
         <Target size={20} className="text-purple-400" /> Quiz Subnetting Interactif
-        {streak >= 3 && <span className="ml-2 text-amber-400 text-sm animate-pulse">{streak} de suite !</span>}
+        <span className="ml-auto text-sm text-slate-400 font-normal">Score total : <span className="text-white font-bold">{totalAllTypes}</span>/{totalAllMax}</span>
       </h3>
       <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
         {/* Onglets des types d'exercices */}
@@ -338,103 +333,158 @@ const SubnetQuiz = () => {
           {exerciseTypes.map(t => {
             const Icon = t.icon;
             const isActive = activeType === t.key;
+            const tScore = typeScores[t.key] || 0;
             return (
               <button key={t.key} onClick={() => switchType(t.key)}
-                className={`flex items-center gap-1.5 px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all border-b-2 ${isActive ? `text-white border-current bg-white/5` : 'text-slate-500 border-transparent hover:text-slate-300 hover:bg-white/[0.02]'}`}
-                style={isActive ? { color: t.color === 'purple' ? '#a78bfa' : t.color === 'blue' ? '#60a5fa' : t.color === 'emerald' ? '#34d399' : t.color === 'amber' ? '#fbbf24' : t.color === 'cyan' ? '#22d3ee' : '#f87171' } : {}}>
+                className={`flex items-center gap-1.5 px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all border-b-2 ${isActive ? 'text-white border-current bg-white/5' : 'text-slate-500 border-transparent hover:text-slate-300 hover:bg-white/[0.02]'}`}
+                style={isActive ? { color: t.color === 'purple' ? '#a78bfa' : t.color === 'blue' ? '#60a5fa' : t.color === 'emerald' ? '#34d399' : t.color === 'amber' ? '#fbbf24' : '#22d3ee' } : {}}>
                 <Icon size={14} /> {t.label}
+                {tScore > 0 && <span className="ml-1 text-[10px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full">{tScore}/{QUESTIONS_PER_TYPE}</span>}
               </button>
             );
           })}
         </div>
 
-        {/* En-tête question */}
-        <div className={`bg-gradient-to-r ${tabColors[activeColor]}/10 to-transparent border-b border-white/10 px-6 py-5 flex items-center justify-between`}>
-          <div>
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">{q.prompt}</p>
-            <p className="text-2xl md:text-3xl font-mono font-black text-white break-all">{q.display}</p>
-          </div>
-          <div className="text-right shrink-0 ml-4">
-            <p className="text-xs text-slate-500 uppercase tracking-widest">Score</p>
-            <p className="text-2xl font-bold text-white">{score.correct}<span className="text-slate-500">/{score.total}</span></p>
-            {score.total > 0 && <p className="text-xs text-slate-600">{Math.round(score.correct / score.total * 100)}%</p>}
-          </div>
-        </div>
-
-        {/* Champs de réponse */}
-        <div className="p-6 space-y-4">
-          <div className={`grid grid-cols-1 ${q.fields.length >= 4 ? 'md:grid-cols-3' : q.fields.length >= 2 ? 'md:grid-cols-2' : ''} gap-4`}>
-            {q.fields.map(f => (
-              <div key={f.id}>
-                <label className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 block">{f.label}</label>
-                {f.choices ? (
-                  <div className="flex gap-2">
-                    {f.choices.map(c => {
-                      const selected = answers[f.id] === c;
-                      const isCorrect = result && c === f.answer;
-                      const isWrong = result && selected && c !== f.answer;
-                      return (
-                        <button key={c} onClick={() => !result && setAnswers(a => ({ ...a, [f.id]: c }))}
-                          disabled={!!result}
-                          className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm border transition-all ${
-                            isCorrect ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400' :
-                            isWrong ? 'border-red-500 bg-red-500/20 text-red-400' :
-                            selected ? 'border-purple-500 bg-purple-500/20 text-white' :
-                            'border-white/20 bg-black/30 text-slate-400 hover:border-white/40'
-                          }`}>
-                          {c}
-                        </button>
-                      );
-                    })}
+        {finished ? (
+          /* Écran de fin */
+          <div className="p-8 text-center">
+            <div className="mb-6">
+              {currentScore >= 4 ? (
+                <div className="text-5xl mb-3">{'🏆'}</div>
+              ) : currentScore >= 3 ? (
+                <div className="text-5xl mb-3">{'👏'}</div>
+              ) : (
+                <div className="text-5xl mb-3">{'💪'}</div>
+              )}
+              <h3 className="text-2xl font-bold text-white mb-2">
+                {currentScore >= 5 ? 'Parfait !' : currentScore >= 4 ? 'Excellent !' : currentScore >= 3 ? 'Bien joué !' : 'Continue à t\'entraîner !'}
+              </h3>
+              <p className="text-4xl font-black text-white mb-1">
+                <span className={currentScore >= 4 ? 'text-emerald-400' : currentScore >= 3 ? 'text-amber-400' : 'text-red-400'}>{currentScore}</span>
+                <span className="text-slate-500">/{QUESTIONS_PER_TYPE}</span>
+              </p>
+              <p className="text-slate-400 text-sm">{exerciseTypes.find(t => t.key === activeType)?.label}</p>
+            </div>
+            <div className="flex gap-3 justify-center">
+              <button onClick={retry} className={`bg-gradient-to-r ${tabColors[activeColor]} text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2`}>
+                <RotateCcw size={16} /> Recommencer
+              </button>
+            </div>
+            {/* Résumé tous les onglets */}
+            <div className="mt-8 grid grid-cols-2 md:grid-cols-5 gap-3">
+              {exerciseTypes.map(t => {
+                const s = typeScores[t.key] || 0;
+                const Icon = t.icon;
+                return (
+                  <div key={t.key} className={`bg-black/20 rounded-xl p-3 border ${s >= 4 ? 'border-emerald-500/30' : s > 0 ? 'border-white/10' : 'border-white/5'}`}>
+                    <Icon size={14} className="mx-auto mb-1 text-slate-500" />
+                    <p className="text-xs text-slate-500 truncate">{t.label}</p>
+                    <p className="text-lg font-bold text-white">{s}<span className="text-slate-600 text-sm">/{QUESTIONS_PER_TYPE}</span></p>
                   </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Barre de progression */}
+            <div className="px-6 pt-4 flex items-center gap-3">
+              <div className="flex gap-1.5 flex-1">
+                {Array.from({ length: QUESTIONS_PER_TYPE }, (_, i) => (
+                  <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i < currentIndex ? 'bg-emerald-500' : i === currentIndex ? `bg-gradient-to-r ${tabColors[activeColor]}` : 'bg-white/10'}`} />
+                ))}
+              </div>
+              <span className="text-xs text-slate-500 font-mono shrink-0">{currentIndex + 1}/{QUESTIONS_PER_TYPE}</span>
+            </div>
+
+            {/* En-tête question */}
+            <div className={`bg-gradient-to-r ${tabColors[activeColor]}/10 to-transparent border-b border-white/10 px-6 py-5 flex items-center justify-between`}>
+              <div>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">{q.prompt}</p>
+                <p className="text-2xl md:text-3xl font-mono font-black text-white break-all">{q.display}</p>
+              </div>
+              <div className="text-right shrink-0 ml-4">
+                <p className="text-xs text-slate-500 uppercase tracking-widest">Score</p>
+                <p className="text-2xl font-bold text-white">{currentScore}<span className="text-slate-500">/{currentIndex + (result ? 1 : 0)}</span></p>
+              </div>
+            </div>
+
+            {/* Champs de réponse */}
+            <div className="p-6 space-y-4">
+              <div className={`grid grid-cols-1 ${q.fields.length >= 4 ? 'md:grid-cols-3' : q.fields.length >= 2 ? 'md:grid-cols-2' : ''} gap-4`}>
+                {q.fields.map(f => (
+                  <div key={f.id}>
+                    <label className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 block">{f.label}</label>
+                    {f.choices ? (
+                      <div className="flex gap-2">
+                        {f.choices.map(c => {
+                          const selected = answers[f.id] === c;
+                          const isCorrect = result && c === f.answer;
+                          const isWrong = result && selected && c !== f.answer;
+                          return (
+                            <button key={c} onClick={() => !result && setAnswers(a => ({ ...a, [f.id]: c }))}
+                              disabled={!!result}
+                              className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm border transition-all ${
+                                isCorrect ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400' :
+                                isWrong ? 'border-red-500 bg-red-500/20 text-red-400' :
+                                selected ? 'border-purple-500 bg-purple-500/20 text-white' :
+                                'border-white/20 bg-black/30 text-slate-400 hover:border-white/40'
+                              }`}>
+                              {c}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <>
+                        <input value={answers[f.id] || ''} onChange={e => setAnswers(a => ({ ...a, [f.id]: e.target.value }))}
+                          onKeyDown={handleKeyDown} placeholder={f.placeholder} disabled={!!result}
+                          className={`w-full bg-black/30 border ${fieldBorder(result?.fields?.[f.id])} rounded-xl px-4 py-3 text-white font-mono text-sm focus:outline-none transition-colors`} />
+                        {result && !result.fields[f.id] && <p className="text-red-400 text-xs mt-1 font-mono">{f.answer}</p>}
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-3 pt-2 flex-wrap">
+                {!result ? (
+                  <button onClick={check} className={`bg-gradient-to-r ${tabColors[activeColor]} text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2`}>
+                    <CheckCircle2 size={16} /> Vérifier
+                  </button>
                 ) : (
                   <>
-                    <input value={answers[f.id] || ''} onChange={e => setAnswers(a => ({ ...a, [f.id]: e.target.value }))}
-                      onKeyDown={handleKeyDown} placeholder={f.placeholder} disabled={!!result}
-                      className={`w-full bg-black/30 border ${fieldBorder(result?.fields?.[f.id])} rounded-xl px-4 py-3 text-white font-mono text-sm focus:outline-none transition-colors`} />
-                    {result && !result.fields[f.id] && <p className="text-red-400 text-xs mt-1 font-mono">{f.answer}</p>}
+                    {result.allOk ? (
+                      <div className="flex items-center gap-2 text-emerald-400 font-bold text-lg">
+                        <CheckCircle2 size={20} /> Bravo !
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-red-400 font-bold">
+                        <AlertTriangle size={18} /> Pas tout à fait...
+                      </div>
+                    )}
+                    {!showExplanation && (
+                      <button onClick={() => setShowExplanation(true)} className="text-sm text-slate-400 hover:text-white underline transition-colors">
+                        {result.allOk ? 'Voir le détail' : 'Voir la correction'}
+                      </button>
+                    )}
+                    <button onClick={next} className="ml-auto bg-white/10 border border-white/20 text-white font-bold px-6 py-3 rounded-xl hover:bg-white/20 transition-all flex items-center gap-2">
+                      {currentIndex + 1 >= QUESTIONS_PER_TYPE ? 'Voir le résultat' : 'Suivant'} <ArrowRight size={16} />
+                    </button>
                   </>
                 )}
               </div>
-            ))}
-          </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-3 pt-2 flex-wrap">
-            {!result ? (
-              <button onClick={check} className={`bg-gradient-to-r ${tabColors[activeColor]} text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2`}>
-                <CheckCircle2 size={16} /> Vérifier
-              </button>
-            ) : (
-              <>
-                {result.allOk ? (
-                  <div className="flex items-center gap-2 text-emerald-400 font-bold text-lg">
-                    <CheckCircle2 size={20} /> {streak >= 5 ? 'Inarrêtable !' : streak >= 3 ? 'En feu !' : 'Bravo !'}
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 text-red-400 font-bold">
-                    <AlertTriangle size={18} /> Pas tout à fait...
-                  </div>
-                )}
-                {!showExplanation && (
-                  <button onClick={() => setShowExplanation(true)} className="text-sm text-slate-400 hover:text-white underline transition-colors">
-                    {result.allOk ? 'Voir le détail' : 'Voir la correction'}
-                  </button>
-                )}
-                <button onClick={next} className="ml-auto bg-white/10 border border-white/20 text-white font-bold px-6 py-3 rounded-xl hover:bg-white/20 transition-all flex items-center gap-2">
-                  Suivant <ArrowRight size={16} />
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Correction détaillée style whiteboard */}
-          {showExplanation && (
-            <div className="bg-slate-50 rounded-xl p-5 text-slate-800 font-mono text-sm mt-2 whitespace-pre-wrap leading-relaxed">
-              {q.explanation}
+              {/* Correction détaillée style whiteboard */}
+              {showExplanation && (
+                <div className="bg-slate-50 rounded-xl p-5 text-slate-800 font-mono text-sm mt-2 whitespace-pre-wrap leading-relaxed">
+                  {q.explanation}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
@@ -9004,12 +9054,11 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
             ]} />
             <V2Whiteboard title="D'abord, un rappel : comment on faisait pour /26 ?" code={"! Rappel de la méthode simple :\n!\n!   /26 → bits hôte = 32 - 26 = 6\n!\n!   Le masque en 4 octets :\n!   255 . 255 . 255 . ???\n!   ─── ─── ─── ───\n!   plein  plein  plein  ← celui qu'on calcule\n!\n!   Pour trouver le ??? :\n!   256 - 2^6 = 256 - 64 = 192\n!\n!   Résultat : 255.255.255.192  ✓\n!\n!   On calculait TOUJOURS le 4ème octet.\n!   Mais que se passe-t-il quand le CIDR est plus petit ?"} />
             <V2Whiteboard title="Le problème avec /22" code={"! /22 → bits hôte = 32 - 22 = 10 bits\n!\n!   ⚠️  10 bits c'est PLUS que 8 !\n!   Un octet ne contient que 8 bits.\n!   Donc les 10 bits hôte ne rentrent PAS dans un seul octet.\n!\n!   On a besoin de DEUX octets pour mettre ces 10 bits :\n!\n!   │ octet 1 │ octet 2 │ octet 3 │ octet 4 │\n!   │  8 bits  │  8 bits  │  8 bits  │  8 bits  │\n!   │  réseau  │  réseau  │ MIXTE   │ hôtes   │\n!   │  = 255   │  = 255   │  = ???   │  = 0    │\n!\n!   Le 4ème octet = 0 (il est entièrement pour les hôtes)\n!   Il reste 10 - 8 = 2 bits hôte dans le 3ème octet\n!   C'est le 3ème octet qu'on doit calculer !"} />
-            <V2Whiteboard title="Calculer l'octet du milieu (le 3ème)" code={"! On a 2 bits hôte restants dans le 3ème octet.\n!\n!   C'est EXACTEMENT le même calcul qu'avant :\n!   256 - 2^(bits restants) = valeur de l'octet\n!\n!   256 - 2^2 = 256 - 4 = 252\n!\n!   Donc le 3ème octet = 252\n!\n!   On assemble le masque :\n!\n!   255 . 255 . 252 . 0\n!   ───   ───   ───   ─\n!   plein plein calculé vide\n!\n!   ✅  /22 = 255.255.252.0"} />
-            <V2Whiteboard title="La méthode en 3 questions" code={"! Pour TOUT masque, pose-toi ces 3 questions :\n!\n! ❶ Combien de bits hôte ?\n!    → 32 - CIDR\n!\n! ❷ Quel octet on calcule ?\n!    → Si bits hôte entre 1 et 8   → 4ème octet\n!    → Si bits hôte entre 9 et 16  → 3ème octet\n!    → Si bits hôte entre 17 et 24 → 2ème octet\n!\n! ❸ Combien reste dans cet octet ?\n!    → bits restants = bits hôte - (octets vides × 8)\n!    → valeur = 256 - 2^(bits restants)\n!\n! Tous les octets AVANT = 255\n! Tous les octets APRÈS = 0"} />
-            <V2Whiteboard title="Appliquons la méthode : /20" code={"! ❶ Bits hôte = 32 - 20 = 12\n!\n! ❷ 12 bits → c'est entre 9 et 16\n!    → on calcule le 3ème octet\n!    → le 4ème octet = 0\n!\n! ❸ Bits restants dans le 3ème octet :\n!    12 - 8 = 4 bits\n!    Valeur = 256 - 2^4 = 256 - 16 = 240\n!\n! Résultat : 255 . 255 . 240 . 0\n!            ───   ───   ───   ─\n!            plein plein 240  vide\n!\n! ✅  /20 = 255.255.240.0"} />
-            <V2Whiteboard title="Encore un exemple : /19" code={"! ❶ Bits hôte = 32 - 19 = 13\n!\n! ❷ 13 → entre 9 et 16 → 3ème octet\n!    4ème octet = 0\n!\n! ❸ Bits restants = 13 - 8 = 5\n!    Valeur = 256 - 2^5 = 256 - 32 = 224\n!\n! ✅  /19 = 255.255.224.0\n!\n!\n! ── Et un cas facile : /16 ──\n!\n! ❶ Bits hôte = 32 - 16 = 16\n! ❷ 16 = exactement 2 octets → 3ème et 4ème = 0\n! ❸ Pas de calcul, les 2 derniers octets sont à 0\n!\n! ✅  /16 = 255.255.0.0"} />
-            <V2Whiteboard title="Comparaison côte à côte" code={"!   CIDR  │ Bits hôte │ Octet calculé │ Calcul           │ Masque\n!   ──────┼───────────┼───────────────┼──────────────────┼─────────────────\n!   /28   │     4     │   4ème        │ 256-2^4 = 240    │ 255.255.255.240\n!   /26   │     6     │   4ème        │ 256-2^6 = 192    │ 255.255.255.192\n!   /24   │     8     │   (aucun)     │ octet entier = 0 │ 255.255.255.0\n!   /22   │    10     │   3ème        │ 256-2^2 = 252    │ 255.255.252.0\n!   /20   │    12     │   3ème        │ 256-2^4 = 240    │ 255.255.240.0\n!   /19   │    13     │   3ème        │ 256-2^5 = 224    │ 255.255.224.0\n!   /16   │    16     │   (aucun)     │ 2 octets = 0     │ 255.255.0.0\n!\n!   Tu vois le pattern ?\n!   C'est toujours le MÊME calcul : 256 - 2^(reste)\n!   La seule différence c'est QUEL octet on calcule !"} />
-            <V2Tip title="L'astuce finale">{"C'est toujours le même calcul 256 − 2^n, la seule chose qui change c'est QUEL octet tu calcules. Si les bits hôte dépassent 8, le 4ème octet est à 0 et tu calcules le 3ème. C'est tout !"}</V2Tip>
+            <V2Whiteboard title="Calculer /22 avec la méthode des 32 bits" code={"! Dessine les 32 bits et trace le trait après le 22ème :\n!\n!   1 1 1 1 1 1 1 1 │ 1 1 1 1 1 1 1 1 │ 1 1 1 1 1 1 0 0 │ 0 0 0 0 0 0 0 0\n!   ──── octet 1 ──── ──── octet 2 ──── ──── octet 3 ──── ──── octet 4 ────\n!         = 255            = 255          = ???              = 0\n!\n!   Le trait tombe AU MILIEU du 3ème octet !\n!   → Octet 1 : que des 1 = 255\n!   → Octet 2 : que des 1 = 255\n!   → Octet 3 : 11111100 → c'est LUI qu'on doit convertir\n!   → Octet 4 : que des 0 = 0\n!\n!   Convertir 11111100 en décimal :\n!   128 + 64 + 32 + 16 + 8 + 4 = 252\n!\n!   Résultat : 255 . 255 . 252 . 0\n!   ✅  /22 = 255.255.252.0"} />
+            <V2Whiteboard title="Calculer /20 avec la même méthode" code={"! Dessine les 32 bits, trait après le 20ème :\n!\n!   1 1 1 1 1 1 1 1 │ 1 1 1 1 1 1 1 1 │ 1 1 1 1 0 0 0 0 │ 0 0 0 0 0 0 0 0\n!   ──── octet 1 ──── ──── octet 2 ──── ──── octet 3 ──── ──── octet 4 ────\n!         = 255            = 255          = ???              = 0\n!\n!   Octet 3 = 11110000\n!   128 + 64 + 32 + 16 = 240\n!\n!   ✅  /20 = 255.255.240.0\n!\n!\n! Et /19 :\n!   Trait après le 19ème bit → octet 3 = 11100000\n!   128 + 64 + 32 = 224\n!\n!   ✅  /19 = 255.255.224.0\n!\n!\n! Et /16 : le trait tombe PILE entre l'octet 2 et 3\n!   → Octets 3 et 4 = que des 0\n!\n!   ✅  /16 = 255.255.0.0"} />
+            <V2Whiteboard title="La méthode raccourci (sans dessiner)" code={"! Si tu veux aller plus vite sans dessiner les 32 bits :\n!\n!   /22 → 32 - 22 = 10 bits hôte\n!   10 bits, c'est 8 bits (= 1 octet entier à 0) + 2 bits restants\n!   Le 4ème octet = 0 (les 8 premiers bits hôte)\n!   Le 3ème octet = les 2 bits restants\n!\n!   Pour trouver la valeur du 3ème octet :\n!   Il a 6 bits à 1 et 2 bits à 0 → 11111100\n!\n!   Raccourci : 256 - 2^(bits à 0) = 256 - 2^2 = 256 - 4 = 252\n!\n!   Pourquoi ça marche ?\n!   Si l'octet avait 0 bits à 0 → 11111111 = 255 = 256 - 1 = 256 - 2^0\n!   Si l'octet avait 1 bit à 0  → 11111110 = 254 = 256 - 2 = 256 - 2^1\n!   Si l'octet avait 2 bits à 0 → 11111100 = 252 = 256 - 4 = 256 - 2^2\n!   Si l'octet avait 4 bits à 0 → 11110000 = 240 = 256 - 16 = 256 - 2^4\n!\n!   Le nombre de bits à 0 dans cet octet = bits hôte - 8\n!   (parce que 8 bits sont déjà dans le 4ème octet = 0)"} />
+            <V2Whiteboard title="Résumé : tableau de référence" code={"!   CIDR  │ Bits hôte │ Octet qui change │ Masque\n!   ──────┼───────────┼──────────────────┼─────────────────\n!   /28   │     4     │   4ème           │ 255.255.255.240\n!   /26   │     6     │   4ème           │ 255.255.255.192\n!   /24   │     8     │   (aucun)        │ 255.255.255.0\n!   /22   │    10     │   3ème           │ 255.255.252.0\n!   /20   │    12     │   3ème           │ 255.255.240.0\n!   /19   │    13     │   3ème           │ 255.255.224.0\n!   /16   │    16     │   (aucun)        │ 255.255.0.0\n!\n!   En résumé :\n!   - Le CIDR te dit où tracer le trait dans les 32 bits\n!   - Tous les bits AVANT le trait = 1 (réseau)\n!   - Tous les bits APRÈS le trait = 0 (hôtes)\n!   - Tu convertis chaque octet en décimal\n!   - Si un octet est que des 1 → 255\n!   - Si un octet est que des 0 → 0\n!   - Si un octet est mixte → tu additionnes les 1"} />
+            <V2Tip title="L'astuce">{"Dessine les 32 bits, trace le trait, et convertis. C'est la méthode la plus fiable. Avec l'habitude tu pourras utiliser le raccourci 256 − 2^n sans dessiner."}</V2Tip>
           </div>
         )
       },
@@ -9026,7 +9075,14 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
             ]} />
             <V2Whiteboard title="Comment trouver l'adresse réseau ?" code={"! La règle est simple :\n! L'adresse réseau = la PREMIÈRE adresse du bloc\n!\n! Avec un /24 c'est facile :\n!   Le dernier octet commence à 0\n!   → Adresse réseau = X.X.X.0\n!\n! Exemple : un PC a l'IP 192.168.1.47 /24\n!   Le réseau c'est quoi ?\n!   /24 = le dernier octet est pour les hôtes\n!   On met le dernier octet à 0\n!   → Adresse réseau = 192.168.1.0  ✓"} />
             <V2Whiteboard title="Et avec un masque plus petit ? (/26)" code={"! Avec /26 c'est un peu différent :\n!   /26 = bloc de 64 adresses\n!   Les blocs commencent à : .0, .64, .128, .192\n!\n! Exemple : un PC a l'IP 192.168.1.100 /26\n!   Dans quel bloc de 64 tombe .100 ?\n!   → .0 à .63   (bloc 1)\n!   → .64 à .127  (bloc 2) ← .100 est ici !\n!   → .128 à .191 (bloc 3)\n!\n!   L'adresse réseau = le DÉBUT du bloc\n!   → 192.168.1.64  ✓\n!\n! Autre exemple : 192.168.1.200 /26\n!   .200 est dans le bloc .192 à .255\n!   → Adresse réseau = 192.168.1.192  ✓"} />
-            <V2Tip title="Retiens ça">{"L'adresse réseau = la PREMIÈRE adresse du bloc. C'est le 'nom' du réseau. On ne la donne JAMAIS à une machine. Pour la trouver : prends la taille du bloc et trouve dans quel bloc tombe ton IP."}</V2Tip>
+            <V2Whiteboard title="Et pour les gros réseaux ? (/16, /8)" code={"! Avec /16 → les 2 derniers octets sont pour les hôtes\n!   On met les 2 derniers octets à 0\n!\n! Exemple : un PC a l'IP 10.50.200.1 /16\n!   /16 = les 2 premiers octets sont le réseau\n!   On met les 2 derniers octets à 0\n!   → Adresse réseau = 10.50.0.0  ✓\n!\n!\n! Avec /8 → les 3 derniers octets sont pour les hôtes\n!   On met les 3 derniers octets à 0\n!\n! Exemple : un PC a l'IP 10.47.200.5 /8\n!   /8 = seul le 1er octet est le réseau\n!   On met les 3 derniers octets à 0\n!   → Adresse réseau = 10.0.0.0  ✓\n!\n!\n! La règle générale :\n!   /8  → garde 1 octet, met les 3 autres à 0  → X.0.0.0\n!   /16 → garde 2 octets, met les 2 autres à 0 → X.X.0.0\n!   /24 → garde 3 octets, met le dernier à 0   → X.X.X.0"} />
+            <V2Whiteboard title="Et les masques entre deux ? Commençons par /23" code={"! Tu connais le /24 : le 4ème octet bouge, le 3ème est FIXE.\n!\n! Exemple avec /24 : 172.16.5.40 /24\n!   Le 3ème octet (5) ne bouge jamais.\n!   Le réseau va de 172.16.5.0 à 172.16.5.255\n!   → 256 adresses, tout dans 172.16.5.X\n!\n!\n! Maintenant /23. C'est juste UN CRAN plus gros que /24.\n! Le réseau est 2 FOIS plus grand → 512 adresses.\n! 256 adresses ça tient dans 1 valeur du 3ème octet.\n! 512 adresses ça a besoin de 2 VALEURS du 3ème octet.\n!\n! → Avec /23, le 3ème octet peut prendre 2 valeurs !\n!\n!\n! /24 = 1 seule valeur du 3ème octet → réseau = juste le .5\n! /23 = 2 valeurs du 3ème octet       → réseau = le .4 ET le .5\n!\n! C'est comme si on collait 2 réseaux /24 ensemble."} />
+            <V2Whiteboard title="/23 : les blocs vont par PAIRES" code={"! Avec /23, le 3ème octet va par PAIRES :\n!\n!   Bloc 1 :  X.X.0.0   à  X.X.1.255     (0 et 1 ensemble)\n!   Bloc 2 :  X.X.2.0   à  X.X.3.255     (2 et 3 ensemble)\n!   Bloc 3 :  X.X.4.0   à  X.X.5.255     (4 et 5 ensemble)\n!   Bloc 4 :  X.X.6.0   à  X.X.7.255     (6 et 7 ensemble)\n!   Bloc 5 :  X.X.8.0   à  X.X.9.255     (8 et 9 ensemble)\n!   ...\n!\n! Exemple : 172.16.5.40 /23\n!   Le 3ème octet = 5\n!   5 tombe dans la paire 4-5\n!\n!   Le réseau commence au DÉBUT de la paire :\n!   172.16.4.0          ← adresse réseau\n!   172.16.4.1          ← premier hôte\n!   172.16.4.2\n!   ...tout 172.16.4.X...\n!   172.16.4.255\n!   172.16.5.0          ← ça CONTINUE (même réseau !)\n!   172.16.5.1\n!   ...tout 172.16.5.X...\n!   172.16.5.254        ← dernier hôte\n!   172.16.5.255        ← broadcast\n!\n!   Réseau    : 172.16.4.0\n!   Broadcast : 172.16.5.255\n!   Hôtes     : 512 - 2 = 510"} />
+            <V2Whiteboard title="Pourquoi 4 et pas 5 ? La règle des paires" code={"! Le 3ème octet = 5. Pourquoi le réseau commence à 4 ?\n!\n! Parce que les paires commencent toujours au nombre PAIR :\n!   0-1, 2-3, 4-5, 6-7, 8-9, 10-11...\n!\n!   Le 5 va avec le 4 (pas avec le 6)\n!   Le 3 va avec le 2 (pas avec le 4)\n!   Le 130 va avec le... 130 (130 est pair, c'est lui le début)\n!\n! Astuce : si le 3ème octet est PAIR → c'est le début du bloc\n!          si le 3ème octet est IMPAIR → le début c'est octet - 1\n!\n! Exemples rapides avec /23 :\n!   IP avec 3ème octet = 7  → paire 6-7   → réseau = X.X.6.0\n!   IP avec 3ème octet = 12 → paire 12-13 → réseau = X.X.12.0\n!   IP avec 3ème octet = 99 → paire 98-99 → réseau = X.X.98.0\n!   IP avec 3ème octet = 0  → paire 0-1   → réseau = X.X.0.0"} />
+            <V2Whiteboard title="La même logique pour /22 et /20" code={"! /23 = paires de 2   (0-1, 2-3, 4-5...)\n! /22 = groupes de 4  (0-3, 4-7, 8-11, 12-15...)\n! /21 = groupes de 8  (0-7, 8-15, 16-23...)\n! /20 = groupes de 16 (0-15, 16-31, 32-47, 48-63...)\n!\n! Plus le CIDR est petit, plus le groupe est grand :\n!   /24 = 1 valeur  (groupe de 1)\n!   /23 = 2 valeurs (groupe de 2 = paires)\n!   /22 = 4 valeurs (groupe de 4)\n!   /21 = 8 valeurs (groupe de 8)\n!   /20 = 16 valeurs (groupe de 16)\n!   /16 = 256 valeurs (tout le 3ème octet)\n!\n! La taille du groupe = 2^(24 - CIDR)\n!   /23 → 2^(24-23) = 2^1 = 2\n!   /22 → 2^(24-22) = 2^2 = 4\n!   /20 → 2^(24-20) = 2^4 = 16"} />
+            <V2Whiteboard title="Exemple /22 : groupes de 4" code={"! 192.168.130.50 /22\n!\n! /22 = groupes de 4 dans le 3ème octet :\n!   0-3, 4-7, 8-11, ..., 124-127, 128-131, 132-135...\n!\n! Le 3ème octet = 130\n! Dans quel groupe de 4 tombe 130 ?\n!   128, 129, 130, 131 → groupe 128-131\n!   130 est dedans !\n!\n! Réseau    : 192.168.128.0    (début du groupe = 128)\n! Broadcast : 192.168.131.255  (fin du groupe = 131, 4ème octet = 255)\n! Hôtes     : 4 × 256 - 2 = 1022\n!\n!\n! Astuce : pour trouver le début du groupe :\n!   130 ÷ 4 = 32 (partie entière)\n!   32 × 4 = 128 → début du groupe !"} />
+            <V2Whiteboard title="Exemple /20 : groupes de 16" code={"! 172.16.5.130 /20\n!\n! /20 = groupes de 16 dans le 3ème octet :\n!   0-15, 16-31, 32-47, 48-63, 64-79...\n!\n! Le 3ème octet = 5\n! Dans quel groupe de 16 tombe 5 ?\n!   0, 1, 2, 3, 4, 5, ..., 15 → groupe 0-15\n!   5 est dedans !\n!\n! Réseau    : 172.16.0.0       (début du groupe = 0)\n! Broadcast : 172.16.15.255    (fin du groupe = 15)\n! Hôtes     : 16 × 256 - 2 = 4094\n!\n!\n! Autre exemple : 192.168.130.50 /20\n!   Le 3ème octet = 130\n!   130 ÷ 16 = 8 (partie entière)  →  8 × 16 = 128\n!   Groupe 128-143\n!\n!   Réseau    : 192.168.128.0\n!   Broadcast : 192.168.143.255\n!   Hôtes     : 4094"} />
+            <V2Tip title="Retiens ça">{"L'adresse réseau = la PREMIÈRE adresse du bloc. Pour la trouver : si le masque tombe pile (/8, /16, /24) → mets les octets hôte à 0. Sinon → trouve l'octet intéressant et cherche le début du bloc."}</V2Tip>
           </div>
         )
       },
@@ -9318,218 +9374,136 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
       consignes: (
         <div className="space-y-8 text-sm">
           <div className="bg-gradient-to-r from-emerald-900/20 to-blue-900/20 rounded-xl p-6 border border-emerald-500/20">
-            <h4 className="text-emerald-300 font-bold text-lg mb-2 flex items-center gap-2"><Monitor size={18} /> Lab Packet Tracer — Adressage IP & VLSM</h4>
-            <p className="text-white font-bold text-xl mb-1">{"Entreprise DataFlow — Créer 4 réseaux séparés"}</p>
-            <p className="text-slate-300 text-sm">{"L'entreprise DataFlow déménage dans de nouveaux locaux. Le DSI vous demande de concevoir le plan d'adressage réseau et de configurer toute l'infrastructure dans Packet Tracer."}</p>
+            <h4 className="text-emerald-300 font-bold text-lg mb-2 flex items-center gap-2"><Monitor size={18} /> Lab Packet Tracer — Adressage IP simple</h4>
+            <p className="text-white font-bold text-xl mb-1">{"2 réseaux séparés avec le masque /24"}</p>
+            <p className="text-slate-300 text-sm">{"On va créer 2 réseaux simples dans Packet Tracer, configurer les IPs, et vérifier que les PC d'un même réseau communiquent mais PAS avec l'autre réseau."}</p>
           </div>
 
-          {/* Contexte entreprise */}
+          {/* Contexte */}
           <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
-            <h4 className="text-purple-300 font-bold mb-3">Contexte de l'entreprise</h4>
-            <p className="text-slate-300 text-xs mb-4">{"DataFlow est une société de 90 employés répartis en 4 services. Chaque service doit avoir son propre réseau isolé. Le DSI vous fournit le réseau de base : 192.168.10.0/24"}</p>
+            <h4 className="text-purple-300 font-bold mb-3">Le scénario</h4>
+            <p className="text-slate-300 text-xs mb-4">{"Une petite entreprise a 2 bureaux. Chaque bureau a son propre réseau /24. Les 2 réseaux ne sont PAS reliés entre eux (pas de routeur)."}</p>
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-slate-300 border border-white/20 rounded">
-                <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Service</th><th className="p-2 text-left">Nb machines</th><th className="p-2 text-left">Responsable</th><th className="p-2 text-left">Besoins</th></tr></thead>
+                <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Bureau</th><th className="p-2 text-left">Réseau</th><th className="p-2 text-left">Masque</th><th className="p-2 text-left">Nb PC</th></tr></thead>
                 <tbody>
-                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-purple-300">Développement</td><td className="p-2 text-white font-bold">45 postes</td><td className="p-2">M. Dupont</td><td className="p-2 text-slate-400">PC développeurs + serveur interne</td></tr>
-                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-blue-300">Commercial</td><td className="p-2 text-white font-bold">25 postes</td><td className="p-2">Mme Garcia</td><td className="p-2 text-slate-400">PC commerciaux + imprimante</td></tr>
-                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-amber-300">Comptabilité</td><td className="p-2 text-white font-bold">12 postes</td><td className="p-2">M. Martin</td><td className="p-2 text-slate-400">PC comptables + NAS</td></tr>
-                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-emerald-300">Direction</td><td className="p-2 text-white font-bold">5 postes</td><td className="p-2">Mme Bernard</td><td className="p-2 text-slate-400">PC direction + imprimante</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-purple-300">Bureau A</td><td className="p-2 text-white font-bold">192.168.1.0/24</td><td className="p-2">255.255.255.0</td><td className="p-2">3</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-blue-300">Bureau B</td><td className="p-2 text-white font-bold">192.168.2.0/24</td><td className="p-2">255.255.255.0</td><td className="p-2">3</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-          {/* ÉTAPE 1 : Calcul VLSM */}
+          {/* ÉTAPE 1 : Topologie */}
           <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
-            <h4 className="text-amber-300 font-bold mb-3 flex items-center gap-2"><span className="bg-amber-500/20 text-amber-400 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black">1</span> Étape 1 — Calculer le plan d'adressage VLSM</h4>
-            <p className="text-slate-300 text-xs mb-3">{"Réseau de base : 192.168.10.0/24. Complétez ce tableau (commencez par le plus grand service) :"}</p>
-            <div className="overflow-x-auto mb-3">
-              <table className="w-full text-xs text-slate-300 border border-white/20 rounded">
-                <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Service</th><th className="p-2 text-left">Machines</th><th className="p-2 text-left">+2</th><th className="p-2 text-left">{"2^n"}</th><th className="p-2 text-left">CIDR</th><th className="p-2 text-left">Masque</th><th className="p-2 text-left">Sous-réseau</th><th className="p-2 text-left">Plage hôtes</th><th className="p-2 text-left">Broadcast</th></tr></thead>
-                <tbody>
-                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-purple-300">Développement</td><td className="p-2">45</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
-                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-blue-300">Commercial</td><td className="p-2">25</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
-                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-amber-300">Comptabilité</td><td className="p-2">12</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
-                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-emerald-300">Direction</td><td className="p-2">5</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
-                </tbody>
-              </table>
-            </div>
-            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-3 rounded-r-lg">
-              <p className="text-amber-200 text-xs font-bold">{"Rappel VLSM : on commence TOUJOURS par le plus grand service, puis on remplit avec les plus petits. Les sous-réseaux ne doivent pas se chevaucher !"}</p>
-            </div>
-          </div>
-
-          {/* ÉTAPE 2 : Topologie */}
-          <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
-            <h4 className="text-amber-300 font-bold mb-3 flex items-center gap-2"><span className="bg-amber-500/20 text-amber-400 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black">2</span> Étape 2 — Construire la topologie dans Packet Tracer</h4>
-            <p className="text-slate-300 text-xs mb-4">Placez les équipements suivants et reliez-les avec des câbles :</p>
+            <h4 className="text-amber-300 font-bold mb-3 flex items-center gap-2"><span className="bg-amber-500/20 text-amber-400 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black">1</span> Étape 1 — Construire la topologie</h4>
+            <p className="text-slate-300 text-xs mb-4">Placez les équipements et reliez-les :</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div className="bg-black/30 rounded-lg p-4">
-                <p className="text-purple-300 font-bold mb-2">Équipements à placer :</p>
+                <p className="text-purple-300 font-bold mb-2">Équipements :</p>
                 <ul className="text-slate-300 text-xs space-y-1.5">
-                  <li>{"• 4 Switches (2960) — un par service"}</li>
-                  <li>{"• Renommez-les : SW-DEV, SW-COMM, SW-COMPTA, SW-DIR"}</li>
-                  <li>{"• 3 PC par service (12 PC au total)"}</li>
-                  <li>{"• Nommez-les : PC-DEV-1, PC-DEV-2, PC-DEV-3, etc."}</li>
+                  <li>{"• 2 Switches (2960) : SW-A et SW-B"}</li>
+                  <li>{"• 6 PC au total : PC-A1, PC-A2, PC-A3, PC-B1, PC-B2, PC-B3"}</li>
                 </ul>
               </div>
               <div className="bg-black/30 rounded-lg p-4">
                 <p className="text-blue-300 font-bold mb-2">Câblage :</p>
                 <ul className="text-slate-300 text-xs space-y-1.5">
-                  <li>{"• PC → Switch : câble droit (Copper Straight-Through)"}</li>
-                  <li>{"• Chaque PC se branche sur SON switch de service"}</li>
-                  <li>{"• Ne reliez PAS les switches entre eux pour l'instant"}</li>
-                  <li>{"• Vérifiez que les liens passent au vert"}</li>
+                  <li>{"• PC-A1, A2, A3 → SW-A (câble droit)"}</li>
+                  <li>{"• PC-B1, B2, B3 → SW-B (câble droit)"}</li>
+                  <li>{"• Ne reliez PAS SW-A et SW-B entre eux"}</li>
                 </ul>
               </div>
             </div>
             <div className="bg-[#1a1035] rounded-lg p-4 border border-white/10">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Schéma de la topologie</p>
-              <pre className="text-xs font-mono text-slate-300 leading-relaxed overflow-x-auto">{`
-  ┌─────────────── Service DÉVELOPPEMENT ──────────────┐
-  │  PC-DEV-1 ──┐                                      │
-  │  PC-DEV-2 ──┼── SW-DEV (Switch 2960)               │
-  │  PC-DEV-3 ──┘                                      │
-  └────────────────────────────────────────────────────┘
+              <pre className="text-xs font-mono text-slate-300 leading-relaxed overflow-x-auto">{`  ┌──── Bureau A (192.168.1.0/24) ────┐
+  │  PC-A1 ──┐                        │
+  │  PC-A2 ──┼── SW-A (Switch 2960)   │
+  │  PC-A3 ──┘                        │
+  └────────────────────────────────────┘
 
-  ┌─────────────── Service COMMERCIAL ─────────────────┐
-  │  PC-COMM-1 ──┐                                     │
-  │  PC-COMM-2 ──┼── SW-COMM (Switch 2960)             │
-  │  PC-COMM-3 ──┘                                     │
-  └────────────────────────────────────────────────────┘
-
-  ┌─────────────── Service COMPTABILITÉ ───────────────┐
-  │  PC-COMPTA-1 ──┐                                   │
-  │  PC-COMPTA-2 ──┼── SW-COMPTA (Switch 2960)         │
-  │  PC-COMPTA-3 ──┘                                   │
-  └────────────────────────────────────────────────────┘
-
-  ┌─────────────── Service DIRECTION ──────────────────┐
-  │  PC-DIR-1 ──┐                                      │
-  │  PC-DIR-2 ──┼── SW-DIR (Switch 2960)               │
-  │  PC-DIR-3 ──┘                                      │
-  └────────────────────────────────────────────────────┘`}</pre>
+  ┌──── Bureau B (192.168.2.0/24) ────┐
+  │  PC-B1 ──┐                        │
+  │  PC-B2 ──┼── SW-B (Switch 2960)   │
+  │  PC-B3 ──┘                        │
+  └────────────────────────────────────┘`}</pre>
             </div>
           </div>
 
-          {/* ÉTAPE 3 : Configuration IP */}
+          {/* ÉTAPE 2 : Configuration IP */}
           <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
-            <h4 className="text-amber-300 font-bold mb-3 flex items-center gap-2"><span className="bg-amber-500/20 text-amber-400 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black">3</span> Étape 3 — Configurer les adresses IP sur chaque PC</h4>
-            <p className="text-slate-300 text-xs mb-4">{"Pour chaque PC : cliquez dessus → Desktop → IP Configuration → Static. Remplissez l'adresse IP et le masque selon votre plan VLSM."}</p>
+            <h4 className="text-amber-300 font-bold mb-3 flex items-center gap-2"><span className="bg-amber-500/20 text-amber-400 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black">2</span> {"Étape 2 — Configurer les IPs"}</h4>
+            <p className="text-slate-300 text-xs mb-4">{"Cliquez sur chaque PC → Desktop → IP Configuration → Static. Configurez :"}</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/20">
-                <p className="text-purple-300 font-bold text-sm mb-2">Développement — À compléter</p>
-                <div className="space-y-1 font-mono text-xs">
-                  <p className="text-slate-400">PC-DEV-1 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
-                  <p className="text-slate-400">PC-DEV-2 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
-                  <p className="text-slate-400">PC-DEV-3 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
+                <p className="text-purple-300 font-bold text-sm mb-2">Bureau A — Réseau 192.168.1.0/24</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-slate-300 border border-white/10 rounded">
+                    <thead><tr className="bg-purple-900/20"><th className="p-1.5 text-left">PC</th><th className="p-1.5 text-left">IP</th><th className="p-1.5 text-left">Masque</th></tr></thead>
+                    <tbody>
+                      <tr className="border-t border-white/10"><td className="p-1.5">PC-A1</td><td className="p-1.5 font-mono text-emerald-400">192.168.1.1</td><td className="p-1.5 font-mono">255.255.255.0</td></tr>
+                      <tr className="border-t border-white/10"><td className="p-1.5">PC-A2</td><td className="p-1.5 font-mono text-emerald-400">192.168.1.2</td><td className="p-1.5 font-mono">255.255.255.0</td></tr>
+                      <tr className="border-t border-white/10"><td className="p-1.5">PC-A3</td><td className="p-1.5 font-mono text-emerald-400">192.168.1.3</td><td className="p-1.5 font-mono">255.255.255.0</td></tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
               <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
-                <p className="text-blue-300 font-bold text-sm mb-2">Commercial — À compléter</p>
-                <div className="space-y-1 font-mono text-xs">
-                  <p className="text-slate-400">PC-COMM-1 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
-                  <p className="text-slate-400">PC-COMM-2 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
-                  <p className="text-slate-400">PC-COMM-3 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
+                <p className="text-blue-300 font-bold text-sm mb-2">Bureau B — Réseau 192.168.2.0/24</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-slate-300 border border-white/10 rounded">
+                    <thead><tr className="bg-blue-900/20"><th className="p-1.5 text-left">PC</th><th className="p-1.5 text-left">IP</th><th className="p-1.5 text-left">Masque</th></tr></thead>
+                    <tbody>
+                      <tr className="border-t border-white/10"><td className="p-1.5">PC-B1</td><td className="p-1.5 font-mono text-emerald-400">192.168.2.1</td><td className="p-1.5 font-mono">255.255.255.0</td></tr>
+                      <tr className="border-t border-white/10"><td className="p-1.5">PC-B2</td><td className="p-1.5 font-mono text-emerald-400">192.168.2.2</td><td className="p-1.5 font-mono">255.255.255.0</td></tr>
+                      <tr className="border-t border-white/10"><td className="p-1.5">PC-B3</td><td className="p-1.5 font-mono text-emerald-400">192.168.2.3</td><td className="p-1.5 font-mono">255.255.255.0</td></tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
-              <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20">
-                <p className="text-amber-300 font-bold text-sm mb-2">Comptabilité — À compléter</p>
-                <div className="space-y-1 font-mono text-xs">
-                  <p className="text-slate-400">PC-COMPTA-1 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
-                  <p className="text-slate-400">PC-COMPTA-2 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
-                  <p className="text-slate-400">PC-COMPTA-3 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
-                </div>
-              </div>
-              <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/20">
-                <p className="text-emerald-300 font-bold text-sm mb-2">Direction — À compléter</p>
-                <div className="space-y-1 font-mono text-xs">
-                  <p className="text-slate-400">PC-DIR-1 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
-                  <p className="text-slate-400">PC-DIR-2 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
-                  <p className="text-slate-400">PC-DIR-3 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-red-900/20 border-l-4 border-red-500 p-3 rounded-r-lg mt-4">
-              <p className="text-red-200 text-xs font-bold">{"⚠️ ATTENTION : Le masque DOIT correspondre au sous-réseau du service. Si vous mettez un mauvais masque, les PCs ne pourront pas communiquer !"}</p>
             </div>
           </div>
 
-          {/* ÉTAPE 4 : Tests */}
+          {/* ÉTAPE 3 : Tests */}
           <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
-            <h4 className="text-amber-300 font-bold mb-3 flex items-center gap-2"><span className="bg-amber-500/20 text-amber-400 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black">4</span> Étape 4 — Tester la connectivité</h4>
-            <p className="text-slate-300 text-xs mb-4">{"Ouvrez le terminal (CLI) de chaque PC : cliquez → Desktop → Command Prompt. Faites ces tests :"}</p>
+            <h4 className="text-amber-300 font-bold mb-3 flex items-center gap-2"><span className="bg-amber-500/20 text-amber-400 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black">3</span> Étape 3 — Tester avec ping</h4>
+            <p className="text-slate-300 text-xs mb-4">{"Cliquez sur un PC → Desktop → Command Prompt. Tapez les commandes ping :"}</p>
             <div className="space-y-4">
               <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/20">
-                <p className="text-emerald-300 font-bold text-sm mb-2">{"✅ Tests qui DOIVENT marcher (même service)"}</p>
+                <p className="text-emerald-300 font-bold text-sm mb-2">{"✅ Même réseau → ça marche"}</p>
                 <div className="font-mono text-xs space-y-1 text-slate-300">
-                  <p>{"Depuis PC-DEV-1 :    ping [IP de PC-DEV-2]     → Reply ✓"}</p>
-                  <p>{"Depuis PC-DEV-1 :    ping [IP de PC-DEV-3]     → Reply ✓"}</p>
-                  <p>{"Depuis PC-COMM-1 :   ping [IP de PC-COMM-2]    → Reply ✓"}</p>
-                  <p>{"Depuis PC-COMPTA-1 : ping [IP de PC-COMPTA-2]  → Reply ✓"}</p>
-                  <p>{"Depuis PC-DIR-1 :    ping [IP de PC-DIR-2]     → Reply ✓"}</p>
+                  <p>{"Depuis PC-A1 : ping 192.168.1.2 → Reply ✓"}</p>
+                  <p>{"Depuis PC-A1 : ping 192.168.1.3 → Reply ✓"}</p>
+                  <p>{"Depuis PC-B1 : ping 192.168.2.2 → Reply ✓"}</p>
                 </div>
               </div>
               <div className="bg-red-900/20 rounded-lg p-4 border border-red-500/20">
-                <p className="text-red-300 font-bold text-sm mb-2">{"❌ Tests qui NE DOIVENT PAS marcher (services différents)"}</p>
+                <p className="text-red-300 font-bold text-sm mb-2">{"❌ Réseau différent → ça ne marche PAS"}</p>
                 <div className="font-mono text-xs space-y-1 text-slate-300">
-                  <p>{"Depuis PC-DEV-1 :    ping [IP de PC-COMM-1]    → Request timed out ✗"}</p>
-                  <p>{"Depuis PC-DEV-1 :    ping [IP de PC-DIR-1]     → Request timed out ✗"}</p>
-                  <p>{"Depuis PC-COMPTA-1 : ping [IP de PC-COMM-1]    → Request timed out ✗"}</p>
+                  <p>{"Depuis PC-A1 : ping 192.168.2.1 → Request timed out ✗"}</p>
+                  <p>{"Depuis PC-B1 : ping 192.168.1.1 → Request timed out ✗"}</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* ÉTAPE 5 : Vérification ipconfig */}
+          {/* ÉTAPE 4 : Questions */}
           <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
-            <h4 className="text-amber-300 font-bold mb-3 flex items-center gap-2"><span className="bg-amber-500/20 text-amber-400 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black">5</span> Étape 5 — Vérifier avec ipconfig</h4>
-            <p className="text-slate-300 text-xs mb-3">{"Sur chaque PC, tapez ipconfig dans le Command Prompt et notez les résultats :"}</p>
-            <div className="bg-[#1a1035] rounded-lg p-4 border border-white/10 font-mono text-xs text-slate-300 overflow-x-auto">
-              <p className="text-emerald-400">{"C:\\> ipconfig"}</p>
-              <p className="mt-2 text-slate-500">{"FastEthernet0 Connection:(default port)"}</p>
-              <p className="mt-1">{"   Connection-specific DNS Suffix..:"}</p>
-              <p>{"   Link-local IPv6 Address.........: FE80::..."}</p>
-              <p>{"   IPv6 Address....................: ::"}</p>
-              <p className="text-white font-bold">{"   IPv4 Address....................: 192.168.10.X"}</p>
-              <p className="text-purple-400 font-bold">{"   Subnet Mask.....................: 255.255.255.XXX"}</p>
-              <p>{"   Default Gateway.................: "}</p>
-            </div>
-            <p className="text-slate-400 text-xs mt-3">{"Vérifiez que l'IP et le masque correspondent bien à votre plan d'adressage pour chaque PC."}</p>
-          </div>
-
-          {/* ÉTAPE 6 : Questions d'analyse */}
-          <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
-            <h4 className="text-amber-300 font-bold mb-3 flex items-center gap-2"><span className="bg-amber-500/20 text-amber-400 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black">6</span> Étape 6 — Questions d'analyse</h4>
-            <p className="text-slate-300 text-xs mb-3">Répondez à ces questions après avoir terminé le lab :</p>
+            <h4 className="text-amber-300 font-bold mb-3 flex items-center gap-2"><span className="bg-amber-500/20 text-amber-400 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black">4</span> Questions</h4>
             <div className="space-y-3">
               <div className="bg-black/30 rounded-lg p-3">
                 <p className="text-amber-300 text-xs font-bold">Question 1</p>
-                <p className="text-slate-300 text-xs">{"Pourquoi les PC du même service peuvent se ping mais PAS ceux d'un autre service ?"}</p>
+                <p className="text-slate-300 text-xs">{"Pourquoi PC-A1 ne peut pas ping PC-B1 ?"}</p>
               </div>
               <div className="bg-black/30 rounded-lg p-3">
                 <p className="text-amber-300 text-xs font-bold">Question 2</p>
-                <p className="text-slate-300 text-xs">{"Que faudrait-il ajouter pour que les services puissent communiquer entre eux ?"}</p>
+                <p className="text-slate-300 text-xs">{"Que faudrait-il ajouter pour que Bureau A et Bureau B communiquent ?"}</p>
               </div>
               <div className="bg-black/30 rounded-lg p-3">
                 <p className="text-amber-300 text-xs font-bold">Question 3</p>
-                <p className="text-slate-300 text-xs">{"Si un PC-DEV a le masque 255.255.255.0 au lieu de 255.255.255.192, que se passe-t-il ? Testez !"}</p>
-              </div>
-              <div className="bg-black/30 rounded-lg p-3">
-                <p className="text-amber-300 text-xs font-bold">Question 4</p>
-                <p className="text-slate-300 text-xs">{"Combien d'adresses restent disponibles (non utilisées) dans le /24 de base après avoir créé les 4 sous-réseaux ?"}</p>
-              </div>
-              <div className="bg-black/30 rounded-lg p-3">
-                <p className="text-amber-300 text-xs font-bold">Question 5 — Bonus</p>
-                <p className="text-slate-300 text-xs">{"Un 5ème service 'Logistique' de 8 machines doit être ajouté. Quel masque ? Quel sous-réseau (sans chevaucher les existants) ?"}</p>
+                <p className="text-slate-300 text-xs">{"Combien de machines maximum peut-on mettre dans chaque réseau /24 ?"}</p>
               </div>
             </div>
-          </div>
-
-          <div className="bg-purple-900/20 border-l-4 border-purple-500 p-4 rounded-r-lg">
-            <p className="text-purple-200 font-bold">{"Objectif du lab"}</p>
-            <p className="text-slate-300 text-sm mt-1">{"À la fin de ce lab, vous devez avoir 4 réseaux isolés qui fonctionnent chacun indépendamment. Les PC d'un même service communiquent entre eux, mais pas avec les autres services. C'est exactement comme ça que fonctionne un vrai réseau d'entreprise !"}</p>
           </div>
         </div>
       ),
@@ -9539,12 +9513,14 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
             <div className="flex items-center gap-3 flex-wrap">
               <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
               {[
+                { id: 'lab7-objectif', label: 'Objectif', icon: '🎯' },
+                { id: 'lab7-plan', label: 'Plan adressage', icon: '📋' },
                 { id: 'lab7-materiel', label: 'Matériel', icon: '🧩' },
-                { id: 'lab7-cablage', label: 'Câblage', icon: '🟦' },
-                { id: 'lab7-calcul', label: 'Calculs VLSM', icon: '🟨' },
-                { id: 'lab7-ip', label: 'Config IP', icon: '🟥' },
-                { id: 'lab7-verif', label: 'Tests ping', icon: '🟩' },
-                { id: 'lab7-questions', label: 'Questions', icon: '🟪' },
+                { id: 'lab7-cablage', label: 'Câblage', icon: '🔌' },
+                { id: 'lab7-ip', label: 'Config IP', icon: '⚙️' },
+                { id: 'lab7-verif', label: 'Vérification', icon: '🔍' },
+                { id: 'lab7-ping', label: 'Tests ping', icon: '📡' },
+                { id: 'lab7-questions', label: 'Questions', icon: '❓' },
               ].map(({ id, label, icon }) => (
                 <button
                   key={id}
@@ -9558,252 +9534,457 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
             </div>
           </nav>
 
-          <div className="space-y-6">
-            {/* MATÉRIEL */}
+          <div className="space-y-8">
+
+            {/* ÉTAPE 1 : OBJECTIF */}
+            <section id="lab7-objectif" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/20 rounded-xl p-6 border border-purple-500/30">
+                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"🎯 Étape 1 — Comprendre l'objectif du lab"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Avant de commencer, on doit comprendre CE QU'ON VA FAIRE et POURQUOI."}</p>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Le scénario :"}</p>
+                  <p className="text-slate-300 text-sm">{"Une petite entreprise a 2 bureaux séparés. Chaque bureau a ses propres PC. On veut que les PC d'un même bureau puissent communiquer entre eux, mais on ne veut PAS que les 2 bureaux communiquent (pas de routeur)."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Ce que ce lab va prouver :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• Des PC dans le MÊME réseau peuvent se parler (ping fonctionne)"}</li>
+                    <li>{"• Des PC dans des réseaux DIFFÉRENTS ne peuvent PAS se parler sans routeur"}</li>
+                    <li>{"• Le masque /24 détermine quels PC sont dans le même réseau"}</li>
+                  </ul>
+                </div>
+                <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/20">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Pourquoi c'est important ?"}</p>
+                  <p className="text-slate-300 text-sm">{"En entreprise, tu devras savoir configurer des IPs et comprendre pourquoi 2 machines ne se voient pas. Ce lab te donne les bases : si les PC sont dans le même réseau (même partie réseau de l'IP + même masque), ils communiquent. Sinon, il faut un routeur."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 2 : PLAN D'ADRESSAGE */}
+            <section id="lab7-plan" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 rounded-xl p-6 border border-amber-500/30">
+                <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"📋 Étape 2 — Préparer le plan d'adressage"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"AVANT de toucher à Packet Tracer, on prépare notre plan. C'est comme un architecte qui fait les plans avant de construire."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Pourquoi 2 réseaux différents ?"}</p>
+                  <p className="text-slate-300 text-sm mb-2">{"On veut séparer les 2 bureaux. Pour ça, on leur donne des adresses réseau DIFFÉRENTES :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• Bureau A → réseau 192.168.1.0/24 (toutes les IPs en 192.168.1.X)"}</li>
+                    <li>{"• Bureau B → réseau 192.168.2.0/24 (toutes les IPs en 192.168.2.X)"}</li>
+                  </ul>
+                  <p className="text-amber-300/80 text-xs mt-2">{"La différence est dans le 3ème octet : .1. vs .2. — C'est ça qui fait que ce sont 2 réseaux séparés."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Pourquoi le masque /24 (255.255.255.0) ?"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• On a seulement 3 PC par bureau → il nous faut au minimum 3 adresses hôte"}</li>
+                    <li>{"• /24 = 256 adresses − 2 (réseau + broadcast) = 254 hôtes possibles"}</li>
+                    <li>{"• C'est largement suffisant et c'est le masque le plus simple à utiliser"}</li>
+                    <li>{"• Le masque est le MÊME pour les 2 bureaux : seule l'adresse réseau change"}</li>
+                  </ul>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Pourquoi on commence à .1 et pas à .0 ?"}</p>
+                  <p className="text-slate-300 text-sm">{"Rappel du cours : dans un réseau /24, l'adresse .0 est réservée (adresse réseau) et .255 est réservée (broadcast). Les adresses UTILISABLES vont de .1 à .254. C'est pour ça qu'on donne .1, .2, .3 à nos PC."}</p>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Le plan d'adressage complet :"}</p>
+                  <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                    <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Bureau</th><th className="p-2 text-left">Réseau</th><th className="p-2 text-left">Masque</th><th className="p-2 text-left">Adresses utilisables</th><th className="p-2 text-left">Broadcast</th></tr></thead>
+                    <tbody>
+                      <tr className="border-t border-white/20 bg-purple-900/10"><td className="p-2 font-bold text-purple-300">Bureau A</td><td className="p-2 font-mono text-white">192.168.1.0</td><td className="p-2 font-mono">255.255.255.0</td><td className="p-2 font-mono text-emerald-400">.1 à .254</td><td className="p-2 font-mono">192.168.1.255</td></tr>
+                      <tr className="border-t border-white/20 bg-blue-900/10"><td className="p-2 font-bold text-blue-300">Bureau B</td><td className="p-2 font-mono text-white">192.168.2.0</td><td className="p-2 font-mono">255.255.255.0</td><td className="p-2 font-mono text-emerald-400">.1 à .254</td><td className="p-2 font-mono">192.168.2.255</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 3 : MATÉRIEL */}
             <section id="lab7-materiel" className="scroll-mt-4">
-              <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">{"🧩 Matériel nécessaire"}</h2>
-              <p className="text-slate-300 text-sm mb-3">{"Voici ce qu'il faut placer dans Packet Tracer :"}</p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
-                  <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Équipement</th><th className="p-2 text-left">Quantité</th><th className="p-2 text-left">Nom</th></tr></thead>
-                  <tbody>
-                    <tr className="border-t border-white/20"><td className="p-2">Switch 2960</td><td className="p-2 font-mono text-emerald-400">4</td><td className="p-2 font-mono">SW-DEV, SW-COMM, SW-COMPTA, SW-DIR</td></tr>
-                    <tr className="border-t border-white/20"><td className="p-2">PC</td><td className="p-2 font-mono text-emerald-400">12</td><td className="p-2 font-mono">3 par service (PC-DEV-1, PC-DEV-2, PC-DEV-3, etc.)</td></tr>
-                    <tr className="border-t border-white/20"><td className="p-2">{"Câbles"}</td><td className="p-2 font-mono text-emerald-400">12</td><td className="p-2 font-mono">Copper Straight-Through (câble droit)</td></tr>
-                  </tbody>
-                </table>
+              <div className="bg-gradient-to-r from-emerald-900/20 to-purple-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"🧩 Étape 3 — Placer le matériel dans Packet Tracer"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Ouvrez Packet Tracer et placez les équipements suivants."}</p>
+
+                <div className="overflow-x-auto mb-4">
+                  <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                    <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Équipement</th><th className="p-2 text-left">Quantité</th><th className="p-2 text-left">Nom</th><th className="p-2 text-left">Pourquoi ?</th></tr></thead>
+                    <tbody>
+                      <tr className="border-t border-white/20"><td className="p-2">Switch 2960</td><td className="p-2 font-mono text-emerald-400">2</td><td className="p-2 font-mono">SW-A, SW-B</td><td className="p-2 text-xs text-slate-400">{"Un switch par bureau pour connecter les PC entre eux"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2">PC</td><td className="p-2 font-mono text-emerald-400">6</td><td className="p-2 font-mono">PC-A1, A2, A3, PC-B1, B2, B3</td><td className="p-2 text-xs text-slate-400">{"3 PC par bureau (les machines qui vont communiquer)"}</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Pourquoi un switch et pas un routeur ?"}</p>
+                  <p className="text-slate-300 text-sm">{"Le switch connecte les machines d'un MÊME réseau entre elles. Il transmet les trames au niveau 2 (couche liaison). Il ne fait PAS de routage entre réseaux différents. C'est justement ce qu'on veut tester : sans routeur, les 2 réseaux sont isolés."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Comment les placer ?"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• Mettez SW-A à gauche avec PC-A1, A2, A3 en dessous"}</li>
+                    <li>{"• Mettez SW-B à droite avec PC-B1, B2, B3 en dessous"}</li>
+                    <li>{"• Laissez de l'espace entre les 2 groupes (ils sont séparés)"}</li>
+                    <li>{"• Renommez chaque équipement en cliquant dessus → Config → Display Name"}</li>
+                  </ul>
+                </div>
               </div>
             </section>
 
-            {/* ÉTAPE 1 — CÂBLAGE */}
+            {/* ÉTAPE 4 : CÂBLAGE */}
             <section id="lab7-cablage" className="scroll-mt-4">
-              <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-2">{"🟦 Étape 1 — Câblage"}</h2>
-              <p className="text-slate-300 text-sm mb-3">{"Chaque service a SON switch. Les PC d'un service se branchent uniquement sur le switch de leur service. On ne relie PAS les switches entre eux."}</p>
-              <div className="overflow-x-auto mb-3">
-                <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
-                  <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">PC</th><th className="p-2 text-left">{"→"}</th><th className="p-2 text-left">Switch</th><th className="p-2 text-left">Port</th><th className="p-2 text-left">{"Câble"}</th></tr></thead>
-                  <tbody>
-                    <tr className="border-t border-white/20 bg-purple-900/10"><td className="p-2 text-purple-300">PC-DEV-1</td><td className="p-2">{"→"}</td><td className="p-2">SW-DEV</td><td className="p-2 font-mono">Fa0/1</td><td className="p-2 text-slate-400">droit</td></tr>
-                    <tr className="border-t border-white/20 bg-purple-900/10"><td className="p-2 text-purple-300">PC-DEV-2</td><td className="p-2">{"→"}</td><td className="p-2">SW-DEV</td><td className="p-2 font-mono">Fa0/2</td><td className="p-2 text-slate-400">droit</td></tr>
-                    <tr className="border-t border-white/20 bg-purple-900/10"><td className="p-2 text-purple-300">PC-DEV-3</td><td className="p-2">{"→"}</td><td className="p-2">SW-DEV</td><td className="p-2 font-mono">Fa0/3</td><td className="p-2 text-slate-400">droit</td></tr>
-                    <tr className="border-t border-white/20 bg-blue-900/10"><td className="p-2 text-blue-300">PC-COMM-1</td><td className="p-2">{"→"}</td><td className="p-2">SW-COMM</td><td className="p-2 font-mono">Fa0/1</td><td className="p-2 text-slate-400">droit</td></tr>
-                    <tr className="border-t border-white/20 bg-blue-900/10"><td className="p-2 text-blue-300">PC-COMM-2</td><td className="p-2">{"→"}</td><td className="p-2">SW-COMM</td><td className="p-2 font-mono">Fa0/2</td><td className="p-2 text-slate-400">droit</td></tr>
-                    <tr className="border-t border-white/20 bg-blue-900/10"><td className="p-2 text-blue-300">PC-COMM-3</td><td className="p-2">{"→"}</td><td className="p-2">SW-COMM</td><td className="p-2 font-mono">Fa0/3</td><td className="p-2 text-slate-400">droit</td></tr>
-                    <tr className="border-t border-white/20 bg-amber-900/10"><td className="p-2 text-amber-300">PC-COMPTA-1</td><td className="p-2">{"→"}</td><td className="p-2">SW-COMPTA</td><td className="p-2 font-mono">Fa0/1</td><td className="p-2 text-slate-400">droit</td></tr>
-                    <tr className="border-t border-white/20 bg-amber-900/10"><td className="p-2 text-amber-300">PC-COMPTA-2</td><td className="p-2">{"→"}</td><td className="p-2">SW-COMPTA</td><td className="p-2 font-mono">Fa0/2</td><td className="p-2 text-slate-400">droit</td></tr>
-                    <tr className="border-t border-white/20 bg-amber-900/10"><td className="p-2 text-amber-300">PC-COMPTA-3</td><td className="p-2">{"→"}</td><td className="p-2">SW-COMPTA</td><td className="p-2 font-mono">Fa0/3</td><td className="p-2 text-slate-400">droit</td></tr>
-                    <tr className="border-t border-white/20 bg-emerald-900/10"><td className="p-2 text-emerald-300">PC-DIR-1</td><td className="p-2">{"→"}</td><td className="p-2">SW-DIR</td><td className="p-2 font-mono">Fa0/1</td><td className="p-2 text-slate-400">droit</td></tr>
-                    <tr className="border-t border-white/20 bg-emerald-900/10"><td className="p-2 text-emerald-300">PC-DIR-2</td><td className="p-2">{"→"}</td><td className="p-2">SW-DIR</td><td className="p-2 font-mono">Fa0/2</td><td className="p-2 text-slate-400">droit</td></tr>
-                    <tr className="border-t border-white/20 bg-emerald-900/10"><td className="p-2 text-emerald-300">PC-DIR-3</td><td className="p-2">{"→"}</td><td className="p-2">SW-DIR</td><td className="p-2 font-mono">Fa0/3</td><td className="p-2 text-slate-400">droit</td></tr>
-                  </tbody>
-                </table>
-              </div>
-              <p className="text-amber-300/90 text-xs border-l-2 border-amber-500/50 pl-3 py-1">{"Vérification : tous les liens doivent passer au vert 🟢. Si un lien reste orange, attendez quelques secondes."}</p>
-            </section>
+              <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-xl p-6 border border-blue-500/30">
+                <h2 className="text-lg font-bold text-blue-300 mb-3 flex items-center gap-2">{"🔌 Étape 4 — Câbler les équipements"}</h2>
 
-            {/* ÉTAPE 2 — CALCULS VLSM */}
-            <section id="lab7-calcul" className="scroll-mt-4">
-              <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">{"🟨 Étape 2 — Calculs VLSM (la logique)"}</h2>
-              <p className="text-slate-300 text-sm mb-3">{"Réseau de base : 192.168.10.0/24 (256 adresses). On doit le découper en 4 sous-réseaux. Règle VLSM : on commence TOUJOURS par le plus grand service."}</p>
-
-              <div className="space-y-4">
-                <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/20">
-                  <p className="text-purple-300 font-bold text-sm mb-2">{"1️⃣ Développement — 45 machines (le plus grand)"}</p>
-                  <div className="text-slate-300 text-xs space-y-1">
-                    <p>{"45 machines + 2 (réseau + broadcast) = 47 adresses minimum"}</p>
-                    <p>{"Quelle puissance de 2 ≥ 47 ? → 2^6 = 64 ✓"}</p>
-                    <p>{"CIDR = 32 - 6 = "}<strong className="text-emerald-400">/26</strong>{" → Masque = 256 - 64 = "}<strong className="text-emerald-400">255.255.255.192</strong></p>
-                    <p>{"Premier sous-réseau dispo : "}<strong className="text-emerald-400">192.168.10.0/26</strong></p>
-                    <p className="text-slate-500">{"Plage : .0 (réseau) | .1 à .62 (hôtes) | .63 (broadcast)"}</p>
-                    <p className="text-slate-500">{"→ Le prochain sous-réseau commence à .64"}</p>
-                  </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Quel type de câble utiliser ?"}</p>
+                  <p className="text-slate-300 text-sm mb-2">{"On utilise un câble droit (Copper Straight-Through) parce qu'on connecte des types d'équipements DIFFÉRENTS (PC → Switch)."}</p>
+                  <p className="text-slate-400 text-xs">{"Rappel : câble droit = entre équipements différents (PC↔Switch). Câble croisé = entre équipements identiques (Switch↔Switch, PC↔PC)."}</p>
                 </div>
 
-                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
-                  <p className="text-blue-300 font-bold text-sm mb-2">{"2️⃣ Commercial — 25 machines"}</p>
-                  <div className="text-slate-300 text-xs space-y-1">
-                    <p>{"25 + 2 = 27 adresses minimum"}</p>
-                    <p>{"2^5 = 32 ≥ 27 ✓"}</p>
-                    <p>{"CIDR = 32 - 5 = "}<strong className="text-emerald-400">/27</strong>{" → Masque = 256 - 32 = "}<strong className="text-emerald-400">255.255.255.224</strong></p>
-                    <p>{"On reprend après le bloc précédent (.64) : "}<strong className="text-emerald-400">192.168.10.64/27</strong></p>
-                    <p className="text-slate-500">{"Plage : .64 (réseau) | .65 à .94 (hôtes) | .95 (broadcast)"}</p>
-                    <p className="text-slate-500">{"→ Le prochain commence à .96"}</p>
-                  </div>
+                <div className="overflow-x-auto mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Tableau de câblage :"}</p>
+                  <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                    <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">PC</th><th className="p-2 text-left">Port PC</th><th className="p-2 text-left">{"→"}</th><th className="p-2 text-left">Switch</th><th className="p-2 text-left">Port Switch</th></tr></thead>
+                    <tbody>
+                      <tr className="border-t border-white/20 bg-purple-900/10"><td className="p-2 text-purple-300 font-bold">PC-A1</td><td className="p-2 font-mono text-xs">FastEthernet0</td><td className="p-2">{"→"}</td><td className="p-2">SW-A</td><td className="p-2 font-mono">Fa0/1</td></tr>
+                      <tr className="border-t border-white/20 bg-purple-900/10"><td className="p-2 text-purple-300 font-bold">PC-A2</td><td className="p-2 font-mono text-xs">FastEthernet0</td><td className="p-2">{"→"}</td><td className="p-2">SW-A</td><td className="p-2 font-mono">Fa0/2</td></tr>
+                      <tr className="border-t border-white/20 bg-purple-900/10"><td className="p-2 text-purple-300 font-bold">PC-A3</td><td className="p-2 font-mono text-xs">FastEthernet0</td><td className="p-2">{"→"}</td><td className="p-2">SW-A</td><td className="p-2 font-mono">Fa0/3</td></tr>
+                      <tr className="border-t border-white/20 bg-blue-900/10"><td className="p-2 text-blue-300 font-bold">PC-B1</td><td className="p-2 font-mono text-xs">FastEthernet0</td><td className="p-2">{"→"}</td><td className="p-2">SW-B</td><td className="p-2 font-mono">Fa0/1</td></tr>
+                      <tr className="border-t border-white/20 bg-blue-900/10"><td className="p-2 text-blue-300 font-bold">PC-B2</td><td className="p-2 font-mono text-xs">FastEthernet0</td><td className="p-2">{"→"}</td><td className="p-2">SW-B</td><td className="p-2 font-mono">Fa0/2</td></tr>
+                      <tr className="border-t border-white/20 bg-blue-900/10"><td className="p-2 text-blue-300 font-bold">PC-B3</td><td className="p-2 font-mono text-xs">FastEthernet0</td><td className="p-2">{"→"}</td><td className="p-2">SW-B</td><td className="p-2 font-mono">Fa0/3</td></tr>
+                    </tbody>
+                  </table>
                 </div>
 
-                <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20">
-                  <p className="text-amber-300 font-bold text-sm mb-2">{"3️⃣ Comptabilité — 12 machines"}</p>
-                  <div className="text-slate-300 text-xs space-y-1">
-                    <p>{"12 + 2 = 14 adresses minimum"}</p>
-                    <p>{"2^4 = 16 ≥ 14 ✓"}</p>
-                    <p>{"CIDR = 32 - 4 = "}<strong className="text-emerald-400">/28</strong>{" → Masque = 256 - 16 = "}<strong className="text-emerald-400">255.255.255.240</strong></p>
-                    <p>{"On reprend à .96 : "}<strong className="text-emerald-400">192.168.10.96/28</strong></p>
-                    <p className="text-slate-500">{"Plage : .96 (réseau) | .97 à .110 (hôtes) | .111 (broadcast)"}</p>
-                    <p className="text-slate-500">{"→ Le prochain commence à .112"}</p>
-                  </div>
+                <div className="bg-red-900/20 rounded-lg p-4 border border-red-500/20 mb-4">
+                  <p className="text-red-300 font-bold text-sm mb-1">{"IMPORTANT : Ne PAS relier SW-A et SW-B entre eux !"}</p>
+                  <p className="text-slate-300 text-sm">{"C'est voulu. On veut montrer que sans lien physique et sans routeur, les 2 réseaux sont totalement isolés. Même si on mettait un câble entre les 2 switches, sans routeur les PC de réseaux différents ne pourraient toujours pas communiquer."}</p>
                 </div>
 
-                <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/20">
-                  <p className="text-emerald-300 font-bold text-sm mb-2">{"4️⃣ Direction — 5 machines"}</p>
-                  <div className="text-slate-300 text-xs space-y-1">
-                    <p>{"5 + 2 = 7 adresses minimum"}</p>
-                    <p>{"2^3 = 8 ≥ 7 ✓"}</p>
-                    <p>{"CIDR = 32 - 3 = "}<strong className="text-emerald-400">/29</strong>{" → Masque = 256 - 8 = "}<strong className="text-emerald-400">255.255.255.248</strong></p>
-                    <p>{"On reprend à .112 : "}<strong className="text-emerald-400">192.168.10.112/29</strong></p>
-                    <p className="text-slate-500">{"Plage : .112 (réseau) | .113 à .118 (hôtes) | .119 (broadcast)"}</p>
-                  </div>
-                </div>
-              </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Schéma de la topologie :"}</p>
+                  <pre className="text-xs font-mono text-slate-300 leading-relaxed overflow-x-auto">{`  ┌──── Bureau A (192.168.1.0/24) ────┐
+  │  PC-A1 (.1) ──┐                   │
+  │  PC-A2 (.2) ──┼── SW-A            │
+  │  PC-A3 (.3) ──┘                   │
+  └────────────────────────────────────┘
 
-              <div className="mt-4 overflow-x-auto">
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Tableau récapitulatif</p>
-                <table className="w-full text-xs text-slate-300 border border-white/20 rounded">
-                  <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Service</th><th className="p-2 text-left">Machines</th><th className="p-2 text-left">CIDR</th><th className="p-2 text-left">Masque</th><th className="p-2 text-left">Sous-réseau</th><th className="p-2 text-left">Plage hôtes</th><th className="p-2 text-left">Broadcast</th></tr></thead>
-                  <tbody>
-                    <tr className="border-t border-white/10"><td className="p-2 font-bold text-purple-300">{"Développement"}</td><td className="p-2">45</td><td className="p-2 font-mono text-emerald-400">/26</td><td className="p-2 font-mono text-emerald-400">255.255.255.192</td><td className="p-2 font-mono text-emerald-400">192.168.10.0</td><td className="p-2 font-mono text-emerald-400">.1 — .62</td><td className="p-2 font-mono text-emerald-400">.63</td></tr>
-                    <tr className="border-t border-white/10"><td className="p-2 font-bold text-blue-300">Commercial</td><td className="p-2">25</td><td className="p-2 font-mono text-emerald-400">/27</td><td className="p-2 font-mono text-emerald-400">255.255.255.224</td><td className="p-2 font-mono text-emerald-400">192.168.10.64</td><td className="p-2 font-mono text-emerald-400">.65 — .94</td><td className="p-2 font-mono text-emerald-400">.95</td></tr>
-                    <tr className="border-t border-white/10"><td className="p-2 font-bold text-amber-300">{"Comptabilité"}</td><td className="p-2">12</td><td className="p-2 font-mono text-emerald-400">/28</td><td className="p-2 font-mono text-emerald-400">255.255.255.240</td><td className="p-2 font-mono text-emerald-400">192.168.10.96</td><td className="p-2 font-mono text-emerald-400">.97 — .110</td><td className="p-2 font-mono text-emerald-400">.111</td></tr>
-                    <tr className="border-t border-white/10"><td className="p-2 font-bold text-emerald-300">Direction</td><td className="p-2">5</td><td className="p-2 font-mono text-emerald-400">/29</td><td className="p-2 font-mono text-emerald-400">255.255.255.248</td><td className="p-2 font-mono text-emerald-400">192.168.10.112</td><td className="p-2 font-mono text-emerald-400">.113 — .118</td><td className="p-2 font-mono text-emerald-400">.119</td></tr>
-                  </tbody>
-                </table>
+       (pas de câble entre les 2)
+
+  ┌──── Bureau B (192.168.2.0/24) ────┐
+  │  PC-B1 (.1) ──┐                   │
+  │  PC-B2 (.2) ──┼── SW-B            │
+  │  PC-B3 (.3) ──┘                   │
+  └────────────────────────────────────┘`}</pre>
+                </div>
               </div>
             </section>
 
-            {/* ÉTAPE 3 — CONFIG IP */}
+            {/* ÉTAPE 5 : CONFIG IP */}
             <section id="lab7-ip" className="scroll-mt-4">
-              <h2 className="text-sm font-bold text-red-400 uppercase tracking-wider mb-2">{"🟥 Étape 3 — Configurer les adresses IP sur chaque PC"}</h2>
-              <p className="text-slate-300 text-sm mb-3">{"Sur chaque PC : clic → Desktop → IP Configuration → Static. On met la PREMIÈRE adresse utilisable du sous-réseau sur le PC-1, la deuxième sur le PC-2, etc."}</p>
+              <div className="bg-gradient-to-r from-red-900/20 to-purple-900/20 rounded-xl p-6 border border-red-500/30">
+                <h2 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">{"⚙️ Étape 5 — Configurer les adresses IP"}</h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/20">
-                  <p className="text-purple-300 font-bold text-sm mb-2">{"Développement (masque : 255.255.255.192)"}</p>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs text-slate-300 border border-white/10 rounded">
-                      <thead><tr className="bg-purple-900/20"><th className="p-1.5 text-left">PC</th><th className="p-1.5 text-left">IP</th><th className="p-1.5 text-left">Masque</th></tr></thead>
-                      <tbody>
-                        <tr className="border-t border-white/10"><td className="p-1.5">PC-DEV-1</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.1</td><td className="p-1.5 font-mono">255.255.255.192</td></tr>
-                        <tr className="border-t border-white/10"><td className="p-1.5">PC-DEV-2</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.2</td><td className="p-1.5 font-mono">255.255.255.192</td></tr>
-                        <tr className="border-t border-white/10"><td className="p-1.5">PC-DEV-3</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.3</td><td className="p-1.5 font-mono">255.255.255.192</td></tr>
-                      </tbody>
-                    </table>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Comment configurer une IP sur un PC dans Packet Tracer ?"}</p>
+                  <ol className="text-slate-300 text-sm space-y-1">
+                    <li>{"1. Cliquez sur le PC"}</li>
+                    <li>{"2. Allez dans l'onglet Desktop"}</li>
+                    <li>{"3. Cliquez sur IP Configuration"}</li>
+                    <li>{"4. Sélectionnez Static (pas DHCP, on configure à la main)"}</li>
+                    <li>{"5. Remplissez IP Address et Subnet Mask"}</li>
+                    <li>{"6. Laissez Default Gateway vide (pas de routeur dans ce lab)"}</li>
+                  </ol>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Pourquoi Static et pas DHCP ?"}</p>
+                  <p className="text-slate-300 text-sm">{"DHCP = un serveur attribue les IPs automatiquement. Ici on n'a pas de serveur DHCP, donc on configure chaque IP manuellement (Static). C'est important de savoir le faire car en entreprise, certains équipements (serveurs, imprimantes) ont des IPs fixes."}</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/20">
+                    <p className="text-purple-300 font-bold text-sm mb-3">{"Bureau A — Réseau 192.168.1.0/24"}</p>
+                    <div className="space-y-3">
+                      <div className="bg-black/30 rounded p-3">
+                        <p className="text-white font-bold text-xs mb-1">PC-A1</p>
+                        <p className="text-slate-300 text-xs">{"IP Address : "}<span className="text-emerald-400 font-mono font-bold">192.168.1.1</span></p>
+                        <p className="text-slate-300 text-xs">{"Subnet Mask : "}<span className="font-mono">255.255.255.0</span></p>
+                        <p className="text-slate-400 text-[10px] mt-1">{"→ .1 = première adresse utilisable du réseau"}</p>
+                      </div>
+                      <div className="bg-black/30 rounded p-3">
+                        <p className="text-white font-bold text-xs mb-1">PC-A2</p>
+                        <p className="text-slate-300 text-xs">{"IP Address : "}<span className="text-emerald-400 font-mono font-bold">192.168.1.2</span></p>
+                        <p className="text-slate-300 text-xs">{"Subnet Mask : "}<span className="font-mono">255.255.255.0</span></p>
+                        <p className="text-slate-400 text-[10px] mt-1">{"→ .2 = deuxième adresse utilisable"}</p>
+                      </div>
+                      <div className="bg-black/30 rounded p-3">
+                        <p className="text-white font-bold text-xs mb-1">PC-A3</p>
+                        <p className="text-slate-300 text-xs">{"IP Address : "}<span className="text-emerald-400 font-mono font-bold">192.168.1.3</span></p>
+                        <p className="text-slate-300 text-xs">{"Subnet Mask : "}<span className="font-mono">255.255.255.0</span></p>
+                        <p className="text-slate-400 text-[10px] mt-1">{"→ .3 = troisième adresse utilisable"}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
+                    <p className="text-blue-300 font-bold text-sm mb-3">{"Bureau B — Réseau 192.168.2.0/24"}</p>
+                    <div className="space-y-3">
+                      <div className="bg-black/30 rounded p-3">
+                        <p className="text-white font-bold text-xs mb-1">PC-B1</p>
+                        <p className="text-slate-300 text-xs">{"IP Address : "}<span className="text-emerald-400 font-mono font-bold">192.168.2.1</span></p>
+                        <p className="text-slate-300 text-xs">{"Subnet Mask : "}<span className="font-mono">255.255.255.0</span></p>
+                        <p className="text-slate-400 text-[10px] mt-1">{"→ Même principe, mais réseau .2.X"}</p>
+                      </div>
+                      <div className="bg-black/30 rounded p-3">
+                        <p className="text-white font-bold text-xs mb-1">PC-B2</p>
+                        <p className="text-slate-300 text-xs">{"IP Address : "}<span className="text-emerald-400 font-mono font-bold">192.168.2.2</span></p>
+                        <p className="text-slate-300 text-xs">{"Subnet Mask : "}<span className="font-mono">255.255.255.0</span></p>
+                      </div>
+                      <div className="bg-black/30 rounded p-3">
+                        <p className="text-white font-bold text-xs mb-1">PC-B3</p>
+                        <p className="text-slate-300 text-xs">{"IP Address : "}<span className="text-emerald-400 font-mono font-bold">192.168.2.3</span></p>
+                        <p className="text-slate-300 text-xs">{"Subnet Mask : "}<span className="font-mono">255.255.255.0</span></p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
-                  <p className="text-blue-300 font-bold text-sm mb-2">{"Commercial (masque : 255.255.255.224)"}</p>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs text-slate-300 border border-white/10 rounded">
-                      <thead><tr className="bg-blue-900/20"><th className="p-1.5 text-left">PC</th><th className="p-1.5 text-left">IP</th><th className="p-1.5 text-left">Masque</th></tr></thead>
-                      <tbody>
-                        <tr className="border-t border-white/10"><td className="p-1.5">PC-COMM-1</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.65</td><td className="p-1.5 font-mono">255.255.255.224</td></tr>
-                        <tr className="border-t border-white/10"><td className="p-1.5">PC-COMM-2</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.66</td><td className="p-1.5 font-mono">255.255.255.224</td></tr>
-                        <tr className="border-t border-white/10"><td className="p-1.5">PC-COMM-3</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.67</td><td className="p-1.5 font-mono">255.255.255.224</td></tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+
                 <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20">
-                  <p className="text-amber-300 font-bold text-sm mb-2">{"Comptabilité (masque : 255.255.255.240)"}</p>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs text-slate-300 border border-white/10 rounded">
-                      <thead><tr className="bg-amber-900/20"><th className="p-1.5 text-left">PC</th><th className="p-1.5 text-left">IP</th><th className="p-1.5 text-left">Masque</th></tr></thead>
-                      <tbody>
-                        <tr className="border-t border-white/10"><td className="p-1.5">PC-COMPTA-1</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.97</td><td className="p-1.5 font-mono">255.255.255.240</td></tr>
-                        <tr className="border-t border-white/10"><td className="p-1.5">PC-COMPTA-2</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.98</td><td className="p-1.5 font-mono">255.255.255.240</td></tr>
-                        <tr className="border-t border-white/10"><td className="p-1.5">PC-COMPTA-3</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.99</td><td className="p-1.5 font-mono">255.255.255.240</td></tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/20">
-                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Direction (masque : 255.255.255.248)"}</p>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs text-slate-300 border border-white/10 rounded">
-                      <thead><tr className="bg-emerald-900/20"><th className="p-1.5 text-left">PC</th><th className="p-1.5 text-left">IP</th><th className="p-1.5 text-left">Masque</th></tr></thead>
-                      <tbody>
-                        <tr className="border-t border-white/10"><td className="p-1.5">PC-DIR-1</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.113</td><td className="p-1.5 font-mono">255.255.255.248</td></tr>
-                        <tr className="border-t border-white/10"><td className="p-1.5">PC-DIR-2</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.114</td><td className="p-1.5 font-mono">255.255.255.248</td></tr>
-                        <tr className="border-t border-white/10"><td className="p-1.5">PC-DIR-3</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.115</td><td className="p-1.5 font-mono">255.255.255.248</td></tr>
-                      </tbody>
-                    </table>
-                  </div>
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Ce qu'il faut remarquer :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• Le masque est IDENTIQUE partout : 255.255.255.0 (/24)"}</li>
+                    <li>{"• Ce qui différencie les 2 réseaux c'est le 3ème octet : 192.168.1.X vs 192.168.2.X"}</li>
+                    <li>{"• Les 3 premiers octets (192.168.1) = partie réseau. Le dernier octet (.1, .2, .3) = partie hôte"}</li>
+                    <li>{"• On n'utilise pas .0 (réseau) ni .255 (broadcast)"}</li>
+                    <li>{"• La Gateway reste vide car on n'a pas de routeur"}</li>
+                  </ul>
                 </div>
               </div>
-              <p className="text-red-300/90 text-xs border-l-2 border-red-500/50 pl-3 py-1 mt-4">{"⚠️ ATTENTION : le masque est DIFFÉRENT pour chaque service ! Ne mettez pas 255.255.255.0 partout, sinon les réseaux ne seront pas isolés. Pas de Gateway (pas de routeur dans ce lab)."}</p>
             </section>
 
-            {/* ÉTAPE 4 — TESTS PING */}
+            {/* ÉTAPE 6 : VÉRIFICATION */}
             <section id="lab7-verif" className="scroll-mt-4">
-              <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-2">{"🟩 Étape 4 — Tests de connectivité (ping)"}</h2>
-              <p className="text-slate-300 text-sm mb-3">{"Sur chaque PC : clic → Desktop → Command Prompt. Tapez les commandes ping suivantes :"}</p>
-              <div className="space-y-3 text-sm">
-                <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/20">
-                  <p className="text-emerald-300 font-bold text-sm mb-2">{"✅ Tests qui DOIVENT marcher (même service)"}</p>
-                  <div className="space-y-2">
-                    <div className="flex items-start gap-2">
-                      <span className="text-emerald-400 font-bold">1.</span>
-                      <div className="text-slate-300"><strong className="text-purple-300">PC-DEV-1</strong>{" → "}<code className="text-emerald-400 font-mono">ping 192.168.10.2</code>{" (PC-DEV-2) → Reply ✓"}</div>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <span className="text-emerald-400 font-bold">2.</span>
-                      <div className="text-slate-300"><strong className="text-blue-300">PC-COMM-1</strong>{" → "}<code className="text-emerald-400 font-mono">ping 192.168.10.66</code>{" (PC-COMM-2) → Reply ✓"}</div>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <span className="text-emerald-400 font-bold">3.</span>
-                      <div className="text-slate-300"><strong className="text-amber-300">PC-COMPTA-1</strong>{" → "}<code className="text-emerald-400 font-mono">ping 192.168.10.98</code>{" (PC-COMPTA-2) → Reply ✓"}</div>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <span className="text-emerald-400 font-bold">4.</span>
-                      <div className="text-slate-300"><strong className="text-emerald-300">PC-DIR-1</strong>{" → "}<code className="text-emerald-400 font-mono">ping 192.168.10.114</code>{" (PC-DIR-2) → Reply ✓"}</div>
-                    </div>
-                  </div>
+              <div className="bg-gradient-to-r from-cyan-900/20 to-purple-900/20 rounded-xl p-6 border border-cyan-500/30">
+                <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center gap-2">{"🔍 Étape 6 — Vérifier la configuration"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Avant de tester avec ping, on vérifie que nos IPs sont bien configurées. C'est une bonne habitude à prendre !"}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Comment vérifier ?"}</p>
+                  <ol className="text-slate-300 text-sm space-y-1">
+                    <li>{"1. Cliquez sur chaque PC → Desktop → Command Prompt"}</li>
+                    <li>{"2. Tapez la commande : "}<code className="text-emerald-400 font-mono bg-black/40 px-1 rounded">ipconfig</code></li>
+                    <li>{"3. Vérifiez que l'IP et le masque correspondent à votre plan"}</li>
+                  </ol>
                 </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Résultat attendu sur PC-A1 :"}</p>
+                  <pre className="text-xs font-mono text-slate-300 leading-relaxed bg-black/50 p-3 rounded overflow-x-auto">{`C:\\> ipconfig
+
+FastEthernet0 Connection:(default port)
+
+   Link-local IPv6 Address.........: FE80::...
+   IPv6 Address....................: ::
+   IPv4 Address....................: 192.168.1.1
+   Subnet Mask.....................: 255.255.255.0
+   Default Gateway.................: `}</pre>
+                  <p className="text-slate-400 text-xs mt-2">{"On vérifie : IP = 192.168.1.1 ✓ | Masque = 255.255.255.0 ✓ | Gateway = vide ✓"}</p>
+                </div>
+
                 <div className="bg-red-900/20 rounded-lg p-4 border border-red-500/20">
-                  <p className="text-red-300 font-bold text-sm mb-2">{"❌ Tests qui NE DOIVENT PAS marcher (services différents)"}</p>
-                  <div className="space-y-2">
-                    <div className="flex items-start gap-2">
-                      <span className="text-red-400 font-bold">5.</span>
-                      <div className="text-slate-300"><strong className="text-purple-300">PC-DEV-1</strong>{" → "}<code className="text-emerald-400 font-mono">ping 192.168.10.65</code>{" (PC-COMM-1) → Request timed out ✗"}</div>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <span className="text-red-400 font-bold">6.</span>
-                      <div className="text-slate-300"><strong className="text-purple-300">PC-DEV-1</strong>{" → "}<code className="text-emerald-400 font-mono">ping 192.168.10.113</code>{" (PC-DIR-1) → Request timed out ✗"}</div>
-                    </div>
-                  </div>
-                  <p className="text-slate-400 text-xs mt-2">{"C'est NORMAL : les switches ne sont pas reliés entre eux et les PC sont dans des sous-réseaux différents."}</p>
+                  <p className="text-red-300 font-bold text-sm mb-2">{"Si l'IP ne s'affiche pas ou est différente :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• Vérifiez que vous avez bien sélectionné Static (et pas DHCP)"}</li>
+                    <li>{"• Vérifiez que le câble est bien branché (voyant vert sur le port)"}</li>
+                    <li>{"• Retournez dans IP Configuration et corrigez"}</li>
+                  </ul>
                 </div>
               </div>
             </section>
 
-            {/* ÉTAPE 5 — QUESTIONS D'ANALYSE */}
+            {/* ÉTAPE 7 : TESTS PING */}
+            <section id="lab7-ping" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/20 to-purple-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"📡 Étape 7 — Tester la connectivité avec ping"}</h2>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"C'est quoi ping ?"}</p>
+                  <p className="text-slate-300 text-sm">{"ping envoie un petit message (paquet ICMP) à une autre machine et attend une réponse. Si la réponse arrive → la communication fonctionne. Si pas de réponse (timeout) → la communication est bloquée."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Comment lancer un ping ?"}</p>
+                  <ol className="text-slate-300 text-sm space-y-1">
+                    <li>{"1. Cliquez sur le PC source (celui depuis lequel on teste)"}</li>
+                    <li>{"2. Desktop → Command Prompt"}</li>
+                    <li>{"3. Tapez : ping [adresse IP de la cible]"}</li>
+                    <li>{"4. Attendez le résultat (4 tentatives)"}</li>
+                  </ol>
+                </div>
+
+                {/* Test 1 : même réseau */}
+                <div className="bg-emerald-900/20 rounded-lg p-5 border border-emerald-500/20 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-3">{"✅ Test 1 — Ping dans le MÊME réseau (Bureau A)"}</p>
+                  <p className="text-slate-300 text-xs mb-3">{"On teste si les PC du Bureau A se voient entre eux."}</p>
+                  <div className="space-y-3">
+                    <div className="bg-black/30 rounded p-3">
+                      <p className="text-white font-bold text-xs mb-1">{"Depuis PC-A1, ping PC-A2 :"}</p>
+                      <pre className="text-xs font-mono text-emerald-400 bg-black/50 p-2 rounded overflow-x-auto">{"C:\\> ping 192.168.1.2\n\nReply from 192.168.1.2: bytes=32 time<1ms TTL=128\nReply from 192.168.1.2: bytes=32 time<1ms TTL=128\nReply from 192.168.1.2: bytes=32 time<1ms TTL=128\nReply from 192.168.1.2: bytes=32 time<1ms TTL=128"}</pre>
+                      <p className="text-emerald-400 text-xs mt-1 font-bold">{"→ Reply = ça marche !"}</p>
+                    </div>
+                    <div className="bg-black/30 rounded p-3">
+                      <p className="text-white font-bold text-xs mb-1">{"Depuis PC-A1, ping PC-A3 :"}</p>
+                      <pre className="text-xs font-mono text-emerald-400 bg-black/50 p-2 rounded overflow-x-auto">{"C:\\> ping 192.168.1.3\n\nReply from 192.168.1.3: bytes=32 time<1ms TTL=128"}</pre>
+                      <p className="text-emerald-400 text-xs mt-1 font-bold">{"→ Reply = ça marche aussi !"}</p>
+                    </div>
+                  </div>
+                  <div className="bg-emerald-900/30 rounded p-3 mt-3 border border-emerald-500/20">
+                    <p className="text-emerald-300 font-bold text-xs mb-1">{"Pourquoi ça marche ?"}</p>
+                    <p className="text-slate-300 text-xs">{"PC-A1 (192.168.1.1) et PC-A2 (192.168.1.2) ont les 3 premiers octets identiques (192.168.1) et le même masque /24. Le PC compare : 'est-ce que la destination est dans MON réseau ?' → Oui ! Alors il envoie la trame directement via le switch."}</p>
+                  </div>
+                </div>
+
+                {/* Test 2 : même réseau Bureau B */}
+                <div className="bg-emerald-900/20 rounded-lg p-5 border border-emerald-500/20 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-3">{"✅ Test 2 — Ping dans le MÊME réseau (Bureau B)"}</p>
+                  <div className="bg-black/30 rounded p-3">
+                    <p className="text-white font-bold text-xs mb-1">{"Depuis PC-B1, ping PC-B2 :"}</p>
+                    <pre className="text-xs font-mono text-emerald-400 bg-black/50 p-2 rounded overflow-x-auto">{"C:\\> ping 192.168.2.2\n\nReply from 192.168.2.2: bytes=32 time<1ms TTL=128"}</pre>
+                    <p className="text-emerald-400 text-xs mt-1 font-bold">{"→ Reply = ça marche !"}</p>
+                  </div>
+                  <div className="bg-emerald-900/30 rounded p-3 mt-3 border border-emerald-500/20">
+                    <p className="text-emerald-300 font-bold text-xs mb-1">{"Même logique :"}</p>
+                    <p className="text-slate-300 text-xs">{"PC-B1 et PC-B2 sont dans le même réseau 192.168.2.0/24. Le switch SW-B transmet la trame directement."}</p>
+                  </div>
+                </div>
+
+                {/* Test 3 : réseau différent */}
+                <div className="bg-red-900/20 rounded-lg p-5 border border-red-500/20 mb-4">
+                  <p className="text-red-300 font-bold text-sm mb-3">{"❌ Test 3 — Ping entre 2 réseaux DIFFÉRENTS"}</p>
+                  <p className="text-slate-300 text-xs mb-3">{"Maintenant le test important : est-ce qu'un PC du Bureau A peut parler à un PC du Bureau B ?"}</p>
+                  <div className="space-y-3">
+                    <div className="bg-black/30 rounded p-3">
+                      <p className="text-white font-bold text-xs mb-1">{"Depuis PC-A1, ping PC-B1 :"}</p>
+                      <pre className="text-xs font-mono text-red-400 bg-black/50 p-2 rounded overflow-x-auto">{"C:\\> ping 192.168.2.1\n\nRequest timed out.\nRequest timed out.\nRequest timed out.\nRequest timed out."}</pre>
+                      <p className="text-red-400 text-xs mt-1 font-bold">{"→ Request timed out = ça ne marche PAS !"}</p>
+                    </div>
+                    <div className="bg-black/30 rounded p-3">
+                      <p className="text-white font-bold text-xs mb-1">{"Depuis PC-B1, ping PC-A1 :"}</p>
+                      <pre className="text-xs font-mono text-red-400 bg-black/50 p-2 rounded overflow-x-auto">{"C:\\> ping 192.168.1.1\n\nRequest timed out."}</pre>
+                      <p className="text-red-400 text-xs mt-1 font-bold">{"→ Même résultat dans l'autre sens !"}</p>
+                    </div>
+                  </div>
+                  <div className="bg-red-900/30 rounded p-3 mt-3 border border-red-500/20">
+                    <p className="text-red-300 font-bold text-xs mb-1">{"Pourquoi ça ne marche pas ?"}</p>
+                    <p className="text-slate-300 text-xs mb-2">{"Quand PC-A1 veut envoyer un paquet à 192.168.2.1, il fait ce calcul :"}</p>
+                    <ul className="text-slate-300 text-xs space-y-1">
+                      <li>{"• Mon IP : 192.168.1.1, mon masque : /24"}</li>
+                      <li>{"• Mon réseau : 192.168.1.0"}</li>
+                      <li>{"• Destination : 192.168.2.1 → réseau 192.168.2.0"}</li>
+                      <li>{"• 192.168.1.0 ≠ 192.168.2.0 → la destination est dans un AUTRE réseau"}</li>
+                      <li>{"• → Il faut passer par la gateway (le routeur)..."}</li>
+                      <li>{"• ...mais on n'a PAS configuré de gateway ! → Le paquet est abandonné"}</li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Résumé des tests */}
+                <div className="bg-[#251845]/50 rounded-lg p-4 border border-purple-500/20">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Résumé des tests :"}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                      <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Depuis</th><th className="p-2 text-left">Vers</th><th className="p-2 text-left">Résultat</th><th className="p-2 text-left">Pourquoi ?</th></tr></thead>
+                      <tbody>
+                        <tr className="border-t border-white/10"><td className="p-2">PC-A1</td><td className="p-2">PC-A2 (.1.2)</td><td className="p-2 text-emerald-400 font-bold">Reply</td><td className="p-2">{"Même réseau .1.X"}</td></tr>
+                        <tr className="border-t border-white/10"><td className="p-2">PC-A1</td><td className="p-2">PC-A3 (.1.3)</td><td className="p-2 text-emerald-400 font-bold">Reply</td><td className="p-2">{"Même réseau .1.X"}</td></tr>
+                        <tr className="border-t border-white/10"><td className="p-2">PC-B1</td><td className="p-2">PC-B2 (.2.2)</td><td className="p-2 text-emerald-400 font-bold">Reply</td><td className="p-2">{"Même réseau .2.X"}</td></tr>
+                        <tr className="border-t border-white/10 bg-red-900/10"><td className="p-2">PC-A1</td><td className="p-2">PC-B1 (.2.1)</td><td className="p-2 text-red-400 font-bold">Timeout</td><td className="p-2">{"Réseaux différents, pas de routeur"}</td></tr>
+                        <tr className="border-t border-white/10 bg-red-900/10"><td className="p-2">PC-B1</td><td className="p-2">PC-A1 (.1.1)</td><td className="p-2 text-red-400 font-bold">Timeout</td><td className="p-2">{"Réseaux différents, pas de routeur"}</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 8 : QUESTIONS */}
             <section id="lab7-questions" className="scroll-mt-4">
-              <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-2">{"🟪 Étape 5 — Questions d'analyse (réponses)"}</h2>
-              <div className="space-y-3 text-sm text-slate-300">
-                <div className="bg-black/20 rounded-lg p-4">
-                  <p className="text-amber-300 font-bold mb-1">{"Q1 : Pourquoi les PC du même service se ping mais pas les autres ?"}</p>
-                  <p>{"Parce qu'ils sont dans des sous-réseaux DIFFÉRENTS. Les switches ne sont pas reliés entre eux, et même s'ils l'étaient, les PC ont des masques différents → ils ne se considèrent pas dans le même réseau. Il faudrait un routeur pour faire le lien."}</p>
-                </div>
-                <div className="bg-black/20 rounded-lg p-4">
-                  <p className="text-amber-300 font-bold mb-1">{"Q2 : Que faudrait-il ajouter pour communiquer entre services ?"}</p>
-                  <p>{"Un ROUTEUR. Il aurait une interface (ou sous-interface) dans chaque sous-réseau et ferait le relais. C'est le sujet du cours sur le routage inter-VLAN et le routage statique."}</p>
-                </div>
-                <div className="bg-black/20 rounded-lg p-4">
-                  <p className="text-amber-300 font-bold mb-1">{"Q3 : Mauvais masque sur un PC-DEV (255.255.255.0 au lieu de .192) ?"}</p>
-                  <p>{"Le PC croit être dans un réseau de 254 machines (192.168.10.0/24) au lieu de 62 machines (/26). Il pense que les PC des autres services sont dans SON réseau. Résultat : il essaie de leur parler directement au lieu de passer par un routeur → ça ne marche pas et ça crée des bugs."}</p>
-                </div>
-                <div className="bg-black/20 rounded-lg p-4">
-                  <p className="text-amber-300 font-bold mb-1">{"Q4 : Adresses restantes dans le /24 ?"}</p>
-                  <p>{"Total /24 = 256 adresses. On a utilisé : 64 (Dev) + 32 (Comm) + 16 (Compta) + 8 (Dir) = 120 adresses. Il reste 256 - 120 = 136 adresses libres (de .120 à .255)."}</p>
-                </div>
-                <div className="bg-black/20 rounded-lg p-4">
-                  <p className="text-amber-300 font-bold mb-1">{"Q5 Bonus : Service Logistique (8 machines) ?"}</p>
-                  <p>{"8 + 2 = 10 → 2^4 = 16 → /28 (masque 255.255.255.240). Prochain bloc libre après .119 : 192.168.10.120/28. Hôtes : .121 à .134, broadcast .135. Ça ne chevauche pas les 4 sous-réseaux existants."}</p>
+              <div className="bg-gradient-to-r from-violet-900/20 to-purple-900/20 rounded-xl p-6 border border-violet-500/30">
+                <h2 className="text-lg font-bold text-violet-300 mb-3 flex items-center gap-2">{"❓ Étape 8 — Questions et réponses"}</h2>
+
+                <div className="space-y-4">
+                  <div className="bg-black/30 rounded-lg p-4">
+                    <p className="text-amber-300 font-bold text-sm mb-2">{"Q1 : Pourquoi PC-A1 ne peut pas ping PC-B1 ?"}</p>
+                    <div className="bg-emerald-900/20 rounded p-3 border border-emerald-500/20">
+                      <p className="text-emerald-300 font-bold text-xs mb-1">{"Réponse :"}</p>
+                      <p className="text-slate-300 text-sm mb-2">{"Parce qu'ils sont dans des réseaux DIFFÉRENTS."}</p>
+                      <ul className="text-slate-300 text-xs space-y-1">
+                        <li>{"• PC-A1 est dans le réseau 192.168.1.0/24"}</li>
+                        <li>{"• PC-B1 est dans le réseau 192.168.2.0/24"}</li>
+                        <li>{"• Le 3ème octet est différent (.1 vs .2)"}</li>
+                        <li>{"• Pour passer d'un réseau à l'autre, il faut un ROUTEUR"}</li>
+                        <li>{"• Ici on n'a que des switches → les switches ne font PAS de routage"}</li>
+                        <li>{"• De plus, les 2 switches ne sont même pas reliés entre eux"}</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="bg-black/30 rounded-lg p-4">
+                    <p className="text-amber-300 font-bold text-sm mb-2">{"Q2 : Que faudrait-il ajouter pour que Bureau A et Bureau B communiquent ?"}</p>
+                    <div className="bg-emerald-900/20 rounded p-3 border border-emerald-500/20">
+                      <p className="text-emerald-300 font-bold text-xs mb-1">{"Réponse :"}</p>
+                      <p className="text-slate-300 text-sm mb-2">{"Un ROUTEUR connecté aux 2 switches."}</p>
+                      <ul className="text-slate-300 text-xs space-y-1">
+                        <li>{"• Le routeur aurait 2 interfaces :"}</li>
+                        <li>{"  - Une dans le réseau A : ex. 192.168.1.254"}</li>
+                        <li>{"  - Une dans le réseau B : ex. 192.168.2.254"}</li>
+                        <li>{"• On configurerait la Gateway sur chaque PC :"}</li>
+                        <li>{"  - PC du Bureau A : gateway = 192.168.1.254"}</li>
+                        <li>{"  - PC du Bureau B : gateway = 192.168.2.254"}</li>
+                        <li>{"• Quand PC-A1 veut joindre PC-B1, il enverrait le paquet au routeur"}</li>
+                        <li>{"• Le routeur connaît les 2 réseaux et transmet le paquet"}</li>
+                      </ul>
+                      <p className="text-amber-300/80 text-xs mt-2">{"C'est exactement ce qu'on apprendra dans une prochaine session !"}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-black/30 rounded-lg p-4">
+                    <p className="text-amber-300 font-bold text-sm mb-2">{"Q3 : Combien de machines maximum peut-on mettre dans chaque réseau /24 ?"}</p>
+                    <div className="bg-emerald-900/20 rounded p-3 border border-emerald-500/20">
+                      <p className="text-emerald-300 font-bold text-xs mb-1">{"Réponse :"}</p>
+                      <p className="text-slate-300 text-sm mb-2">{"254 machines maximum."}</p>
+                      <ul className="text-slate-300 text-xs space-y-1">
+                        <li>{"• /24 = 8 bits pour les hôtes"}</li>
+                        <li>{"• 2^8 = 256 adresses au total"}</li>
+                        <li>{"• − 1 pour l'adresse réseau (.0)"}</li>
+                        <li>{"• − 1 pour le broadcast (.255)"}</li>
+                        <li>{"• = 254 adresses utilisables (de .1 à .254)"}</li>
+                        <li>{"• Dans notre lab on en utilise seulement 3 sur 254 possibles"}</li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
           </div>
 
-          <div className="bg-emerald-900/20 border-t border-emerald-500/30 p-4">
-            <p className="text-emerald-400 text-sm font-medium flex items-center gap-2"><CheckCircle className="w-5 h-5" /> {"Lab complété : 4 réseaux isolés créés avec VLSM, connectivité vérifiée par service."}</p>
+          <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-5 mt-4">
+            <p className="text-emerald-400 text-sm font-bold flex items-center gap-2 mb-2"><CheckCircle className="w-5 h-5" /> {"Lab terminé !"}</p>
+            <p className="text-slate-300 text-sm mb-2">{"Ce que tu as appris dans ce lab :"}</p>
+            <ul className="text-slate-300 text-xs space-y-1">
+              <li>{"• Configurer des IPs statiques sur des PC dans Packet Tracer"}</li>
+              <li>{"• Comprendre que des PC dans le MÊME réseau communiquent via un switch"}</li>
+              <li>{"• Comprendre que des PC dans des réseaux DIFFÉRENTS ne communiquent PAS sans routeur"}</li>
+              <li>{"• Utiliser ping et ipconfig pour vérifier la connectivité"}</li>
+              <li>{"• Lire un plan d'adressage (réseau, masque, adresses utilisables)"}</li>
+            </ul>
           </div>
         </div>
       )
