@@ -6,7 +6,7 @@ import {
   Cpu, RotateCcw, Menu, X, Globe,
   Clock, Save, Power, AlertCircle, Eye, AlertTriangle, Lightbulb, HardDrive, Microscope, Router as RouterIcon, Network, ArrowUpDown, Monitor, Command, MessageCircle, HelpCircle,
   BarChart3, TrendingUp, History, Target, Zap, Activity, Send, Key, User, Layout, Plus, Trash2, Link, Server, Video, Calendar, Wrench,
-  ArrowLeft, ArrowRight, LogOut, ShieldCheck, PenTool, Calculator, Copy, Check, RotateCw
+  ArrowLeft, ArrowRight, LogOut, ShieldCheck, PenTool, Calculator, Copy, Check, RotateCw, Pencil, Eraser, Type, Square, Circle, Minus, Download, Undo2
 } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { supabase } from './supabaseClient';
@@ -8982,6 +8982,8 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               { title: "Le principe", color: "purple", icon: Network, items: ["En IPv4 il y a 32 bits au total", "/26 veut dire : 26 bits pour le réseau", "Donc il reste 32 - 26 = 6 bits pour les hôtes", "Le masque = des 1 pour le réseau, des 0 pour les hôtes"] },
               { title: "La méthode rapide", color: "emerald", icon: CheckCircle2, items: ["6 bits hôtes → taille du bloc = 2^6 = 64", "Masque dernier octet = 256 - 64 = 192", "Donc /26 = 255.255.255.192", "C'est aussi simple que ça !"] }
             ]} />
+            <V2Whiteboard title="Méthode visuelle : dessiner les 32 bits" code={"! La méthode la plus intuitive : DESSINER le masque !\n!\n! Étape 1 : Dessine 32 points (= 32 bits d'une adresse IP)\n!\n!   . . . . . . . .  │  . . . . . . . .  │  . . . . . . . .  │  . . . . . . . .\n!   ─── octet 1 ───   ─── octet 2 ───   ─── octet 3 ───   ─── octet 4 ───\n!\n!\n! Étape 2 : Trace un TRAIT après le n° du CIDR\n!\n!   Exemple avec /8 :\n!   1 1 1 1 1 1 1 1  ┃  0 0 0 0 0 0 0 0  │  0 0 0 0 0 0 0 0  │  0 0 0 0 0 0 0 0\n!   ── réseau (8) ──  ┃  ──────────── hôtes (24) ────────────────────────────────\n!                     ┃\n!                  TRAIT ici (après le 8ème bit)\n!\n!   → Octet 1 : 11111111 = 255\n!   → Octets 2,3,4 : 00000000 = 0\n!   → Masque = 255.0.0.0\n!\n!\n! Exemple avec /26 :\n!   1 1 1 1 1 1 1 1  │  1 1 1 1 1 1 1 1  │  1 1 1 1 1 1 1 1  │  1 1 0 0 0 0 0 0\n!   ────────────────── réseau (26 bits) ──────────────────────  ┃  hôtes (6)\n!                                                              ┃\n!                                                   TRAIT ici (après le 26ème)\n!\n!   → Octets 1,2,3 : 11111111 = 255\n!   → Octet 4 : 11000000 = 128 + 64 = 192\n!   → Masque = 255.255.255.192"} />
+            <V2Whiteboard title="La méthode des 32 bits : encore un exemple /20" code={"! /20 → on trace le trait après le 20ème bit :\n!\n!   1 1 1 1 1 1 1 1  │  1 1 1 1 1 1 1 1  │  1 1 1 1 0 0 0 0  │  0 0 0 0 0 0 0 0\n!   ──────────────────── réseau (20 bits) ────────────  ┃  ── hôtes (12) ──────\n!                                                      ┃\n!                                           TRAIT après le 20ème bit\n!\n!   → Octet 1 : 11111111 = 255\n!   → Octet 2 : 11111111 = 255\n!   → Octet 3 : 11110000 = 128+64+32+16 = 240\n!   → Octet 4 : 00000000 = 0\n!   → Masque = 255.255.240.0\n!\n!\n! Valeurs utiles pour convertir le binaire :\n!\n!   Position :  1    2    3    4    5    6    7    8\n!   Valeur :   128   64   32   16    8    4    2    1\n!\n!   Tu additionnes UNIQUEMENT les positions qui ont un 1\n!   Exemple : 11000000 → 128 + 64 = 192\n!   Exemple : 11110000 → 128 + 64 + 32 + 16 = 240\n!   Exemple : 11111100 → 128 + 64 + 32 + 16 + 8 + 4 = 252"} />
             <V2Whiteboard title="Démonstration pas à pas avec /26" code={"! Étape 1 : Combien de bits pour les hôtes ?\n!\n!   /26 → 32 - 26 = 6 bits pour les hôtes\n!\n! Étape 2 : Écrire le masque en binaire\n!\n!   /26 = 11111111.11111111.11111111.11000000\n!          ──────── réseau (26 bits) ────────  ── hôtes (6 bits) ──\n!\n!   👉 Tu vois les 6 zéros à la fin = 6 bits pour les hôtes\n!\n! Étape 3 : Convertir le dernier octet en décimal\n!\n!   11000000 → 128 + 64 = 192\n!\n!   OU méthode rapide : 256 - 2^6 = 256 - 64 = 192\n!\n! Résultat : /26 = 255.255.255.192"} />
             <V2Whiteboard title="Combien de machines dans ce réseau ?" code={"! Avec un masque /26 :\n!\n!   Bits hôtes = 6\n!   Nombre total d'adresses = 2^6 = 64\n!\n!   MAIS on retire 2 adresses réservées :\n!   → 1 pour l'adresse réseau (la première)\n!   → 1 pour le broadcast (la dernière)\n!\n!   Hôtes utilisables = 64 - 2 = 62 machines\n!\n! Donc :\n!   /26 = 255.255.255.192 = 62 machines max"} />
             <V2Whiteboard title="Et dans l'autre sens ? Décimal → CIDR" code={"! On te donne : 255.255.255.192 → quel CIDR ?\n!\n!   Méthode : 256 - 192 = 64\n!   64 = 2^6 → donc 6 bits pour les hôtes\n!   CIDR = 32 - 6 = /26\n!\n! Autre exemple : 255.255.255.224 → quel CIDR ?\n!\n!   256 - 224 = 32\n!   32 = 2^5 → donc 5 bits pour les hôtes\n!   CIDR = 32 - 5 = /27\n!   Hôtes = 32 - 2 = 30 machines"} />
@@ -9039,6 +9041,7 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               { title: "L'analogie du mégaphone", color: "amber", icon: Lightbulb, items: ["Tu es dans la rue et tu veux prévenir TOUT LE MONDE", "Tu prends un mégaphone et tu cries", "Tout le monde dans la rue entend ton message", "Le broadcast c'est le mégaphone du réseau", "Un message envoyé au broadcast → tous les PC le reçoivent"] },
               { title: "En réseau", color: "purple", icon: Network, items: ["C'est la DERNIÈRE adresse du bloc", "On ne la donne JAMAIS à un PC non plus", "Elle sert pour des annonces réseau", "Exemples : DHCP ('qui peut me donner une IP ?')", "ARP ('qui a cette IP ?')"] }
             ]} />
+            <V2Whiteboard title="Pourquoi 256 adresses et pas 255 ?" code={"! Tu te demandes peut-être :\n!   'Si le broadcast c'est .255, pourquoi on dit 256 ?'\n!\n! Réponse : parce qu'on commence à ZÉRO !\n!\n!   .0   ← c'est la 1ère adresse (elle existe !)\n!   .1   ← 2ème\n!   .2   ← 3ème\n!   ...  \n!   .254 ← 255ème\n!   .255 ← 256ème\n!\n! Compte sur tes doigts : de 0 à 255, combien de nombres ?\n!   255 - 0 + 1 = 256 !\n!\n! C'est comme un ascenseur :\n!   Du RDC (étage 0) au 9ème étage → 10 étages au total\n!   Du .0 au .255 → 256 adresses au total\n!\n! Le piège classique :\n!   ✗ 'Le broadcast est .255 donc il y a 255 adresses'\n!   ✓ 'Le broadcast est .255 mais .0 existe aussi = 256'"} />
             <V2Whiteboard title="Comment trouver le broadcast ?" code={"! La règle : broadcast = DERNIÈRE adresse du bloc\n!\n! Avec /24 c'est facile :\n!   Bloc de 256 → de .0 à .255\n!   Broadcast = .255\n!\n! Exemple : réseau 192.168.1.0 /24\n!   → Broadcast = 192.168.1.255  ✓\n!\n!\n! Astuce rapide :\n!   Broadcast = adresse réseau + taille du bloc - 1\n!\n! Exemple : réseau 192.168.1.0 /24\n!   0 + 256 - 1 = 255\n!   → 192.168.1.255  ✓"} />
             <V2Whiteboard title="Et avec /26 ?" code={"! /26 = bloc de 64 adresses\n!\n! Réseau 192.168.1.0 /26\n!   Broadcast = 0 + 64 - 1 = 63\n!   → 192.168.1.63  ✓\n!\n! Réseau 192.168.1.64 /26\n!   Broadcast = 64 + 64 - 1 = 127\n!   → 192.168.1.127  ✓\n!\n! Réseau 192.168.1.128 /26\n!   Broadcast = 128 + 64 - 1 = 191\n!   → 192.168.1.191  ✓\n!\n! Tu vois le pattern ?\n!   Broadcast = début du bloc + taille - 1\n!   C'est TOUJOURS la même formule !"} />
             <V2Tip title="La formule">{"Broadcast = adresse réseau + taille du bloc − 1. Exemple : réseau .128 avec bloc de 64 → .128 + 64 − 1 = .191. C'est la dernière adresse, réservée, jamais donnée à un PC."}</V2Tip>
@@ -9091,6 +9094,26 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
             ]} />
             <V2Whiteboard title="Résultat complet" code={"! Adresse : 192.168.0.130 /26\n!\n! Bloc = 256 - 192 = 64\n! Les blocs : .0 | .64 | .128 | .192\n! 130 tombe dans le bloc .128\n!\n! Adresse réseau   : 192.168.0.128\n! 1ère utilisable  : 192.168.0.129\n! Dernière utilisable : 192.168.0.190\n! Broadcast        : 192.168.0.191\n! Nb hôtes         : 64 - 2 = 62\n!\n! Vérification : 128 + 64 = 192 (début du bloc suivant)\n! Donc broadcast = 192 - 1 = 191 ✓"} />
             <V2Tip title="Astuce du bloc">Pour trouver l'adresse réseau : calcule le bloc (256 - masque dernier octet). Puis cherche le multiple du bloc juste INFÉRIEUR ou ÉGAL à ton adresse. C'est l'adresse réseau.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 9b : CALCULER LES PLAGES SUR DES GROS RÉSEAUX (/20, /16, /8) ──
+      {
+        type: 'rich_text',
+        title: "Calculer les plages sur des gros réseaux",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Gros réseaux" title="Et pour les /20, /16, /8 ? Comment calculer les plages ?" description="Jusqu'ici on a travaillé sur le dernier octet (le 4ème). Mais avec un /20 ou un /16, le bloc est tellement grand qu'il déborde sur d'AUTRES octets. C'est la même logique, mais il faut savoir QUEL octet bouge." />
+            <V2InfoCards cards={[
+              { title: "Le principe clé", color: "purple", icon: Network, items: ["Avec /24 ou /26 → seul le 4ème octet change", "Avec /20 → le 3ème ET le 4ème octet changent", "Avec /16 → seul les 2 derniers octets changent", "Avec /8 → les 3 derniers octets changent", "La méthode reste la MÊME, on l'applique juste sur un autre octet"] },
+              { title: "Quel octet bouge ?", color: "amber", icon: Lightbulb, items: ["CIDR /25 à /30 → calcul sur le 4ème octet", "CIDR /17 à /24 → calcul sur le 3ème octet", "CIDR /9 à /16 → calcul sur le 2ème octet", "CIDR /1 à /8 → calcul sur le 1er octet", "Les octets APRÈS = varient de 0 à 255"] }
+            ]} />
+            <V2Whiteboard title="Exemple complet : 172.16.5.130 /20" code={"! Adresse : 172.16.5.130 /20\n! Masque : 255.255.240.0\n!\n! ❶ Identifier l'octet intéressant\n!    /20 → 12 bits hôte → le 3ème octet est l'octet qui change\n!    (les octets 1 et 2 restent fixes, le 4ème varie de 0 à 255)\n!\n! ❷ Calculer la taille du bloc dans le 3ème octet\n!    Bits restants dans le 3ème octet = 12 - 8 = 4\n!    Bloc = 2^4 = 16\n!    → Le 3ème octet avance par sauts de 16\n!\n! ❸ Trouver le bloc du 3ème octet\n!    Blocs de 16 : 0, 16, 32, 48, 64, 80, 96...\n!    Notre 3ème octet = 5\n!    5 tombe dans le bloc 0 (entre 0 et 15)\n!\n! ❹ Assembler les adresses\n!    Réseau    : 172.16.0.0      (3ème octet = début du bloc = 0, 4ème = 0)\n!    Broadcast : 172.16.15.255   (3ème octet = 0+16-1 = 15, 4ème = 255)\n!    1ère hôte : 172.16.0.1\n!    Dernière  : 172.16.15.254\n!    Nb hôtes  : 2^12 - 2 = 4094"} />
+            <V2Whiteboard title="Exemple : 10.50.200.1 /16" code={"! Adresse : 10.50.200.1 /16\n! Masque : 255.255.0.0\n!\n! /16 → 16 bits hôte = les 2 derniers octets entiers\n! C'est un cas facile : pas de calcul de bloc !\n!\n! Les 2 premiers octets sont fixes : 10.50\n! Les 2 derniers varient de 0.0 à 255.255\n!\n!    Réseau    : 10.50.0.0\n!    Broadcast : 10.50.255.255\n!    1ère hôte : 10.50.0.1\n!    Dernière  : 10.50.255.254\n!    Nb hôtes  : 2^16 - 2 = 65 534\n!\n! C'est comme /24 mais au lieu qu'un seul octet\n! varie de 0 à 255, c'est DEUX octets qui varient."} />
+            <V2Whiteboard title="Exemple : 10.0.0.1 /8" code={"! Adresse : 10.0.0.1 /8\n! Masque : 255.0.0.0\n!\n! /8 → 24 bits hôte = les 3 derniers octets entiers\n!\n! Le 1er octet est fixe : 10\n! Les 3 derniers varient de 0.0.0 à 255.255.255\n!\n!    Réseau    : 10.0.0.0\n!    Broadcast : 10.255.255.255\n!    1ère hôte : 10.0.0.1\n!    Dernière  : 10.255.255.254\n!    Nb hôtes  : 2^24 - 2 = 16 777 214\n!\n! Énorme ! C'est pour ça que le /8 est réservé aux\n! très grandes entreprises (classe A privée)."} />
+            <V2Whiteboard title="Exemple plus dur : 192.168.130.50 /20" code={"! Adresse : 192.168.130.50 /20\n!\n! ❶ /20 → 3ème octet change, bloc de 16\n!\n! ❷ Blocs de 16 dans le 3ème octet :\n!    0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160...\n!    Notre 3ème octet = 130\n!    130 tombe dans le bloc 128 (entre 128 et 143)\n!\n! ❸ Résultats :\n!    Réseau    : 192.168.128.0\n!    Broadcast : 192.168.143.255  (128+16-1 = 143)\n!    1ère hôte : 192.168.128.1\n!    Dernière  : 192.168.143.254\n!    Nb hôtes  : 4094\n!\n! ❹ Vérification :\n!    Bloc suivant = 192.168.144.0\n!    Broadcast = 144 - 1 = 143 dans le 3ème octet\n!    + .255 dans le 4ème → 192.168.143.255 ✓"} />
+            <V2Whiteboard title="La méthode universelle" code={"! Pour TOUT CIDR, la méthode est la même :\n!\n! ❶ Trouver l'octet intéressant :\n!    Bits hôte = 32 - CIDR\n!    1-8 bits   → 4ème octet\n!    9-16 bits  → 3ème octet (le 4ème varie 0-255)\n!    17-24 bits → 2ème octet (les 3ème et 4ème varient 0-255)\n!    25-32 bits → 1er octet  (les 2ème, 3ème, 4ème varient 0-255)\n!\n! ❷ Calculer le bloc dans cet octet :\n!    Bits restants = bits hôte - (octets complets après × 8)\n!    Bloc = 2^(bits restants)\n!\n! ❸ Trouver le début du bloc :\n!    Multiple du bloc ≤ valeur de l'octet\n!\n! ❹ Assembler :\n!    Réseau = octets fixes . début_bloc . 0 (pour les octets après)\n!    Broadcast = octets fixes . (début+bloc-1) . 255\n!\n! Exemples rapides :\n!   /20 → bloc de 16 dans le 3ème octet\n!   /22 → bloc de 4 dans le 3ème octet\n!   /12 → bloc de 16 dans le 2ème octet"} />
+            <V2Tip title="Astuce">{"C'est TOUJOURS la même chose : trouve l'octet intéressant, calcule le bloc, trouve dans quel bloc tu tombes. Le seul changement c'est que les octets APRÈS l'octet intéressant varient de 0 à 255 au lieu de rester fixes."}</V2Tip>
           </div>
         )
       },
@@ -15626,6 +15649,288 @@ const NetworkCalculator = ({ open, onClose }) => {
   );
 };
 
+// --- DRAWING BOARD (Tableau blanc flottant) ---
+const DrawingBoard = ({ open, onClose }) => {
+  const canvasRef = useRef(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [tool, setTool] = useState('pen'); // pen, eraser, line, rect, circle, text
+  const [color, setColor] = useState('#a78bfa'); // purple-400
+  const [lineWidth, setLineWidth] = useState(3);
+  const [history, setHistory] = useState([]);
+  const [historyIdx, setHistoryIdx] = useState(-1);
+  const startRef = useRef(null);
+  const snapshotRef = useRef(null);
+  const [textInput, setTextInput] = useState(null); // {x, y} or null
+  const [textValue, setTextValue] = useState('');
+  const initializedRef = useRef(false);
+
+  const colors = ['#ffffff', '#a78bfa', '#60a5fa', '#34d399', '#fbbf24', '#f87171', '#fb923c', '#e879f9'];
+
+  // Init canvas only ONCE (first open)
+  useEffect(() => {
+    if (!open || !canvasRef.current || initializedRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    ctx.fillStyle = '#0a0618';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < canvas.width; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+    for (let y = 0; y < canvas.height; y += 30) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+    initializedRef.current = true;
+    saveHistory();
+  }, [open]);
+
+  const saveHistory = () => {
+    if (!canvasRef.current) return;
+    const data = canvasRef.current.toDataURL();
+    setHistory(prev => {
+      const newH = prev.slice(0, historyIdx + 1);
+      newH.push(data);
+      return newH.length > 50 ? newH.slice(-50) : newH;
+    });
+    setHistoryIdx(prev => Math.min(prev + 1, 49));
+  };
+
+  const undo = () => {
+    if (historyIdx <= 0 || !canvasRef.current) return;
+    const newIdx = historyIdx - 1;
+    const img = new Image();
+    img.onload = () => {
+      const ctx = canvasRef.current.getContext('2d');
+      ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      ctx.drawImage(img, 0, 0);
+    };
+    img.src = history[newIdx];
+    setHistoryIdx(newIdx);
+  };
+
+  const clearCanvas = () => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#0a0618';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < canvas.width; x += 30) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
+    for (let y = 0; y < canvas.height; y += 30) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+    saveHistory();
+  };
+
+  const getPos = (e) => {
+    const rect = canvasRef.current.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: clientX - rect.left, y: clientY - rect.top };
+  };
+
+  const handleDown = (e) => {
+    if (!canvasRef.current) return;
+    const pos = getPos(e);
+
+    if (tool === 'text') {
+      setTextInput(pos);
+      setTextValue('');
+      return;
+    }
+
+    setIsDrawing(true);
+    startRef.current = pos;
+    const ctx = canvasRef.current.getContext('2d');
+
+    if (tool === 'pen' || tool === 'eraser') {
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+      ctx.strokeStyle = tool === 'eraser' ? '#0a0618' : color;
+      ctx.lineWidth = tool === 'eraser' ? lineWidth * 4 : lineWidth;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+    }
+
+    if (tool === 'line' || tool === 'rect' || tool === 'circle') {
+      snapshotRef.current = ctx.getImageData(0, 0, canvasRef.current.width, canvasRef.current.height);
+    }
+  };
+
+  const handleMove = (e) => {
+    if (!isDrawing || !canvasRef.current) return;
+    const ctx = canvasRef.current.getContext('2d');
+    const pos = getPos(e);
+
+    if (tool === 'pen' || tool === 'eraser') {
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+    }
+
+    if ((tool === 'line' || tool === 'rect' || tool === 'circle') && snapshotRef.current) {
+      ctx.putImageData(snapshotRef.current, 0, 0);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lineWidth;
+      ctx.lineCap = 'round';
+
+      if (tool === 'line') {
+        ctx.beginPath();
+        ctx.moveTo(startRef.current.x, startRef.current.y);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+      } else if (tool === 'rect') {
+        ctx.beginPath();
+        ctx.strokeRect(startRef.current.x, startRef.current.y, pos.x - startRef.current.x, pos.y - startRef.current.y);
+      } else if (tool === 'circle') {
+        const rx = Math.abs(pos.x - startRef.current.x) / 2;
+        const ry = Math.abs(pos.y - startRef.current.y) / 2;
+        const cx = startRef.current.x + (pos.x - startRef.current.x) / 2;
+        const cy = startRef.current.y + (pos.y - startRef.current.y) / 2;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+  };
+
+  const handleUp = () => {
+    if (isDrawing) {
+      setIsDrawing(false);
+      saveHistory();
+    }
+  };
+
+  const placeText = () => {
+    if (!textInput || !textValue.trim() || !canvasRef.current) return;
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.font = `${Math.max(lineWidth * 5, 16)}px monospace`;
+    ctx.fillStyle = color;
+    ctx.fillText(textValue, textInput.x, textInput.y);
+    setTextInput(null);
+    setTextValue('');
+    saveHistory();
+  };
+
+  const exportCanvas = () => {
+    if (!canvasRef.current) return;
+    const link = document.createElement('a');
+    link.download = 'schema-reseau.png';
+    link.href = canvasRef.current.toDataURL();
+    link.click();
+  };
+
+  const ToolBtn = ({ icon: Icon, name, label }) => (
+    <button
+      onClick={() => setTool(name)}
+      className={`p-2 rounded-lg transition-all ${tool === name ? 'bg-purple-500/30 text-purple-300 ring-1 ring-purple-500/40' : 'text-slate-400 hover:bg-white/10 hover:text-white'}`}
+      title={label}
+    >
+      <Icon size={18} />
+    </button>
+  );
+
+  return (
+    <div className={`fixed inset-4 z-[100] flex flex-col select-none transition-all duration-200 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-95 pointer-events-none'}`}>
+        <div className="flex-1 bg-[#0e0920]/98 backdrop-blur-2xl border border-white/15 rounded-2xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.7)] shadow-purple-900/30 flex flex-col">
+          {/* Title bar */}
+          <div className="bg-white/5 border-b border-white/10 px-4 py-3 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="flex gap-1.5">
+                <button onClick={onClose} className="w-3 h-3 rounded-full bg-[#ff5f56] hover:brightness-110 transition-all" />
+                <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
+                <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
+              </div>
+              <span className="text-slate-400 text-xs font-mono ml-2 tracking-wider uppercase">tableau blanc</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <button onClick={exportCanvas} className="p-1.5 rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-all" title="Exporter PNG">
+                <Download size={16} />
+              </button>
+              <Pencil size={16} className="text-purple-400 ml-2" />
+            </div>
+          </div>
+
+          {/* Toolbar */}
+          <div className="bg-white/[0.03] border-b border-white/10 px-4 py-2 flex items-center gap-2 flex-wrap shrink-0" onPointerDown={e => e.stopPropagation()}>
+            {/* Tools */}
+            <div className="flex items-center gap-1 border-r border-white/10 pr-3">
+              <ToolBtn icon={Pencil} name="pen" label="Crayon" />
+              <ToolBtn icon={Eraser} name="eraser" label="Gomme" />
+              <ToolBtn icon={Minus} name="line" label="Ligne" />
+              <ToolBtn icon={Square} name="rect" label="Rectangle" />
+              <ToolBtn icon={Circle} name="circle" label="Cercle" />
+              <ToolBtn icon={Type} name="text" label="Texte" />
+            </div>
+
+            {/* Colors */}
+            <div className="flex items-center gap-1.5 border-r border-white/10 pr-3">
+              {colors.map(c => (
+                <button
+                  key={c}
+                  onClick={() => setColor(c)}
+                  className={`w-6 h-6 rounded-full transition-all border-2 ${color === c ? 'border-white scale-125' : 'border-transparent hover:scale-110'}`}
+                  style={{ backgroundColor: c }}
+                />
+              ))}
+            </div>
+
+            {/* Line width */}
+            <div className="flex items-center gap-2 border-r border-white/10 pr-3">
+              <span className="text-xs text-slate-500">Taille</span>
+              <input
+                type="range" min="1" max="12" value={lineWidth}
+                onChange={e => setLineWidth(parseInt(e.target.value))}
+                className="w-20 accent-purple-500"
+              />
+              <span className="text-xs text-slate-400 font-mono w-4">{lineWidth}</span>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-1">
+              <button onClick={undo} className="p-2 rounded-lg text-slate-400 hover:bg-white/10 hover:text-white transition-all" title="Annuler">
+                <Undo2 size={18} />
+              </button>
+              <button onClick={clearCanvas} className="px-3 py-1.5 rounded-lg text-xs text-red-400 hover:bg-red-500/15 border border-red-500/20 transition-all">
+                Effacer tout
+              </button>
+            </div>
+          </div>
+
+          {/* Canvas */}
+          <div className="flex-1 relative overflow-hidden">
+            <canvas
+              ref={canvasRef}
+              className="absolute inset-0 w-full h-full cursor-crosshair"
+              onMouseDown={handleDown}
+              onMouseMove={handleMove}
+              onMouseUp={handleUp}
+              onMouseLeave={handleUp}
+              onTouchStart={handleDown}
+              onTouchMove={handleMove}
+              onTouchEnd={handleUp}
+            />
+            {/* Text input overlay */}
+            {textInput && (
+              <div
+                className="absolute z-10"
+                style={{ left: textInput.x, top: textInput.y }}
+              >
+                <input
+                  autoFocus
+                  value={textValue}
+                  onChange={e => setTextValue(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') placeText(); if (e.key === 'Escape') { setTextInput(null); setTextValue(''); } }}
+                  onBlur={placeText}
+                  className="bg-black/80 border border-purple-500/50 text-white font-mono px-2 py-1 rounded text-sm outline-none min-w-[120px]"
+                  style={{ color }}
+                  placeholder="Tape ton texte..."
+                />
+              </div>
+            )}
+          </div>
+        </div>
+    </div>
+  );
+};
+
 // --- MAIN APP : THÉORIE + LAB + QUIZ ---
 
 export default function NetMasterClass({ onShowAdmin, onShowStats }) {
@@ -15639,6 +15944,7 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
   const [expandedWeek, setExpandedWeek] = useState(1);
   const [expandedLabWeek, setExpandedLabWeek] = useState(1);
   const [calcOpen, setCalcOpen] = useState(false);
+  const [drawOpen, setDrawOpen] = useState(false);
   // Système de statistiques (sync Supabase)
   const { stats, addTime, addCommand, addQuizAttempt, addLabAttempt, resetStats } = useStats(user?.id);
 
@@ -16451,21 +16757,37 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
         </main>
       </div>
 
-      {/* Floating Calculator Button */}
-      <button
-        onClick={() => setCalcOpen(c => !c)}
-        className={`fixed bottom-6 right-6 z-[90] w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 ${
-          calcOpen
-            ? 'bg-purple-600 shadow-purple-500/40 rotate-12 scale-110'
-            : 'bg-gradient-to-br from-purple-600 to-blue-600 shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105'
-        }`}
-        title="Calculateur Réseau"
-      >
-        <Calculator size={24} className="text-white" />
-      </button>
+      {/* Floating Buttons */}
+      <div className="fixed bottom-6 right-6 z-[90] flex flex-col gap-3">
+        <button
+          onClick={() => setDrawOpen(c => !c)}
+          className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 ${
+            drawOpen
+              ? 'bg-emerald-600 shadow-emerald-500/40 rotate-12 scale-110'
+              : 'bg-gradient-to-br from-emerald-600 to-teal-600 shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105'
+          }`}
+          title="Tableau blanc"
+        >
+          <Pencil size={24} className="text-white" />
+        </button>
+        <button
+          onClick={() => setCalcOpen(c => !c)}
+          className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 ${
+            calcOpen
+              ? 'bg-purple-600 shadow-purple-500/40 rotate-12 scale-110'
+              : 'bg-gradient-to-br from-purple-600 to-blue-600 shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105'
+          }`}
+          title="Calculateur Réseau"
+        >
+          <Calculator size={24} className="text-white" />
+        </button>
+      </div>
 
       {/* Calculator Window */}
       <NetworkCalculator open={calcOpen} onClose={() => setCalcOpen(false)} />
+
+      {/* Drawing Board */}
+      <DrawingBoard open={drawOpen} onClose={() => setDrawOpen(false)} />
     </div>
   );
 }
