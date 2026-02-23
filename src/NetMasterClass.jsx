@@ -15908,7 +15908,7 @@ const NetworkCalculator = ({ open, onClose }) => {
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
         drag
         dragMomentum={false}
-        className="fixed bottom-20 right-6 z-[100] w-[320px] select-none"
+        className="fixed bottom-20 right-6 z-[110] w-[320px] select-none"
       >
         <div className="bg-[#0e0920]/95 backdrop-blur-2xl border border-white/15 rounded-2xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.6)] shadow-purple-900/30">
           {/* Title bar */}
@@ -15976,27 +15976,15 @@ const NetworkCalculator = ({ open, onClose }) => {
 
 // --- BLOCK FINDER (Outil de groupes/blocs) ---
 const BlockFinder = ({ open, onClose }) => {
-  const [blockSize, setBlockSize] = useState(2);
-  const [search, setSearch] = useState('');
-  const highlightRef = useRef(null);
+  const [input, setInput] = useState('');
+  const blockSize = parseInt(input) || 0;
 
   const blocks = [];
-  if (open) {
+  if (blockSize >= 2 && blockSize <= 256) {
     for (let i = 0; i < 256; i += blockSize) {
       blocks.push({ start: i, end: Math.min(i + blockSize - 1, 255) });
     }
   }
-
-  const searchNum = parseInt(search);
-  const highlightIdx = !isNaN(searchNum) && searchNum >= 0 && searchNum <= 255
-    ? blocks.findIndex(b => searchNum >= b.start && searchNum <= b.end)
-    : -1;
-
-  useEffect(() => {
-    if (highlightRef.current) {
-      highlightRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }, [highlightIdx, blockSize]);
 
   if (!open) return null;
 
@@ -16008,7 +15996,7 @@ const BlockFinder = ({ open, onClose }) => {
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
         drag
         dragMomentum={false}
-        className="fixed bottom-20 left-6 z-[100] w-[260px] select-none"
+        className="fixed bottom-20 left-6 z-[110] w-[240px] select-none"
       >
         <div className="bg-[#0e0920]/95 backdrop-blur-2xl border border-white/15 rounded-2xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.6)] shadow-purple-900/30">
           {/* Title bar */}
@@ -16019,68 +16007,36 @@ const BlockFinder = ({ open, onClose }) => {
                 <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
                 <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
               </div>
-              <span className="text-slate-400 text-xs font-mono ml-2 tracking-wider uppercase">blocs réseau</span>
+              <span className="text-slate-400 text-xs font-mono ml-2 tracking-wider uppercase">blocs</span>
             </div>
             <Layout size={16} className="text-cyan-400" />
           </div>
 
-          {/* CIDR buttons */}
-          <div className="px-3 pt-3 pb-2 flex flex-wrap gap-1.5" onPointerDown={e => e.stopPropagation()}>
-            {cidrOptions.map(opt => (
-              <button
-                key={opt.cidr}
-                onClick={() => setBlockSize(opt.size)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all ${
-                  blockSize === opt.size
-                    ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-500/40'
-                    : 'bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10'
-                }`}
-              >
-                /{opt.cidr}
-              </button>
-            ))}
-          </div>
-
-          {/* Block size info */}
-          <div className="px-4 pb-2">
-            <span className="text-xs text-slate-500">Groupes de <span className="text-cyan-400 font-bold">{blockSize}</span> dans le 3ème octet</span>
-          </div>
-
-          {/* Search input */}
-          <div className="px-3 pb-2" onPointerDown={e => e.stopPropagation()}>
+          {/* Input */}
+          <div className="px-3 pt-3 pb-2" onPointerDown={e => e.stopPropagation()}>
             <input
               type="number"
-              min="0"
-              max="255"
-              placeholder="Tape le 3ème octet..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20"
+              min="2"
+              max="256"
+              placeholder="Taille du bloc (2, 4, 16, 64...)"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-sm font-mono text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20"
             />
           </div>
 
           {/* Blocks list */}
-          <div className="px-3 pb-3 max-h-[260px] overflow-y-auto" onPointerDown={e => e.stopPropagation()}>
-            <div className="space-y-1">
-              {blocks.map((b, idx) => {
-                const isHighlight = idx === highlightIdx;
-                return (
-                  <div
-                    key={b.start}
-                    ref={isHighlight ? highlightRef : null}
-                    className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-mono transition-all ${
-                      isHighlight
-                        ? 'bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-bold'
-                        : 'text-slate-400 hover:bg-white/5'
-                    }`}
-                  >
-                    <span>{b.start} – {b.end}</span>
-                    {isHighlight && <span className="text-cyan-400">← {searchNum}</span>}
+          {blocks.length > 0 && (
+            <div className="px-3 pb-3 max-h-[300px] overflow-y-auto" onPointerDown={e => e.stopPropagation()}>
+              <div className="space-y-1">
+                {blocks.map(b => (
+                  <div key={b.start} className="px-3 py-1.5 rounded-lg text-xs font-mono text-slate-300 hover:bg-white/5 transition-all">
+                    {b.start} – {b.end}
                   </div>
-                );
-              })}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </motion.div>
     </AnimatePresence>
@@ -16101,6 +16057,7 @@ const DrawingBoard = ({ open, onClose }) => {
   const [textInput, setTextInput] = useState(null); // {x, y} or null
   const [textValue, setTextValue] = useState('');
   const initializedRef = useRef(false);
+  const [minimized, setMinimized] = useState(false);
 
   const colors = ['#ffffff', '#a78bfa', '#60a5fa', '#34d399', '#fbbf24', '#f87171', '#fb923c', '#e879f9'];
 
@@ -16162,7 +16119,9 @@ const DrawingBoard = ({ open, onClose }) => {
     const rect = canvasRef.current.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return { x: clientX - rect.left, y: clientY - rect.top };
+    const scaleX = canvasRef.current.width / rect.width;
+    const scaleY = canvasRef.current.height / rect.height;
+    return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
   };
 
   const handleDown = (e) => {
@@ -16266,15 +16225,15 @@ const DrawingBoard = ({ open, onClose }) => {
   );
 
   return (
-    <div className={`fixed inset-4 z-[100] flex flex-col select-none transition-all duration-200 ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-95 pointer-events-none'}`}>
+    <div className={`fixed z-[100] flex flex-col select-none transition-all duration-300 ${minimized ? 'bottom-20 right-24 w-[600px] h-[400px]' : 'inset-4'} ${open ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-95 pointer-events-none'}`}>
         <div className="flex-1 bg-[#0e0920]/98 backdrop-blur-2xl border border-white/15 rounded-2xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.7)] shadow-purple-900/30 flex flex-col">
           {/* Title bar */}
           <div className="bg-white/5 border-b border-white/10 px-4 py-3 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
               <div className="flex gap-1.5">
-                <button onClick={onClose} className="w-3 h-3 rounded-full bg-[#ff5f56] hover:brightness-110 transition-all" />
-                <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
-                <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
+                <button onClick={onClose} className="w-3 h-3 rounded-full bg-[#ff5f56] hover:brightness-110 transition-all" title="Fermer" />
+                <button onClick={() => setMinimized(true)} className="w-3 h-3 rounded-full bg-[#ffbd2e] hover:brightness-110 transition-all" title="Réduire" />
+                <button onClick={() => setMinimized(false)} className="w-3 h-3 rounded-full bg-[#27c93f] hover:brightness-110 transition-all" title="Plein écran" />
               </div>
               <span className="text-slate-400 text-xs font-mono ml-2 tracking-wider uppercase">tableau blanc</span>
             </div>
@@ -16384,6 +16343,7 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
   const [calcOpen, setCalcOpen] = useState(false);
   const [drawOpen, setDrawOpen] = useState(false);
   const [blocksOpen, setBlocksOpen] = useState(false);
+  const [hideName, setHideName] = useState(false);
   // Système de statistiques (sync Supabase)
   const { stats, addTime, addCommand, addQuizAttempt, addLabAttempt, resetStats } = useStats(user?.id);
 
@@ -16826,12 +16786,12 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
 
         {/* Profil utilisateur */}
         <div className="p-4 border-t border-white/10 bg-[#0e0920]">
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3 mb-3 cursor-pointer group" onClick={() => setHideName(h => !h)} title={hideName ? 'Afficher le nom' : 'Masquer le nom'}>
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
-              {profile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?'}
+              {hideName ? <Eye size={14} /> : (profile?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?')}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{profile?.full_name || user?.email || 'Utilisateur'}</p>
+              <p className="text-sm font-medium text-white truncate">{hideName ? '••••••••' : (profile?.full_name || user?.email || 'Utilisateur')}</p>
               <p className="text-[10px] text-slate-500 capitalize">{profile?.role === 'admin' ? 'Administrateur' : profile?.role === 'prof' ? 'Professeur' : 'Étudiant'}</p>
             </div>
           </div>
@@ -17197,7 +17157,7 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
       </div>
 
       {/* Floating Buttons */}
-      <div className="fixed bottom-6 right-6 z-[90] flex flex-col gap-3">
+      <div className="fixed bottom-6 right-6 z-[110] flex flex-col gap-3">
         <button
           onClick={() => setDrawOpen(c => !c)}
           className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 ${

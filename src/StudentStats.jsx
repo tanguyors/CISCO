@@ -36,6 +36,7 @@ export default function StudentStats({ onContinue, onShowAdmin, onShowLives }) {
   const { user, profile, signOut } = useAuth();
   const [progress, setProgress] = useState(null);
   const [loadingProgress, setLoadingProgress] = useState(true);
+  const [hideName, setHideName] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
@@ -88,8 +89,8 @@ export default function StudentStats({ onContinue, onShowAdmin, onShowLives }) {
               <div className="h-px w-8 bg-purple-500" />
               <span className="text-purple-400 text-xs font-bold uppercase tracking-widest">Dashboard Étudiant</span>
             </motion.div>
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-100 tracking-tight">
-              Bonjour, <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">{profile?.full_name || 'Étudiant'}</span>
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-100 tracking-tight cursor-pointer" onClick={() => setHideName(h => !h)} title={hideName ? 'Afficher le nom' : 'Masquer le nom'}>
+              Bonjour, <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">{hideName ? '••••••••' : (profile?.full_name || 'Étudiant')}</span>
             </h1>
             <p className="text-slate-400 mt-2 text-sm">
               Voici un aperçu de votre progression sur NetAcademy.
