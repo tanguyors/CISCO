@@ -15974,6 +15974,126 @@ const NetworkCalculator = ({ open, onClose }) => {
   );
 };
 
+// --- BLOCK FINDER (Outil de groupes/blocs) ---
+const BlockFinder = ({ open, onClose }) => {
+  const [blockSize, setBlockSize] = useState(2);
+  const [search, setSearch] = useState('');
+  const highlightRef = useRef(null);
+
+  if (!open) return null;
+
+  const cidrOptions = [
+    { cidr: 23, size: 2 },
+    { cidr: 22, size: 4 },
+    { cidr: 21, size: 8 },
+    { cidr: 20, size: 16 },
+    { cidr: 19, size: 32 },
+    { cidr: 18, size: 64 },
+  ];
+
+  const blocks = [];
+  for (let i = 0; i < 256; i += blockSize) {
+    blocks.push({ start: i, end: Math.min(i + blockSize - 1, 255) });
+  }
+
+  const searchNum = parseInt(search);
+  const highlightIdx = !isNaN(searchNum) && searchNum >= 0 && searchNum <= 255
+    ? blocks.findIndex(b => searchNum >= b.start && searchNum <= b.end)
+    : -1;
+
+  useEffect(() => {
+    if (highlightRef.current) {
+      highlightRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [highlightIdx, blockSize]);
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        drag
+        dragMomentum={false}
+        className="fixed bottom-20 left-6 z-[100] w-[260px] select-none"
+      >
+        <div className="bg-[#0e0920]/95 backdrop-blur-2xl border border-white/15 rounded-2xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.6)] shadow-purple-900/30">
+          {/* Title bar */}
+          <div className="bg-white/5 border-b border-white/10 px-4 py-3 flex items-center justify-between cursor-grab active:cursor-grabbing">
+            <div className="flex items-center gap-2">
+              <div className="flex gap-1.5">
+                <button onClick={onClose} className="w-3 h-3 rounded-full bg-[#ff5f56] hover:brightness-110 transition-all" />
+                <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
+                <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
+              </div>
+              <span className="text-slate-400 text-xs font-mono ml-2 tracking-wider uppercase">blocs réseau</span>
+            </div>
+            <Layout size={16} className="text-cyan-400" />
+          </div>
+
+          {/* CIDR buttons */}
+          <div className="px-3 pt-3 pb-2 flex flex-wrap gap-1.5" onPointerDown={e => e.stopPropagation()}>
+            {cidrOptions.map(opt => (
+              <button
+                key={opt.cidr}
+                onClick={() => setBlockSize(opt.size)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all ${
+                  blockSize === opt.size
+                    ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-500/40'
+                    : 'bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10'
+                }`}
+              >
+                /{opt.cidr}
+              </button>
+            ))}
+          </div>
+
+          {/* Block size info */}
+          <div className="px-4 pb-2">
+            <span className="text-xs text-slate-500">Groupes de <span className="text-cyan-400 font-bold">{blockSize}</span> dans le 3ème octet</span>
+          </div>
+
+          {/* Search input */}
+          <div className="px-3 pb-2" onPointerDown={e => e.stopPropagation()}>
+            <input
+              type="number"
+              min="0"
+              max="255"
+              placeholder="Tape le 3ème octet..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20"
+            />
+          </div>
+
+          {/* Blocks list */}
+          <div className="px-3 pb-3 max-h-[260px] overflow-y-auto" onPointerDown={e => e.stopPropagation()}>
+            <div className="space-y-1">
+              {blocks.map((b, idx) => {
+                const isHighlight = idx === highlightIdx;
+                return (
+                  <div
+                    key={b.start}
+                    ref={isHighlight ? highlightRef : null}
+                    className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                      isHighlight
+                        ? 'bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-bold'
+                        : 'text-slate-400 hover:bg-white/5'
+                    }`}
+                  >
+                    <span>{b.start} – {b.end}</span>
+                    {isHighlight && <span className="text-cyan-400">← {searchNum}</span>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
 // --- DRAWING BOARD (Tableau blanc flottant) ---
 const DrawingBoard = ({ open, onClose }) => {
   const canvasRef = useRef(null);
@@ -16270,6 +16390,7 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
   const [expandedLabWeek, setExpandedLabWeek] = useState(1);
   const [calcOpen, setCalcOpen] = useState(false);
   const [drawOpen, setDrawOpen] = useState(false);
+  const [blocksOpen, setBlocksOpen] = useState(false);
   // Système de statistiques (sync Supabase)
   const { stats, addTime, addCommand, addQuizAttempt, addLabAttempt, resetStats } = useStats(user?.id);
 
@@ -17106,10 +17227,24 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
         >
           <Calculator size={24} className="text-white" />
         </button>
+        <button
+          onClick={() => setBlocksOpen(c => !c)}
+          className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 ${
+            blocksOpen
+              ? 'bg-cyan-600 shadow-cyan-500/40 rotate-12 scale-110'
+              : 'bg-gradient-to-br from-cyan-600 to-blue-600 shadow-cyan-500/30 hover:shadow-cyan-500/50 hover:scale-105'
+          }`}
+          title="Blocs Réseau"
+        >
+          <Layout size={24} className="text-white" />
+        </button>
       </div>
 
       {/* Calculator Window */}
       <NetworkCalculator open={calcOpen} onClose={() => setCalcOpen(false)} />
+
+      {/* Block Finder */}
+      <BlockFinder open={blocksOpen} onClose={() => setBlocksOpen(false)} />
 
       {/* Drawing Board */}
       <DrawingBoard open={drawOpen} onClose={() => setDrawOpen(false)} />
