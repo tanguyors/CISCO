@@ -15980,20 +15980,11 @@ const BlockFinder = ({ open, onClose }) => {
   const [search, setSearch] = useState('');
   const highlightRef = useRef(null);
 
-  if (!open) return null;
-
-  const cidrOptions = [
-    { cidr: 23, size: 2 },
-    { cidr: 22, size: 4 },
-    { cidr: 21, size: 8 },
-    { cidr: 20, size: 16 },
-    { cidr: 19, size: 32 },
-    { cidr: 18, size: 64 },
-  ];
-
   const blocks = [];
-  for (let i = 0; i < 256; i += blockSize) {
-    blocks.push({ start: i, end: Math.min(i + blockSize - 1, 255) });
+  if (open) {
+    for (let i = 0; i < 256; i += blockSize) {
+      blocks.push({ start: i, end: Math.min(i + blockSize - 1, 255) });
+    }
   }
 
   const searchNum = parseInt(search);
@@ -16006,6 +15997,8 @@ const BlockFinder = ({ open, onClose }) => {
       highlightRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, [highlightIdx, blockSize]);
+
+  if (!open) return null;
 
   return (
     <AnimatePresence>
