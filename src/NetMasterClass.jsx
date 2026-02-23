@@ -6,7 +6,7 @@ import {
   Cpu, RotateCcw, Menu, X, Globe,
   Clock, Save, Power, AlertCircle, Eye, AlertTriangle, Lightbulb, HardDrive, Microscope, Router as RouterIcon, Network, ArrowUpDown, Monitor, Command, MessageCircle, HelpCircle,
   BarChart3, TrendingUp, History, Target, Zap, Activity, Send, Key, User, Layout, Plus, Trash2, Link, Server, Video, Calendar, Wrench,
-  ArrowLeft, ArrowRight, LogOut, ShieldCheck
+  ArrowLeft, ArrowRight, LogOut, ShieldCheck, PenTool, Calculator, Copy, Check, RotateCw
 } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { supabase } from './supabaseClient';
@@ -56,6 +56,389 @@ const V2Terminal = ({ title = 'Configuration', code, children }) => (
     </div>
   </div>
 );
+
+// Whiteboard-style block for theoretical content (Vibe 4)
+const V2Whiteboard = ({ title = 'Explication', code, children }) => (
+  <div className="mt-6">
+    {title && (
+      <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
+        <PenTool size={20} className="text-amber-400" /> {title}
+      </h3>
+    )}
+    <div className="bg-slate-50 rounded-2xl p-6 md:p-8 text-slate-800 shadow-2xl border-b-4 border-slate-300 overflow-x-auto">
+      <div className="font-mono text-sm leading-relaxed whitespace-pre-wrap">
+        {code ? code.split('\n').map((line, i) => {
+          const trimmed = line.replace(/^!\s?/, '');
+          const isEmpty = trimmed.trim() === '';
+          const isSeparator = /^[─═┼│┤├┬┴]+$/.test(trimmed.trim()) || /^[-─═]+$/.test(trimmed.trim());
+          const isHeader = trimmed.includes('│') && i === 0 || (trimmed.includes('CIDR') && trimmed.includes('Masque')) || (trimmed.includes('Nb machines') && trimmed.includes('Puissance')) || (trimmed.includes('Adresse') && trimmed.includes('Réseau') && trimmed.includes('Broadcast'));
+          const isTableRow = trimmed.includes('│');
+          const isResult = trimmed.includes('→') || trimmed.includes('=');
+          const isHighlight = trimmed.includes('✓') || trimmed.includes('✗') || trimmed.includes('OK');
+          const isWarning = trimmed.toUpperCase().includes('ATTENTION') || trimmed.toUpperCase().includes('RÈGLE') || trimmed.toUpperCase().includes('FORMULE');
+
+          if (isEmpty) return <div key={i} className="h-3" />;
+          if (isSeparator) return <div key={i} className="text-slate-300 select-none">{trimmed}</div>;
+
+          return (
+            <div key={i} className={`py-0.5 ${isHeader ? 'font-bold text-purple-700 bg-purple-50 -mx-2 px-2 rounded' : isTableRow ? 'text-slate-700' : isWarning ? 'font-bold text-amber-700' : isHighlight ? 'text-emerald-700 font-semibold' : isResult ? 'text-slate-800' : 'text-slate-600'}`}>
+              {trimmed.split(/(\b\d+\.\d+\.\d+\.\d+\b|\/\d{1,2}\b|255\.\d+\.\d+\.\d+|2\^\d+\s*=\s*\d+)/).map((part, j) => {
+                if (/^\d+\.\d+\.\d+\.\d+$/.test(part)) return <span key={j} className="font-bold text-blue-700 bg-blue-50 px-1 rounded">{part}</span>;
+                if (/^\/\d{1,2}$/.test(part)) return <span key={j} className="font-black text-purple-700 bg-purple-100 px-1 rounded">{part}</span>;
+                if (/^255\.\d+\.\d+\.\d+$/.test(part)) return <span key={j} className="font-bold text-emerald-700 bg-emerald-50 px-1 rounded">{part}</span>;
+                if (/^2\^\d+\s*=\s*\d+$/.test(part)) return <span key={j} className="font-bold text-purple-600">{part}</span>;
+                return <span key={j}>{part}</span>;
+              })}
+            </div>
+          );
+        }) : <div className="text-slate-700">{children}</div>}
+      </div>
+    </div>
+  </div>
+);
+
+// ═══════════════════════════════════════════════════════════════
+// QUIZ INTERACTIF SUBNETTING — 6 types d'exercices
+// ═══════════════════════════════════════════════════════════════
+const SubnetQuiz = () => {
+  // ── Helpers ──
+  const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const toIp = (n) => `${(n >>> 24) & 255}.${(n >>> 16) & 255}.${(n >>> 8) & 255}.${n & 255}`;
+  const cidrPrefixes = [22, 23, 24, 25, 26, 27, 28, 29, 30];
+  const maskFromCidr = (cidr) => (0xFFFFFFFF << (32 - cidr)) >>> 0;
+  const blockFromCidr = (cidr) => Math.pow(2, 32 - cidr);
+  const hostsFromCidr = (cidr) => blockFromCidr(cidr) - 2;
+  const randIp = () => {
+    const o1 = randInt(1, 223);
+    const o2 = randInt(0, 255);
+    const o3 = randInt(0, 255);
+    const o4 = randInt(1, 254);
+    return { str: `${o1}.${o2}.${o3}.${o4}`, num: ((o1 << 24) | (o2 << 16) | (o3 << 8) | o4) >>> 0 };
+  };
+
+  // ── Générateurs par type ──
+  const generators = {
+    // TYPE 1 : Décomposition complète
+    decompose: () => {
+      const ip = randIp();
+      const cidr = pick(cidrPrefixes);
+      const m = maskFromCidr(cidr);
+      const net = (ip.num & m) >>> 0;
+      const bcast = (net | (blockFromCidr(cidr) - 1)) >>> 0;
+      return {
+        type: 'decompose', prompt: `Décompose cette adresse :`, display: `${ip.str} /${cidr}`,
+        fields: [
+          { id: 'net', label: 'Adresse Réseau', answer: toIp(net), placeholder: 'ex: 192.168.1.0' },
+          { id: 'bcast', label: 'Broadcast', answer: toIp(bcast), placeholder: 'ex: 192.168.1.255' },
+          { id: 'mask', label: 'Masque Décimal', answer: toIp(m), placeholder: 'ex: 255.255.255.0' },
+          { id: 'first', label: '1ère hôte', answer: toIp(net + 1), placeholder: 'ex: 192.168.1.1' },
+          { id: 'last', label: 'Dernière hôte', answer: toIp(bcast - 1), placeholder: 'ex: 192.168.1.254' },
+          { id: 'hosts', label: "Nb d'hôtes", answer: String(hostsFromCidr(cidr)), placeholder: 'ex: 254' },
+        ],
+        explanation: `/${cidr} → ${32-cidr} bits hôte → bloc de ${blockFromCidr(cidr)} → masque ${toIp(m)}\nRéseau = ${toIp(net)} | Broadcast = ${toIp(bcast)} | Hôtes = ${hostsFromCidr(cidr)}`
+      };
+    },
+
+    // TYPE 2 : CIDR → Masque décimal (et inversement)
+    cidrMask: () => {
+      const reverse = Math.random() > 0.5;
+      const cidr = pick(cidrPrefixes);
+      const m = toIp(maskFromCidr(cidr));
+      const hostBits = 32 - cidr;
+      const fullZeroOctets = Math.floor(hostBits / 8);
+      const remainBits = hostBits % 8;
+      const octetNum = 4 - fullZeroOctets;
+      const octetVal = remainBits > 0 ? 256 - Math.pow(2, remainBits) : 255;
+      const explainCidrToMask = () => {
+        let s = `/${cidr} → ${hostBits} bits hôte\n`;
+        if (fullZeroOctets > 0) s += `${fullZeroOctets} octet(s) entier(s) à 0, reste ${remainBits} bits dans l'octet ${octetNum}\n`;
+        if (remainBits > 0) s += `Octet ${octetNum} : 256 − 2^${remainBits} = 256 − ${Math.pow(2, remainBits)} = ${octetVal}\n`;
+        s += `→ ${m}`;
+        return s;
+      };
+      const explainMaskToCidr = () => {
+        const octets = m.split('.').map(Number);
+        const mixedOctet = octets.find(o => o !== 255 && o !== 0);
+        if (mixedOctet !== undefined) {
+          const block = 256 - mixedOctet;
+          const bits = Math.log2(block);
+          return `${m} → l'octet qui change = ${mixedOctet}\n256 − ${mixedOctet} = ${block} = 2^${bits} → ${bits} bits hôte dans cet octet\n+ ${fullZeroOctets * 8} bits (octets à 0) = ${hostBits} bits hôte total\nCIDR = 32 − ${hostBits} = /${cidr}`;
+        }
+        return `${m} → ${hostBits} bits hôte → /${cidr}`;
+      };
+      if (reverse) {
+        return {
+          type: 'cidrMask', prompt: 'Convertis ce masque en CIDR :', display: m,
+          fields: [{ id: 'cidr', label: 'Notation CIDR', answer: `/${cidr}`, placeholder: 'ex: /24' }],
+          explanation: explainMaskToCidr()
+        };
+      }
+      return {
+        type: 'cidrMask', prompt: 'Convertis ce CIDR en masque décimal :', display: `/${cidr}`,
+        fields: [{ id: 'mask', label: 'Masque Décimal', answer: m, placeholder: 'ex: 255.255.255.0' }],
+        explanation: explainCidrToMask()
+      };
+    },
+
+    // TYPE 3 : Combien d'hôtes ?
+    hostCount: () => {
+      const cidr = pick(cidrPrefixes);
+      const useDecimal = Math.random() > 0.5;
+      const m = toIp(maskFromCidr(cidr));
+      return {
+        type: 'hostCount', prompt: "Combien d'hôtes UTILISABLES avec ce masque ?",
+        display: useDecimal ? m : `/${cidr}`,
+        fields: [{ id: 'hosts', label: "Nombre d'hôtes utilisables", answer: String(hostsFromCidr(cidr)), placeholder: 'ex: 254' }],
+        explanation: `${useDecimal ? m + ' = /' + cidr : '/' + cidr} → ${32-cidr} bits hôte → 2^${32-cidr} = ${blockFromCidr(cidr)} - 2 = ${hostsFromCidr(cidr)} hôtes`
+      };
+    },
+
+    // TYPE 4 : Trouver le bon masque pour X machines
+    findMask: () => {
+      const targets = [5, 6, 10, 12, 14, 20, 25, 28, 30, 50, 60, 100, 120, 200, 500];
+      const need = pick(targets);
+      const total = need + 2;
+      let bits = 1;
+      while (Math.pow(2, bits) < total) bits++;
+      const cidr = 32 - bits;
+      const m = toIp(maskFromCidr(cidr));
+      return {
+        type: 'findMask', prompt: `Tu as besoin de ${need} machines. Quel masque utiliser ?`,
+        display: `${need} machines`,
+        fields: [
+          { id: 'cidr', label: 'CIDR', answer: `/${cidr}`, placeholder: 'ex: /24' },
+          { id: 'mask', label: 'Masque Décimal', answer: m, placeholder: 'ex: 255.255.255.0' },
+        ],
+        explanation: `${need} + 2 = ${total} → 2^${bits} = ${Math.pow(2, bits)} (>= ${total}) → /${cidr} = ${m} → ${Math.pow(2, bits) - 2} hôtes`
+      };
+    },
+
+    // TYPE 5 : Adresse privée ou publique ?
+    privatePublic: () => {
+      const isPrivate = Math.random() > 0.4;
+      let ip;
+      if (isPrivate) {
+        const cls = pick(['A', 'B', 'C']);
+        if (cls === 'A') ip = `10.${randInt(0,255)}.${randInt(0,255)}.${randInt(1,254)}`;
+        else if (cls === 'B') ip = `172.${randInt(16,31)}.${randInt(0,255)}.${randInt(1,254)}`;
+        else ip = `192.168.${randInt(0,255)}.${randInt(1,254)}`;
+      } else {
+        let o1;
+        do { o1 = randInt(1, 223); } while (o1 === 10 || o1 === 127);
+        let o2 = randInt(0, 255);
+        if (o1 === 172 && o2 >= 16 && o2 <= 31) o2 = randInt(32, 255);
+        if (o1 === 192 && o2 === 168) o2 = randInt(0, 167);
+        ip = `${o1}.${o2}.${randInt(0,255)}.${randInt(1,254)}`;
+      }
+      const answer = isPrivate ? 'Privée' : 'Publique';
+      const range = isPrivate
+        ? (ip.startsWith('10.') ? '10.0.0.0/8 (Classe A privée)' : ip.startsWith('172.') ? '172.16.0.0/12 (Classe B privée)' : '192.168.0.0/16 (Classe C privée)')
+        : "Aucune plage privée ne correspond";
+      return {
+        type: 'privatePublic', prompt: 'Cette adresse est-elle privée ou publique ?', display: ip,
+        fields: [{ id: 'type', label: 'Privée ou Publique ?', answer, placeholder: 'Privée ou Publique', choices: ['Privée', 'Publique'] }],
+        explanation: `${ip} → ${answer}. ${range}`
+      };
+    },
+
+    // TYPE 6 : Même réseau ou pas ?
+    sameNetwork: () => {
+      const cidr = pick([24, 25, 26, 27, 28]);
+      const m = maskFromCidr(cidr);
+      const block = blockFromCidr(cidr);
+      const base = randIp();
+      const net1 = (base.num & m) >>> 0;
+      const sameNet = Math.random() > 0.4;
+      const ip1host = randInt(1, block - 2);
+      const ip1 = (net1 + ip1host) >>> 0;
+      let ip2;
+      if (sameNet) {
+        let ip2host;
+        do { ip2host = randInt(1, block - 2); } while (ip2host === ip1host);
+        ip2 = (net1 + ip2host) >>> 0;
+      } else {
+        const offset = pick([-1, 1]) * block;
+        const net2 = (net1 + offset) >>> 0;
+        ip2 = (net2 + randInt(1, block - 2)) >>> 0;
+      }
+      const answer = sameNet ? 'Oui' : 'Non';
+      return {
+        type: 'sameNetwork',
+        prompt: `Ces 2 machines sont-elles dans le MÊME réseau ? (masque /${cidr})`,
+        display: `${toIp(ip1)}  &  ${toIp(ip2)}  (/${cidr})`,
+        fields: [{ id: 'same', label: 'Même réseau ?', answer, placeholder: 'Oui ou Non', choices: ['Oui', 'Non'] }],
+        explanation: `${toIp(ip1)} → réseau ${toIp((ip1 & m) >>> 0)}\n${toIp(ip2)} → réseau ${toIp((ip2 & m) >>> 0)}\n→ ${answer}, ${sameNet ? 'même réseau' : 'réseaux différents'}`
+      };
+    },
+  };
+
+  const exerciseTypes = [
+    { key: 'decompose', label: 'Décomposition', icon: Network, color: 'purple' },
+    { key: 'cidrMask', label: 'CIDR ↔ Masque', icon: ArrowUpDown, color: 'blue' },
+    { key: 'hostCount', label: "Nb d'hôtes", icon: Monitor, color: 'emerald' },
+    { key: 'findMask', label: 'Bon masque', icon: Target, color: 'amber' },
+    { key: 'privatePublic', label: 'Privée/Publique', icon: Globe, color: 'cyan' },
+    { key: 'sameNetwork', label: 'Même réseau ?', icon: HelpCircle, color: 'red' },
+  ];
+
+  const [activeType, setActiveType] = useState('decompose');
+  const [q, setQ] = useState(() => generators.decompose());
+  const [answers, setAnswers] = useState({});
+  const [result, setResult] = useState(null);
+  const [score, setScore] = useState({ correct: 0, total: 0 });
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [streak, setStreak] = useState(0);
+
+  const switchType = (key) => {
+    setActiveType(key);
+    setQ(generators[key]());
+    setAnswers({});
+    setResult(null);
+    setShowExplanation(false);
+  };
+
+  const check = () => {
+    const results = {};
+    let allOk = true;
+    q.fields.forEach(f => {
+      const userVal = (answers[f.id] || '').trim();
+      const ok = userVal.toLowerCase() === f.answer.toLowerCase() || (f.id === 'cidr' && userVal === f.answer.replace('/', ''));
+      results[f.id] = ok;
+      if (!ok) allOk = false;
+    });
+    setResult({ fields: results, allOk });
+    setScore(s => ({ correct: s.correct + (allOk ? 1 : 0), total: s.total + 1 }));
+    setStreak(s => allOk ? s + 1 : 0);
+  };
+
+  const next = () => {
+    setQ(generators[activeType]());
+    setAnswers({});
+    setResult(null);
+    setShowExplanation(false);
+  };
+
+  const handleKeyDown = (e) => { if (e.key === 'Enter' && !result) check(); };
+
+  const fieldBorder = (ok) => ok === undefined ? 'border-white/20 focus:border-purple-500' : ok ? 'border-emerald-500 bg-emerald-500/10' : 'border-red-500 bg-red-500/10';
+
+  const tabColors = { purple: 'from-purple-600 to-purple-500', blue: 'from-blue-600 to-blue-500', emerald: 'from-emerald-600 to-emerald-500', amber: 'from-amber-600 to-amber-500', cyan: 'from-cyan-600 to-cyan-500', red: 'from-red-600 to-red-500' };
+  const activeColor = exerciseTypes.find(t => t.key === activeType)?.color || 'purple';
+
+  return (
+    <div className="mt-8">
+      <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
+        <Target size={20} className="text-purple-400" /> Quiz Subnetting Interactif
+        {streak >= 3 && <span className="ml-2 text-amber-400 text-sm animate-pulse">{streak} de suite !</span>}
+      </h3>
+      <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
+        {/* Onglets des types d'exercices */}
+        <div className="flex overflow-x-auto border-b border-white/10 bg-black/20">
+          {exerciseTypes.map(t => {
+            const Icon = t.icon;
+            const isActive = activeType === t.key;
+            return (
+              <button key={t.key} onClick={() => switchType(t.key)}
+                className={`flex items-center gap-1.5 px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all border-b-2 ${isActive ? `text-white border-current bg-white/5` : 'text-slate-500 border-transparent hover:text-slate-300 hover:bg-white/[0.02]'}`}
+                style={isActive ? { color: t.color === 'purple' ? '#a78bfa' : t.color === 'blue' ? '#60a5fa' : t.color === 'emerald' ? '#34d399' : t.color === 'amber' ? '#fbbf24' : t.color === 'cyan' ? '#22d3ee' : '#f87171' } : {}}>
+                <Icon size={14} /> {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* En-tête question */}
+        <div className={`bg-gradient-to-r ${tabColors[activeColor]}/10 to-transparent border-b border-white/10 px-6 py-5 flex items-center justify-between`}>
+          <div>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-2">{q.prompt}</p>
+            <p className="text-2xl md:text-3xl font-mono font-black text-white break-all">{q.display}</p>
+          </div>
+          <div className="text-right shrink-0 ml-4">
+            <p className="text-xs text-slate-500 uppercase tracking-widest">Score</p>
+            <p className="text-2xl font-bold text-white">{score.correct}<span className="text-slate-500">/{score.total}</span></p>
+            {score.total > 0 && <p className="text-xs text-slate-600">{Math.round(score.correct / score.total * 100)}%</p>}
+          </div>
+        </div>
+
+        {/* Champs de réponse */}
+        <div className="p-6 space-y-4">
+          <div className={`grid grid-cols-1 ${q.fields.length >= 4 ? 'md:grid-cols-3' : q.fields.length >= 2 ? 'md:grid-cols-2' : ''} gap-4`}>
+            {q.fields.map(f => (
+              <div key={f.id}>
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 block">{f.label}</label>
+                {f.choices ? (
+                  <div className="flex gap-2">
+                    {f.choices.map(c => {
+                      const selected = answers[f.id] === c;
+                      const isCorrect = result && c === f.answer;
+                      const isWrong = result && selected && c !== f.answer;
+                      return (
+                        <button key={c} onClick={() => !result && setAnswers(a => ({ ...a, [f.id]: c }))}
+                          disabled={!!result}
+                          className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm border transition-all ${
+                            isCorrect ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400' :
+                            isWrong ? 'border-red-500 bg-red-500/20 text-red-400' :
+                            selected ? 'border-purple-500 bg-purple-500/20 text-white' :
+                            'border-white/20 bg-black/30 text-slate-400 hover:border-white/40'
+                          }`}>
+                          {c}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <>
+                    <input value={answers[f.id] || ''} onChange={e => setAnswers(a => ({ ...a, [f.id]: e.target.value }))}
+                      onKeyDown={handleKeyDown} placeholder={f.placeholder} disabled={!!result}
+                      className={`w-full bg-black/30 border ${fieldBorder(result?.fields?.[f.id])} rounded-xl px-4 py-3 text-white font-mono text-sm focus:outline-none transition-colors`} />
+                    {result && !result.fields[f.id] && <p className="text-red-400 text-xs mt-1 font-mono">{f.answer}</p>}
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-3 pt-2 flex-wrap">
+            {!result ? (
+              <button onClick={check} className={`bg-gradient-to-r ${tabColors[activeColor]} text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2`}>
+                <CheckCircle2 size={16} /> Vérifier
+              </button>
+            ) : (
+              <>
+                {result.allOk ? (
+                  <div className="flex items-center gap-2 text-emerald-400 font-bold text-lg">
+                    <CheckCircle2 size={20} /> {streak >= 5 ? 'Inarrêtable !' : streak >= 3 ? 'En feu !' : 'Bravo !'}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-red-400 font-bold">
+                    <AlertTriangle size={18} /> Pas tout à fait...
+                  </div>
+                )}
+                {!showExplanation && (
+                  <button onClick={() => setShowExplanation(true)} className="text-sm text-slate-400 hover:text-white underline transition-colors">
+                    {result.allOk ? 'Voir le détail' : 'Voir la correction'}
+                  </button>
+                )}
+                <button onClick={next} className="ml-auto bg-white/10 border border-white/20 text-white font-bold px-6 py-3 rounded-xl hover:bg-white/20 transition-all flex items-center gap-2">
+                  Suivant <ArrowRight size={16} />
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Correction détaillée style whiteboard */}
+          {showExplanation && (
+            <div className="bg-slate-50 rounded-xl p-5 text-slate-800 font-mono text-sm mt-2 whitespace-pre-wrap leading-relaxed">
+              {q.explanation}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Cartes d'information en 2 colonnes (Avantages/Pré-requis, etc.)
 const V2InfoCards = ({ cards }) => (
@@ -8567,7 +8950,7 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               { title: "Partie Réseau (Network)", color: "purple", icon: Network, items: ["Identifie QUEL réseau", "C'est le nom de la rue", "Tous les appareils du même réseau partagent cette partie", "Exemple : 192.168.1 (pour un /24)"] },
               { title: "Partie Hôte (Host)", color: "emerald", icon: CheckCircle2, items: ["Identifie QUEL appareil dans le réseau", "C'est le numéro de la maison", "Unique pour chaque machine du réseau", "Exemple : .1, .10, .254..."] }
             ]} />
-            <V2Terminal title="Exemple concret" code={"! Adresse IP : 192.168.1.10 avec un masque /24\n!\n! Décomposition :\n!\n!   192.168.1  .  10\n!   ─────────     ──\n!   Partie        Partie\n!   RÉSEAU        HÔTE\n!\n! → Partie réseau : 192.168.1  (= le nom de la rue)\n! → Partie hôte   : .10        (= le numéro de maison)\n!\n! Tous les PC en 192.168.1.X sont dans le MÊME réseau"} />
+            <V2Whiteboard title="Exemple concret" code={"! Adresse IP : 192.168.1.10 avec un masque /24\n!\n! Décomposition :\n!\n!   192.168.1  .  10\n!   ─────────     ──\n!   Partie        Partie\n!   RÉSEAU        HÔTE\n!\n! → Partie réseau : 192.168.1  (= le nom de la rue)\n! → Partie hôte   : .10        (= le numéro de maison)\n!\n! Tous les PC en 192.168.1.X sont dans le MÊME réseau"} />
             <V2Tip title="Analogie">Adresse postale : 12 rue de la Paix → 'rue de la Paix' = le réseau, '12' = l'hôte. Si deux personnes habitent la même rue, elles sont dans le même réseau !</V2Tip>
           </div>
         )
@@ -8583,8 +8966,48 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               { title: "C'est quoi ?", color: "purple", icon: Network, items: ["Le masque DÉTERMINE la frontière réseau/hôte", "Il dit combien de bits sont pour le réseau", "Et combien sont pour les hôtes", "Sans masque → impossible de savoir qui est dans quel réseau"] },
               { title: "Deux notations", color: "amber", icon: Lightbulb, items: ["Notation décimale : 255.255.255.0", "Notation CIDR : /24", "C'est la MÊME chose, juste écrit différemment", "/24 = les 24 premiers bits sont pour le réseau"] }
             ]} />
-            <V2Terminal title="Exemples de masques" code={"! Masque /24 (le plus courant) :\n! Décimal : 255.255.255.0\n! Binaire : 11111111.11111111.11111111.00000000\n!           ────────── réseau ──────── ─ hôte ─\n!           24 bits réseau            8 bits hôte\n!\n! Masque /26 :\n! Décimal : 255.255.255.192\n! CIDR    : /26\n! 26 bits réseau, 6 bits hôte\n!\n! Plus le masque est grand (/24 → /26 → /28)\n! → Plus le réseau est PETIT (moins de machines)"} />
+            <V2Whiteboard title="Exemples de masques" code={"! Masque /24 (le plus courant) :\n! Décimal : 255.255.255.0\n! Binaire : 11111111.11111111.11111111.00000000\n!           ────────── réseau ──────── ─ hôte ─\n!           24 bits réseau            8 bits hôte\n!\n! Masque /26 :\n! Décimal : 255.255.255.192\n! CIDR    : /26\n! 26 bits réseau, 6 bits hôte\n!\n! Plus le masque est grand (/24 → /26 → /28)\n! → Plus le réseau est PETIT (moins de machines)"} />
             <V2Tip title="Astuce">Retiens : /24 = 255.255.255.0 = 254 machines max. C'est le masque le plus utilisé en entreprise pour un réseau local classique.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 4b : CONVERTIR CIDR ↔ DÉCIMAL (EXEMPLE /26) ──
+      {
+        type: 'rich_text',
+        title: "Convertir un CIDR en masque décimal",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Conversion" title="Comment passer de /26 à 255.255.255.192 ?" description="C'est LA question clé. On va décomposer le raisonnement étape par étape avec l'exemple du masque /26. Une fois que tu comprends ce mécanisme, tu peux convertir N'IMPORTE quel masque." />
+            <V2InfoCards cards={[
+              { title: "Le principe", color: "purple", icon: Network, items: ["En IPv4 il y a 32 bits au total", "/26 veut dire : 26 bits pour le réseau", "Donc il reste 32 - 26 = 6 bits pour les hôtes", "Le masque = des 1 pour le réseau, des 0 pour les hôtes"] },
+              { title: "La méthode rapide", color: "emerald", icon: CheckCircle2, items: ["6 bits hôtes → taille du bloc = 2^6 = 64", "Masque dernier octet = 256 - 64 = 192", "Donc /26 = 255.255.255.192", "C'est aussi simple que ça !"] }
+            ]} />
+            <V2Whiteboard title="Démonstration pas à pas avec /26" code={"! Étape 1 : Combien de bits pour les hôtes ?\n!\n!   /26 → 32 - 26 = 6 bits pour les hôtes\n!\n! Étape 2 : Écrire le masque en binaire\n!\n!   /26 = 11111111.11111111.11111111.11000000\n!          ──────── réseau (26 bits) ────────  ── hôtes (6 bits) ──\n!\n!   👉 Tu vois les 6 zéros à la fin = 6 bits pour les hôtes\n!\n! Étape 3 : Convertir le dernier octet en décimal\n!\n!   11000000 → 128 + 64 = 192\n!\n!   OU méthode rapide : 256 - 2^6 = 256 - 64 = 192\n!\n! Résultat : /26 = 255.255.255.192"} />
+            <V2Whiteboard title="Combien de machines dans ce réseau ?" code={"! Avec un masque /26 :\n!\n!   Bits hôtes = 6\n!   Nombre total d'adresses = 2^6 = 64\n!\n!   MAIS on retire 2 adresses réservées :\n!   → 1 pour l'adresse réseau (la première)\n!   → 1 pour le broadcast (la dernière)\n!\n!   Hôtes utilisables = 64 - 2 = 62 machines\n!\n! Donc :\n!   /26 = 255.255.255.192 = 62 machines max"} />
+            <V2Whiteboard title="Et dans l'autre sens ? Décimal → CIDR" code={"! On te donne : 255.255.255.192 → quel CIDR ?\n!\n!   Méthode : 256 - 192 = 64\n!   64 = 2^6 → donc 6 bits pour les hôtes\n!   CIDR = 32 - 6 = /26\n!\n! Autre exemple : 255.255.255.224 → quel CIDR ?\n!\n!   256 - 224 = 32\n!   32 = 2^5 → donc 5 bits pour les hôtes\n!   CIDR = 32 - 5 = /27\n!   Hôtes = 32 - 2 = 30 machines"} />
+            <V2Tip title="La formule magique">{"Pour TOUT masque : 256 - (dernier octet du masque) = taille du bloc. Puis : taille du bloc - 2 = nombre d'hôtes. Et inversement : 256 - (taille du bloc) = dernier octet du masque."}</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 4c : CAS SPÉCIAL — MASQUE QUI TRAVERSE LES OCTETS (/22, /20, /16...) ──
+      {
+        type: 'rich_text',
+        title: "Et quand le masque dépasse un octet ?",
+        content: (
+          <div>
+            <V2Header module="MODULE 07" section="Conversion avancée" title="Cas des masques /22, /20, /16... quand ça dépasse le dernier octet" description="Jusqu'ici avec /26 ou /27 le calcul était simple car tout se passait dans le 4ème octet. Avec /22 ou /20, le masque change dans un AUTRE octet. Pas de panique, on va y aller étape par étape avec des exemples concrets." />
+            <V2InfoCards cards={[
+              { title: "Rappel : le masque c'est quoi ?", color: "purple", icon: Network, items: ["Le masque a 4 octets, comme une IP", "Chaque octet va de 0 à 255", "Un octet PLEIN (que des 1) = 255", "Un octet VIDE (que des 0) = 0", "L'octet du milieu = entre 0 et 255"] },
+              { title: "Ce qu'on sait déjà", color: "emerald", icon: CheckCircle2, items: ["/24 = 255.255.255.0 (facile !)", "/26 = 255.255.255.192", "/28 = 255.255.255.240", "Le calcul se faisait TOUJOURS sur le 4ème octet", "Mais avec /22... le 4ème octet est à 0 entier !"] }
+            ]} />
+            <V2Whiteboard title="D'abord, un rappel : comment on faisait pour /26 ?" code={"! Rappel de la méthode simple :\n!\n!   /26 → bits hôte = 32 - 26 = 6\n!\n!   Le masque en 4 octets :\n!   255 . 255 . 255 . ???\n!   ─── ─── ─── ───\n!   plein  plein  plein  ← celui qu'on calcule\n!\n!   Pour trouver le ??? :\n!   256 - 2^6 = 256 - 64 = 192\n!\n!   Résultat : 255.255.255.192  ✓\n!\n!   On calculait TOUJOURS le 4ème octet.\n!   Mais que se passe-t-il quand le CIDR est plus petit ?"} />
+            <V2Whiteboard title="Le problème avec /22" code={"! /22 → bits hôte = 32 - 22 = 10 bits\n!\n!   ⚠️  10 bits c'est PLUS que 8 !\n!   Un octet ne contient que 8 bits.\n!   Donc les 10 bits hôte ne rentrent PAS dans un seul octet.\n!\n!   On a besoin de DEUX octets pour mettre ces 10 bits :\n!\n!   │ octet 1 │ octet 2 │ octet 3 │ octet 4 │\n!   │  8 bits  │  8 bits  │  8 bits  │  8 bits  │\n!   │  réseau  │  réseau  │ MIXTE   │ hôtes   │\n!   │  = 255   │  = 255   │  = ???   │  = 0    │\n!\n!   Le 4ème octet = 0 (il est entièrement pour les hôtes)\n!   Il reste 10 - 8 = 2 bits hôte dans le 3ème octet\n!   C'est le 3ème octet qu'on doit calculer !"} />
+            <V2Whiteboard title="Calculer l'octet du milieu (le 3ème)" code={"! On a 2 bits hôte restants dans le 3ème octet.\n!\n!   C'est EXACTEMENT le même calcul qu'avant :\n!   256 - 2^(bits restants) = valeur de l'octet\n!\n!   256 - 2^2 = 256 - 4 = 252\n!\n!   Donc le 3ème octet = 252\n!\n!   On assemble le masque :\n!\n!   255 . 255 . 252 . 0\n!   ───   ───   ───   ─\n!   plein plein calculé vide\n!\n!   ✅  /22 = 255.255.252.0"} />
+            <V2Whiteboard title="La méthode en 3 questions" code={"! Pour TOUT masque, pose-toi ces 3 questions :\n!\n! ❶ Combien de bits hôte ?\n!    → 32 - CIDR\n!\n! ❷ Quel octet on calcule ?\n!    → Si bits hôte entre 1 et 8   → 4ème octet\n!    → Si bits hôte entre 9 et 16  → 3ème octet\n!    → Si bits hôte entre 17 et 24 → 2ème octet\n!\n! ❸ Combien reste dans cet octet ?\n!    → bits restants = bits hôte - (octets vides × 8)\n!    → valeur = 256 - 2^(bits restants)\n!\n! Tous les octets AVANT = 255\n! Tous les octets APRÈS = 0"} />
+            <V2Whiteboard title="Appliquons la méthode : /20" code={"! ❶ Bits hôte = 32 - 20 = 12\n!\n! ❷ 12 bits → c'est entre 9 et 16\n!    → on calcule le 3ème octet\n!    → le 4ème octet = 0\n!\n! ❸ Bits restants dans le 3ème octet :\n!    12 - 8 = 4 bits\n!    Valeur = 256 - 2^4 = 256 - 16 = 240\n!\n! Résultat : 255 . 255 . 240 . 0\n!            ───   ───   ───   ─\n!            plein plein 240  vide\n!\n! ✅  /20 = 255.255.240.0"} />
+            <V2Whiteboard title="Encore un exemple : /19" code={"! ❶ Bits hôte = 32 - 19 = 13\n!\n! ❷ 13 → entre 9 et 16 → 3ème octet\n!    4ème octet = 0\n!\n! ❸ Bits restants = 13 - 8 = 5\n!    Valeur = 256 - 2^5 = 256 - 32 = 224\n!\n! ✅  /19 = 255.255.224.0\n!\n!\n! ── Et un cas facile : /16 ──\n!\n! ❶ Bits hôte = 32 - 16 = 16\n! ❷ 16 = exactement 2 octets → 3ème et 4ème = 0\n! ❸ Pas de calcul, les 2 derniers octets sont à 0\n!\n! ✅  /16 = 255.255.0.0"} />
+            <V2Whiteboard title="Comparaison côte à côte" code={"!   CIDR  │ Bits hôte │ Octet calculé │ Calcul           │ Masque\n!   ──────┼───────────┼───────────────┼──────────────────┼─────────────────\n!   /28   │     4     │   4ème        │ 256-2^4 = 240    │ 255.255.255.240\n!   /26   │     6     │   4ème        │ 256-2^6 = 192    │ 255.255.255.192\n!   /24   │     8     │   (aucun)     │ octet entier = 0 │ 255.255.255.0\n!   /22   │    10     │   3ème        │ 256-2^2 = 252    │ 255.255.252.0\n!   /20   │    12     │   3ème        │ 256-2^4 = 240    │ 255.255.240.0\n!   /19   │    13     │   3ème        │ 256-2^5 = 224    │ 255.255.224.0\n!   /16   │    16     │   (aucun)     │ 2 octets = 0     │ 255.255.0.0\n!\n!   Tu vois le pattern ?\n!   C'est toujours le MÊME calcul : 256 - 2^(reste)\n!   La seule différence c'est QUEL octet on calcule !"} />
+            <V2Tip title="L'astuce finale">{"C'est toujours le même calcul 256 − 2^n, la seule chose qui change c'est QUEL octet tu calcules. Si les bits hôte dépassent 8, le 4ème octet est à 0 et tu calcules le 3ème. C'est tout !"}</V2Tip>
           </div>
         )
       },
@@ -8594,13 +9017,14 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
         title: "L'adresse réseau",
         content: (
           <div>
-            <V2Header module="MODULE 07" section="Adresse réseau" title="La première adresse d'un sous-réseau" description="Dans chaque réseau, la PREMIÈRE adresse est spéciale : c'est l'adresse réseau. Elle identifie le réseau lui-même. On ne peut PAS la donner à une machine." />
+            <V2Header module="MODULE 07" section="Adresse réseau" title="Comprendre l'adresse réseau" description="Quand on dit 'réseau 192.168.1.0/24', le .0 à la fin c'est quoi ? C'est l'adresse RÉSEAU. C'est un concept super important qu'on va décortiquer ici." />
             <V2InfoCards cards={[
-              { title: "C'est quoi ?", color: "purple", icon: Network, items: ["C'est la première adresse du sous-réseau", "Tous les bits de la partie hôte sont à 0", "Elle IDENTIFIE le réseau lui-même", "On ne l'attribue JAMAIS à une machine"] },
-              { title: "Analogie", color: "amber", icon: Lightbulb, items: ["C'est comme le nom de la rue", "'Rue de la Paix' = le nom du réseau", "Personne n'habite AU nom de la rue", "Les gens habitent au numéro 1, 2, 3... de la rue"] }
+              { title: "L'analogie de la rue", color: "amber", icon: Lightbulb, items: ["Imagine une rue : 'Rue de la Paix'", "La rue a un NOM → c'est l'adresse réseau", "Les maisons ont des NUMÉROS → ce sont les hôtes", "Personne n'habite AU nom de la rue !", "On habite au n°1, n°2, n°3... de la rue"] },
+              { title: "En réseau c'est pareil", color: "purple", icon: Network, items: ["Le réseau a un NOM : 192.168.1.0", "Les PC ont des NUMÉROS : .1, .2, .3...", "L'adresse .0 = le nom du réseau", "On ne donne JAMAIS l'adresse .0 à un PC", "C'est RÉSERVÉ pour identifier le réseau"] }
             ]} />
-            <V2Terminal title="Exemples" code={"! Réseau 192.168.1.0/24 :\n! → Adresse réseau = 192.168.1.0\n! → C'est la première adresse\n! → On NE PEUT PAS la donner à un PC\n!\n! Réseau 10.0.0.0/8 :\n! → Adresse réseau = 10.0.0.0\n!\n! Réseau 192.168.0.128/26 :\n! → Adresse réseau = 192.168.0.128\n!\n! Règle : les bits de la partie hôte = tous à 0"} />
-            <V2Tip title="Règle simple">L'adresse réseau = première adresse = RÉSERVÉE. Elle sert à identifier le réseau, jamais à une machine.</V2Tip>
+            <V2Whiteboard title="Comment trouver l'adresse réseau ?" code={"! La règle est simple :\n! L'adresse réseau = la PREMIÈRE adresse du bloc\n!\n! Avec un /24 c'est facile :\n!   Le dernier octet commence à 0\n!   → Adresse réseau = X.X.X.0\n!\n! Exemple : un PC a l'IP 192.168.1.47 /24\n!   Le réseau c'est quoi ?\n!   /24 = le dernier octet est pour les hôtes\n!   On met le dernier octet à 0\n!   → Adresse réseau = 192.168.1.0  ✓"} />
+            <V2Whiteboard title="Et avec un masque plus petit ? (/26)" code={"! Avec /26 c'est un peu différent :\n!   /26 = bloc de 64 adresses\n!   Les blocs commencent à : .0, .64, .128, .192\n!\n! Exemple : un PC a l'IP 192.168.1.100 /26\n!   Dans quel bloc de 64 tombe .100 ?\n!   → .0 à .63   (bloc 1)\n!   → .64 à .127  (bloc 2) ← .100 est ici !\n!   → .128 à .191 (bloc 3)\n!\n!   L'adresse réseau = le DÉBUT du bloc\n!   → 192.168.1.64  ✓\n!\n! Autre exemple : 192.168.1.200 /26\n!   .200 est dans le bloc .192 à .255\n!   → Adresse réseau = 192.168.1.192  ✓"} />
+            <V2Tip title="Retiens ça">{"L'adresse réseau = la PREMIÈRE adresse du bloc. C'est le 'nom' du réseau. On ne la donne JAMAIS à une machine. Pour la trouver : prends la taille du bloc et trouve dans quel bloc tombe ton IP."}</V2Tip>
           </div>
         )
       },
@@ -8610,13 +9034,14 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
         title: "L'adresse de broadcast",
         content: (
           <div>
-            <V2Header module="MODULE 07" section="Broadcast" title="La dernière adresse d'un sous-réseau" description="La DERNIÈRE adresse d'un réseau est aussi spéciale : c'est l'adresse de BROADCAST. Elle permet d'envoyer un message à TOUTES les machines du réseau en même temps." />
+            <V2Header module="MODULE 07" section="Broadcast" title="Comprendre l'adresse de broadcast" description="Si l'adresse réseau c'est la PREMIÈRE adresse du bloc, l'adresse de broadcast c'est la DERNIÈRE. Elle sert à envoyer un message à tout le monde en même temps." />
             <V2InfoCards cards={[
-              { title: "C'est quoi ?", color: "purple", icon: Network, items: ["C'est la dernière adresse du sous-réseau", "Tous les bits de la partie hôte sont à 1", "Envoie un message à TOUS les hôtes du réseau", "On ne l'attribue JAMAIS à une machine non plus"] },
-              { title: "Analogie", color: "amber", icon: Lightbulb, items: ["C'est comme un mégaphone dans la rue", "Tu cries un message → tout le monde entend", "L'adresse broadcast = 'à tous les habitants'", "Utile pour des annonces réseau (DHCP, ARP...)"] }
+              { title: "L'analogie du mégaphone", color: "amber", icon: Lightbulb, items: ["Tu es dans la rue et tu veux prévenir TOUT LE MONDE", "Tu prends un mégaphone et tu cries", "Tout le monde dans la rue entend ton message", "Le broadcast c'est le mégaphone du réseau", "Un message envoyé au broadcast → tous les PC le reçoivent"] },
+              { title: "En réseau", color: "purple", icon: Network, items: ["C'est la DERNIÈRE adresse du bloc", "On ne la donne JAMAIS à un PC non plus", "Elle sert pour des annonces réseau", "Exemples : DHCP ('qui peut me donner une IP ?')", "ARP ('qui a cette IP ?')"] }
             ]} />
-            <V2Terminal title="Exemples" code={"! Réseau 192.168.1.0/24 :\n! → Broadcast = 192.168.1.255\n! → C'est la DERNIÈRE adresse\n!\n! Réseau 10.0.0.0/8 :\n! → Broadcast = 10.255.255.255\n!\n! Réseau 192.168.0.128/26 :\n! → Broadcast = 192.168.0.191\n! (128 + 64 - 1 = 191)\n!\n! Règle : les bits de la partie hôte = tous à 1"} />
-            <V2Tip title="Règle simple">L'adresse broadcast = dernière adresse = RÉSERVÉE. Un paquet envoyé au broadcast est reçu par toutes les machines du réseau.</V2Tip>
+            <V2Whiteboard title="Comment trouver le broadcast ?" code={"! La règle : broadcast = DERNIÈRE adresse du bloc\n!\n! Avec /24 c'est facile :\n!   Bloc de 256 → de .0 à .255\n!   Broadcast = .255\n!\n! Exemple : réseau 192.168.1.0 /24\n!   → Broadcast = 192.168.1.255  ✓\n!\n!\n! Astuce rapide :\n!   Broadcast = adresse réseau + taille du bloc - 1\n!\n! Exemple : réseau 192.168.1.0 /24\n!   0 + 256 - 1 = 255\n!   → 192.168.1.255  ✓"} />
+            <V2Whiteboard title="Et avec /26 ?" code={"! /26 = bloc de 64 adresses\n!\n! Réseau 192.168.1.0 /26\n!   Broadcast = 0 + 64 - 1 = 63\n!   → 192.168.1.63  ✓\n!\n! Réseau 192.168.1.64 /26\n!   Broadcast = 64 + 64 - 1 = 127\n!   → 192.168.1.127  ✓\n!\n! Réseau 192.168.1.128 /26\n!   Broadcast = 128 + 64 - 1 = 191\n!   → 192.168.1.191  ✓\n!\n! Tu vois le pattern ?\n!   Broadcast = début du bloc + taille - 1\n!   C'est TOUJOURS la même formule !"} />
+            <V2Tip title="La formule">{"Broadcast = adresse réseau + taille du bloc − 1. Exemple : réseau .128 avec bloc de 64 → .128 + 64 − 1 = .191. C'est la dernière adresse, réservée, jamais donnée à un PC."}</V2Tip>
           </div>
         )
       },
@@ -8626,13 +9051,14 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
         title: "La plage d'adresses utilisables",
         content: (
           <div>
-            <V2Header module="MODULE 07" section="Plage utilisable" title="Les adresses qu'on peut donner aux machines" description="Dans un réseau, on ne peut PAS utiliser toutes les adresses. La première (réseau) et la dernière (broadcast) sont réservées. Les adresses ENTRE les deux sont celles qu'on attribue aux PC, imprimantes, routeurs, etc." />
+            <V2Header module="MODULE 07" section="Plage utilisable" title="Les adresses qu'on peut donner aux machines" description="On sait maintenant que la première adresse (réseau) et la dernière (broadcast) sont réservées. Tout ce qui est ENTRE les deux, c'est pour les PC, serveurs, imprimantes, etc." />
             <V2InfoCards cards={[
-              { title: "Les 3 types d'adresses", color: "purple", icon: Network, items: ["Adresse réseau = PREMIÈRE adresse (réservée)", "Adresses utilisables = ENTRE les deux", "Adresse broadcast = DERNIÈRE adresse (réservée)", "Nb utilisables = total - 2"] },
-              { title: "Exemple avec /24", color: "emerald", icon: CheckCircle2, items: ["Réseau 192.168.1.0/24 : 256 adresses au total", "Réseau : 192.168.1.0 (réservée)", "Broadcast : 192.168.1.255 (réservée)", "Utilisables : 192.168.1.1 → 192.168.1.254 = 254 hôtes"] }
+              { title: "L'analogie de la rue (suite)", color: "amber", icon: Lightbulb, items: ["La rue s'appelle 'Rue de la Paix' (= réseau)", "Le mégaphone est au bout de la rue (= broadcast)", "Les maisons sont ENTRE les deux", "Maison n°1 = première adresse utilisable", "Dernière maison = dernière adresse utilisable"] },
+              { title: "Les 3 zones d'un réseau", color: "emerald", icon: CheckCircle2, items: ["PREMIÈRE adresse = réseau (réservée)", "ENTRE = adresses utilisables (PC, serveurs...)", "DERNIÈRE adresse = broadcast (réservée)", "C'est pour ça qu'on fait toujours −2 !"] }
             ]} />
-            <V2Terminal title="Résumé visuel" code={"! Réseau 192.168.1.0/24\n!\n! 192.168.1.0   → Adresse RÉSEAU    (réservée)\n! 192.168.1.1   → 1ère adresse utilisable\n! 192.168.1.2   → ...\n! ...           → ...\n! 192.168.1.254 → Dernière adresse utilisable\n! 192.168.1.255 → Adresse BROADCAST (réservée)\n!\n! Total : 256 adresses\n! Utilisables : 256 - 2 = 254 hôtes\n!\n! Ces 254 adresses sont celles qu'on donne\n! aux PC, imprimantes, serveurs, routeurs..."} />
-            <V2Tip title="Formule magique">Nombre d'hôtes utilisables = 2^(bits hôte) - 2. Le '-2' c'est pour le réseau et le broadcast.</V2Tip>
+            <V2Whiteboard title="Exemple visuel avec /24" code={"! Réseau 192.168.1.0 /24 → bloc de 256 adresses\n!\n!   192.168.1.0   ← RÉSEAU (réservée, on touche pas)\n!   ─────────────────────────────────────\n!   192.168.1.1   ← 1ère adresse UTILISABLE\n!   192.168.1.2   ← on peut la donner à un PC\n!   192.168.1.3   ← on peut la donner à un PC\n!   ...           ← ...\n!   192.168.1.253 ← on peut la donner à un PC\n!   192.168.1.254 ← dernière adresse UTILISABLE\n!   ─────────────────────────────────────\n!   192.168.1.255 ← BROADCAST (réservée, on touche pas)\n!\n!   256 adresses au total\n!   − 1 pour le réseau\n!   − 1 pour le broadcast\n!   = 254 adresses utilisables"} />
+            <V2Whiteboard title="Même chose avec /26" code={"! Réseau 192.168.1.64 /26 → bloc de 64 adresses\n!\n!   192.168.1.64  ← RÉSEAU (réservée)\n!   ─────────────────────────────────────\n!   192.168.1.65  ← 1ère utilisable\n!   192.168.1.66  ← ...\n!   ...           ← ...\n!   192.168.1.125 ← ...\n!   192.168.1.126 ← dernière utilisable\n!   ─────────────────────────────────────\n!   192.168.1.127 ← BROADCAST (réservée)\n!\n!   64 adresses au total − 2 = 62 utilisables\n!\n!\n! Formules rapides :\n!   1ère utilisable = adresse réseau + 1\n!   Dernière utilisable = broadcast − 1\n!   Nombre d'hôtes = taille du bloc − 2"} />
+            <V2Tip title="Résumé">{"Dans tout réseau : 1ère utilisable = réseau + 1, dernière utilisable = broadcast − 1, nombre d'hôtes = taille du bloc − 2. C'est pour ça qu'on ajoute toujours +2 quand on cherche le bon masque !"}</V2Tip>
           </div>
         )
       },
@@ -8647,7 +9073,7 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               { title: "Les données", color: "purple", icon: Network, items: ["Adresse IP : 192.168.1.10", "Masque : /24 (255.255.255.0)", "→ 24 bits réseau, 8 bits hôte", "→ 2^8 = 256 adresses au total"] },
               { title: "Les résultats", color: "emerald", icon: CheckCircle2, items: ["Adresse réseau : 192.168.1.0", "Broadcast : 192.168.1.255", "1ère utilisable : 192.168.1.1", "Dernière utilisable : 192.168.1.254", "Nb hôtes : 254"] }
             ]} />
-            <V2Terminal title="Décomposition pas à pas" code={"! Adresse : 192.168.1.10 /24\n!\n! Étape 1 : Masque /24 → 8 bits pour les hôtes\n! Étape 2 : 2^8 = 256 adresses dans ce bloc\n! Étape 3 : Adresse réseau = 192.168.1.0\n!           (le .10 devient .0)\n! Étape 4 : Broadcast = 192.168.1.255\n!           (le .10 devient .255)\n! Étape 5 : 1ère hôte = 192.168.1.1\n! Étape 6 : Dernière hôte = 192.168.1.254\n! Étape 7 : Nb hôtes = 256 - 2 = 254\n!\n! Résumé :\n! .0 = réseau | .1 à .254 = hôtes | .255 = broadcast"} />
+            <V2Whiteboard title="Décomposition pas à pas" code={"! Adresse : 192.168.1.10 /24\n!\n! Étape 1 : Masque /24 → 8 bits pour les hôtes\n! Étape 2 : 2^8 = 256 adresses dans ce bloc\n! Étape 3 : Adresse réseau = 192.168.1.0\n!           (le .10 devient .0)\n! Étape 4 : Broadcast = 192.168.1.255\n!           (le .10 devient .255)\n! Étape 5 : 1ère hôte = 192.168.1.1\n! Étape 6 : Dernière hôte = 192.168.1.254\n! Étape 7 : Nb hôtes = 256 - 2 = 254\n!\n! Résumé :\n! .0 = réseau | .1 à .254 = hôtes | .255 = broadcast"} />
             <V2Tip title="Méthode">Pour un /24 c'est simple : réseau = .0, broadcast = .255, hôtes de .1 à .254. Ça se complique avec les masques plus petits (/26, /28...) qu'on va voir ensuite.</V2Tip>
           </div>
         )
@@ -8663,7 +9089,7 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               { title: "Les données", color: "purple", icon: Network, items: ["Adresse IP : 192.168.0.130", "Masque : /26 (255.255.255.192)", "→ 26 bits réseau, 6 bits hôte", "→ 2^6 = 64 adresses par bloc"] },
               { title: "Trouver le bloc", color: "amber", icon: Lightbulb, items: ["Blocs de 64 : 0, 64, 128, 192...", "130 tombe entre 128 et 192", "→ Réseau = 192.168.0.128", "→ Broadcast = 192.168.0.191 (128+64-1)"] }
             ]} />
-            <V2Terminal title="Résultat complet" code={"! Adresse : 192.168.0.130 /26\n!\n! Bloc = 256 - 192 = 64\n! Les blocs : .0 | .64 | .128 | .192\n! 130 tombe dans le bloc .128\n!\n! Adresse réseau   : 192.168.0.128\n! 1ère utilisable  : 192.168.0.129\n! Dernière utilisable : 192.168.0.190\n! Broadcast        : 192.168.0.191\n! Nb hôtes         : 64 - 2 = 62\n!\n! Vérification : 128 + 64 = 192 (début du bloc suivant)\n! Donc broadcast = 192 - 1 = 191 ✓"} />
+            <V2Whiteboard title="Résultat complet" code={"! Adresse : 192.168.0.130 /26\n!\n! Bloc = 256 - 192 = 64\n! Les blocs : .0 | .64 | .128 | .192\n! 130 tombe dans le bloc .128\n!\n! Adresse réseau   : 192.168.0.128\n! 1ère utilisable  : 192.168.0.129\n! Dernière utilisable : 192.168.0.190\n! Broadcast        : 192.168.0.191\n! Nb hôtes         : 64 - 2 = 62\n!\n! Vérification : 128 + 64 = 192 (début du bloc suivant)\n! Donc broadcast = 192 - 1 = 191 ✓"} />
             <V2Tip title="Astuce du bloc">Pour trouver l'adresse réseau : calcule le bloc (256 - masque dernier octet). Puis cherche le multiple du bloc juste INFÉRIEUR ou ÉGAL à ton adresse. C'est l'adresse réseau.</V2Tip>
           </div>
         )
@@ -8679,7 +9105,7 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               { title: "Les 3 plages privées", color: "purple", icon: Network, items: ["Classe A : 10.0.0.0 → 10.255.255.255", "Classe B : 172.16.0.0 → 172.31.255.255", "Classe C : 192.168.0.0 → 192.168.255.255", "Tu les croises partout en réseau local !"] },
               { title: "Pourquoi des adresses privées ?", color: "amber", icon: Lightbulb, items: ["Les adresses publiques (Internet) sont limitées", "Les adresses privées sont gratuites et réutilisables", "Ta box Internet fait la traduction (NAT)", "192.168.1.1 chez toi ≠ 192.168.1.1 chez ton voisin"] }
             ]} />
-            <V2Terminal title="Récapitulatif des plages privées" code={"! Classe A : 10.0.0.0/8\n!   De 10.0.0.0 à 10.255.255.255\n!   → Très grand réseau (16 millions d'adresses)\n!   → Utilisé dans les grandes entreprises\n!\n! Classe B : 172.16.0.0/12\n!   De 172.16.0.0 à 172.31.255.255\n!   → Réseau moyen\n!\n! Classe C : 192.168.0.0/16\n!   De 192.168.0.0 à 192.168.255.255\n!   → Le plus courant (ta box : 192.168.1.X)\n!\n! Tout le reste = adresses PUBLIQUES (Internet)"} />
+            <V2Whiteboard title="Récapitulatif des plages privées" code={"! Classe A : 10.0.0.0/8\n!   De 10.0.0.0 à 10.255.255.255\n!   → Très grand réseau (16 millions d'adresses)\n!   → Utilisé dans les grandes entreprises\n!\n! Classe B : 172.16.0.0/12\n!   De 172.16.0.0 à 172.31.255.255\n!   → Réseau moyen\n!\n! Classe C : 192.168.0.0/16\n!   De 192.168.0.0 à 192.168.255.255\n!   → Le plus courant (ta box : 192.168.1.X)\n!\n! Tout le reste = adresses PUBLIQUES (Internet)"} />
             <V2Tip title="Astuce exam">Si on te demande 'est-ce que cette adresse est privée ?', vérifie si elle commence par 10., 172.16-31., ou 192.168. Si oui → privée. Sinon → publique.</V2Tip>
           </div>
         )
@@ -8695,7 +9121,7 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               { title: "3 raisons de sous-réseauter", color: "purple", icon: Network, items: ["1. DIVISER un grand réseau en petits réseaux", "2. OPTIMISER l'utilisation des adresses IP", "3. ISOLER les services (sécurité, organisation)", "C'est la base de l'architecture réseau !"] },
               { title: "Exemple concret", color: "amber", icon: Lightbulb, items: ["Entreprise avec 3 services :", "→ RH : 12 machines", "→ Technique : 28 machines", "→ Direction : 50 machines", "Un seul /24 pour tous ? Pas optimal !"] }
             ]} />
-            <V2Terminal title="Le problème sans sous-réseaux" code={"! Sans sous-réseaux : tout le monde dans 192.168.1.0/24\n!\n! RH, Technique, Direction... tous mélangés\n! → Pas de séparation entre services\n! → Un virus dans un service touche TOUT le monde\n! → On ne sait pas qui est qui\n!\n! Avec sous-réseaux :\n! RH        → 192.168.1.0/28    (14 hôtes max)\n! Technique → 192.168.1.32/27   (30 hôtes max)\n! Direction → 192.168.1.64/26   (62 hôtes max)\n!\n! → Chaque service est isolé et organisé"} />
+            <V2Whiteboard title="Le problème sans sous-réseaux" code={"! Sans sous-réseaux : tout le monde dans 192.168.1.0/24\n!\n! RH, Technique, Direction... tous mélangés\n! → Pas de séparation entre services\n! → Un virus dans un service touche TOUT le monde\n! → On ne sait pas qui est qui\n!\n! Avec sous-réseaux :\n! RH        → 192.168.1.0/28    (14 hôtes max)\n! Technique → 192.168.1.32/27   (30 hôtes max)\n! Direction → 192.168.1.64/26   (62 hôtes max)\n!\n! → Chaque service est isolé et organisé"} />
             <V2Tip title="En résumé">Sous-réseauter = découper un réseau en morceaux adaptés aux besoins. Chaque service a son propre espace, ni trop grand ni trop petit.</V2Tip>
           </div>
         )
@@ -8711,7 +9137,7 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               { title: "Étape 1 : Le besoin", color: "purple", icon: Network, items: ["Combien de machines dans ce sous-réseau ?", "Exemple : 'Je veux 50 machines'", "C'est le nombre d'hôtes requis", "On part toujours du besoin réel"] },
               { title: "Étape 2 : Ajouter 2", color: "amber", icon: Lightbulb, items: ["Il faut ajouter 2 adresses réservées :", "→ 1 pour l'adresse réseau", "→ 1 pour l'adresse broadcast", "50 machines → besoin de 52 adresses minimum"] }
             ]} />
-            <V2Terminal title="Exemple pas à pas" code={"! Besoin : 50 machines\n!\n! Étape 1 : Nombre d'hôtes requis = 50\n!\n! Étape 2 : On ajoute les 2 adresses réservées\n!   50 + 2 = 52 adresses nécessaires\n!\n! Pourquoi +2 ?\n!   → 1 adresse pour le RÉSEAU (première)\n!   → 1 adresse pour le BROADCAST (dernière)\n!   → Ces 2 adresses ne sont pas utilisables\n!\n! Donc il faut un bloc d'au moins 52 adresses\n! → On cherche la puissance de 2 suivante..."} />
+            <V2Whiteboard title="Exemple pas à pas" code={"! Besoin : 50 machines\n!\n! Étape 1 : Nombre d'hôtes requis = 50\n!\n! Étape 2 : On ajoute les 2 adresses réservées\n!   50 + 2 = 52 adresses nécessaires\n!\n! Pourquoi +2 ?\n!   → 1 adresse pour le RÉSEAU (première)\n!   → 1 adresse pour le BROADCAST (dernière)\n!   → Ces 2 adresses ne sont pas utilisables\n!\n! Donc il faut un bloc d'au moins 52 adresses\n! → On cherche la puissance de 2 suivante..."} />
             <V2Tip title="Règle">TOUJOURS ajouter 2 au nombre de machines demandé. C'est l'erreur classique en exam : oublier le réseau et le broadcast !</V2Tip>
           </div>
         )
@@ -8727,7 +9153,7 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               { title: "Étape 3 : Puissance de 2", color: "purple", icon: Network, items: ["Besoin : 52 adresses minimum", "2^5 = 32 → pas assez (32 < 52)", "2^6 = 64 → suffisant ! (64 >= 52)", "On prend 64 adresses"] },
               { title: "Étape 4 : Bits hôte", color: "emerald", icon: CheckCircle2, items: ["2^6 = 64 → on a besoin de 6 bits pour les hôtes", "6 bits hôte = on peut coder 64 adresses", "Nb hôtes utilisables = 64 - 2 = 62", "62 >= 50 machines → c'est bon !"] }
             ]} />
-            <V2Terminal title="Les puissances de 2 à connaître" code={"! Les puissances de 2 (à apprendre par coeur) :\n!\n! 2^1 =    2       2^5 =   32       2^9  = 512\n! 2^2 =    4       2^6 =   64       2^10 = 1024\n! 2^3 =    8       2^7 =  128\n! 2^4 =   16       2^8 =  256\n!\n! Pour 50 machines :\n! 50 + 2 = 52 adresses nécessaires\n! 2^5 = 32 → trop petit (32 < 52)\n! 2^6 = 64 → parfait ! (64 >= 52)\n!\n! → On a besoin de 6 bits pour les hôtes\n! → Hôtes utilisables : 64 - 2 = 62"} />
+            <V2Whiteboard title="Les puissances de 2 à connaître" code={"! Les puissances de 2 (à apprendre par coeur) :\n!\n! 2^1 =    2       2^5 =   32       2^9  = 512\n! 2^2 =    4       2^6 =   64       2^10 = 1024\n! 2^3 =    8       2^7 =  128\n! 2^4 =   16       2^8 =  256\n!\n! Pour 50 machines :\n! 50 + 2 = 52 adresses nécessaires\n! 2^5 = 32 → trop petit (32 < 52)\n! 2^6 = 64 → parfait ! (64 >= 52)\n!\n! → On a besoin de 6 bits pour les hôtes\n! → Hôtes utilisables : 64 - 2 = 62"} />
             <V2Tip title="Méthode">Monte dans les puissances de 2 jusqu'à trouver un nombre SUPÉRIEUR ou ÉGAL au besoin (machines + 2). Le nombre de l'exposant = le nombre de bits hôte.</V2Tip>
           </div>
         )
@@ -8743,7 +9169,7 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               { title: "Étape 5 : CIDR", color: "purple", icon: Network, items: ["Une adresse IP = 32 bits au total", "32 bits - 6 bits hôte = 26 bits réseau", "→ Masque CIDR = /26", "C'est aussi simple que ça !"] },
               { title: "Étape 6 : Décimal", color: "emerald", icon: CheckCircle2, items: ["/26 = 255.255.255.192", "Comment ? 256 - 64 = 192", "(64 = la taille du bloc = 2^6)", "Étape 7 : Vérif → 64 - 2 = 62 hôtes OK"] }
             ]} />
-            <V2Terminal title="Récapitulatif complet pour 50 machines" code={"! MÉTHODOLOGIE COMPLÈTE :\n!\n! 1. Besoin = 50 machines\n! 2. 50 + 2 = 52 adresses nécessaires\n! 3. Puissance de 2 : 2^6 = 64 >= 52 ✓\n! 4. Bits hôte = 6\n! 5. CIDR = 32 - 6 = /26\n! 6. Masque décimal : 256 - 64 = 192\n!    → 255.255.255.192\n! 7. Vérification : 64 - 2 = 62 hôtes utilisables\n!    62 >= 50 ✓\n!\n! Résultat : pour 50 machines → /26 (255.255.255.192)"} />
+            <V2Whiteboard title="Récapitulatif complet pour 50 machines" code={"! MÉTHODOLOGIE COMPLÈTE :\n!\n! 1. Besoin = 50 machines\n! 2. 50 + 2 = 52 adresses nécessaires\n! 3. Puissance de 2 : 2^6 = 64 >= 52 ✓\n! 4. Bits hôte = 6\n! 5. CIDR = 32 - 6 = /26\n! 6. Masque décimal : 256 - 64 = 192\n!    → 255.255.255.192\n! 7. Vérification : 64 - 2 = 62 hôtes utilisables\n!    62 >= 50 ✓\n!\n! Résultat : pour 50 machines → /26 (255.255.255.192)"} />
             <V2Tip title="Astuce pour le masque décimal">Pour convertir le CIDR en décimal dans le dernier octet : fais 256 - (taille du bloc). /26 → bloc de 64 → 256 - 64 = 192 → 255.255.255.192</V2Tip>
           </div>
         )
@@ -8759,7 +9185,7 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               { title: "Les petits réseaux", color: "purple", icon: Network, items: ["/30 = 255.255.255.252 → 2 hôtes", "/29 = 255.255.255.248 → 6 hôtes", "/28 = 255.255.255.240 → 14 hôtes", "/27 = 255.255.255.224 → 30 hôtes"] },
               { title: "Les réseaux moyens/grands", color: "emerald", icon: CheckCircle2, items: ["/26 = 255.255.255.192 → 62 hôtes", "/25 = 255.255.255.128 → 126 hôtes", "/24 = 255.255.255.0 → 254 hôtes", "/16 = 255.255.0.0 → 65 534 hôtes"] }
             ]} />
-            <V2Terminal title="Tableau récapitulatif" code={"! CIDR │ Masque décimal      │ Bits hôte │ Hôtes utilisables\n! ─────┼─────────────────────┼───────────┼───────────────────\n! /30  │ 255.255.255.252     │     2     │        2\n! /29  │ 255.255.255.248     │     3     │        6\n! /28  │ 255.255.255.240     │     4     │       14\n! /27  │ 255.255.255.224     │     5     │       30\n! /26  │ 255.255.255.192     │     6     │       62\n! /25  │ 255.255.255.128     │     7     │      126\n! /24  │ 255.255.255.0       │     8     │      254\n! /22  │ 255.255.252.0       │    10     │     1022\n!\n! Formule : hôtes = 2^(bits hôte) - 2"} />
+            <V2Whiteboard title="Tableau récapitulatif" code={"! CIDR │ Masque décimal      │ Bits hôte │ Hôtes utilisables\n! ─────┼─────────────────────┼───────────┼───────────────────\n! /30  │ 255.255.255.252     │     2     │        2\n! /29  │ 255.255.255.248     │     3     │        6\n! /28  │ 255.255.255.240     │     4     │       14\n! /27  │ 255.255.255.224     │     5     │       30\n! /26  │ 255.255.255.192     │     6     │       62\n! /25  │ 255.255.255.128     │     7     │      126\n! /24  │ 255.255.255.0       │     8     │      254\n! /22  │ 255.255.252.0       │    10     │     1022\n!\n! Formule : hôtes = 2^(bits hôte) - 2"} />
             <V2Tip title="Astuce exam">Ce tableau revient dans TOUS les examens réseau. Retiens au minimum : /24 = 254, /26 = 62, /28 = 14, /30 = 2. Ça couvre 90% des cas.</V2Tip>
           </div>
         )
@@ -8775,7 +9201,7 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               { title: "Les besoins", color: "purple", icon: Network, items: ["Service RH : 12 machines", "Service Technique : 28 machines", "Service Direction : 50 machines", "Quel masque pour chacun ?"] },
               { title: "Les résultats", color: "emerald", icon: CheckCircle2, items: ["RH : 12+2=14 → 2^4=16 → /28", "Technique : 28+2=30 → 2^5=32 → /27", "Direction : 50+2=52 → 2^6=64 → /26", "On prend le plus petit bloc suffisant !"] }
             ]} />
-            <V2Terminal title="Calcul détaillé" code={"! Service RH (12 machines) :\n! 12 + 2 = 14 → 2^4 = 16 → /28 (255.255.255.240)\n! Hôtes utilisables : 16 - 2 = 14 >= 12 ✓\n!\n! Service Technique (28 machines) :\n! 28 + 2 = 30 → 2^5 = 32 → /27 (255.255.255.224)\n! Hôtes utilisables : 32 - 2 = 30 >= 28 ✓\n!\n! Service Direction (50 machines) :\n! 50 + 2 = 52 → 2^6 = 64 → /26 (255.255.255.192)\n! Hôtes utilisables : 64 - 2 = 62 >= 50 ✓\n!\n! ATTENTION : Technique 28 machines → /27 (30 hôtes)\n! Pas /28 (14 hôtes) car 14 < 28 !"} />
+            <V2Whiteboard title="Calcul détaillé" code={"! Service RH (12 machines) :\n! 12 + 2 = 14 → 2^4 = 16 → /28 (255.255.255.240)\n! Hôtes utilisables : 16 - 2 = 14 >= 12 ✓\n!\n! Service Technique (28 machines) :\n! 28 + 2 = 30 → 2^5 = 32 → /27 (255.255.255.224)\n! Hôtes utilisables : 32 - 2 = 30 >= 28 ✓\n!\n! Service Direction (50 machines) :\n! 50 + 2 = 52 → 2^6 = 64 → /26 (255.255.255.192)\n! Hôtes utilisables : 64 - 2 = 62 >= 50 ✓\n!\n! ATTENTION : Technique 28 machines → /27 (30 hôtes)\n! Pas /28 (14 hôtes) car 14 < 28 !"} />
             <V2Tip title="Piège classique">{"28 machines → certains pensent /28. Erreur ! /28 = 14 hôtes, c'est insuffisant. Il faut /27 (30 hôtes). Vérifie TOUJOURS que le nombre d'hôtes utilisables >= le besoin."}</V2Tip>
           </div>
         )
@@ -8791,7 +9217,7 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               { title: "Essaie d'abord !", color: "amber", icon: Lightbulb, items: ["6 machines → quel masque ?", "14 machines → quel masque ?", "50 machines → quel masque ?", "126 machines → quel masque ?"] },
               { title: "Rappel méthode", color: "purple", icon: Network, items: ["1. Machines + 2 = adresses nécessaires", "2. Trouver la puissance de 2 >= ce nombre", "3. CIDR = 32 - exposant", "4. Masque = 256 - taille du bloc"] }
             ]} />
-            <V2Terminal title="Réponses" code={"! Nb machines │ +2  │ Puissance de 2 │ CIDR │ Masque décimal\n! ────────────┼─────┼────────────────┼──────┼──────────────────\n!     6       │  8  │  2^3 = 8       │ /29  │ 255.255.255.248\n!    14       │ 16  │  2^4 = 16      │ /28  │ 255.255.255.240\n!    50       │ 52  │  2^6 = 64      │ /26  │ 255.255.255.192\n!   126       │ 128 │  2^7 = 128     │ /25  │ 255.255.255.128\n!\n! Bonus : 1000 machines ?\n! 1000 + 2 = 1002\n! 2^10 = 1024 >= 1002\n! CIDR = 32 - 10 = /22\n! Masque = 255.255.252.0"} />
+            <V2Whiteboard title="Réponses" code={"! Nb machines │ +2  │ Puissance de 2 │ CIDR │ Masque décimal\n! ────────────┼─────┼────────────────┼──────┼──────────────────\n!     6       │  8  │  2^3 = 8       │ /29  │ 255.255.255.248\n!    14       │ 16  │  2^4 = 16      │ /28  │ 255.255.255.240\n!    50       │ 52  │  2^6 = 64      │ /26  │ 255.255.255.192\n!   126       │ 128 │  2^7 = 128     │ /25  │ 255.255.255.128\n!\n! Bonus : 1000 machines ?\n! 1000 + 2 = 1002\n! 2^10 = 1024 >= 1002\n! CIDR = 32 - 10 = /22\n! Masque = 255.255.252.0"} />
             <V2Tip title="Exercice bonus">Et pour 1000 hôtes ? 1002 → 2^10 = 1024 → /22 = 255.255.252.0. Quand ça dépasse le dernier octet (/24), le masque change aussi dans le 3ème octet !</V2Tip>
           </div>
         )
@@ -8807,7 +9233,7 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               { title: "Les adresses à décomposer", color: "purple", icon: Network, items: ["192.168.1.10 /24", "10.0.0.100 /8", "192.168.0.130 /26", "172.16.5.40 /23"] },
               { title: "Rappel méthode", color: "amber", icon: Lightbulb, items: ["1. Trouver la taille du bloc (2^bits hôte)", "2. Trouver dans quel bloc tombe l'adresse", "3. Réseau = début du bloc", "4. Broadcast = fin du bloc (début + bloc - 1)"] }
             ]} />
-            <V2Terminal title="Correction" code={"! Adresse       │ Masque │ Réseau         │ Broadcast       │ 1ère hôte      │ Dernière hôte   │ Hôtes\n! ──────────────┼────────┼────────────────┼─────────────────┼────────────────┼─────────────────┼──────\n! 192.168.1.10  │ /24    │ 192.168.1.0    │ 192.168.1.255   │ 192.168.1.1    │ 192.168.1.254   │ 254\n! 10.0.0.100    │ /8     │ 10.0.0.0       │ 10.255.255.255  │ 10.0.0.1       │ 10.255.255.254  │ 16M\n! 192.168.0.130 │ /26    │ 192.168.0.128  │ 192.168.0.191   │ 192.168.0.129  │ 192.168.0.190   │ 62\n! 172.16.5.40   │ /23    │ 172.16.4.0     │ 172.16.5.255    │ 172.16.4.1     │ 172.16.5.254    │ 510"} />
+            <V2Whiteboard title="Correction" code={"! Adresse       │ Masque │ Réseau         │ Broadcast       │ 1ère hôte      │ Dernière hôte   │ Hôtes\n! ──────────────┼────────┼────────────────┼─────────────────┼────────────────┼─────────────────┼──────\n! 192.168.1.10  │ /24    │ 192.168.1.0    │ 192.168.1.255   │ 192.168.1.1    │ 192.168.1.254   │ 254\n! 10.0.0.100    │ /8     │ 10.0.0.0       │ 10.255.255.255  │ 10.0.0.1       │ 10.255.255.254  │ 16M\n! 192.168.0.130 │ /26    │ 192.168.0.128  │ 192.168.0.191   │ 192.168.0.129  │ 192.168.0.190   │ 62\n! 172.16.5.40   │ /23    │ 172.16.4.0     │ 172.16.5.255    │ 172.16.4.1     │ 172.16.5.254    │ 510"} />
             <V2Tip title="Le cas /23">Pour 172.16.5.40 /23, le bloc est de 512 (2^9). Le 3ème octet change par blocs de 2 : 0-1, 2-3, 4-5... Donc 5 tombe dans le bloc 4-5. Réseau = 172.16.4.0, broadcast = 172.16.5.255.</V2Tip>
           </div>
         )
@@ -8839,7 +9265,7 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               { title: "Sans VLSM (gaspillage)", color: "red", icon: AlertTriangle, items: ["Tout le monde en /24 (254 hôtes)", "RH : 12 machines → 242 adresses gaspillées", "Direction : 50 machines → 204 gaspillées", "Total : des centaines d'adresses perdues !"] },
               { title: "Avec VLSM (optimisé)", color: "emerald", icon: CheckCircle2, items: ["RH : /28 → 14 hôtes (juste assez)", "Technique : /27 → 30 hôtes (adapté)", "Direction : /26 → 62 hôtes (adapté)", "On utilise les adresses efficacement !"] }
             ]} />
-            <V2Terminal title="VLSM en action" code={"! Réseau de base : 192.168.1.0/24\n! On le découpe en sous-réseaux VLSM :\n!\n! Direction (50 machines) → /26\n!   192.168.1.0/26   (62 hôtes, .1 à .62)\n!\n! Technique (28 machines) → /27\n!   192.168.1.64/27  (30 hôtes, .65 à .94)\n!\n! RH (12 machines) → /28\n!   192.168.1.96/28  (14 hôtes, .97 à .110)\n!\n! Règle VLSM : toujours commencer par\n! le plus GRAND sous-réseau d'abord !"} />
+            <V2Whiteboard title="VLSM en action" code={"! Réseau de base : 192.168.1.0/24\n! On le découpe en sous-réseaux VLSM :\n!\n! Direction (50 machines) → /26\n!   192.168.1.0/26   (62 hôtes, .1 à .62)\n!\n! Technique (28 machines) → /27\n!   192.168.1.64/27  (30 hôtes, .65 à .94)\n!\n! RH (12 machines) → /28\n!   192.168.1.96/28  (14 hôtes, .97 à .110)\n!\n! Règle VLSM : toujours commencer par\n! le plus GRAND sous-réseau d'abord !"} />
             <V2Tip title="Règle VLSM">En VLSM, on commence toujours par le plus grand sous-réseau (celui qui a besoin du plus de machines). Ensuite on remplit avec les plus petits. Ça évite les chevauchements.</V2Tip>
           </div>
         )
@@ -8859,7 +9285,8 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               { title: "Calcul de masque", color: "amber", icon: Lightbulb, items: ["1. Nb machines + 2", "2. Puissance de 2 supérieure", "3. CIDR = 32 - bits hôte", "4. Masque = 256 - taille bloc", "5. Vérifier : hôtes = bloc - 2"] },
               { title: "Table CIDR essentielle", color: "red", icon: AlertTriangle, items: ["/30 = 2 hôtes | /28 = 14 hôtes", "/27 = 30 hôtes | /26 = 62 hôtes", "/25 = 126 hôtes | /24 = 254 hôtes", "VLSM = masques différents par service"] }
             ]} />
-            <V2Tip title="Prêt pour le lab !">{"Tu as tous les concepts. Dans le lab, tu vas t'entraîner à décomposer des adresses et calculer des masques. C'est en pratiquant qu'on retient !"}</V2Tip>
+            <SubnetQuiz />
+            <V2Tip title="Prêt pour le lab !">{"Tu as tous les concepts. Utilise le quiz ci-dessus pour t'entraîner autant que tu veux, puis passe au lab pour la mise en pratique complète !"}</V2Tip>
           </div>
         )
       }
@@ -8867,169 +9294,493 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
     lab: {
       consignes: (
         <div className="space-y-8 text-sm">
-          <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-xl p-6 border border-purple-500/20">
-            <h3 className="text-xl font-bold text-white mb-2">Lab Adressage IP & Masques — Entreprise NetSolutions</h3>
-            <p className="text-slate-300">{"L'entreprise NetSolutions a 3 services à mettre en réseau. Vous devez calculer les bons masques, créer un plan d'adressage et configurer le tout dans Packet Tracer."}</p>
+          <div className="bg-gradient-to-r from-emerald-900/20 to-blue-900/20 rounded-xl p-6 border border-emerald-500/20">
+            <h4 className="text-emerald-300 font-bold text-lg mb-2 flex items-center gap-2"><Monitor size={18} /> Lab Packet Tracer — Adressage IP & VLSM</h4>
+            <p className="text-white font-bold text-xl mb-1">{"Entreprise DataFlow — Créer 4 réseaux séparés"}</p>
+            <p className="text-slate-300 text-sm">{"L'entreprise DataFlow déménage dans de nouveaux locaux. Le DSI vous demande de concevoir le plan d'adressage réseau et de configurer toute l'infrastructure dans Packet Tracer."}</p>
           </div>
 
+          {/* Contexte entreprise */}
           <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
-            <h4 className="text-purple-300 font-bold mb-3">Partie 1 — Exercices de calcul (sur papier)</h4>
-            <div className="space-y-4">
-              <div className="bg-black/30 rounded-lg p-4">
-                <p className="text-amber-300 font-bold mb-2">Exercice 1 : Texte à trou</p>
-                <p className="text-slate-300 text-xs leading-relaxed">{"Complétez : Une adresse IP est composée de ___ bits répartis en ___ octets. Elle contient une partie ___ et une partie ___. Le masque de sous-réseau permet de différencier ces deux parties. L'adresse ___ est la première adresse d'un sous-réseau, et l'adresse de ___ est la dernière adresse. Les adresses utilisables sont celles entre ces deux adresses. Le masque /26 correspond en décimal à ___."}</p>
-              </div>
-              <div className="bg-black/30 rounded-lg p-4">
-                <p className="text-amber-300 font-bold mb-2">Exercice 2 : Trouver le bon masque</p>
-                <p className="text-slate-300 text-xs mb-2">Pour chaque nombre de machines, trouvez le CIDR et le masque décimal :</p>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-slate-300 border border-white/20 rounded">
-                    <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Nb machines</th><th className="p-2 text-left">Nb adresses (+2)</th><th className="p-2 text-left">Puissance de 2</th><th className="p-2 text-left">CIDR</th><th className="p-2 text-left">Masque décimal</th></tr></thead>
-                    <tbody>
-                      <tr className="border-t border-white/10"><td className="p-2">6</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
-                      <tr className="border-t border-white/10"><td className="p-2">14</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
-                      <tr className="border-t border-white/10"><td className="p-2">50</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
-                      <tr className="border-t border-white/10"><td className="p-2">126</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              <div className="bg-black/30 rounded-lg p-4">
-                <p className="text-amber-300 font-bold mb-2">Exercice 3 : Décomposer des adresses</p>
-                <p className="text-slate-300 text-xs mb-2">Pour chaque adresse, trouvez : adresse réseau, broadcast, 1ère hôte, dernière hôte, nombre d'hôtes.</p>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs text-slate-300 border border-white/20 rounded">
-                    <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Adresse IP</th><th className="p-2 text-left">Masque</th><th className="p-2 text-left">Réseau</th><th className="p-2 text-left">Broadcast</th><th className="p-2 text-left">1ère hôte</th><th className="p-2 text-left">Dernière hôte</th><th className="p-2 text-left">Nb hôtes</th></tr></thead>
-                    <tbody>
-                      <tr className="border-t border-white/10"><td className="p-2">192.168.1.10</td><td className="p-2">/24</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
-                      <tr className="border-t border-white/10"><td className="p-2">10.0.0.100</td><td className="p-2">/8</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
-                      <tr className="border-t border-white/10"><td className="p-2">192.168.0.130</td><td className="p-2">/26</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
-                      <tr className="border-t border-white/10"><td className="p-2">172.16.5.130</td><td className="p-2">/20</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
-            <h4 className="text-emerald-300 font-bold mb-3">Partie 2 — Packet Tracer</h4>
-            <p className="text-slate-300 text-xs mb-3">{"L'entreprise NetSolutions a 3 services. Créez un plan d'adressage VLSM à partir du réseau 192.168.1.0/24 :"}</p>
-            <div className="overflow-x-auto mb-4">
+            <h4 className="text-purple-300 font-bold mb-3">Contexte de l'entreprise</h4>
+            <p className="text-slate-300 text-xs mb-4">{"DataFlow est une société de 90 employés répartis en 4 services. Chaque service doit avoir son propre réseau isolé. Le DSI vous fournit le réseau de base : 192.168.10.0/24"}</p>
+            <div className="overflow-x-auto">
               <table className="w-full text-xs text-slate-300 border border-white/20 rounded">
-                <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Service</th><th className="p-2 text-left">Nb machines</th><th className="p-2 text-left">Masque à trouver</th><th className="p-2 text-left">Sous-réseau à trouver</th></tr></thead>
+                <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Service</th><th className="p-2 text-left">Nb machines</th><th className="p-2 text-left">Responsable</th><th className="p-2 text-left">Besoins</th></tr></thead>
                 <tbody>
-                  <tr className="border-t border-white/10"><td className="p-2">Direction</td><td className="p-2">50</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
-                  <tr className="border-t border-white/10"><td className="p-2">Technique</td><td className="p-2">25</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
-                  <tr className="border-t border-white/10"><td className="p-2">RH</td><td className="p-2">10</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-purple-300">Développement</td><td className="p-2 text-white font-bold">45 postes</td><td className="p-2">M. Dupont</td><td className="p-2 text-slate-400">PC développeurs + serveur interne</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-blue-300">Commercial</td><td className="p-2 text-white font-bold">25 postes</td><td className="p-2">Mme Garcia</td><td className="p-2 text-slate-400">PC commerciaux + imprimante</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-amber-300">Comptabilité</td><td className="p-2 text-white font-bold">12 postes</td><td className="p-2">M. Martin</td><td className="p-2 text-slate-400">PC comptables + NAS</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-emerald-300">Direction</td><td className="p-2 text-white font-bold">5 postes</td><td className="p-2">Mme Bernard</td><td className="p-2 text-slate-400">PC direction + imprimante</td></tr>
                 </tbody>
               </table>
             </div>
-            <ol className="text-slate-300 space-y-3 list-decimal list-inside">
-              <li><strong>Calculer</strong> le masque et le sous-réseau pour chaque service (VLSM)</li>
-              <li><strong>Construire la topologie</strong> : 1 switch par service + 2 PC par service</li>
-              <li><strong>Configurer les PC</strong> avec les bonnes IP et masques</li>
-              <li><strong>Tester</strong> : ping entre PC du même service (doit marcher)</li>
-              <li><strong>Vérifier</strong> : ping entre PC de services différents (ne doit PAS marcher sans routeur)</li>
-            </ol>
           </div>
 
-          <div className="bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-lg">
-            <p className="text-amber-200 font-bold">Questions bonus</p>
-            <p className="text-slate-300 text-sm mt-1">{"1) Qu'est-ce qu'une adresse de broadcast ? 2) Pourquoi ne peut-on pas utiliser la 1ère et dernière adresse ? 3) Quelles sont les 3 plages d'adresses privées ? 4) Quel masque pour 1000 hôtes ? 5) Qu'est-ce que le VLSM ?"}</p>
+          {/* ÉTAPE 1 : Calcul VLSM */}
+          <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
+            <h4 className="text-amber-300 font-bold mb-3 flex items-center gap-2"><span className="bg-amber-500/20 text-amber-400 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black">1</span> Étape 1 — Calculer le plan d'adressage VLSM</h4>
+            <p className="text-slate-300 text-xs mb-3">{"Réseau de base : 192.168.10.0/24. Complétez ce tableau (commencez par le plus grand service) :"}</p>
+            <div className="overflow-x-auto mb-3">
+              <table className="w-full text-xs text-slate-300 border border-white/20 rounded">
+                <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Service</th><th className="p-2 text-left">Machines</th><th className="p-2 text-left">+2</th><th className="p-2 text-left">{"2^n"}</th><th className="p-2 text-left">CIDR</th><th className="p-2 text-left">Masque</th><th className="p-2 text-left">Sous-réseau</th><th className="p-2 text-left">Plage hôtes</th><th className="p-2 text-left">Broadcast</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-purple-300">Développement</td><td className="p-2">45</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-blue-300">Commercial</td><td className="p-2">25</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-amber-300">Comptabilité</td><td className="p-2">12</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
+                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-emerald-300">Direction</td><td className="p-2">5</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td><td className="p-2 text-slate-500">?</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="bg-amber-900/20 border-l-4 border-amber-500 p-3 rounded-r-lg">
+              <p className="text-amber-200 text-xs font-bold">{"Rappel VLSM : on commence TOUJOURS par le plus grand service, puis on remplit avec les plus petits. Les sous-réseaux ne doivent pas se chevaucher !"}</p>
+            </div>
+          </div>
+
+          {/* ÉTAPE 2 : Topologie */}
+          <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
+            <h4 className="text-amber-300 font-bold mb-3 flex items-center gap-2"><span className="bg-amber-500/20 text-amber-400 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black">2</span> Étape 2 — Construire la topologie dans Packet Tracer</h4>
+            <p className="text-slate-300 text-xs mb-4">Placez les équipements suivants et reliez-les avec des câbles :</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="bg-black/30 rounded-lg p-4">
+                <p className="text-purple-300 font-bold mb-2">Équipements à placer :</p>
+                <ul className="text-slate-300 text-xs space-y-1.5">
+                  <li>{"• 4 Switches (2960) — un par service"}</li>
+                  <li>{"• Renommez-les : SW-DEV, SW-COMM, SW-COMPTA, SW-DIR"}</li>
+                  <li>{"• 3 PC par service (12 PC au total)"}</li>
+                  <li>{"• Nommez-les : PC-DEV-1, PC-DEV-2, PC-DEV-3, etc."}</li>
+                </ul>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4">
+                <p className="text-blue-300 font-bold mb-2">Câblage :</p>
+                <ul className="text-slate-300 text-xs space-y-1.5">
+                  <li>{"• PC → Switch : câble droit (Copper Straight-Through)"}</li>
+                  <li>{"• Chaque PC se branche sur SON switch de service"}</li>
+                  <li>{"• Ne reliez PAS les switches entre eux pour l'instant"}</li>
+                  <li>{"• Vérifiez que les liens passent au vert"}</li>
+                </ul>
+              </div>
+            </div>
+            <div className="bg-[#1a1035] rounded-lg p-4 border border-white/10">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Schéma de la topologie</p>
+              <pre className="text-xs font-mono text-slate-300 leading-relaxed overflow-x-auto">{`
+  ┌─────────────── Service DÉVELOPPEMENT ──────────────┐
+  │  PC-DEV-1 ──┐                                      │
+  │  PC-DEV-2 ──┼── SW-DEV (Switch 2960)               │
+  │  PC-DEV-3 ──┘                                      │
+  └────────────────────────────────────────────────────┘
+
+  ┌─────────────── Service COMMERCIAL ─────────────────┐
+  │  PC-COMM-1 ──┐                                     │
+  │  PC-COMM-2 ──┼── SW-COMM (Switch 2960)             │
+  │  PC-COMM-3 ──┘                                     │
+  └────────────────────────────────────────────────────┘
+
+  ┌─────────────── Service COMPTABILITÉ ───────────────┐
+  │  PC-COMPTA-1 ──┐                                   │
+  │  PC-COMPTA-2 ──┼── SW-COMPTA (Switch 2960)         │
+  │  PC-COMPTA-3 ──┘                                   │
+  └────────────────────────────────────────────────────┘
+
+  ┌─────────────── Service DIRECTION ──────────────────┐
+  │  PC-DIR-1 ──┐                                      │
+  │  PC-DIR-2 ──┼── SW-DIR (Switch 2960)               │
+  │  PC-DIR-3 ──┘                                      │
+  └────────────────────────────────────────────────────┘`}</pre>
+            </div>
+          </div>
+
+          {/* ÉTAPE 3 : Configuration IP */}
+          <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
+            <h4 className="text-amber-300 font-bold mb-3 flex items-center gap-2"><span className="bg-amber-500/20 text-amber-400 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black">3</span> Étape 3 — Configurer les adresses IP sur chaque PC</h4>
+            <p className="text-slate-300 text-xs mb-4">{"Pour chaque PC : cliquez dessus → Desktop → IP Configuration → Static. Remplissez l'adresse IP et le masque selon votre plan VLSM."}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/20">
+                <p className="text-purple-300 font-bold text-sm mb-2">Développement — À compléter</p>
+                <div className="space-y-1 font-mono text-xs">
+                  <p className="text-slate-400">PC-DEV-1 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
+                  <p className="text-slate-400">PC-DEV-2 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
+                  <p className="text-slate-400">PC-DEV-3 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
+                </div>
+              </div>
+              <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
+                <p className="text-blue-300 font-bold text-sm mb-2">Commercial — À compléter</p>
+                <div className="space-y-1 font-mono text-xs">
+                  <p className="text-slate-400">PC-COMM-1 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
+                  <p className="text-slate-400">PC-COMM-2 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
+                  <p className="text-slate-400">PC-COMM-3 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
+                </div>
+              </div>
+              <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20">
+                <p className="text-amber-300 font-bold text-sm mb-2">Comptabilité — À compléter</p>
+                <div className="space-y-1 font-mono text-xs">
+                  <p className="text-slate-400">PC-COMPTA-1 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
+                  <p className="text-slate-400">PC-COMPTA-2 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
+                  <p className="text-slate-400">PC-COMPTA-3 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
+                </div>
+              </div>
+              <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/20">
+                <p className="text-emerald-300 font-bold text-sm mb-2">Direction — À compléter</p>
+                <div className="space-y-1 font-mono text-xs">
+                  <p className="text-slate-400">PC-DIR-1 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
+                  <p className="text-slate-400">PC-DIR-2 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
+                  <p className="text-slate-400">PC-DIR-3 → IP : <span className="text-slate-500">???</span> | Masque : <span className="text-slate-500">???</span></p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-red-900/20 border-l-4 border-red-500 p-3 rounded-r-lg mt-4">
+              <p className="text-red-200 text-xs font-bold">{"⚠️ ATTENTION : Le masque DOIT correspondre au sous-réseau du service. Si vous mettez un mauvais masque, les PCs ne pourront pas communiquer !"}</p>
+            </div>
+          </div>
+
+          {/* ÉTAPE 4 : Tests */}
+          <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
+            <h4 className="text-amber-300 font-bold mb-3 flex items-center gap-2"><span className="bg-amber-500/20 text-amber-400 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black">4</span> Étape 4 — Tester la connectivité</h4>
+            <p className="text-slate-300 text-xs mb-4">{"Ouvrez le terminal (CLI) de chaque PC : cliquez → Desktop → Command Prompt. Faites ces tests :"}</p>
+            <div className="space-y-4">
+              <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/20">
+                <p className="text-emerald-300 font-bold text-sm mb-2">{"✅ Tests qui DOIVENT marcher (même service)"}</p>
+                <div className="font-mono text-xs space-y-1 text-slate-300">
+                  <p>{"Depuis PC-DEV-1 :    ping [IP de PC-DEV-2]     → Reply ✓"}</p>
+                  <p>{"Depuis PC-DEV-1 :    ping [IP de PC-DEV-3]     → Reply ✓"}</p>
+                  <p>{"Depuis PC-COMM-1 :   ping [IP de PC-COMM-2]    → Reply ✓"}</p>
+                  <p>{"Depuis PC-COMPTA-1 : ping [IP de PC-COMPTA-2]  → Reply ✓"}</p>
+                  <p>{"Depuis PC-DIR-1 :    ping [IP de PC-DIR-2]     → Reply ✓"}</p>
+                </div>
+              </div>
+              <div className="bg-red-900/20 rounded-lg p-4 border border-red-500/20">
+                <p className="text-red-300 font-bold text-sm mb-2">{"❌ Tests qui NE DOIVENT PAS marcher (services différents)"}</p>
+                <div className="font-mono text-xs space-y-1 text-slate-300">
+                  <p>{"Depuis PC-DEV-1 :    ping [IP de PC-COMM-1]    → Request timed out ✗"}</p>
+                  <p>{"Depuis PC-DEV-1 :    ping [IP de PC-DIR-1]     → Request timed out ✗"}</p>
+                  <p>{"Depuis PC-COMPTA-1 : ping [IP de PC-COMM-1]    → Request timed out ✗"}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ÉTAPE 5 : Vérification ipconfig */}
+          <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
+            <h4 className="text-amber-300 font-bold mb-3 flex items-center gap-2"><span className="bg-amber-500/20 text-amber-400 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black">5</span> Étape 5 — Vérifier avec ipconfig</h4>
+            <p className="text-slate-300 text-xs mb-3">{"Sur chaque PC, tapez ipconfig dans le Command Prompt et notez les résultats :"}</p>
+            <div className="bg-[#1a1035] rounded-lg p-4 border border-white/10 font-mono text-xs text-slate-300 overflow-x-auto">
+              <p className="text-emerald-400">{"C:\\> ipconfig"}</p>
+              <p className="mt-2 text-slate-500">{"FastEthernet0 Connection:(default port)"}</p>
+              <p className="mt-1">{"   Connection-specific DNS Suffix..:"}</p>
+              <p>{"   Link-local IPv6 Address.........: FE80::..."}</p>
+              <p>{"   IPv6 Address....................: ::"}</p>
+              <p className="text-white font-bold">{"   IPv4 Address....................: 192.168.10.X"}</p>
+              <p className="text-purple-400 font-bold">{"   Subnet Mask.....................: 255.255.255.XXX"}</p>
+              <p>{"   Default Gateway.................: "}</p>
+            </div>
+            <p className="text-slate-400 text-xs mt-3">{"Vérifiez que l'IP et le masque correspondent bien à votre plan d'adressage pour chaque PC."}</p>
+          </div>
+
+          {/* ÉTAPE 6 : Questions d'analyse */}
+          <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
+            <h4 className="text-amber-300 font-bold mb-3 flex items-center gap-2"><span className="bg-amber-500/20 text-amber-400 w-7 h-7 rounded-full flex items-center justify-center text-sm font-black">6</span> Étape 6 — Questions d'analyse</h4>
+            <p className="text-slate-300 text-xs mb-3">Répondez à ces questions après avoir terminé le lab :</p>
+            <div className="space-y-3">
+              <div className="bg-black/30 rounded-lg p-3">
+                <p className="text-amber-300 text-xs font-bold">Question 1</p>
+                <p className="text-slate-300 text-xs">{"Pourquoi les PC du même service peuvent se ping mais PAS ceux d'un autre service ?"}</p>
+              </div>
+              <div className="bg-black/30 rounded-lg p-3">
+                <p className="text-amber-300 text-xs font-bold">Question 2</p>
+                <p className="text-slate-300 text-xs">{"Que faudrait-il ajouter pour que les services puissent communiquer entre eux ?"}</p>
+              </div>
+              <div className="bg-black/30 rounded-lg p-3">
+                <p className="text-amber-300 text-xs font-bold">Question 3</p>
+                <p className="text-slate-300 text-xs">{"Si un PC-DEV a le masque 255.255.255.0 au lieu de 255.255.255.192, que se passe-t-il ? Testez !"}</p>
+              </div>
+              <div className="bg-black/30 rounded-lg p-3">
+                <p className="text-amber-300 text-xs font-bold">Question 4</p>
+                <p className="text-slate-300 text-xs">{"Combien d'adresses restent disponibles (non utilisées) dans le /24 de base après avoir créé les 4 sous-réseaux ?"}</p>
+              </div>
+              <div className="bg-black/30 rounded-lg p-3">
+                <p className="text-amber-300 text-xs font-bold">Question 5 — Bonus</p>
+                <p className="text-slate-300 text-xs">{"Un 5ème service 'Logistique' de 8 machines doit être ajouté. Quel masque ? Quel sous-réseau (sans chevaucher les existants) ?"}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-purple-900/20 border-l-4 border-purple-500 p-4 rounded-r-lg">
+            <p className="text-purple-200 font-bold">{"Objectif du lab"}</p>
+            <p className="text-slate-300 text-sm mt-1">{"À la fin de ce lab, vous devez avoir 4 réseaux isolés qui fonctionnent chacun indépendamment. Les PC d'un même service communiquent entre eux, mais pas avec les autres services. C'est exactement comme ça que fonctionne un vrai réseau d'entreprise !"}</p>
           </div>
         </div>
       ),
       solutionContent: (
-        <div className="space-y-6 max-w-4xl mx-auto">
-          <div className="bg-gradient-to-r from-emerald-900/30 to-purple-900/30 rounded-xl p-6 border border-emerald-500/20 mb-6">
-            <h3 className="text-xl font-bold text-white mb-2">{"Correction — Lab Adressage IP & Masques"}</h3>
-            <p className="text-slate-300 text-sm">Correction complète des exercices de calcul et du plan d'adressage VLSM.</p>
+        <div className="max-w-5xl mx-auto space-y-8 pb-16">
+          <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
+              {[
+                { id: 'lab7-materiel', label: 'Matériel', icon: '🧩' },
+                { id: 'lab7-cablage', label: 'Câblage', icon: '🟦' },
+                { id: 'lab7-calcul', label: 'Calculs VLSM', icon: '🟨' },
+                { id: 'lab7-ip', label: 'Config IP', icon: '🟥' },
+                { id: 'lab7-verif', label: 'Tests ping', icon: '🟩' },
+                { id: 'lab7-questions', label: 'Questions', icon: '🟪' },
+              ].map(({ id, label, icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
+                >
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <div className="space-y-6">
+            {/* MATÉRIEL */}
+            <section id="lab7-materiel" className="scroll-mt-4">
+              <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">{"🧩 Matériel nécessaire"}</h2>
+              <p className="text-slate-300 text-sm mb-3">{"Voici ce qu'il faut placer dans Packet Tracer :"}</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                  <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Équipement</th><th className="p-2 text-left">Quantité</th><th className="p-2 text-left">Nom</th></tr></thead>
+                  <tbody>
+                    <tr className="border-t border-white/20"><td className="p-2">Switch 2960</td><td className="p-2 font-mono text-emerald-400">4</td><td className="p-2 font-mono">SW-DEV, SW-COMM, SW-COMPTA, SW-DIR</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2">PC</td><td className="p-2 font-mono text-emerald-400">12</td><td className="p-2 font-mono">3 par service (PC-DEV-1, PC-DEV-2, PC-DEV-3, etc.)</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2">{"Câbles"}</td><td className="p-2 font-mono text-emerald-400">12</td><td className="p-2 font-mono">Copper Straight-Through (câble droit)</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* ÉTAPE 1 — CÂBLAGE */}
+            <section id="lab7-cablage" className="scroll-mt-4">
+              <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-2">{"🟦 Étape 1 — Câblage"}</h2>
+              <p className="text-slate-300 text-sm mb-3">{"Chaque service a SON switch. Les PC d'un service se branchent uniquement sur le switch de leur service. On ne relie PAS les switches entre eux."}</p>
+              <div className="overflow-x-auto mb-3">
+                <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                  <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">PC</th><th className="p-2 text-left">{"→"}</th><th className="p-2 text-left">Switch</th><th className="p-2 text-left">Port</th><th className="p-2 text-left">{"Câble"}</th></tr></thead>
+                  <tbody>
+                    <tr className="border-t border-white/20 bg-purple-900/10"><td className="p-2 text-purple-300">PC-DEV-1</td><td className="p-2">{"→"}</td><td className="p-2">SW-DEV</td><td className="p-2 font-mono">Fa0/1</td><td className="p-2 text-slate-400">droit</td></tr>
+                    <tr className="border-t border-white/20 bg-purple-900/10"><td className="p-2 text-purple-300">PC-DEV-2</td><td className="p-2">{"→"}</td><td className="p-2">SW-DEV</td><td className="p-2 font-mono">Fa0/2</td><td className="p-2 text-slate-400">droit</td></tr>
+                    <tr className="border-t border-white/20 bg-purple-900/10"><td className="p-2 text-purple-300">PC-DEV-3</td><td className="p-2">{"→"}</td><td className="p-2">SW-DEV</td><td className="p-2 font-mono">Fa0/3</td><td className="p-2 text-slate-400">droit</td></tr>
+                    <tr className="border-t border-white/20 bg-blue-900/10"><td className="p-2 text-blue-300">PC-COMM-1</td><td className="p-2">{"→"}</td><td className="p-2">SW-COMM</td><td className="p-2 font-mono">Fa0/1</td><td className="p-2 text-slate-400">droit</td></tr>
+                    <tr className="border-t border-white/20 bg-blue-900/10"><td className="p-2 text-blue-300">PC-COMM-2</td><td className="p-2">{"→"}</td><td className="p-2">SW-COMM</td><td className="p-2 font-mono">Fa0/2</td><td className="p-2 text-slate-400">droit</td></tr>
+                    <tr className="border-t border-white/20 bg-blue-900/10"><td className="p-2 text-blue-300">PC-COMM-3</td><td className="p-2">{"→"}</td><td className="p-2">SW-COMM</td><td className="p-2 font-mono">Fa0/3</td><td className="p-2 text-slate-400">droit</td></tr>
+                    <tr className="border-t border-white/20 bg-amber-900/10"><td className="p-2 text-amber-300">PC-COMPTA-1</td><td className="p-2">{"→"}</td><td className="p-2">SW-COMPTA</td><td className="p-2 font-mono">Fa0/1</td><td className="p-2 text-slate-400">droit</td></tr>
+                    <tr className="border-t border-white/20 bg-amber-900/10"><td className="p-2 text-amber-300">PC-COMPTA-2</td><td className="p-2">{"→"}</td><td className="p-2">SW-COMPTA</td><td className="p-2 font-mono">Fa0/2</td><td className="p-2 text-slate-400">droit</td></tr>
+                    <tr className="border-t border-white/20 bg-amber-900/10"><td className="p-2 text-amber-300">PC-COMPTA-3</td><td className="p-2">{"→"}</td><td className="p-2">SW-COMPTA</td><td className="p-2 font-mono">Fa0/3</td><td className="p-2 text-slate-400">droit</td></tr>
+                    <tr className="border-t border-white/20 bg-emerald-900/10"><td className="p-2 text-emerald-300">PC-DIR-1</td><td className="p-2">{"→"}</td><td className="p-2">SW-DIR</td><td className="p-2 font-mono">Fa0/1</td><td className="p-2 text-slate-400">droit</td></tr>
+                    <tr className="border-t border-white/20 bg-emerald-900/10"><td className="p-2 text-emerald-300">PC-DIR-2</td><td className="p-2">{"→"}</td><td className="p-2">SW-DIR</td><td className="p-2 font-mono">Fa0/2</td><td className="p-2 text-slate-400">droit</td></tr>
+                    <tr className="border-t border-white/20 bg-emerald-900/10"><td className="p-2 text-emerald-300">PC-DIR-3</td><td className="p-2">{"→"}</td><td className="p-2">SW-DIR</td><td className="p-2 font-mono">Fa0/3</td><td className="p-2 text-slate-400">droit</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-amber-300/90 text-xs border-l-2 border-amber-500/50 pl-3 py-1">{"Vérification : tous les liens doivent passer au vert 🟢. Si un lien reste orange, attendez quelques secondes."}</p>
+            </section>
+
+            {/* ÉTAPE 2 — CALCULS VLSM */}
+            <section id="lab7-calcul" className="scroll-mt-4">
+              <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">{"🟨 Étape 2 — Calculs VLSM (la logique)"}</h2>
+              <p className="text-slate-300 text-sm mb-3">{"Réseau de base : 192.168.10.0/24 (256 adresses). On doit le découper en 4 sous-réseaux. Règle VLSM : on commence TOUJOURS par le plus grand service."}</p>
+
+              <div className="space-y-4">
+                <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/20">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"1️⃣ Développement — 45 machines (le plus grand)"}</p>
+                  <div className="text-slate-300 text-xs space-y-1">
+                    <p>{"45 machines + 2 (réseau + broadcast) = 47 adresses minimum"}</p>
+                    <p>{"Quelle puissance de 2 ≥ 47 ? → 2^6 = 64 ✓"}</p>
+                    <p>{"CIDR = 32 - 6 = "}<strong className="text-emerald-400">/26</strong>{" → Masque = 256 - 64 = "}<strong className="text-emerald-400">255.255.255.192</strong></p>
+                    <p>{"Premier sous-réseau dispo : "}<strong className="text-emerald-400">192.168.10.0/26</strong></p>
+                    <p className="text-slate-500">{"Plage : .0 (réseau) | .1 à .62 (hôtes) | .63 (broadcast)"}</p>
+                    <p className="text-slate-500">{"→ Le prochain sous-réseau commence à .64"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
+                  <p className="text-blue-300 font-bold text-sm mb-2">{"2️⃣ Commercial — 25 machines"}</p>
+                  <div className="text-slate-300 text-xs space-y-1">
+                    <p>{"25 + 2 = 27 adresses minimum"}</p>
+                    <p>{"2^5 = 32 ≥ 27 ✓"}</p>
+                    <p>{"CIDR = 32 - 5 = "}<strong className="text-emerald-400">/27</strong>{" → Masque = 256 - 32 = "}<strong className="text-emerald-400">255.255.255.224</strong></p>
+                    <p>{"On reprend après le bloc précédent (.64) : "}<strong className="text-emerald-400">192.168.10.64/27</strong></p>
+                    <p className="text-slate-500">{"Plage : .64 (réseau) | .65 à .94 (hôtes) | .95 (broadcast)"}</p>
+                    <p className="text-slate-500">{"→ Le prochain commence à .96"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"3️⃣ Comptabilité — 12 machines"}</p>
+                  <div className="text-slate-300 text-xs space-y-1">
+                    <p>{"12 + 2 = 14 adresses minimum"}</p>
+                    <p>{"2^4 = 16 ≥ 14 ✓"}</p>
+                    <p>{"CIDR = 32 - 4 = "}<strong className="text-emerald-400">/28</strong>{" → Masque = 256 - 16 = "}<strong className="text-emerald-400">255.255.255.240</strong></p>
+                    <p>{"On reprend à .96 : "}<strong className="text-emerald-400">192.168.10.96/28</strong></p>
+                    <p className="text-slate-500">{"Plage : .96 (réseau) | .97 à .110 (hôtes) | .111 (broadcast)"}</p>
+                    <p className="text-slate-500">{"→ Le prochain commence à .112"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/20">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"4️⃣ Direction — 5 machines"}</p>
+                  <div className="text-slate-300 text-xs space-y-1">
+                    <p>{"5 + 2 = 7 adresses minimum"}</p>
+                    <p>{"2^3 = 8 ≥ 7 ✓"}</p>
+                    <p>{"CIDR = 32 - 3 = "}<strong className="text-emerald-400">/29</strong>{" → Masque = 256 - 8 = "}<strong className="text-emerald-400">255.255.255.248</strong></p>
+                    <p>{"On reprend à .112 : "}<strong className="text-emerald-400">192.168.10.112/29</strong></p>
+                    <p className="text-slate-500">{"Plage : .112 (réseau) | .113 à .118 (hôtes) | .119 (broadcast)"}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 overflow-x-auto">
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Tableau récapitulatif</p>
+                <table className="w-full text-xs text-slate-300 border border-white/20 rounded">
+                  <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Service</th><th className="p-2 text-left">Machines</th><th className="p-2 text-left">CIDR</th><th className="p-2 text-left">Masque</th><th className="p-2 text-left">Sous-réseau</th><th className="p-2 text-left">Plage hôtes</th><th className="p-2 text-left">Broadcast</th></tr></thead>
+                  <tbody>
+                    <tr className="border-t border-white/10"><td className="p-2 font-bold text-purple-300">{"Développement"}</td><td className="p-2">45</td><td className="p-2 font-mono text-emerald-400">/26</td><td className="p-2 font-mono text-emerald-400">255.255.255.192</td><td className="p-2 font-mono text-emerald-400">192.168.10.0</td><td className="p-2 font-mono text-emerald-400">.1 — .62</td><td className="p-2 font-mono text-emerald-400">.63</td></tr>
+                    <tr className="border-t border-white/10"><td className="p-2 font-bold text-blue-300">Commercial</td><td className="p-2">25</td><td className="p-2 font-mono text-emerald-400">/27</td><td className="p-2 font-mono text-emerald-400">255.255.255.224</td><td className="p-2 font-mono text-emerald-400">192.168.10.64</td><td className="p-2 font-mono text-emerald-400">.65 — .94</td><td className="p-2 font-mono text-emerald-400">.95</td></tr>
+                    <tr className="border-t border-white/10"><td className="p-2 font-bold text-amber-300">{"Comptabilité"}</td><td className="p-2">12</td><td className="p-2 font-mono text-emerald-400">/28</td><td className="p-2 font-mono text-emerald-400">255.255.255.240</td><td className="p-2 font-mono text-emerald-400">192.168.10.96</td><td className="p-2 font-mono text-emerald-400">.97 — .110</td><td className="p-2 font-mono text-emerald-400">.111</td></tr>
+                    <tr className="border-t border-white/10"><td className="p-2 font-bold text-emerald-300">Direction</td><td className="p-2">5</td><td className="p-2 font-mono text-emerald-400">/29</td><td className="p-2 font-mono text-emerald-400">255.255.255.248</td><td className="p-2 font-mono text-emerald-400">192.168.10.112</td><td className="p-2 font-mono text-emerald-400">.113 — .118</td><td className="p-2 font-mono text-emerald-400">.119</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* ÉTAPE 3 — CONFIG IP */}
+            <section id="lab7-ip" className="scroll-mt-4">
+              <h2 className="text-sm font-bold text-red-400 uppercase tracking-wider mb-2">{"🟥 Étape 3 — Configurer les adresses IP sur chaque PC"}</h2>
+              <p className="text-slate-300 text-sm mb-3">{"Sur chaque PC : clic → Desktop → IP Configuration → Static. On met la PREMIÈRE adresse utilisable du sous-réseau sur le PC-1, la deuxième sur le PC-2, etc."}</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/20">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Développement (masque : 255.255.255.192)"}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-slate-300 border border-white/10 rounded">
+                      <thead><tr className="bg-purple-900/20"><th className="p-1.5 text-left">PC</th><th className="p-1.5 text-left">IP</th><th className="p-1.5 text-left">Masque</th></tr></thead>
+                      <tbody>
+                        <tr className="border-t border-white/10"><td className="p-1.5">PC-DEV-1</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.1</td><td className="p-1.5 font-mono">255.255.255.192</td></tr>
+                        <tr className="border-t border-white/10"><td className="p-1.5">PC-DEV-2</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.2</td><td className="p-1.5 font-mono">255.255.255.192</td></tr>
+                        <tr className="border-t border-white/10"><td className="p-1.5">PC-DEV-3</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.3</td><td className="p-1.5 font-mono">255.255.255.192</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
+                  <p className="text-blue-300 font-bold text-sm mb-2">{"Commercial (masque : 255.255.255.224)"}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-slate-300 border border-white/10 rounded">
+                      <thead><tr className="bg-blue-900/20"><th className="p-1.5 text-left">PC</th><th className="p-1.5 text-left">IP</th><th className="p-1.5 text-left">Masque</th></tr></thead>
+                      <tbody>
+                        <tr className="border-t border-white/10"><td className="p-1.5">PC-COMM-1</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.65</td><td className="p-1.5 font-mono">255.255.255.224</td></tr>
+                        <tr className="border-t border-white/10"><td className="p-1.5">PC-COMM-2</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.66</td><td className="p-1.5 font-mono">255.255.255.224</td></tr>
+                        <tr className="border-t border-white/10"><td className="p-1.5">PC-COMM-3</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.67</td><td className="p-1.5 font-mono">255.255.255.224</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Comptabilité (masque : 255.255.255.240)"}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-slate-300 border border-white/10 rounded">
+                      <thead><tr className="bg-amber-900/20"><th className="p-1.5 text-left">PC</th><th className="p-1.5 text-left">IP</th><th className="p-1.5 text-left">Masque</th></tr></thead>
+                      <tbody>
+                        <tr className="border-t border-white/10"><td className="p-1.5">PC-COMPTA-1</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.97</td><td className="p-1.5 font-mono">255.255.255.240</td></tr>
+                        <tr className="border-t border-white/10"><td className="p-1.5">PC-COMPTA-2</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.98</td><td className="p-1.5 font-mono">255.255.255.240</td></tr>
+                        <tr className="border-t border-white/10"><td className="p-1.5">PC-COMPTA-3</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.99</td><td className="p-1.5 font-mono">255.255.255.240</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/20">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Direction (masque : 255.255.255.248)"}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-slate-300 border border-white/10 rounded">
+                      <thead><tr className="bg-emerald-900/20"><th className="p-1.5 text-left">PC</th><th className="p-1.5 text-left">IP</th><th className="p-1.5 text-left">Masque</th></tr></thead>
+                      <tbody>
+                        <tr className="border-t border-white/10"><td className="p-1.5">PC-DIR-1</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.113</td><td className="p-1.5 font-mono">255.255.255.248</td></tr>
+                        <tr className="border-t border-white/10"><td className="p-1.5">PC-DIR-2</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.114</td><td className="p-1.5 font-mono">255.255.255.248</td></tr>
+                        <tr className="border-t border-white/10"><td className="p-1.5">PC-DIR-3</td><td className="p-1.5 font-mono text-emerald-400">192.168.10.115</td><td className="p-1.5 font-mono">255.255.255.248</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <p className="text-red-300/90 text-xs border-l-2 border-red-500/50 pl-3 py-1 mt-4">{"⚠️ ATTENTION : le masque est DIFFÉRENT pour chaque service ! Ne mettez pas 255.255.255.0 partout, sinon les réseaux ne seront pas isolés. Pas de Gateway (pas de routeur dans ce lab)."}</p>
+            </section>
+
+            {/* ÉTAPE 4 — TESTS PING */}
+            <section id="lab7-verif" className="scroll-mt-4">
+              <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-2">{"🟩 Étape 4 — Tests de connectivité (ping)"}</h2>
+              <p className="text-slate-300 text-sm mb-3">{"Sur chaque PC : clic → Desktop → Command Prompt. Tapez les commandes ping suivantes :"}</p>
+              <div className="space-y-3 text-sm">
+                <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/20">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"✅ Tests qui DOIVENT marcher (même service)"}</p>
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-2">
+                      <span className="text-emerald-400 font-bold">1.</span>
+                      <div className="text-slate-300"><strong className="text-purple-300">PC-DEV-1</strong>{" → "}<code className="text-emerald-400 font-mono">ping 192.168.10.2</code>{" (PC-DEV-2) → Reply ✓"}</div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-emerald-400 font-bold">2.</span>
+                      <div className="text-slate-300"><strong className="text-blue-300">PC-COMM-1</strong>{" → "}<code className="text-emerald-400 font-mono">ping 192.168.10.66</code>{" (PC-COMM-2) → Reply ✓"}</div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-emerald-400 font-bold">3.</span>
+                      <div className="text-slate-300"><strong className="text-amber-300">PC-COMPTA-1</strong>{" → "}<code className="text-emerald-400 font-mono">ping 192.168.10.98</code>{" (PC-COMPTA-2) → Reply ✓"}</div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-emerald-400 font-bold">4.</span>
+                      <div className="text-slate-300"><strong className="text-emerald-300">PC-DIR-1</strong>{" → "}<code className="text-emerald-400 font-mono">ping 192.168.10.114</code>{" (PC-DIR-2) → Reply ✓"}</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-red-900/20 rounded-lg p-4 border border-red-500/20">
+                  <p className="text-red-300 font-bold text-sm mb-2">{"❌ Tests qui NE DOIVENT PAS marcher (services différents)"}</p>
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-2">
+                      <span className="text-red-400 font-bold">5.</span>
+                      <div className="text-slate-300"><strong className="text-purple-300">PC-DEV-1</strong>{" → "}<code className="text-emerald-400 font-mono">ping 192.168.10.65</code>{" (PC-COMM-1) → Request timed out ✗"}</div>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-red-400 font-bold">6.</span>
+                      <div className="text-slate-300"><strong className="text-purple-300">PC-DEV-1</strong>{" → "}<code className="text-emerald-400 font-mono">ping 192.168.10.113</code>{" (PC-DIR-1) → Request timed out ✗"}</div>
+                    </div>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"C'est NORMAL : les switches ne sont pas reliés entre eux et les PC sont dans des sous-réseaux différents."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 5 — QUESTIONS D'ANALYSE */}
+            <section id="lab7-questions" className="scroll-mt-4">
+              <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-2">{"🟪 Étape 5 — Questions d'analyse (réponses)"}</h2>
+              <div className="space-y-3 text-sm text-slate-300">
+                <div className="bg-black/20 rounded-lg p-4">
+                  <p className="text-amber-300 font-bold mb-1">{"Q1 : Pourquoi les PC du même service se ping mais pas les autres ?"}</p>
+                  <p>{"Parce qu'ils sont dans des sous-réseaux DIFFÉRENTS. Les switches ne sont pas reliés entre eux, et même s'ils l'étaient, les PC ont des masques différents → ils ne se considèrent pas dans le même réseau. Il faudrait un routeur pour faire le lien."}</p>
+                </div>
+                <div className="bg-black/20 rounded-lg p-4">
+                  <p className="text-amber-300 font-bold mb-1">{"Q2 : Que faudrait-il ajouter pour communiquer entre services ?"}</p>
+                  <p>{"Un ROUTEUR. Il aurait une interface (ou sous-interface) dans chaque sous-réseau et ferait le relais. C'est le sujet du cours sur le routage inter-VLAN et le routage statique."}</p>
+                </div>
+                <div className="bg-black/20 rounded-lg p-4">
+                  <p className="text-amber-300 font-bold mb-1">{"Q3 : Mauvais masque sur un PC-DEV (255.255.255.0 au lieu de .192) ?"}</p>
+                  <p>{"Le PC croit être dans un réseau de 254 machines (192.168.10.0/24) au lieu de 62 machines (/26). Il pense que les PC des autres services sont dans SON réseau. Résultat : il essaie de leur parler directement au lieu de passer par un routeur → ça ne marche pas et ça crée des bugs."}</p>
+                </div>
+                <div className="bg-black/20 rounded-lg p-4">
+                  <p className="text-amber-300 font-bold mb-1">{"Q4 : Adresses restantes dans le /24 ?"}</p>
+                  <p>{"Total /24 = 256 adresses. On a utilisé : 64 (Dev) + 32 (Comm) + 16 (Compta) + 8 (Dir) = 120 adresses. Il reste 256 - 120 = 136 adresses libres (de .120 à .255)."}</p>
+                </div>
+                <div className="bg-black/20 rounded-lg p-4">
+                  <p className="text-amber-300 font-bold mb-1">{"Q5 Bonus : Service Logistique (8 machines) ?"}</p>
+                  <p>{"8 + 2 = 10 → 2^4 = 16 → /28 (masque 255.255.255.240). Prochain bloc libre après .119 : 192.168.10.120/28. Hôtes : .121 à .134, broadcast .135. Ça ne chevauche pas les 4 sous-réseaux existants."}</p>
+                </div>
+              </div>
+            </section>
           </div>
 
-          <section className="bg-[#1a1035]/50 border border-white/20 rounded-2xl p-8 scroll-mt-4">
-            <h2 className="text-xl font-bold text-purple-400 mb-6">Exercice 1 — Texte à trou</h2>
-            <p className="text-slate-300 text-sm leading-relaxed">{"Une adresse IP est composée de "}<strong className="text-emerald-400">32</strong>{" bits répartis en "}<strong className="text-emerald-400">4</strong>{" octets. Elle contient une partie "}<strong className="text-emerald-400">réseau</strong>{" et une partie "}<strong className="text-emerald-400">hôte</strong>{". Le masque de sous-réseau permet de différencier ces deux parties. L'adresse "}<strong className="text-emerald-400">réseau</strong>{" est la première adresse d'un sous-réseau, et l'adresse de "}<strong className="text-emerald-400">broadcast</strong>{" est la dernière adresse. Le masque /26 correspond en décimal à "}<strong className="text-emerald-400">255.255.255.192</strong>.</p>
-          </section>
-
-          <section className="bg-[#1a1035]/50 border border-white/20 rounded-2xl p-8 scroll-mt-4">
-            <h2 className="text-xl font-bold text-blue-400 mb-6">Exercice 2 — Trouver le bon masque</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-slate-300 border border-white/20 rounded">
-                <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Nb machines</th><th className="p-2 text-left">Nb adresses (+2)</th><th className="p-2 text-left">Puissance de 2</th><th className="p-2 text-left">CIDR</th><th className="p-2 text-left">Masque décimal</th></tr></thead>
-                <tbody>
-                  <tr className="border-t border-white/10"><td className="p-2">6</td><td className="p-2 font-mono text-emerald-400">8</td><td className="p-2 font-mono text-emerald-400">{"2^3 = 8"}</td><td className="p-2 font-mono text-emerald-400">/29</td><td className="p-2 font-mono text-emerald-400">255.255.255.248</td></tr>
-                  <tr className="border-t border-white/10"><td className="p-2">14</td><td className="p-2 font-mono text-emerald-400">16</td><td className="p-2 font-mono text-emerald-400">{"2^4 = 16"}</td><td className="p-2 font-mono text-emerald-400">/28</td><td className="p-2 font-mono text-emerald-400">255.255.255.240</td></tr>
-                  <tr className="border-t border-white/10"><td className="p-2">50</td><td className="p-2 font-mono text-emerald-400">52</td><td className="p-2 font-mono text-emerald-400">{"2^6 = 64"}</td><td className="p-2 font-mono text-emerald-400">/26</td><td className="p-2 font-mono text-emerald-400">255.255.255.192</td></tr>
-                  <tr className="border-t border-white/10"><td className="p-2">126</td><td className="p-2 font-mono text-emerald-400">128</td><td className="p-2 font-mono text-emerald-400">{"2^7 = 128"}</td><td className="p-2 font-mono text-emerald-400">/25</td><td className="p-2 font-mono text-emerald-400">255.255.255.128</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section className="bg-[#1a1035]/50 border border-white/20 rounded-2xl p-8 scroll-mt-4">
-            <h2 className="text-xl font-bold text-amber-400 mb-6">Exercice 3 — Décomposer des adresses</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-slate-300 border border-white/20 rounded">
-                <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Adresse IP</th><th className="p-2 text-left">Masque</th><th className="p-2 text-left">Réseau</th><th className="p-2 text-left">Broadcast</th><th className="p-2 text-left">1ère hôte</th><th className="p-2 text-left">Dernière hôte</th><th className="p-2 text-left">Nb hôtes</th></tr></thead>
-                <tbody>
-                  <tr className="border-t border-white/10"><td className="p-2">192.168.1.10</td><td className="p-2">/24</td><td className="p-2 font-mono text-emerald-400">192.168.1.0</td><td className="p-2 font-mono text-emerald-400">192.168.1.255</td><td className="p-2 font-mono text-emerald-400">192.168.1.1</td><td className="p-2 font-mono text-emerald-400">192.168.1.254</td><td className="p-2 font-mono text-emerald-400">254</td></tr>
-                  <tr className="border-t border-white/10"><td className="p-2">10.0.0.100</td><td className="p-2">/8</td><td className="p-2 font-mono text-emerald-400">10.0.0.0</td><td className="p-2 font-mono text-emerald-400">10.255.255.255</td><td className="p-2 font-mono text-emerald-400">10.0.0.1</td><td className="p-2 font-mono text-emerald-400">10.255.255.254</td><td className="p-2 font-mono text-emerald-400">16 777 214</td></tr>
-                  <tr className="border-t border-white/10"><td className="p-2">192.168.0.130</td><td className="p-2">/26</td><td className="p-2 font-mono text-emerald-400">192.168.0.128</td><td className="p-2 font-mono text-emerald-400">192.168.0.191</td><td className="p-2 font-mono text-emerald-400">192.168.0.129</td><td className="p-2 font-mono text-emerald-400">192.168.0.190</td><td className="p-2 font-mono text-emerald-400">62</td></tr>
-                  <tr className="border-t border-white/10"><td className="p-2">172.16.5.130</td><td className="p-2">/20</td><td className="p-2 font-mono text-emerald-400">172.16.0.0</td><td className="p-2 font-mono text-emerald-400">172.16.15.255</td><td className="p-2 font-mono text-emerald-400">172.16.0.1</td><td className="p-2 font-mono text-emerald-400">172.16.15.254</td><td className="p-2 font-mono text-emerald-400">4094</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section className="bg-[#1a1035]/50 border border-white/20 rounded-2xl p-8 scroll-mt-4">
-            <h2 className="text-xl font-bold text-emerald-400 mb-6">{"Partie 2 — Plan d'adressage VLSM NetSolutions"}</h2>
-            <p className="text-slate-300 text-sm mb-4">{"Réseau de base : 192.168.1.0/24 — On commence par le plus grand service."}</p>
-            <div className="overflow-x-auto mb-4">
-              <table className="w-full text-xs text-slate-300 border border-white/20 rounded">
-                <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">Service</th><th className="p-2 text-left">Machines</th><th className="p-2 text-left">Masque</th><th className="p-2 text-left">Sous-réseau</th><th className="p-2 text-left">Plage hôtes</th><th className="p-2 text-left">Broadcast</th></tr></thead>
-                <tbody>
-                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-purple-300">Direction</td><td className="p-2">50</td><td className="p-2 font-mono text-emerald-400">/26</td><td className="p-2 font-mono text-emerald-400">192.168.1.0/26</td><td className="p-2 font-mono text-emerald-400">.1 — .62</td><td className="p-2 font-mono text-emerald-400">.63</td></tr>
-                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-blue-300">Technique</td><td className="p-2">25</td><td className="p-2 font-mono text-emerald-400">/27</td><td className="p-2 font-mono text-emerald-400">192.168.1.64/27</td><td className="p-2 font-mono text-emerald-400">.65 — .94</td><td className="p-2 font-mono text-emerald-400">.95</td></tr>
-                  <tr className="border-t border-white/10"><td className="p-2 font-bold text-amber-300">RH</td><td className="p-2">10</td><td className="p-2 font-mono text-emerald-400">/28</td><td className="p-2 font-mono text-emerald-400">192.168.1.96/28</td><td className="p-2 font-mono text-emerald-400">.97 — .110</td><td className="p-2 font-mono text-emerald-400">.111</td></tr>
-                </tbody>
-              </table>
-            </div>
-            <h3 className="text-slate-200 font-bold mb-3 border-b border-white/20 pb-2">Exemple de configuration PC (Direction)</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
-                <p className="text-purple-300 font-bold mb-2">PC-Direction-1</p>
-                <div className="mt-2 space-y-1 font-mono text-xs">
-                  <p className="text-emerald-400">IP : 192.168.1.1</p>
-                  <p className="text-emerald-400">Mask : 255.255.255.192</p>
-                  <p className="text-emerald-400">Gateway : (pas encore de routeur)</p>
-                </div>
-              </div>
-              <div className="bg-[#0e0920]/50 rounded-lg p-5 border border-white/[0.15]">
-                <p className="text-purple-300 font-bold mb-2">PC-Direction-2</p>
-                <div className="mt-2 space-y-1 font-mono text-xs">
-                  <p className="text-emerald-400">IP : 192.168.1.2</p>
-                  <p className="text-emerald-400">Mask : 255.255.255.192</p>
-                  <p className="text-emerald-400">Gateway : (pas encore de routeur)</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="bg-[#1a1035]/50 border border-white/20 rounded-2xl p-8 scroll-mt-4">
-            <h2 className="text-xl font-bold text-red-400 mb-6">Questions bonus — Réponses</h2>
-            <div className="space-y-3 text-sm text-slate-300">
-              <p><strong className="text-amber-300">{"1)"}</strong>{" L'adresse broadcast permet d'envoyer un message à TOUTES les machines du même sous-réseau."}</p>
-              <p><strong className="text-amber-300">{"2)"}</strong>{" La 1ère est l'adresse réseau et la dernière est le broadcast — elles sont réservées."}</p>
-              <p><strong className="text-amber-300">{"3)"}</strong>{" Classe A : 10.0.0.0/8 | Classe B : 172.16.0.0/12 | Classe C : 192.168.0.0/16"}</p>
-              <p><strong className="text-amber-300">{"4)"}</strong>{" 1000+2=1002 → 2^10=1024 → /22 = 255.255.252.0"}</p>
-              <p><strong className="text-amber-300">{"5)"}</strong>{" VLSM = Variable Length Subnet Masking. Permet d'utiliser des masques de taille différente par sous-réseau pour optimiser l'utilisation des adresses."}</p>
-            </div>
-          </section>
-
-          <div className="bg-emerald-900/20 border-l-4 border-emerald-500 p-4 rounded-r-lg">
-            <p className="text-emerald-200 font-bold">Récapitulatif</p>
-            <p className="text-slate-300 text-sm mt-1">{"Vous avez appris à calculer des masques, décomposer des adresses IP, et créer un plan d'adressage VLSM pour une entreprise. La clé : toujours partir du besoin en machines, ajouter 2, et trouver la puissance de 2 supérieure."}</p>
+          <div className="bg-emerald-900/20 border-t border-emerald-500/30 p-4">
+            <p className="text-emerald-400 text-sm font-medium flex items-center gap-2"><CheckCircle className="w-5 h-5" /> {"Lab complété : 4 réseaux isolés créés avec VLSM, connectivité vérifiée par service."}</p>
           </div>
         </div>
       )
@@ -11666,7 +12417,7 @@ const PacketTracerSection = () => {
 
 // --- LAB INDÉPENDANT : Session 1 ou 2 (consignes + corrections) ---
 const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sessionId = 1 }) => {
-  const [labTab, setLabTab] = useState('correction'); // 'consignes' | 'correction' | 'correction_lab2' | 'correction_lab3' | 'correction_lab4'
+  const [labTab, setLabTab] = useState(lab.consignes ? 'consignes' : 'correction'); // 'consignes' | 'correction' | 'correction_lab2' | 'correction_lab3' | 'correction_lab4'
   const isSession2 = sessionId === 2;
   const isSession3 = sessionId === 3;
   const isSession4 = sessionId === 4;
@@ -14706,6 +15457,175 @@ const weeks = [
   }
 ];
 
+// ═══════════════════════════════════════════════════════════════
+// CALCULETTE FLOTTANTE (puissances de 2, opérations basiques)
+// ═══════════════════════════════════════════════════════════════
+const NetworkCalculator = ({ open, onClose }) => {
+  const [display, setDisplay] = useState('0');
+  const [prev, setPrev] = useState(null);
+  const [op, setOp] = useState(null);
+  const [fresh, setFresh] = useState(true);
+  const [history, setHistory] = useState('');
+
+  if (!open) return null;
+
+  const inputDigit = (d) => {
+    if (fresh) { setDisplay(d === '.' ? '0.' : d); setFresh(false); }
+    else {
+      if (d === '.' && display.includes('.')) return;
+      setDisplay(display === '0' && d !== '.' ? d : display + d);
+    }
+  };
+
+  const clear = () => { setDisplay('0'); setPrev(null); setOp(null); setFresh(true); setHistory(''); };
+
+  const doOp = (a, b, operator) => {
+    switch (operator) {
+      case '+': return a + b;
+      case '-': return a - b;
+      case '×': return a * b;
+      case '÷': return b !== 0 ? a / b : 'Err';
+      case 'xʸ': return Math.pow(a, b);
+      default: return b;
+    }
+  };
+
+  const chooseOp = (nextOp) => {
+    const cur = parseFloat(display);
+    if (prev !== null && op && !fresh) {
+      const result = doOp(prev, cur, op);
+      if (result === 'Err') { setDisplay('Err'); setPrev(null); setOp(null); setFresh(true); setHistory(''); return; }
+      setHistory(`${prev} ${op} ${cur} =`);
+      setDisplay(String(result));
+      setPrev(result);
+    } else {
+      setPrev(cur);
+    }
+    setOp(nextOp);
+    setFresh(true);
+  };
+
+  const equals = () => {
+    if (prev === null || !op) return;
+    const cur = parseFloat(display);
+    const result = doOp(prev, cur, op);
+    if (result === 'Err') { setDisplay('Err'); setPrev(null); setOp(null); setFresh(true); setHistory('Erreur: ÷ par 0'); return; }
+    setHistory(`${prev} ${op} ${cur} =`);
+    setDisplay(String(result));
+    setPrev(null);
+    setOp(null);
+    setFresh(true);
+  };
+
+  const power2 = () => {
+    const n = parseFloat(display);
+    const result = Math.pow(2, n);
+    setHistory(`2^${n} =`);
+    setDisplay(String(result));
+    setFresh(true);
+  };
+
+  const minus2 = () => {
+    const n = parseFloat(display);
+    const result = Math.pow(2, n) - 2;
+    setHistory(`2^${n} − 2 =`);
+    setDisplay(String(result < 0 ? 0 : result));
+    setFresh(true);
+  };
+
+  const sub256 = () => {
+    const n = parseFloat(display);
+    setHistory(`256 − ${n} =`);
+    setDisplay(String(256 - n));
+    setFresh(true);
+  };
+
+  const toggleSign = () => {
+    if (display !== '0' && display !== 'Err') setDisplay(display.startsWith('-') ? display.slice(1) : '-' + display);
+  };
+
+  const Btn = ({ label, onClick, className = '', span = 1 }) => (
+    <button onClick={onClick}
+      className={`rounded-xl font-mono font-bold text-sm py-3 transition-all active:scale-95 ${className}`}
+      style={span > 1 ? { gridColumn: `span ${span}` } : {}}>
+      {label}
+    </button>
+  );
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        drag
+        dragMomentum={false}
+        className="fixed bottom-20 right-6 z-[100] w-[320px] select-none"
+      >
+        <div className="bg-[#0e0920]/95 backdrop-blur-2xl border border-white/15 rounded-2xl overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.6)] shadow-purple-900/30">
+          {/* Title bar */}
+          <div className="bg-white/5 border-b border-white/10 px-4 py-3 flex items-center justify-between cursor-grab active:cursor-grabbing">
+            <div className="flex items-center gap-2">
+              <div className="flex gap-1.5">
+                <button onClick={onClose} className="w-3 h-3 rounded-full bg-[#ff5f56] hover:brightness-110 transition-all" />
+                <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
+                <div className="w-3 h-3 rounded-full bg-[#27c93f]" />
+              </div>
+              <span className="text-slate-400 text-xs font-mono ml-2 tracking-wider uppercase">calculette</span>
+            </div>
+            <Calculator size={16} className="text-purple-400" />
+          </div>
+
+          {/* Display */}
+          <div className="px-5 pt-4 pb-2" onPointerDown={e => e.stopPropagation()}>
+            {history && <div className="text-right text-xs text-slate-500 font-mono mb-1 truncate">{history}</div>}
+            <div className="text-right text-3xl font-mono font-bold text-emerald-400 truncate min-h-[44px]">
+              {display}
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="p-4 pt-2 grid grid-cols-4 gap-2" onPointerDown={e => e.stopPropagation()}>
+            {/* Row 1 : special network buttons */}
+            <Btn label="2ⁿ" onClick={power2} className="bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 border border-purple-500/20" />
+            <Btn label="2ⁿ−2" onClick={minus2} className="bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 border border-purple-500/20" />
+            <Btn label="256−x" onClick={sub256} className="bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 border border-purple-500/20" />
+            <Btn label="xʸ" onClick={() => chooseOp('xʸ')} className={`border border-amber-500/20 ${op === 'xʸ' ? 'bg-amber-500/30 text-amber-300' : 'bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'}`} />
+
+            {/* Row 2 */}
+            <Btn label="C" onClick={clear} className="bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/20" />
+            <Btn label="±" onClick={toggleSign} className="bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5" />
+            <Btn label="." onClick={() => inputDigit('.')} className="bg-white/5 text-slate-300 hover:bg-white/10 border border-white/5" />
+            <Btn label="÷" onClick={() => chooseOp('÷')} className={`border border-blue-500/20 ${op === '÷' ? 'bg-blue-500/30 text-blue-300' : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'}`} />
+
+            {/* Row 3 */}
+            <Btn label="7" onClick={() => inputDigit('7')} className="bg-white/5 text-white hover:bg-white/10 border border-white/5" />
+            <Btn label="8" onClick={() => inputDigit('8')} className="bg-white/5 text-white hover:bg-white/10 border border-white/5" />
+            <Btn label="9" onClick={() => inputDigit('9')} className="bg-white/5 text-white hover:bg-white/10 border border-white/5" />
+            <Btn label="×" onClick={() => chooseOp('×')} className={`border border-blue-500/20 ${op === '×' ? 'bg-blue-500/30 text-blue-300' : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'}`} />
+
+            {/* Row 4 */}
+            <Btn label="4" onClick={() => inputDigit('4')} className="bg-white/5 text-white hover:bg-white/10 border border-white/5" />
+            <Btn label="5" onClick={() => inputDigit('5')} className="bg-white/5 text-white hover:bg-white/10 border border-white/5" />
+            <Btn label="6" onClick={() => inputDigit('6')} className="bg-white/5 text-white hover:bg-white/10 border border-white/5" />
+            <Btn label="−" onClick={() => chooseOp('-')} className={`border border-blue-500/20 ${op === '-' ? 'bg-blue-500/30 text-blue-300' : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'}`} />
+
+            {/* Row 5 */}
+            <Btn label="1" onClick={() => inputDigit('1')} className="bg-white/5 text-white hover:bg-white/10 border border-white/5" />
+            <Btn label="2" onClick={() => inputDigit('2')} className="bg-white/5 text-white hover:bg-white/10 border border-white/5" />
+            <Btn label="3" onClick={() => inputDigit('3')} className="bg-white/5 text-white hover:bg-white/10 border border-white/5" />
+            <Btn label="+" onClick={() => chooseOp('+')} className={`border border-blue-500/20 ${op === '+' ? 'bg-blue-500/30 text-blue-300' : 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20'}`} />
+
+            {/* Row 6 */}
+            <Btn label="0" onClick={() => inputDigit('0')} span={2} className="bg-white/5 text-white hover:bg-white/10 border border-white/5" />
+            <Btn label="=" onClick={equals} span={2} className="bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:brightness-110" />
+          </div>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
 // --- MAIN APP : THÉORIE + LAB + QUIZ ---
 
 export default function NetMasterClass({ onShowAdmin, onShowStats }) {
@@ -14718,6 +15638,7 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
   const [quizScore, setQuizScore] = useState(null);
   const [expandedWeek, setExpandedWeek] = useState(1);
   const [expandedLabWeek, setExpandedLabWeek] = useState(1);
+  const [calcOpen, setCalcOpen] = useState(false);
   // Système de statistiques (sync Supabase)
   const { stats, addTime, addCommand, addQuizAttempt, addLabAttempt, resetStats } = useStats(user?.id);
 
@@ -15315,7 +16236,7 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
             <LabsSection
               lab={sessions[6].lab}
               sessionLabel="Adressage IP & Masques"
-              sessionDescription="Lab NetSolutions : exercices de calcul de masques, décomposition d'adresses et plan d'adressage VLSM pour une entreprise avec 3 services."
+              sessionDescription="Lab DataFlow : créez 4 réseaux séparés pour une entreprise. Calculez les masques VLSM, configurez les IPs dans Packet Tracer, et testez la connectivité."
               sessionId={7}
             />
           </div>
@@ -15529,6 +16450,22 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
           )}
         </main>
       </div>
+
+      {/* Floating Calculator Button */}
+      <button
+        onClick={() => setCalcOpen(c => !c)}
+        className={`fixed bottom-6 right-6 z-[90] w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 ${
+          calcOpen
+            ? 'bg-purple-600 shadow-purple-500/40 rotate-12 scale-110'
+            : 'bg-gradient-to-br from-purple-600 to-blue-600 shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105'
+        }`}
+        title="Calculateur Réseau"
+      >
+        <Calculator size={24} className="text-white" />
+      </button>
+
+      {/* Calculator Window */}
+      <NetworkCalculator open={calcOpen} onClose={() => setCalcOpen(false)} />
     </div>
   );
 }
