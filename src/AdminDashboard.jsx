@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Users, Clock, BookOpen, Search, ChevronDown, ChevronUp, Copy, Check, Loader2, Link as LinkIcon, Plus, Calendar, X, ToggleLeft, ToggleRight, GraduationCap, Video, Trash2, Edit3 } from 'lucide-react';
+import { ArrowLeft, Users, Clock, BookOpen, Search, ChevronDown, ChevronUp, Copy, Check, Loader2, Link as LinkIcon, Plus, Calendar, X, ToggleLeft, ToggleRight, GraduationCap, Video, Trash2, Edit3, Eye, Terminal } from 'lucide-react';
 import { supabase } from './supabaseClient';
 import { useAuth } from './AuthContext';
 
@@ -53,38 +53,54 @@ export default function AdminDashboard({ onBack }) {
   const [liveCreating, setLiveCreating] = useState(false);
   const [liveError, setLiveError] = useState('');
 
+  // Lab visibility state
+  const [labVisibility, setLabVisibility] = useState([]);
+
   useEffect(() => {
     loadData();
   }, []);
 
   async function loadData() {
-    const [profilesRes, progressRes, promosRes, livesRes] = await Promise.all([
-      supabase.from('profiles').select('*').order('created_at', { ascending: false }),
-      supabase.from('student_progress').select('*'),
-      supabase.from('promos').select('*').order('date', { ascending: false }),
-      supabase.from('lives').select('*').order('created_at', { ascending: false }),
-    ]);
+    try {
+      const [profilesRes, progressRes, promosRes, labVisRes] = await Promise.all([
+        supabase.from('profiles').select('*').order('created_at', { ascending: false }),
+        supabase.from('student_progress').select('*'),
+        supabase.from('promos').select('*').order('date', { ascending: false }),
+        supabase.from('lab_visibility').select('*'),
+      ]);
 
-    const profiles = profilesRes.data || [];
-    const progress = progressRes.data || [];
-    const promosData = promosRes.data || [];
+      // lives table might not exist yet — query separately
+      let livesData = [];
+      try {
+        const livesRes = await supabase.from('lives').select('*').order('created_at', { ascending: false });
+        livesData = livesRes.data || [];
+      } catch (e) { /* table may not exist */ }
 
-    const merged = profiles.map(p => ({
-      ...p,
-      progress: progress.find(pr => pr.user_id === p.id) || null
-    }));
+      const profiles = profilesRes.data || [];
+      const progress = progressRes.data || [];
+      const promosData = promosRes.data || [];
 
-    setStudents(merged);
-    setPromos(promosData);
-    setLives(livesRes.data || []);
+      const merged = profiles.map(p => ({
+        ...p,
+        progress: progress.find(pr => pr.user_id === p.id) || null
+      }));
 
-    // Auto-expand all promos
-    const expanded = {};
-    promosData.forEach(p => { expanded[p.id] = true; });
-    expanded['other'] = true;
-    setExpandedPromos(expanded);
+      setStudents(merged);
+      setPromos(promosData);
+      setLives(livesData);
+      setLabVisibility(labVisRes.data || []);
 
-    setLoading(false);
+      // Auto-expand all promos
+      const expanded = {};
+      promosData.forEach(p => { expanded[p.id] = true; });
+      expanded['other'] = true;
+      setExpandedPromos(expanded);
+
+      setLoading(false);
+    } catch (err) {
+      console.error('loadData error:', err);
+      setLoading(false);
+    }
   }
 
   async function handleCreatePromo(e) {
@@ -172,6 +188,39 @@ export default function AdminDashboard({ onBack }) {
 
   function getPromoName(promoId) {
     return promos.find(p => p.id === promoId)?.name || 'Inconnue';
+  }
+
+  const LAB_LIST = [
+    { key: 'labs_s1', label: 'Lab Session 1 (S1, S2, S3)' },
+    { key: 'labs_s2', label: 'Lab Session 2 (VLAN)' },
+    { key: 'labs_s3', label: 'Lab Session 3 (Trunk)' },
+    { key: 'labs_s4', label: 'Lab DHCP & DNS' },
+    { key: 'labs_s5', label: 'Lab FTP' },
+    { key: 'labs_s6', label: 'Lab Syslog' },
+    { key: 'labs_s7', label: 'Lab Adressage & Masques' },
+    { key: 'labs_s8', label: 'Lab Routage Statique' },
+  ];
+
+  function getLabVis(labKey) {
+    return labVisibility.find(l => l.lab_key === labKey) || { visible: false, correction_visible: false };
+  }
+
+  async function toggleLabField(labKey, label, field) {
+    console.log('TOGGLE CLICKED:', labKey, field);
+    const current = labVisibility.find(l => l.lab_key === labKey);
+    const newValue = current ? !current[field] : true;
+    const { error } = await supabase.from('lab_visibility').upsert({
+      lab_key: labKey,
+      label: label,
+      visible: field === 'visible' ? newValue : (current?.visible ?? false),
+      correction_visible: field === 'correction_visible' ? newValue : (current?.correction_visible ?? false),
+    }, { onConflict: 'lab_key' });
+    if (error) {
+      console.error('Toggle lab error:', error);
+      alert(`Erreur toggle lab: ${error.message}`);
+      return;
+    }
+    await loadData();
   }
 
   function copyPromoLink(promo) {
@@ -618,6 +667,74 @@ export default function AdminDashboard({ onBack }) {
               ))}
             </div>
           )}
+        </motion.div>
+
+        {/* Lab Visibility Management */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-6"
+        >
+          <div className="flex items-center gap-3 mb-5">
+            <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/30">
+              <Terminal size={16} className="text-emerald-400" />
+            </div>
+            <div>
+              <h2 className="font-bold text-lg">Gestion des Labs</h2>
+              <p className="text-slate-500 text-xs">Activez/désactivez l'accès aux labs et corrections pour les étudiants</p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {LAB_LIST.map(lab => {
+              const vis = getLabVis(lab.key);
+              return (
+                <div key={lab.key} className={`rounded-xl border p-4 transition-all ${vis.visible ? 'border-white/10 bg-white/[0.02]' : 'border-white/5 bg-white/[0.01] opacity-70'}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`p-2 rounded-lg ${vis.visible ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white/5 text-slate-500'}`}>
+                        <Terminal size={16} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm text-slate-200 truncate">{lab.label}</p>
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${vis.visible ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-slate-600'}`}>
+                            {vis.visible ? 'Visible' : 'Masqué'}
+                          </span>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${vis.correction_visible ? 'bg-purple-500/20 text-purple-400' : 'bg-white/5 text-slate-600'}`}>
+                            {vis.correction_visible ? 'Correction visible' : 'Correction masquée'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="flex flex-col items-center gap-1">
+                        <button
+                          onClick={() => toggleLabField(lab.key, lab.label, 'visible')}
+                          className={`p-1.5 rounded-lg transition-all ${vis.visible ? 'text-emerald-400 hover:bg-emerald-500/10' : 'text-slate-500 hover:bg-white/5'}`}
+                          title={vis.visible ? 'Masquer le lab' : 'Rendre visible'}
+                        >
+                          {vis.visible ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
+                        </button>
+                        <span className="text-[9px] text-slate-600 font-medium">Lab</span>
+                      </div>
+                      <div className="flex flex-col items-center gap-1">
+                        <button
+                          onClick={() => toggleLabField(lab.key, lab.label, 'correction_visible')}
+                          className={`p-1.5 rounded-lg transition-all ${vis.correction_visible ? 'text-purple-400 hover:bg-purple-500/10' : 'text-slate-500 hover:bg-white/5'}`}
+                          title={vis.correction_visible ? 'Masquer la correction' : 'Rendre correction visible'}
+                        >
+                          {vis.correction_visible ? <ToggleRight size={22} /> : <ToggleLeft size={22} />}
+                        </button>
+                        <span className="text-[9px] text-slate-600 font-medium">Correction</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </motion.div>
 
         {/* Search */}

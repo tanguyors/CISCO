@@ -10246,14 +10246,14 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
         title: "Topologie de référence",
         content: (
           <div>
-            <V2Header module="MODULE 08" section="Mise en pratique" title="Scénario : 3 réseaux, 2 routeurs" description="On va travailler sur une topologie simple mais complète : 2 LANs reliés par 2 routeurs via un lien série. C'est le cas le plus courant en routage statique. L'objectif : que PC1 et PC2 puissent se pinguer." />
-            <V2Whiteboard title="Schéma de la topologie" code={"!     LAN 1                                         LAN 2\n!  192.168.1.0/24                                192.168.2.0/24\n!\n!  [PC1]──[SW1]──[R1]═══════════════[R2]──[SW2]──[PC2]\n!  .10          G0/0  S0/0/0    S0/0/0  G0/0      .10\n!               .1    .1    lien série   .2    .1\n!                        10.0.0.0/30\n!\n! 3 réseaux au total :\n!   1) LAN 1 : 192.168.1.0/24 (derrière R1)\n!   2) Lien série : 10.0.0.0/30 (entre R1 et R2)\n!   3) LAN 2 : 192.168.2.0/24 (derrière R2)"} />
-            <V2Whiteboard title="Plan d'adressage complet" code={"! Équipement │ Interface   │ Adresse IP     │ Masque\n! ───────────┼─────────────┼────────────────┼──────────────────\n! R1         │ G0/0        │ 192.168.1.1    │ 255.255.255.0\n! R1         │ S0/0/0 (DCE)│ 10.0.0.1       │ 255.255.255.252\n! R2         │ S0/0/0      │ 10.0.0.2       │ 255.255.255.252\n! R2         │ G0/0        │ 192.168.2.1    │ 255.255.255.0\n! PC1        │ NIC         │ 192.168.1.10   │ 255.255.255.0\n! PC2        │ NIC         │ 192.168.2.10   │ 255.255.255.0\n!\n! Passerelles par défaut (gateway) :\n!   PC1 → 192.168.1.1 (interface G0/0 de R1)\n!   PC2 → 192.168.2.1 (interface G0/0 de R2)"} />
+            <V2Header module="MODULE 08" section="Mise en pratique" title="Scénario : 3 réseaux, 2 routeurs" description="On va travailler sur une topologie simple mais complète : 2 LANs reliés par 2 routeurs via un lien Ethernet. C'est le cas le plus courant en routage statique. L'objectif : que les PCs puissent se pinguer entre les 2 réseaux." />
+            <V2Whiteboard title="Schéma de la topologie" code={"!     LAN 1                                         LAN 2\n!  192.168.10.0/24                              192.168.20.0/24\n!\n!  [PC0]──[SW0]──[R1]═══════════════[R2]──[SW1]──[PC2]\n!  [PC1]        G0/0  G0/1      G0/0  G0/1      [PC3]\n!               .1    .1   lien WAN   .2    .1\n!                        10.0.0.0/30\n!\n! 3 réseaux au total :\n!   1) LAN 1 : 192.168.10.0/24 (derrière R1)\n!   2) Lien WAN : 10.0.0.0/30 (entre R1 et R2)\n!   3) LAN 2 : 192.168.20.0/24 (derrière R2)"} />
+            <V2Whiteboard title="Plan d'adressage complet" code={"! Équipement │ Interface   │ Adresse IP     │ Masque\n! ───────────┼─────────────┼────────────────┼──────────────────\n! R1         │ G0/0 (LAN)  │ 192.168.10.1   │ 255.255.255.0\n! R1         │ G0/1 (WAN)  │ 10.0.0.1       │ 255.255.255.252\n! R2         │ G0/0 (WAN)  │ 10.0.0.2       │ 255.255.255.252\n! R2         │ G0/1 (LAN)  │ 192.168.20.1   │ 255.255.255.0\n! PC0        │ Fa0         │ 192.168.10.10  │ 255.255.255.0\n! PC1        │ Fa0         │ 192.168.10.11  │ 255.255.255.0\n! PC2        │ Fa0         │ 192.168.20.10  │ 255.255.255.0\n! PC3        │ Fa0         │ 192.168.20.11  │ 255.255.255.0\n!\n! Passerelles par défaut (gateway) :\n!   PC0/PC1 → 192.168.10.1 (interface G0/0 de R1)\n!   PC2/PC3 → 192.168.20.1 (interface G0/1 de R2)"} />
             <V2InfoCards cards={[
-              { title: "Le problème initial", color: "red", icon: AlertTriangle, items: ["R1 connaît : LAN1 (192.168.1.0/24) et le lien série (10.0.0.0/30)", "R1 ne connaît PAS : LAN2 (192.168.2.0/24)", "R2 connaît : LAN2 et le lien série", "R2 ne connaît PAS : LAN1", "→ PC1 ping PC2 = ÉCHEC ! Chaque routeur ne voit que ses réseaux connectés"] },
-              { title: "La solution", color: "emerald", icon: CheckCircle2, items: ["Sur R1 : ip route 192.168.2.0 255.255.255.0 10.0.0.2", "→ 'Pour aller vers LAN2, envoie à R2 (10.0.0.2)'", "Sur R2 : ip route 192.168.1.0 255.255.255.0 10.0.0.1", "→ 'Pour aller vers LAN1, envoie à R1 (10.0.0.1)'", "→ PC1 ping PC2 = SUCCÈS ! Aller ET retour configurés"] }
+              { title: "Le problème initial", color: "red", icon: AlertTriangle, items: ["R1 connaît : LAN1 (192.168.10.0/24) et le lien WAN (10.0.0.0/30)", "R1 ne connaît PAS : LAN2 (192.168.20.0/24)", "R2 connaît : LAN2 et le lien WAN", "R2 ne connaît PAS : LAN1", "→ PC0 ping PC2 = ÉCHEC ! Chaque routeur ne voit que ses réseaux connectés"] },
+              { title: "La solution", color: "emerald", icon: CheckCircle2, items: ["Sur R1 : ip route 192.168.20.0 255.255.255.0 10.0.0.2", "→ 'Pour aller vers LAN2, envoie à R2 (10.0.0.2)'", "Sur R2 : ip route 192.168.10.0 255.255.255.0 10.0.0.1", "→ 'Pour aller vers LAN1, envoie à R1 (10.0.0.1)'", "→ PC0 ping PC2 = SUCCÈS ! Aller ET retour configurés"] }
             ]} />
-            <V2Whiteboard title="Pourquoi /30 pour le lien série ?" code={"! Le lien série entre R1 et R2 utilise un /30 (255.255.255.252)\n!\n! /30 = 2 bits hôte = 2^2 = 4 adresses\n!   10.0.0.0  → adresse réseau (réservée)\n!   10.0.0.1  → R1 (côté DCE)\n!   10.0.0.2  → R2\n!   10.0.0.3  → broadcast (réservée)\n!\n! 4 adresses, 2 utilisables = PARFAIT pour un lien point-à-point\n! On ne gaspille que 2 adresses (au lieu de 254 avec un /24)\n!\n! C'est la bonne pratique pour tout lien entre 2 routeurs !\n! En vrai réseau, on peut même utiliser /31 (2 adresses, 0 perdue)"} />
+            <V2Whiteboard title="Pourquoi /30 pour le lien entre routeurs ?" code={"! Le lien entre R1 et R2 utilise un /30 (255.255.255.252)\n!\n! /30 = 2 bits hôte = 2^2 = 4 adresses\n!   10.0.0.0  → adresse réseau (réservée)\n!   10.0.0.1  → R1\n!   10.0.0.2  → R2\n!   10.0.0.3  → broadcast (réservée)\n!\n! 4 adresses, 2 utilisables = PARFAIT pour un lien point-à-point\n! On ne gaspille que 2 adresses (au lieu de 254 avec un /24)\n!\n! C'est la bonne pratique pour tout lien entre 2 routeurs !"} />
             <V2Tip title="Erreur n°1 des débutants">Oublier la route RETOUR ! Si R1 sait envoyer vers LAN2 mais R2 ne sait pas renvoyer vers LAN1, le ping de PC1 vers PC2 arrivera... mais la réponse sera perdue. Le ping affichera 'timeout'.</V2Tip>
           </div>
         )
@@ -10264,13 +10264,13 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
         title: "Configuration complète R1",
         content: (
           <div>
-            <V2Header module="MODULE 08" section="Configuration" title="Configuration de R1 — étape par étape" description="On configure le premier routeur : ses 2 interfaces (LAN et série) puis la route statique vers le réseau distant. Chaque commande est expliquée." />
-            <V2Terminal title="Configuration complète de R1" code={"R1> enable\nR1# configure terminal\n!\n! ── Interface LAN (vers le switch et les PCs) ──\nR1(config)# interface GigabitEthernet0/0\nR1(config-if)# ip address 192.168.1.1 255.255.255.0\n↳ IP du routeur côté LAN 1 (sera la gateway des PCs)\nR1(config-if)# no shutdown\n↳ Active l'interface (éteinte par défaut sur un routeur)\nR1(config-if)# exit\n!\n! ── Interface série (vers R2) ──\nR1(config)# interface Serial0/0/0\nR1(config-if)# ip address 10.0.0.1 255.255.255.252\n↳ IP du routeur côté lien série (/30 = 2 hôtes)\nR1(config-if)# clock rate 128000\n↳ Obligatoire UNIQUEMENT sur le côté DCE du câble série\n↳ Définit la vitesse de synchronisation de la liaison\nR1(config-if)# no shutdown\nR1(config-if)# exit\n!\n! ── Route statique vers LAN 2 ──\nR1(config)# ip route 192.168.2.0 255.255.255.0 10.0.0.2\n↳ Pour joindre 192.168.2.0/24 → envoyer via 10.0.0.2 (R2)\n!\nR1(config)# end\nR1# copy running-config startup-config\n↳ Sauvegarder ! Sans ça, tout est perdu au reboot"} />
+            <V2Header module="MODULE 08" section="Configuration" title="Configuration de R1 — étape par étape" description="On configure le premier routeur : ses 2 interfaces (LAN et WAN) puis la route statique vers le réseau distant. Chaque commande est expliquée." />
+            <V2Terminal title="Configuration complète de R1" code={"R1> enable\nR1# configure terminal\n!\n! ── Interface LAN (vers le switch et les PCs) ──\nR1(config)# interface GigabitEthernet0/0\nR1(config-if)# ip address 192.168.10.1 255.255.255.0\n↳ IP du routeur côté LAN 1 (sera la gateway des PCs)\nR1(config-if)# no shutdown\n↳ Active l'interface (éteinte par défaut sur un routeur)\nR1(config-if)# exit\n!\n! ── Interface WAN (vers R2) ──\nR1(config)# interface GigabitEthernet0/1\nR1(config-if)# ip address 10.0.0.1 255.255.255.252\n↳ IP du routeur côté lien WAN (/30 = 2 hôtes)\nR1(config-if)# no shutdown\nR1(config-if)# exit\n!\n! ── Route statique vers LAN 2 ──\nR1(config)# ip route 192.168.20.0 255.255.255.0 10.0.0.2\n↳ Pour joindre 192.168.20.0/24 → envoyer via 10.0.0.2 (R2)\n!\nR1(config)# end\nR1# copy running-config startup-config\n↳ Sauvegarder ! Sans ça, tout est perdu au reboot"} />
             <V2InfoCards cards={[
-              { title: "clock rate — c'est quoi ?", color: "amber", icon: Lightbulb, items: ["Sur un lien série, un côté fournit l'horloge (DCE) et l'autre la reçoit (DTE)", "Le côté DCE doit configurer le clock rate", "Dans Packet Tracer, le câble indique quel côté est DCE", "Valeurs courantes : 64000, 128000, 256000", "Si tu oublies le clock rate côté DCE, le lien ne monte PAS"] },
-              { title: "no shutdown — ne l'oublie pas !", color: "red", icon: AlertTriangle, items: ["Sur un SWITCH, les interfaces sont UP par défaut", "Sur un ROUTEUR, les interfaces sont DOWN par défaut", "Il faut TOUJOURS taper 'no shutdown' pour activer une interface", "C'est l'erreur la plus fréquente : tout est bien configuré mais l'interface est éteinte", "Vérifier avec 'show ip interface brief'"] }
+              { title: "no shutdown — ne l'oublie pas !", color: "red", icon: AlertTriangle, items: ["Sur un SWITCH, les interfaces sont UP par défaut", "Sur un ROUTEUR, les interfaces sont DOWN par défaut", "Il faut TOUJOURS taper 'no shutdown' pour activer une interface", "C'est l'erreur la plus fréquente : tout est bien configuré mais l'interface est éteinte", "Vérifier avec 'show ip interface brief'"] },
+              { title: "G0/0 vs G0/1", color: "amber", icon: Lightbulb, items: ["G0/0 = GigabitEthernet0/0 (1ère interface)", "G0/1 = GigabitEthernet0/1 (2ème interface)", "On utilise G0/0 pour le LAN (vers le switch)", "On utilise G0/1 pour le WAN (vers l'autre routeur)", "C'est une convention, pas une obligation"] }
             ]} />
-            <V2Tip title="Astuce Packet Tracer">Pour savoir quel côté du câble série est DCE : clique sur le câble dans Packet Tracer. Le côté avec l'icône d'horloge est le DCE. Ou utilise la commande <code className="text-emerald-400 font-mono">show controllers serial 0/0/0</code> qui affiche 'DCE' ou 'DTE'.</V2Tip>
+            <V2Tip title="Astuce">Après chaque <code className="text-emerald-400 font-mono">no shutdown</code>, tu devrais voir le message « %LINK-5-CHANGED: Interface GigabitEthernet0/0, changed state to up ». Si tu ne le vois pas, vérifie que le câble est bien branché.</V2Tip>
           </div>
         )
       },
@@ -10281,10 +10281,10 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
         content: (
           <div>
             <V2Header module="MODULE 08" section="Configuration" title="Configuration de R2 + les PCs" description="Même logique pour R2 mais en miroir. Ensuite on configure les adresses IP des PCs avec leur passerelle par défaut." />
-            <V2Terminal title="Configuration complète de R2" code={"R2> enable\nR2# configure terminal\n!\n! ── Interface LAN (vers switch et PCs) ──\nR2(config)# interface GigabitEthernet0/0\nR2(config-if)# ip address 192.168.2.1 255.255.255.0\n↳ IP du routeur côté LAN 2\nR2(config-if)# no shutdown\nR2(config-if)# exit\n!\n! ── Interface série (vers R1) ──\nR2(config)# interface Serial0/0/0\nR2(config-if)# ip address 10.0.0.2 255.255.255.252\n↳ Pas de clock rate ici (R2 est côté DTE)\nR2(config-if)# no shutdown\nR2(config-if)# exit\n!\n! ── Route statique vers LAN 1 (route RETOUR) ──\nR2(config)# ip route 192.168.1.0 255.255.255.0 10.0.0.1\n↳ Pour joindre 192.168.1.0/24 → envoyer via 10.0.0.1 (R1)\n!\nR2(config)# end\nR2# copy running-config startup-config"} />
-            <V2Whiteboard title="Configuration des PCs (Desktop → IP Configuration)" code={"! ── PC1 ──\n!   IP Address    : 192.168.1.10\n!   Subnet Mask   : 255.255.255.0\n!   Default Gateway: 192.168.1.1\n!   ↳ La gateway = l'IP de l'interface du routeur dans CE réseau\n!\n! ── PC2 ──\n!   IP Address    : 192.168.2.10\n!   Subnet Mask   : 255.255.255.0\n!   Default Gateway: 192.168.2.1\n!\n! ATTENTION : si tu oublies la gateway sur un PC,\n! il pourra communiquer dans son réseau local MAIS\n! il ne pourra JAMAIS joindre un autre réseau !\n! Le PC ne saura pas à qui envoyer les paquets 'hors réseau'"} />
+            <V2Terminal title="Configuration complète de R2" code={"R2> enable\nR2# configure terminal\n!\n! ── Interface WAN (vers R1) ──\nR2(config)# interface GigabitEthernet0/0\nR2(config-if)# ip address 10.0.0.2 255.255.255.252\nR2(config-if)# no shutdown\nR2(config-if)# exit\n!\n! ── Interface LAN (vers switch et PCs) ──\nR2(config)# interface GigabitEthernet0/1\nR2(config-if)# ip address 192.168.20.1 255.255.255.0\n↳ IP du routeur côté LAN 2\nR2(config-if)# no shutdown\nR2(config-if)# exit\n!\n! ── Route statique vers LAN 1 (route RETOUR) ──\nR2(config)# ip route 192.168.10.0 255.255.255.0 10.0.0.1\n↳ Pour joindre 192.168.10.0/24 → envoyer via 10.0.0.1 (R1)\n!\nR2(config)# end\nR2# copy running-config startup-config"} />
+            <V2Whiteboard title="Configuration des PCs (Desktop → IP Configuration)" code={"! ── PC0 ──\n!   IP Address    : 192.168.10.10\n!   Subnet Mask   : 255.255.255.0\n!   Default Gateway: 192.168.10.1\n!\n! ── PC1 ──\n!   IP Address    : 192.168.10.11\n!   Subnet Mask   : 255.255.255.0\n!   Default Gateway: 192.168.10.1\n!\n! ── PC2 ──\n!   IP Address    : 192.168.20.10\n!   Subnet Mask   : 255.255.255.0\n!   Default Gateway: 192.168.20.1\n!\n! ── PC3 ──\n!   IP Address    : 192.168.20.11\n!   Subnet Mask   : 255.255.255.0\n!   Default Gateway: 192.168.20.1\n!\n! ATTENTION : si tu oublies la gateway sur un PC,\n! il pourra communiquer dans son réseau local MAIS\n! il ne pourra JAMAIS joindre un autre réseau !"} />
             <V2InfoCards cards={[
-              { title: "Récapitulatif des routes configurées", color: "emerald", icon: CheckCircle2, items: ["R1 : ip route 192.168.2.0 255.255.255.0 10.0.0.2 (→ LAN2 via R2)", "R2 : ip route 192.168.1.0 255.255.255.0 10.0.0.1 (→ LAN1 via R1)", "Les 2 routes sont SYMÉTRIQUES (aller + retour)", "Les routes connected (C) sont ajoutées automatiquement", "Au total : 2 routes statiques + 4 routes connected"] },
+              { title: "Récapitulatif des routes configurées", color: "emerald", icon: CheckCircle2, items: ["R1 : ip route 192.168.20.0 255.255.255.0 10.0.0.2 (→ LAN2 via R2)", "R2 : ip route 192.168.10.0 255.255.255.0 10.0.0.1 (→ LAN1 via R1)", "Les 2 routes sont SYMÉTRIQUES (aller + retour)", "Les routes connected (C) sont ajoutées automatiquement", "Au total : 2 routes statiques + 4 routes connected"] },
               { title: "Default Gateway vs ip route", color: "amber", icon: Lightbulb, items: ["Default Gateway = sur les PCs (config manuelle)", "ip route = sur les routeurs (commande Cisco IOS)", "Les deux font la même chose : dire 'par où sortir'", "Le PC envoie tout ce qui est hors réseau à sa gateway", "Le routeur consulte sa table de routage pour chaque destination"] }
             ]} />
             <V2Tip title="Avant de tester">Vérifie que TOUTES les interfaces sont UP avec <code className="text-emerald-400 font-mono">show ip interface brief</code> sur chaque routeur. Si une interface est 'administratively down', tu as oublié le <code className="text-emerald-400 font-mono">no shutdown</code>.</V2Tip>
@@ -10298,9 +10298,9 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
         content: (
           <div>
             <V2Header module="MODULE 08" section="Vérification" title="Les commandes pour vérifier et dépanner le routage" description="Tu as tout configuré, maintenant il faut VÉRIFIER que ça marche. Et si ça marche pas, savoir où chercher l'erreur. Voici les commandes essentielles de diagnostic." />
-            <V2Terminal title="Vérification étape par étape" code={"! ❶ Vérifier les interfaces\nR1# show ip interface brief\n! Interface         IP-Address      OK? Method Status Protocol\n! Gi0/0             192.168.1.1     YES manual up     up\n! Se0/0/0           10.0.0.1        YES manual up     up\n↳ Les deux doivent être 'up up'. Si 'down' → no shutdown oublié\n!\n! ❷ Vérifier la table de routage\nR1# show ip route\n! C   192.168.1.0/24 is directly connected, Gi0/0\n! C   10.0.0.0/30 is directly connected, Se0/0/0\n! S   192.168.2.0/24 [1/0] via 10.0.0.2\n↳ La route S vers 192.168.2.0 DOIT apparaître\n!\n! ❸ Voir uniquement les routes statiques\nR1# show ip route static\n! S   192.168.2.0/24 [1/0] via 10.0.0.2\n!\n! ❹ Tester la connectivité\nR1# ping 10.0.0.2\n↳ Teste le lien série (doit marcher en premier)\nR1# ping 192.168.2.1\n↳ Teste qu'on atteint l'interface LAN de R2\nR1# ping 192.168.2.10\n↳ Teste la connectivité bout en bout vers PC2"} />
-            <V2Terminal title="Traceroute : voir le chemin" code={"! traceroute montre chaque routeur traversé :\nPC1> tracert 192.168.2.10\n!\n! 1   192.168.1.1    (R1 - gateway de PC1)\n! 2   10.0.0.2       (R2 - via le lien série)\n! 3   192.168.2.10   (PC2 - destination finale)\n!\n! Si ça s'arrête au milieu, le problème est au routeur suivant\n! Exemple : si ça s'arrête à 10.0.0.2 → R2 n'a pas la route retour"} />
-            <V2Whiteboard title="Guide de dépannage" code={"! Le ping PC1 → PC2 échoue ? Suit ce guide :\n!\n! ❶ ping de PC1 vers sa gateway (192.168.1.1)\n!    ÉCHEC → Problème local : IP du PC ou interface R1 G0/0\n!    OK → Continue...\n!\n! ❷ ping de R1 vers R2 série (10.0.0.2)\n!    ÉCHEC → Lien série : clock rate ? no shutdown ? IPs ?\n!    OK → Continue...\n!\n! ❸ ping de R1 vers 192.168.2.10\n!    ÉCHEC → Route statique manquante sur R1\n!    OK → Continue...\n!\n! ❹ ping de PC2 vers PC1 (192.168.1.10)\n!    ÉCHEC → Route RETOUR manquante sur R2 !\n!    OK → Tout fonctionne ✓\n!\n! Les 3 erreurs les plus courantes :\n!    1. no shutdown oublié sur une interface\n!    2. Route statique absente ou mal configurée\n!    3. Route retour manquante (erreur n°1 !)"} />
+            <V2Terminal title="Vérification étape par étape" code={"! ❶ Vérifier les interfaces\nR1# show ip interface brief\n! Interface         IP-Address      OK? Method Status Protocol\n! Gi0/0             192.168.10.1    YES manual up     up\n! Gi0/1             10.0.0.1        YES manual up     up\n↳ Les deux doivent être 'up up'. Si 'down' → no shutdown oublié\n!\n! ❷ Vérifier la table de routage\nR1# show ip route\n! C   192.168.10.0/24 is directly connected, Gi0/0\n! C   10.0.0.0/30 is directly connected, Gi0/1\n! S   192.168.20.0/24 [1/0] via 10.0.0.2\n↳ La route S vers 192.168.20.0 DOIT apparaître\n!\n! ❸ Voir uniquement les routes statiques\nR1# show ip route static\n! S   192.168.20.0/24 [1/0] via 10.0.0.2\n!\n! ❹ Tester la connectivité\nR1# ping 10.0.0.2\n↳ Teste le lien WAN (doit marcher en premier)\nR1# ping 192.168.20.1\n↳ Teste qu'on atteint l'interface LAN de R2\nR1# ping 192.168.20.10\n↳ Teste la connectivité bout en bout vers PC2"} />
+            <V2Terminal title="Traceroute : voir le chemin" code={"! traceroute montre chaque routeur traversé :\nPC0> tracert 192.168.20.10\n!\n! 1   192.168.10.1   (R1 - gateway de PC0)\n! 2   10.0.0.2       (R2 - via le lien WAN)\n! 3   192.168.20.10  (PC2 - destination finale)\n!\n! Si ça s'arrête au milieu, le problème est au routeur suivant\n! Exemple : si ça s'arrête à 10.0.0.2 → R2 n'a pas la route retour"} />
+            <V2Whiteboard title="Guide de dépannage" code={"! Le ping PC0 → PC2 échoue ? Suit ce guide :\n!\n! ❶ ping de PC0 vers sa gateway (192.168.10.1)\n!    ÉCHEC → Problème local : IP du PC ou interface R1 G0/0\n!    OK → Continue...\n!\n! ❷ ping de R1 vers R2 (10.0.0.2)\n!    ÉCHEC → Lien WAN : no shutdown ? IPs correctes ?\n!    OK → Continue...\n!\n! ❸ ping de R1 vers 192.168.20.10\n!    ÉCHEC → Route statique manquante sur R1\n!    OK → Continue...\n!\n! ❹ ping de PC2 vers PC0 (192.168.10.10)\n!    ÉCHEC → Route RETOUR manquante sur R2 !\n!    OK → Tout fonctionne ✓\n!\n! Les 3 erreurs les plus courantes :\n!    1. no shutdown oublié sur une interface\n!    2. Route statique absente ou mal configurée\n!    3. Route retour manquante (erreur n°1 !)"} />
             <V2Tip title="Astuce ping">Le premier ping échoue souvent (timeout) puis les suivants réussissent. C'est NORMAL ! Le premier ping déclenche une requête ARP pour résoudre l'adresse MAC. Le deuxième ping passe car l'ARP est en cache.</V2Tip>
           </div>
         )
@@ -10327,38 +10327,35 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
       consignes: (
         <div className="space-y-8 text-slate-300 leading-relaxed">
           <section>
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-3">{"🎯 Objectif du Lab"}</h2>
-            <p className="mb-4">{"Interconnecter deux réseaux distants avec du routage statique. À la fin du lab, les 4 PCs doivent pouvoir se pinguer entre eux (local ET inter-réseau)."}</p>
+            <h2 className="text-xl font-bold text-white mb-2">{"LAB — Routage statique"}</h2>
+            <p className="text-purple-300 font-semibold mb-4">{"Thématique : Interconnexion de deux réseaux distants avec routage statique"}</p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-3">{"📦 Matériel nécessaire dans Packet Tracer"}</h2>
-            <ul className="space-y-1 mb-4 text-sm">
-              <li>{"• 2 routeurs (Cisco 1941)"}</li>
-              <li>{"• 2 switches (2960)"}</li>
-              <li>{"• 4 PCs (2 par réseau)"}</li>
+            <h2 className="text-lg font-bold text-white mb-3">{"Matériel nécessaire dans Cisco Packet Tracer"}</h2>
+            <ul className="space-y-1 text-sm">
+              <li>{"• 2 routeurs (ex. : Cisco 1941)"}</li>
+              <li>{"• 2 switches"}</li>
+              <li>{"• 4 PC (2 par réseau)"}</li>
               <li>{"• Câbles Ethernet (copper straight-through)"}</li>
-              <li>{"• Câble Ethernet entre les deux routeurs (ou câble série selon interfaces)"}</li>
+              <li>{"• Câble série ou câble Ethernet entre les routeurs (selon interfaces disponibles)"}</li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-3">{"🏗️ Topologie à construire"}</h2>
-            <div className="bg-black/40 rounded-xl p-5 font-mono text-sm space-y-2">
-              <p className="text-purple-300 font-bold mb-3">{"Schéma :"}</p>
+            <h2 className="text-lg font-bold text-white mb-3">{"Topologie"}</h2>
+            <div className="bg-black/40 rounded-xl p-5 font-mono text-sm space-y-1">
               <p>{"[PC0]---[SW0]---[R1]======[R2]---[SW1]---[PC2]"}</p>
               <p>{"[PC1]                                     [PC3]"}</p>
-              <p className="text-slate-500 mt-3">{"LAN 1                  Lien WAN                  LAN 2"}</p>
-              <p className="text-slate-500">{"192.168.10.0/24       10.0.0.0/30       192.168.20.0/24"}</p>
             </div>
             <ul className="space-y-1 mt-3 text-sm">
-              <li>{"• Le lien R1 ↔ R2 peut être en Ethernet (G0/1 ↔ G0/0) ou en série"}</li>
+              <li>{"• Le lien R1 ↔ R2 peut être en Ethernet ou en série"}</li>
               <li>{"• Chaque routeur est connecté à son propre LAN"}</li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-3">{"📋 Plan d'adressage"}</h2>
+            <h2 className="text-lg font-bold text-white mb-3">{"Adresses IP à utiliser"}</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm border-collapse">
                 <thead>
@@ -10381,256 +10378,992 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
                 </tbody>
               </table>
             </div>
-            <p className="text-amber-300/80 text-sm mt-3">{"⚠️ Passerelle par défaut : PC0/PC1 → 192.168.10.1 | PC2/PC3 → 192.168.20.1"}</p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-3">{"📝 Étapes du LAB"}</h2>
-
-            <h3 className="text-slate-200 font-bold mb-3 border-b border-white/20 pb-2">{"Étape 1 : Mise en place de la topologie"}</h3>
-            <ul className="space-y-1 mb-6 text-sm">
-              <li>{"• Placer 2 routeurs (Cisco 1941)"}</li>
-              <li>{"• Placer 2 switches (2960)"}</li>
-              <li>{"• Placer 4 PCs (2 de chaque côté)"}</li>
-              <li>{"• Connecter PC0 et PC1 → SW0 → R1 (G0/0) avec des câbles droits"}</li>
-              <li>{"• Connecter R1 (G0/1) → R2 (G0/0) avec un câble Ethernet croisé (ou droit si auto-MDIX)"}</li>
-              <li>{"• Connecter R2 (G0/1) → SW1 → PC2 et PC3 avec des câbles droits"}</li>
-            </ul>
-
-            <h3 className="text-slate-200 font-bold mb-3 border-b border-white/20 pb-2">{"Étape 2 : Configuration IP des routeurs"}</h3>
-            <p className="text-purple-300 font-bold mb-2">{"Sur R1 :"}</p>
-            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-4 space-y-1">
-              <p>{"enable"}</p>
-              <p>{"configure terminal"}</p>
-              <p>{"hostname R1"}</p>
-              <p>{"!"}</p>
-              <p>{"interface GigabitEthernet0/0"}</p>
-              <p>{"ip address 192.168.10.1 255.255.255.0"}</p>
-              <p>{"no shutdown"}</p>
-              <p>{"exit"}</p>
-              <p>{"!"}</p>
-              <p>{"interface GigabitEthernet0/1"}</p>
-              <p>{"ip address 10.0.0.1 255.255.255.252"}</p>
-              <p>{"no shutdown"}</p>
-              <p>{"exit"}</p>
-            </div>
-            <p className="text-purple-300 font-bold mb-2">{"Sur R2 :"}</p>
-            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-6 space-y-1">
-              <p>{"enable"}</p>
-              <p>{"configure terminal"}</p>
-              <p>{"hostname R2"}</p>
-              <p>{"!"}</p>
-              <p>{"interface GigabitEthernet0/0"}</p>
-              <p>{"ip address 10.0.0.2 255.255.255.252"}</p>
-              <p>{"no shutdown"}</p>
-              <p>{"exit"}</p>
-              <p>{"!"}</p>
-              <p>{"interface GigabitEthernet0/1"}</p>
-              <p>{"ip address 192.168.20.1 255.255.255.0"}</p>
-              <p>{"no shutdown"}</p>
-              <p>{"exit"}</p>
-            </div>
-
-            <h3 className="text-slate-200 font-bold mb-3 border-b border-white/20 pb-2">{"Étape 3 : Configuration IP des PCs"}</h3>
-            <p className="mb-2 text-sm">{"Aller dans Desktop → IP Configuration sur chaque PC :"}</p>
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-black/30 rounded-lg p-3 text-sm">
-                <p className="text-purple-300 font-bold mb-1">{"PC0"}</p>
-                <p>{"IP : 192.168.10.10"}</p>
-                <p>{"Masque : 255.255.255.0"}</p>
-                <p>{"Gateway : 192.168.10.1"}</p>
-              </div>
-              <div className="bg-black/30 rounded-lg p-3 text-sm">
-                <p className="text-purple-300 font-bold mb-1">{"PC1"}</p>
-                <p>{"IP : 192.168.10.11"}</p>
-                <p>{"Masque : 255.255.255.0"}</p>
-                <p>{"Gateway : 192.168.10.1"}</p>
-              </div>
-              <div className="bg-black/30 rounded-lg p-3 text-sm">
-                <p className="text-purple-300 font-bold mb-1">{"PC2"}</p>
-                <p>{"IP : 192.168.20.10"}</p>
-                <p>{"Masque : 255.255.255.0"}</p>
-                <p>{"Gateway : 192.168.20.1"}</p>
-              </div>
-              <div className="bg-black/30 rounded-lg p-3 text-sm">
-                <p className="text-purple-300 font-bold mb-1">{"PC3"}</p>
-                <p>{"IP : 192.168.20.11"}</p>
-                <p>{"Masque : 255.255.255.0"}</p>
-                <p>{"Gateway : 192.168.20.1"}</p>
-              </div>
-            </div>
-
-            <h3 className="text-slate-200 font-bold mb-3 border-b border-white/20 pb-2">{"Étape 4 : Vérifier la connectivité locale"}</h3>
-            <p className="mb-2 text-sm">{"Tester les pings LOCAUX (même réseau) :"}</p>
-            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-2">
-              <p>{"PC0> ping 192.168.10.11   → PC1 (même LAN) ✅"}</p>
-              <p>{"PC0> ping 192.168.10.1    → R1 gateway ✅"}</p>
-              <p>{"PC2> ping 192.168.20.11   → PC3 (même LAN) ✅"}</p>
-              <p>{"PC2> ping 192.168.20.1    → R2 gateway ✅"}</p>
-            </div>
-            <p className="mb-2 text-sm mt-4">{"Tester un ping INTER-RÉSEAU (devrait échouer) :"}</p>
-            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-2">
-              <p>{"PC0> ping 192.168.20.10   → PC2 (autre réseau) ❌ ÉCHEC"}</p>
-            </div>
-            <p className="text-amber-300/80 text-sm mb-6">{"⚠️ C'est NORMAL ! On n'a pas encore configuré les routes statiques. Les routeurs ne savent pas comment atteindre l'autre réseau."}</p>
-
-            <h3 className="text-slate-200 font-bold mb-3 border-b border-white/20 pb-2">{"Étape 5 : Ajouter les routes statiques"}</h3>
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-black/30 rounded-lg p-3">
-                <p className="text-purple-300 font-bold mb-1">{"Sur R1"}</p>
-                <div className="font-mono text-sm text-emerald-300">
-                  <p>{"ip route 192.168.20.0 255.255.255.0 10.0.0.2"}</p>
-                </div>
-                <p className="text-slate-400 text-xs mt-1">{"Pour joindre le réseau 192.168.20.0/24, passer par R2 (10.0.0.2)"}</p>
-              </div>
-              <div className="bg-black/30 rounded-lg p-3">
-                <p className="text-purple-300 font-bold mb-1">{"Sur R2"}</p>
-                <div className="font-mono text-sm text-emerald-300">
-                  <p>{"ip route 192.168.10.0 255.255.255.0 10.0.0.1"}</p>
-                </div>
-                <p className="text-slate-400 text-xs mt-1">{"Pour joindre le réseau 192.168.10.0/24, passer par R1 (10.0.0.1)"}</p>
-              </div>
-            </div>
-
-            <h3 className="text-slate-200 font-bold mb-3 border-b border-white/20 pb-2">{"Étape 6 : Tests de connectivité inter-réseau"}</h3>
-            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-2 space-y-1">
-              <p className="text-slate-400">{"Pings locaux (doivent toujours fonctionner) :"}</p>
-              <p>{"PC0> ping 192.168.10.11   → PC1 ✅"}</p>
-              <p>{"PC2> ping 192.168.20.11   → PC3 ✅"}</p>
-              <p>{""}</p>
-              <p className="text-slate-400">{"Ping inter-réseau (doit maintenant fonctionner) :"}</p>
-              <p>{"PC0> ping 192.168.20.10   → PC2 ✅"}</p>
-              <p>{"PC0> ping 192.168.20.11   → PC3 ✅"}</p>
-              <p>{"PC2> ping 192.168.10.10   → PC0 ✅"}</p>
-              <p>{"PC3> ping 192.168.10.11   → PC1 ✅"}</p>
-            </div>
-            <p className="text-slate-400 text-sm mb-6">{"Tester aussi les pings depuis les routeurs eux-mêmes."}</p>
-
-            <h3 className="text-slate-200 font-bold mb-3 border-b border-white/20 pb-2">{"Étape 7 : Vérification de la table de routage"}</h3>
-            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-2 space-y-1">
-              <p>{"R1# show ip route"}</p>
-              <p className="text-slate-500">{"→ Vérifier la présence de S 192.168.20.0/24 [1/0] via 10.0.0.2"}</p>
-              <p>{""}</p>
-              <p>{"R2# show ip route"}</p>
-              <p className="text-slate-500">{"→ Vérifier la présence de S 192.168.10.0/24 [1/0] via 10.0.0.1"}</p>
-              <p>{""}</p>
-              <p className="text-slate-400">{"Si un ping échoue, utiliser traceroute pour identifier où le paquet se perd."}</p>
-            </div>
+            <h2 className="text-lg font-bold text-white mb-3">{"Objectifs pédagogiques"}</h2>
+            <ol className="space-y-1 text-sm list-decimal list-inside">
+              <li><strong>{"Configurer les interfaces IP"}</strong>{" sur les routeurs et les PC."}</li>
+              <li><strong>{"Vérifier la connectivité locale"}</strong>{" entre PC et routeur de même LAN."}</li>
+              <li>{"Ajouter des "}<strong>{"routes statiques"}</strong>{" sur chaque routeur pour atteindre l'autre réseau."}</li>
+              <li>{"Vérifier la connectivité "}<strong>{"inter-réseau"}</strong>{" (PC0 → PC2)."}</li>
+              <li>{"Vérifier la "}<strong>{"table de routage"}</strong>{" (show ip route)."}</li>
+            </ol>
           </section>
 
-          <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-5 mt-4">
+          <section>
+            <h2 className="text-lg font-bold text-white mb-3">{"Étapes du LAB"}</h2>
+
+            <h3 className="text-slate-200 font-bold mb-2 mt-4">{"1. Mise en place de la topologie"}</h3>
+            <ul className="space-y-1 mb-5 text-sm">
+              <li>{"• Connecter les PC aux switches."}</li>
+              <li>{"• Relier les switches aux routeurs."}</li>
+              <li>{"• Relier les deux routeurs entre eux (Ethernet ou Série)."}</li>
+            </ul>
+
+            <h3 className="text-slate-200 font-bold mb-2">{"2. Configuration IP"}</h3>
+            <ul className="space-y-1 mb-5 text-sm">
+              <li>{"• Affecter une adresse IP à chaque PC (dans son sous-réseau)."}</li>
+              <li>{"• Configurer chaque interface active sur les routeurs : ip address, no shutdown"}</li>
+              <li>{"• Vérifier les connexions avec ping."}</li>
+            </ul>
+
+            <h3 className="text-slate-200 font-bold mb-2">{"3. Ajouter les routes statiques"}</h3>
+            <div className="mb-5 text-sm">
+              <p className="mb-1">{"Sur R1 :"}</p>
+              <p className="text-emerald-400 font-mono ml-4 mb-2">{"➤ Ajouter une route vers 192.168.20.0/24 via 10.0.0.2"}</p>
+              <p className="mb-1">{"Sur R2 :"}</p>
+              <p className="text-emerald-400 font-mono ml-4">{"➤ Ajouter une route vers 192.168.10.0/24 via 10.0.0.1"}</p>
+            </div>
+
+            <h3 className="text-slate-200 font-bold mb-2">{"4. Tests de connectivité"}</h3>
+            <ul className="space-y-1 mb-5 text-sm">
+              <li>{"• PC0 ↔ PC1 (local)"}</li>
+              <li>{"• PC2 ↔ PC3 (local)"}</li>
+              <li>{"• PC0 ↔ PC2 (inter-réseau)"}</li>
+              <li>{"• Tester depuis les routeurs également"}</li>
+            </ul>
+
+            <h3 className="text-slate-200 font-bold mb-2">{"5. Vérification"}</h3>
+            <ul className="space-y-1 mb-5 text-sm">
+              <li>{"• Utiliser la commande show ip route pour observer la présence des routes statiques."}</li>
+              <li>{"• Utiliser traceroute si les pings échouent."}</li>
+            </ul>
+          </section>
+
+          <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-5">
             <p className="text-emerald-400 text-sm font-bold flex items-center gap-2 mb-2"><CheckCircle className="w-5 h-5" /> {"Résultat attendu"}</p>
-            <ul className="text-slate-300 text-xs space-y-1">
-              <li>{"• Les 4 PCs peuvent se ping entre eux (local et inter-réseau)"}</li>
-              <li>{"• Les routes statiques sont visibles dans la table de routage (show ip route)"}</li>
-              <li>{"• Tu sais configurer les interfaces IP sur les routeurs et les PCs"}</li>
-              <li>{"• Tu sais ajouter des routes statiques avec ip route"}</li>
-              <li>{"• Tu sais vérifier avec show ip route, ping et traceroute"}</li>
+            <ul className="text-slate-300 text-sm space-y-1">
+              <li>{"• Les quatre PC peuvent se ping entre eux."}</li>
+              <li>{"• Les routes statiques sont fonctionnelles, visibles dans la table de routage."}</li>
             </ul>
           </div>
         </div>
       ),
       solutionContent: (
-        <div className="space-y-8 text-slate-300 leading-relaxed">
-          <h2 className="text-xl font-bold text-white mb-4">{"Solution complète — Routage Statique"}</h2>
-
-          <section>
-            <h3 className="text-slate-200 font-bold mb-3 border-b border-white/20 pb-2">{"Configuration R1"}</h3>
-            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
-              <p>{"enable"}</p>
-              <p>{"configure terminal"}</p>
-              <p>{"hostname R1"}</p>
-              <p>{"!"}</p>
-              <p>{"interface GigabitEthernet0/0"}</p>
-              <p>{"ip address 192.168.10.1 255.255.255.0"}</p>
-              <p>{"no shutdown"}</p>
-              <p>{"exit"}</p>
-              <p>{"!"}</p>
-              <p>{"interface GigabitEthernet0/1"}</p>
-              <p>{"ip address 10.0.0.1 255.255.255.252"}</p>
-              <p>{"no shutdown"}</p>
-              <p>{"exit"}</p>
-              <p>{"!"}</p>
-              <p>{"ip route 192.168.20.0 255.255.255.0 10.0.0.2"}</p>
-              <p>{"!"}</p>
-              <p>{"end"}</p>
-              <p>{"copy running-config startup-config"}</p>
+        <div className="max-w-5xl mx-auto space-y-8 pb-16">
+          <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
+              {[
+                { id: 'lab8-plan', label: 'Plan de câblage', icon: '🔌' },
+                { id: 'lab8-objectif', label: 'Objectif', icon: '🎯' },
+                { id: 'lab8-cablage', label: 'Câblage', icon: '🧩' },
+                { id: 'lab8-r1', label: 'Config R1', icon: '⚙️' },
+                { id: 'lab8-r2', label: 'Config R2', icon: '⚙️' },
+                { id: 'lab8-pcs', label: 'Config PCs', icon: '🖥️' },
+                { id: 'lab8-routes', label: 'Routes statiques', icon: '🛣️' },
+                { id: 'lab8-tests', label: 'Tests', icon: '📡' },
+                { id: 'lab8-depannage', label: 'Dépannage', icon: '🔧' },
+              ].map(({ id, label, icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
+                >
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
             </div>
-          </section>
+          </nav>
 
-          <section>
-            <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-white/20 pb-2">{"Configuration R2"}</h3>
-            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
-              <p>{"enable"}</p>
-              <p>{"configure terminal"}</p>
-              <p>{"hostname R2"}</p>
-              <p>{"!"}</p>
-              <p>{"interface GigabitEthernet0/0"}</p>
-              <p>{"ip address 10.0.0.2 255.255.255.252"}</p>
-              <p>{"no shutdown"}</p>
-              <p>{"exit"}</p>
-              <p>{"!"}</p>
-              <p>{"interface GigabitEthernet0/1"}</p>
-              <p>{"ip address 192.168.20.1 255.255.255.0"}</p>
-              <p>{"no shutdown"}</p>
-              <p>{"exit"}</p>
-              <p>{"!"}</p>
-              <p>{"ip route 192.168.10.0 255.255.255.0 10.0.0.1"}</p>
-              <p>{"!"}</p>
-              <p>{"end"}</p>
-              <p>{"copy running-config startup-config"}</p>
-            </div>
-          </section>
+          <div className="space-y-8">
 
-          <section>
-            <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-white/20 pb-2">{"Configuration des PCs"}</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-black/30 rounded-lg p-3 text-sm font-mono">
-                <p className="text-purple-300 font-bold mb-1 font-sans">{"PC0"}</p>
-                <p>{"IP: 192.168.10.10"}</p>
-                <p>{"Mask: 255.255.255.0"}</p>
-                <p>{"GW: 192.168.10.1"}</p>
+            {/* PLAN DE CÂBLAGE */}
+            <section id="lab8-plan" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/20 to-purple-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-4 flex items-center gap-2">{"🔌 Plan de câblage"}</h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                    <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"Appareil"}</th><th className="p-2 text-left">{"Port"}</th><th className="p-2 text-center text-slate-400">{"Câble"}</th><th className="p-2 text-left">{"Appareil"}</th><th className="p-2 text-left">{"Port"}</th></tr></thead>
+                    <tbody>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC0"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight-Through"}</td><td className="p-2 font-bold">{"SW0"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight-Through"}</td><td className="p-2 font-bold">{"SW0"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"SW0"}</td><td className="p-2 font-mono">{"G0/1"}</td><td className="p-2 text-center text-emerald-400">{"Straight-Through"}</td><td className="p-2 font-bold">{"R1"}</td><td className="p-2 font-mono">{"G0/0"}</td></tr>
+                      <tr className="border-t border-white/20 bg-amber-500/10"><td className="p-2 font-bold text-amber-300">{"R1"}</td><td className="p-2 font-mono text-amber-300">{"G0/1"}</td><td className="p-2 text-center text-amber-300 font-bold">{"Cross-Over"}</td><td className="p-2 font-bold text-amber-300">{"R2"}</td><td className="p-2 font-mono text-amber-300">{"G0/0"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"R2"}</td><td className="p-2 font-mono">{"G0/1"}</td><td className="p-2 text-center text-emerald-400">{"Straight-Through"}</td><td className="p-2 font-bold">{"SW1"}</td><td className="p-2 font-mono">{"G0/1"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC2"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight-Through"}</td><td className="p-2 font-bold">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC3"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight-Through"}</td><td className="p-2 font-bold">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-amber-300/80 text-xs mt-3">{"⚠️ Le lien R1 ↔ R2 (en orange) est un câble croisé (Cross-Over). Tous les autres sont des câbles droits (Straight-Through)."}</p>
               </div>
-              <div className="bg-black/30 rounded-lg p-3 text-sm font-mono">
-                <p className="text-purple-300 font-bold mb-1 font-sans">{"PC1"}</p>
-                <p>{"IP: 192.168.10.11"}</p>
-                <p>{"Mask: 255.255.255.0"}</p>
-                <p>{"GW: 192.168.10.1"}</p>
-              </div>
-              <div className="bg-black/30 rounded-lg p-3 text-sm font-mono">
-                <p className="text-purple-300 font-bold mb-1 font-sans">{"PC2"}</p>
-                <p>{"IP: 192.168.20.10"}</p>
-                <p>{"Mask: 255.255.255.0"}</p>
-                <p>{"GW: 192.168.20.1"}</p>
-              </div>
-              <div className="bg-black/30 rounded-lg p-3 text-sm font-mono">
-                <p className="text-purple-300 font-bold mb-1 font-sans">{"PC3"}</p>
-                <p>{"IP: 192.168.20.11"}</p>
-                <p>{"Mask: 255.255.255.0"}</p>
-                <p>{"GW: 192.168.20.1"}</p>
-              </div>
-            </div>
-          </section>
+            </section>
 
-          <section>
-            <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-white/20 pb-2">{"Vérification"}</h3>
-            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
-              <p>{"R1# show ip route"}</p>
-              <p className="text-slate-400">{"C   192.168.10.0/24 is directly connected, GigabitEthernet0/0"}</p>
-              <p className="text-slate-400">{"C   10.0.0.0/30 is directly connected, GigabitEthernet0/1"}</p>
-              <p className="text-slate-400">{"S   192.168.20.0/24 [1/0] via 10.0.0.2"}</p>
-              <p>{""}</p>
-              <p>{"R2# show ip route"}</p>
-              <p className="text-slate-400">{"C   10.0.0.0/30 is directly connected, GigabitEthernet0/0"}</p>
-              <p className="text-slate-400">{"C   192.168.20.0/24 is directly connected, GigabitEthernet0/1"}</p>
-              <p className="text-slate-400">{"S   192.168.10.0/24 [1/0] via 10.0.0.1"}</p>
-              <p>{""}</p>
-              <p>{"PC0> ping 192.168.20.10 → Success ✅"}</p>
-              <p>{"PC2> ping 192.168.10.10 → Success ✅"}</p>
-              <p>{"PC1> ping 192.168.20.11 → Success ✅"}</p>
-              <p>{"PC3> ping 192.168.10.11 → Success ✅"}</p>
+            {/* ÉTAPE 1 : OBJECTIF */}
+            <section id="lab8-objectif" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/20 rounded-xl p-6 border border-purple-500/30">
+                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"🎯 Étape 1 — Comprendre l'objectif"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Le scénario :"}</p>
+                  <p className="text-slate-300 text-sm">{"Une entreprise a 2 sites distants. Le site A a 2 PCs (PC0, PC1) et le site B a 2 PCs (PC2, PC3). Les 2 sites sont reliés par 2 routeurs (R1 et R2). On veut que TOUS les PCs puissent communiquer entre eux."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Ce que ce lab va prouver :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• Sans route statique, les PCs du site A ne peuvent PAS joindre ceux du site B"}</li>
+                    <li>{"• Avec les routes statiques configurées, la communication inter-réseau fonctionne"}</li>
+                    <li>{"• Chaque routeur a besoin d'une route vers le réseau distant"}</li>
+                  </ul>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Topologie :"}</p>
+                  <div className="font-mono text-sm text-emerald-300 bg-black/30 rounded p-3">
+                    <p>{"[PC0] ─┐                                     ┌─ [PC2]"}</p>
+                    <p>{"       ├─ [SW0] ── [R1] ════════ [R2] ── [SW1] ─┤"}</p>
+                    <p>{"[PC1] ─┘                                     └─ [PC3]"}</p>
+                    <p className="text-slate-500 mt-2">{"LAN 1: 192.168.10.0/24     WAN: 10.0.0.0/30     LAN 2: 192.168.20.0/24"}</p>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Plan d'adressage complet :"}</p>
+                  <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                    <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"Appareil"}</th><th className="p-2 text-left">{"Interface"}</th><th className="p-2 text-left">{"Adresse IP"}</th><th className="p-2 text-left">{"Masque"}</th><th className="p-2 text-left">{"Passerelle"}</th></tr></thead>
+                    <tbody>
+                      <tr className="border-t border-white/20 bg-purple-900/10"><td className="p-2 font-bold text-purple-300">{"R1"}</td><td className="p-2 font-mono">{"G0/0 (LAN)"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.10.1"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                      <tr className="border-t border-white/20 bg-purple-900/10"><td className="p-2 font-bold text-purple-300">{"R1"}</td><td className="p-2 font-mono">{"G0/1 (WAN)"}</td><td className="p-2 font-mono text-emerald-400">{"10.0.0.1"}</td><td className="p-2 font-mono">{"255.255.255.252"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                      <tr className="border-t border-white/20 bg-blue-900/10"><td className="p-2 font-bold text-blue-300">{"R2"}</td><td className="p-2 font-mono">{"G0/0 (WAN)"}</td><td className="p-2 font-mono text-emerald-400">{"10.0.0.2"}</td><td className="p-2 font-mono">{"255.255.255.252"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                      <tr className="border-t border-white/20 bg-blue-900/10"><td className="p-2 font-bold text-blue-300">{"R2"}</td><td className="p-2 font-mono">{"G0/1 (LAN)"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.20.1"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2">{"PC0"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.10.10"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono text-amber-300">{"192.168.10.1"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2">{"PC1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.10.11"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono text-amber-300">{"192.168.10.1"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2">{"PC2"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.20.10"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono text-amber-300">{"192.168.20.1"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2">{"PC3"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.20.11"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono text-amber-300">{"192.168.20.1"}</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 2 : CÂBLAGE */}
+            <section id="lab8-cablage" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 rounded-xl p-6 border border-amber-500/30">
+                <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"🔌 Étape 2 — Câblage dans Packet Tracer"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Place les équipements puis branche les câbles un par un en suivant le tableau. Utilise des câbles Copper Straight-Through (vert clair) partout, sauf entre R1 et R2 où tu utilises un Copper Cross-Over (orange)."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Étape 2.1 — Placer les équipements :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• 2 routeurs : cherche « 1941 » dans Network Devices → Routers → clic et dépose 2 fois"}</li>
+                    <li>{"• 2 switches : cherche « 2960 » dans Network Devices → Switches → clic et dépose 2 fois"}</li>
+                    <li>{"• 4 PCs : dans End Devices → PC → clic et dépose 4 fois"}</li>
+                    <li>{"• Renomme-les : clic sur l'appareil → Config → Display Name → tape R1, R2, SW0, SW1, PC0, PC1, PC2, PC3"}</li>
+                  </ul>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Étape 2.2 — Brancher les câbles :"}</p>
+                  <p className="text-slate-400 text-xs mb-3">{"Prends l'outil câble (éclair en bas à gauche), choisis Copper Straight-Through, puis clique sur le 1er appareil → choisis le port → clique sur le 2ème appareil → choisis le port."}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                      <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"Appareil"}</th><th className="p-2 text-left">{"Port"}</th><th className="p-2 text-center text-slate-400">{"Câble"}</th><th className="p-2 text-left">{"Appareil"}</th><th className="p-2 text-left">{"Port"}</th></tr></thead>
+                      <tbody>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC0"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW0"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW0"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"SW0"}</td><td className="p-2 font-mono">{"G0/1"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"R1"}</td><td className="p-2 font-mono">{"G0/0"}</td></tr>
+                        <tr className="border-t border-white/20 bg-amber-500/5"><td className="p-2 text-amber-300 font-bold">{"R1"}</td><td className="p-2 font-mono text-amber-300">{"G0/1"}</td><td className="p-2 text-center text-amber-300">{"Cross-Over"}</td><td className="p-2 text-amber-300 font-bold">{"R2"}</td><td className="p-2 font-mono text-amber-300">{"G0/0"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"R2"}</td><td className="p-2 font-mono">{"G0/1"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW1"}</td><td className="p-2 font-mono">{"G0/1"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC2"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC3"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-amber-300/80 text-xs mt-3">{"⚠️ La ligne en orange = le lien WAN entre les 2 routeurs. Utilise Copper Cross-Over (ou Straight-Through si Auto-MDIX est activé sur les 1941). Attends 10–20s que les triangles passent au vert."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 3 : CONFIG R1 */}
+            <section id="lab8-r1" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/20 to-purple-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"⚙️ Étape 3 — Configurer le routeur R1"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Clique sur le routeur R1 → onglet CLI → appuie sur Entrée pour accéder à la console."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"3.1 — Nommer le routeur :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-slate-500">{"Router>"}</p>
+                    <p>{"enable"}</p>
+                    <p className="text-slate-500">{"Router#"}</p>
+                    <p>{"configure terminal"}</p>
+                    <p className="text-slate-500">{"Router(config)#"}</p>
+                    <p>{"hostname R1"}</p>
+                    <p className="text-slate-500">{"R1(config)#"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"3.2 — Configurer l'interface LAN (G0/0) :"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"C'est l'interface qui est connectée au switch SW0 (côté réseau local 192.168.10.0/24)."}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"interface GigabitEthernet0/0"}</p>
+                    <p>{"ip address 192.168.10.1 255.255.255.0"}</p>
+                    <p>{"no shutdown"}</p>
+                    <p>{"exit"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ 192.168.10.1 sera la passerelle par défaut de PC0 et PC1."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"3.3 — Configurer l'interface WAN (G0/1) :"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"C'est l'interface qui est connectée directement au routeur R2."}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"interface GigabitEthernet0/1"}</p>
+                    <p>{"ip address 10.0.0.1 255.255.255.252"}</p>
+                    <p>{"no shutdown"}</p>
+                    <p>{"exit"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ Le masque /30 (255.255.255.252) donne seulement 2 adresses utilisables : 10.0.0.1 et 10.0.0.2. Parfait pour un lien point-à-point entre 2 routeurs."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"3.4 — Vérifier que les interfaces sont UP :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"end"}</p>
+                    <p>{"show ip interface brief"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ Tu dois voir G0/0 et G0/1 en « up / up ». Si une interface est « administratively down », tu as oublié le « no shutdown »."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 4 : CONFIG R2 */}
+            <section id="lab8-r2" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-xl p-6 border border-blue-500/30">
+                <h2 className="text-lg font-bold text-blue-300 mb-3 flex items-center gap-2">{"⚙️ Étape 4 — Configurer le routeur R2"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Clique sur le routeur R2 → onglet CLI → appuie sur Entrée."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"4.1 — Nommer le routeur :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"enable"}</p>
+                    <p>{"configure terminal"}</p>
+                    <p>{"hostname R2"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"4.2 — Configurer l'interface WAN (G0/0) :"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"C'est l'interface connectée directement au routeur R1."}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"interface GigabitEthernet0/0"}</p>
+                    <p>{"ip address 10.0.0.2 255.255.255.252"}</p>
+                    <p>{"no shutdown"}</p>
+                    <p>{"exit"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"4.3 — Configurer l'interface LAN (G0/1) :"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"C'est l'interface connectée au switch SW1 (côté réseau local 192.168.20.0/24)."}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"interface GigabitEthernet0/1"}</p>
+                    <p>{"ip address 192.168.20.1 255.255.255.0"}</p>
+                    <p>{"no shutdown"}</p>
+                    <p>{"exit"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ 192.168.20.1 sera la passerelle par défaut de PC2 et PC3."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"4.4 — Vérifier que les interfaces sont UP :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"end"}</p>
+                    <p>{"show ip interface brief"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ G0/0 et G0/1 doivent être en « up / up »."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 5 : CONFIG DES 4 PCs */}
+            <section id="lab8-pcs" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-violet-900/20 to-purple-900/20 rounded-xl p-6 border border-violet-500/30">
+                <h2 className="text-lg font-bold text-violet-300 mb-3 flex items-center gap-2">{"🖥️ Étape 5 — Configurer les 4 PCs"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Pour chaque PC : clic sur le PC → onglet Desktop → IP Configuration. Remplis les 3 champs : IP Address, Subnet Mask, Default Gateway."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-3">{"5.1 — PC0 (Site A) :"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"Clic sur PC0 → Desktop → IP Configuration"}</p>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"IP Address"}</p><p className="font-mono text-emerald-400">{"192.168.10.10"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Subnet Mask"}</p><p className="font-mono text-white">{"255.255.255.0"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Default Gateway"}</p><p className="font-mono text-amber-300">{"192.168.10.1"}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-3">{"5.2 — PC1 (Site A) :"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"Clic sur PC1 → Desktop → IP Configuration"}</p>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"IP Address"}</p><p className="font-mono text-emerald-400">{"192.168.10.11"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Subnet Mask"}</p><p className="font-mono text-white">{"255.255.255.0"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Default Gateway"}</p><p className="font-mono text-amber-300">{"192.168.10.1"}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-blue-300 font-bold text-sm mb-3">{"5.3 — PC2 (Site B) :"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"Clic sur PC2 → Desktop → IP Configuration"}</p>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"IP Address"}</p><p className="font-mono text-emerald-400">{"192.168.20.10"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Subnet Mask"}</p><p className="font-mono text-white">{"255.255.255.0"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Default Gateway"}</p><p className="font-mono text-amber-300">{"192.168.20.1"}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-blue-300 font-bold text-sm mb-3">{"5.4 — PC3 (Site B) :"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"Clic sur PC3 → Desktop → IP Configuration"}</p>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"IP Address"}</p><p className="font-mono text-emerald-400">{"192.168.20.11"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Subnet Mask"}</p><p className="font-mono text-white">{"255.255.255.0"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Default Gateway"}</p><p className="font-mono text-amber-300">{"192.168.20.1"}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"⚠️ Erreur fréquente :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• Oublier la Default Gateway → le PC ne saura pas envoyer de paquets hors de son réseau"}</li>
+                    <li>{"• Mettre la mauvaise gateway → PC0/PC1 doivent avoir 192.168.10.1, PC2/PC3 doivent avoir 192.168.20.1"}</li>
+                    <li>{"• Confondre le masque → c'est 255.255.255.0 pour les PCs, pas 255.255.255.252"}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 6 : ROUTES STATIQUES */}
+            <section id="lab8-routes" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-red-900/20 to-purple-900/20 rounded-xl p-6 border border-red-500/30">
+                <h2 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">{"🛣️ Étape 6 — Ajouter les routes statiques"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"C'est l'étape clé ! Sans routes statiques, R1 ne sait pas que le réseau 192.168.20.0/24 existe (et inversement). On va leur dire manuellement."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"6.1 — Sur R1 : « Pour aller vers 192.168.20.0, passe par R2 »"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"Clique sur R1 → CLI"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"enable"}</p>
+                    <p>{"configure terminal"}</p>
+                    <p>{"ip route 192.168.20.0 255.255.255.0 10.0.0.2"}</p>
+                    <p>{"end"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 mt-3 text-xs">
+                    <p className="text-slate-400">{"Explication de la commande :"}</p>
+                    <p className="font-mono text-slate-300 mt-1">{"ip route "}<span className="text-amber-300">{"192.168.20.0"}</span>{" "}<span className="text-blue-300">{"255.255.255.0"}</span>{" "}<span className="text-emerald-300">{"10.0.0.2"}</span></p>
+                    <ul className="text-slate-400 mt-1 space-y-0.5">
+                      <li><span className="text-amber-300">{"192.168.20.0"}</span>{" = réseau de destination (le LAN de R2)"}</li>
+                      <li><span className="text-blue-300">{"255.255.255.0"}</span>{" = masque du réseau de destination"}</li>
+                      <li><span className="text-emerald-300">{"10.0.0.2"}</span>{" = next-hop (adresse IP de R2 sur le lien WAN)"}</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-blue-300 font-bold text-sm mb-2">{"6.2 — Sur R2 : « Pour aller vers 192.168.10.0, passe par R1 »"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"Clique sur R2 → CLI"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"enable"}</p>
+                    <p>{"configure terminal"}</p>
+                    <p>{"ip route 192.168.10.0 255.255.255.0 10.0.0.1"}</p>
+                    <p>{"end"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ Même logique : on dit à R2 que pour joindre 192.168.10.0/24, il faut envoyer les paquets à 10.0.0.1 (R1)."}</p>
+                </div>
+
+                <div className="bg-red-900/20 rounded-lg p-4 border border-red-500/20">
+                  <p className="text-red-300 font-bold text-sm mb-2">{"❌ Si tu oublies UNE des deux routes :"}</p>
+                  <p className="text-slate-300 text-sm">{"Le ping aller marche, mais la réponse ne peut pas revenir ! Le paquet de PC0 arrive bien à PC2, mais PC2 essaie de répondre via R2, et R2 ne sait pas comment retourner vers 192.168.10.0. Résultat = timeout."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 7 : SAUVEGARDER */}
+            <section className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/20 to-blue-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"💾 Étape 7 — Sauvegarder la configuration"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Sur CHAQUE routeur (R1 puis R2), sauvegarde la config en NVRAM pour qu'elle ne soit pas perdue au redémarrage."}</p>
+                <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                  <p>{"copy running-config startup-config"}</p>
+                  <p className="text-slate-500">{"Destination filename [startup-config]?"}</p>
+                  <p className="text-slate-500">{"→ Appuie sur Entrée"}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 8 : TESTS */}
+            <section id="lab8-tests" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-cyan-900/20 to-purple-900/20 rounded-xl p-6 border border-cyan-500/30">
+                <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center gap-2">{"📡 Étape 8 — Tests de connectivité"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Pour chaque test : clic sur le PC → Desktop → Command Prompt → tape la commande ping."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"8.1 — Tests LOCAUX (même réseau, doivent fonctionner) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-slate-400">{"Depuis PC0 :"}</p>
+                    <p>{"C:\\> ping 192.168.10.11"}<span className="text-slate-500">{" ← PC1 (même LAN)"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{"C:\\> ping 192.168.10.1"}<span className="text-slate-500">{"  ← R1 gateway"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{""}</p>
+                    <p className="text-slate-400">{"Depuis PC2 :"}</p>
+                    <p>{"C:\\> ping 192.168.20.11"}<span className="text-slate-500">{" ← PC3 (même LAN)"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{"C:\\> ping 192.168.20.1"}<span className="text-slate-500">{"  ← R2 gateway"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"8.2 — Tests INTER-RÉSEAU (doivent fonctionner grâce aux routes statiques) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-slate-400">{"Depuis PC0 (site A → site B) :"}</p>
+                    <p>{"C:\\> ping 192.168.20.10"}<span className="text-slate-500">{" ← PC2"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{"C:\\> ping 192.168.20.11"}<span className="text-slate-500">{" ← PC3"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{""}</p>
+                    <p className="text-slate-400">{"Depuis PC1 (site A → site B) :"}</p>
+                    <p>{"C:\\> ping 192.168.20.10"}<span className="text-slate-500">{" ← PC2"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{"C:\\> ping 192.168.20.11"}<span className="text-slate-500">{" ← PC3"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{""}</p>
+                    <p className="text-slate-400">{"Depuis PC2 (site B → site A) :"}</p>
+                    <p>{"C:\\> ping 192.168.10.10"}<span className="text-slate-500">{" ← PC0"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{"C:\\> ping 192.168.10.11"}<span className="text-slate-500">{" ← PC1"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{""}</p>
+                    <p className="text-slate-400">{"Depuis PC3 (site B → site A) :"}</p>
+                    <p>{"C:\\> ping 192.168.10.10"}<span className="text-slate-500">{" ← PC0"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{"C:\\> ping 192.168.10.11"}<span className="text-slate-500">{" ← PC1"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"8.3 — Vérifier les tables de routage :"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"Sur chaque routeur (clic → CLI) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1 mb-3">
+                    <p className="text-white font-bold">{"R1# show ip route"}</p>
+                    <p className="text-slate-400">{"C   192.168.10.0/24 is directly connected, GigabitEthernet0/0"}</p>
+                    <p className="text-slate-400">{"C   10.0.0.0/30 is directly connected, GigabitEthernet0/1"}</p>
+                    <p className="text-amber-300">{"S   192.168.20.0/24 [1/0] via 10.0.0.2"}</p>
+                  </div>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-white font-bold">{"R2# show ip route"}</p>
+                    <p className="text-slate-400">{"C   10.0.0.0/30 is directly connected, GigabitEthernet0/0"}</p>
+                    <p className="text-slate-400">{"C   192.168.20.0/24 is directly connected, GigabitEthernet0/1"}</p>
+                    <p className="text-amber-300">{"S   192.168.10.0/24 [1/0] via 10.0.0.1"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ Les lignes en C = réseaux directement connectés (automatique). La ligne en S = ta route statique (configurée manuellement). Si tu ne vois pas la ligne S, la route statique n'a pas été ajoutée."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* DÉPANNAGE */}
+            <section id="lab8-depannage" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-red-900/20 to-amber-900/20 rounded-xl p-6 border border-red-500/30">
+                <h2 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">{"🔧 Dépannage — Si ça ne marche pas"}</h2>
+
+                <div className="space-y-3">
+                  <div className="bg-black/30 rounded-lg p-4">
+                    <p className="text-amber-300 font-bold text-sm mb-1">{"Ping local échoue (PC0 → PC1) ?"}</p>
+                    <ul className="text-slate-300 text-sm space-y-1">
+                      <li>{"• Vérifie que les IPs sont dans le même réseau (192.168.10.x pour les deux)"}</li>
+                      <li>{"• Vérifie que le masque est correct (255.255.255.0)"}</li>
+                      <li>{"• Vérifie que les câbles sont branchés (triangles verts sur le lien)"}</li>
+                      <li>{"• Vérifie que l'interface G0/0 de R1 est UP : show ip interface brief"}</li>
+                    </ul>
+                  </div>
+                  <div className="bg-black/30 rounded-lg p-4">
+                    <p className="text-amber-300 font-bold text-sm mb-1">{"Ping inter-réseau échoue (PC0 → PC2) ?"}</p>
+                    <ul className="text-slate-300 text-sm space-y-1">
+                      <li>{"• Vérifie que les DEUX routes statiques sont configurées (une sur R1 ET une sur R2)"}</li>
+                      <li>{"• Vérifie les passerelles des PCs (PC0/PC1 → 192.168.10.1, PC2/PC3 → 192.168.20.1)"}</li>
+                      <li>{"• Vérifie que le lien WAN entre R1 et R2 fonctionne : depuis R1, ping 10.0.0.2"}</li>
+                      <li>{"• Utilise traceroute pour voir où le paquet se perd : C:\\> tracert 192.168.20.10"}</li>
+                    </ul>
+                  </div>
+                  <div className="bg-black/30 rounded-lg p-4">
+                    <p className="text-amber-300 font-bold text-sm mb-1">{"Request timed out ?"}</p>
+                    <ul className="text-slate-300 text-sm space-y-1">
+                      <li>{"• Le premier ping peut échouer (normal, c'est l'ARP). Retente une 2ème fois."}</li>
+                      <li>{"• Si ça échoue toujours, vérifie les routes avec show ip route sur les 2 routeurs"}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* RÉSUMÉ FINAL */}
+            <section className="scroll-mt-4">
+              <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-6">
+                <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Résultat attendu"}</p>
+                <ul className="text-slate-300 text-sm space-y-1">
+                  <li>{"✅ Les 4 PCs se pinguent entre eux (local ET inter-réseau)"}</li>
+                  <li>{"✅ Les tables de routage affichent les routes statiques (S) sur R1 et R2"}</li>
+                  <li>{"✅ Le lien WAN entre R1 et R2 fonctionne (ping 10.0.0.1 ↔ 10.0.0.2)"}</li>
+                  <li>{"✅ Tu sais configurer des interfaces IP sur un routeur"}</li>
+                  <li>{"✅ Tu sais ajouter une route statique avec ip route"}</li>
+                  <li>{"✅ Tu sais vérifier avec show ip route, ping et traceroute"}</li>
+                </ul>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      ),
+      solutionContentLab2: (
+        <div className="max-w-5xl mx-auto space-y-8 pb-16">
+          <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">{"Raccourcis:"}</span>
+              {[
+                { id: 'dep1-scenario', label: 'Scénario', icon: '📋' },
+                { id: 'dep1-err1', label: 'Erreur 1', icon: '🔴' },
+                { id: 'dep1-err2', label: 'Erreur 2', icon: '🟠' },
+                { id: 'dep1-err3', label: 'Erreur 3', icon: '🟡' },
+                { id: 'dep1-final', label: 'Test final', icon: '✅' },
+              ].map(({ id, label, icon }) => (
+                <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
             </div>
-          </section>
+          </nav>
+
+          <div className="space-y-8">
+
+            {/* SCÉNARIO */}
+            <section id="dep1-scenario" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-red-900/20 to-purple-900/20 rounded-xl p-6 border border-red-500/30">
+                <h2 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">{"📋 Scénario — Le stagiaire a fait des erreurs"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-slate-300 text-sm">{"Un stagiaire a monté la topologie du lab 1 (2 routeurs, 2 switches, 4 PCs). Il affirme avoir tout configuré correctement. Mais quand tu testes, les pings inter-sites ne fonctionnent pas. Il y a "}<strong className="text-red-300">{"3 erreurs"}</strong>{" de configuration à trouver."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"🔧 Mise en place (pour reproduire le scénario) :"}</p>
+                  <p className="text-slate-400 text-xs mb-3">{"Monte la topologie du lab 1 avec le même câblage, mais applique ces modifications :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-2">
+                    <li>{"• R1 : configure G0/0 (192.168.10.1/24 + no shutdown) et G0/1 (10.0.0.1/30) mais "}<strong className="text-red-300">{"NE FAIS PAS no shutdown sur G0/1"}</strong></li>
+                    <li>{"• R1 : ajoute la route statique normalement (ip route 192.168.20.0 255.255.255.0 10.0.0.2)"}</li>
+                    <li>{"• R2 : configure G0/0 (10.0.0.2/30 + no shutdown) et G0/1 (192.168.20.1/24 + no shutdown) mais "}<strong className="text-red-300">{"N'AJOUTE PAS de route statique"}</strong></li>
+                    <li>{"• PC0, PC1, PC3 : configure normalement (comme lab 1)"}</li>
+                    <li>{"• PC2 : IP = 192.168.20.10, masque = 255.255.255.0, mais "}<strong className="text-red-300">{"gateway = 192.168.10.1"}</strong>{" (au lieu de 192.168.20.1)"}</li>
+                  </ul>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"🔍 Symptômes observés :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• PC0 ping PC1 → ✅ (même LAN)"}</li>
+                    <li>{"• PC2 ping PC3 → ✅ (même LAN)"}</li>
+                    <li>{"• PC0 ping 192.168.20.10 → ❌ « Destination host unreachable » (répondu par R1)"}</li>
+                    <li>{"• R1# ping 10.0.0.2 → ❌ « Destination host unreachable »"}</li>
+                  </ul>
+                  <p className="text-amber-300 font-bold text-sm mt-4">{"🎯 Ta mission : trouve les 3 erreurs et corrige-les."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* ERREUR 1 */}
+            <section id="dep1-err1" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-red-900/20 to-amber-900/20 rounded-xl p-6 border border-red-500/30">
+                <h2 className="text-lg font-bold text-red-400 mb-3 flex items-center gap-2">{"🔴 Erreur 1 — Interface WAN de R1"}</h2>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-red-300 font-bold text-sm mb-2">{"💢 Symptôme :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R1# ping 10.0.0.2"}</p>
+                    <p className="text-red-400">{"→ Request timed out ❌"}</p>
+                  </div>
+                  <p className="text-slate-300 text-sm mt-2">{"Le lien WAN entre R1 et R2 ne fonctionne pas du tout."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"🔍 Logique de recherche :"}</p>
+                  <p className="text-slate-300 text-sm mb-2">{"Si le ping WAN échoue, il faut vérifier que les interfaces sont actives. La commande clé :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R1# show ip interface brief"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 mt-3 text-xs font-mono">
+                    <p className="text-slate-300">{"Interface           IP-Address      Status                Protocol"}</p>
+                    <p className="text-emerald-400">{"GigabitEthernet0/0  192.168.10.1    up                    up"}</p>
+                    <p className="text-red-400">{"GigabitEthernet0/1  10.0.0.1        administratively down down"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"⚠️ Erreur trouvée :"}</p>
+                  <p className="text-slate-300 text-sm">{"G0/1 est « administratively down » → le stagiaire a oublié la commande "}<code className="text-emerald-400">{"no shutdown"}</code>{". L'interface est configurée mais éteinte."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"✏️ Résolution :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R1# configure terminal"}</p>
+                    <p>{"R1(config)# interface GigabitEthernet0/1"}</p>
+                    <p>{"R1(config-if)# no shutdown"}</p>
+                    <p>{"R1(config-if)# end"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"🧪 Test :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R1# ping 10.0.0.2"}</p>
+                    <p className="text-emerald-400">{"→ Reply from 10.0.0.2 ✅ Le lien WAN fonctionne."}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* ERREUR 2 */}
+            <section id="dep1-err2" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-orange-900/20 to-purple-900/20 rounded-xl p-6 border border-orange-500/30">
+                <h2 className="text-lg font-bold text-orange-400 mb-3 flex items-center gap-2">{"🟠 Erreur 2 — Route statique manquante"}</h2>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-red-300 font-bold text-sm mb-2">{"💢 Symptôme :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Depuis PC0 : C:\\> ping 192.168.20.10"}</p>
+                    <p className="text-red-400">{"→ Request timed out ❌"}</p>
+                  </div>
+                  <p className="text-slate-300 text-sm mt-2">{"Le lien WAN marche (erreur 1 corrigée), mais les pings inter-sites échouent toujours."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"🔍 Logique de recherche :"}</p>
+                  <p className="text-slate-300 text-sm mb-2">{"Le paquet traverse R1 puis R2. Il faut vérifier que les DEUX routeurs ont une route vers le réseau distant :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1 mb-3">
+                    <p className="text-white font-bold">{"R1# show ip route"}</p>
+                    <p className="text-slate-400">{"C   192.168.10.0/24 is directly connected, G0/0"}</p>
+                    <p className="text-slate-400">{"C   10.0.0.0/30 is directly connected, G0/1"}</p>
+                    <p className="text-amber-300">{"S   192.168.20.0/24 [1/0] via 10.0.0.2 ← OK ✅"}</p>
+                  </div>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-white font-bold">{"R2# show ip route"}</p>
+                    <p className="text-slate-400">{"C   10.0.0.0/30 is directly connected, G0/0"}</p>
+                    <p className="text-slate-400">{"C   192.168.20.0/24 is directly connected, G0/1"}</p>
+                    <p className="text-red-400">{"→ PAS de route S vers 192.168.10.0 ❌"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"⚠️ Erreur trouvée :"}</p>
+                  <p className="text-slate-300 text-sm">{"R2 n'a aucune route vers 192.168.10.0/24. Le paquet aller (PC0→PC2) arrive via R1, mais la réponse (PC2→PC0) est jetée par R2 car il ne sait pas comment joindre 192.168.10.0/24."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"✏️ Résolution :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R2# configure terminal"}</p>
+                    <p>{"R2(config)# ip route 192.168.10.0 255.255.255.0 10.0.0.1"}</p>
+                    <p>{"R2(config)# end"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"🧪 Test :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Depuis PC0 : C:\\> ping 192.168.20.11"}<span className="text-emerald-400">{" ✅ (PC3 répond)"}</span></p>
+                    <p>{"Depuis PC0 : C:\\> ping 192.168.20.10"}<span className="text-red-400">{" ❌ (PC2 ne répond toujours pas → il reste 1 erreur)"}</span></p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* ERREUR 3 */}
+            <section id="dep1-err3" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-yellow-900/20 to-purple-900/20 rounded-xl p-6 border border-yellow-500/30">
+                <h2 className="text-lg font-bold text-yellow-400 mb-3 flex items-center gap-2">{"🟡 Erreur 3 — Mauvaise gateway sur PC2"}</h2>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-red-300 font-bold text-sm mb-2">{"💢 Symptôme :"}</p>
+                  <p className="text-slate-300 text-sm">{"PC3 (192.168.20.11) répond au ping, mais PC2 (192.168.20.10) ne répond pas. Un seul PC du site B est en panne."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"🔍 Logique de recherche :"}</p>
+                  <p className="text-slate-300 text-sm mb-2">{"Si un seul PC ne répond pas alors que les autres fonctionnent, le problème est forcément sur CE PC. Vérifie sa config IP :"}</p>
+                  <p className="text-slate-300 text-sm">{"Clic sur PC2 → Desktop → IP Configuration :"}</p>
+                  <div className="grid grid-cols-3 gap-2 text-sm mt-2">
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"IP Address"}</p><p className="font-mono text-emerald-400">{"192.168.20.10"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Subnet Mask"}</p><p className="font-mono text-white">{"255.255.255.0"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Default Gateway"}</p><p className="font-mono text-red-400">{"192.168.10.1 ← ?"}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"⚠️ Erreur trouvée :"}</p>
+                  <p className="text-slate-300 text-sm">{"La gateway est 192.168.10.1 — c'est celle du site A ! PC2 est sur le réseau 192.168.20.0/24, sa gateway devrait être 192.168.20.1 (R2). Le stagiaire a copié-collé la gateway du site A."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"✏️ Résolution :"}</p>
+                  <p className="text-slate-300 text-sm mb-2">{"PC2 → Desktop → IP Configuration → changer la Default Gateway :"}</p>
+                  <div className="grid grid-cols-3 gap-2 text-sm mt-2">
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"IP Address"}</p><p className="font-mono text-emerald-400">{"192.168.20.10"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Subnet Mask"}</p><p className="font-mono text-white">{"255.255.255.0"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Default Gateway"}</p><p className="font-mono text-emerald-400">{"192.168.20.1 ✅"}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"🧪 Test :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Depuis PC0 : C:\\> ping 192.168.20.10"}<span className="text-emerald-400">{" ✅ PC2 répond !"}</span></p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* TEST FINAL */}
+            <section id="dep1-final" className="scroll-mt-4">
+              <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-6">
+                <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Test final — Tout fonctionne"}</p>
+                <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1 mb-4">
+                  <p className="text-slate-400">{"Depuis PC0 :"}</p>
+                  <p>{"C:\\> ping 192.168.20.10"}<span className="text-emerald-400">{" ✅"}</span></p>
+                  <p>{"C:\\> ping 192.168.20.11"}<span className="text-emerald-400">{" ✅"}</span></p>
+                  <p>{""}</p>
+                  <p className="text-slate-400">{"Depuis PC2 :"}</p>
+                  <p>{"C:\\> ping 192.168.10.10"}<span className="text-emerald-400">{" ✅"}</span></p>
+                  <p>{"C:\\> ping 192.168.10.11"}<span className="text-emerald-400">{" ✅"}</span></p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Récap des 3 erreurs :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"🔴 Interface G0/1 de R1 en shutdown → no shutdown"}</li>
+                    <li>{"🟠 Route statique manquante sur R2 → ip route 192.168.10.0 255.255.255.0 10.0.0.1"}</li>
+                    <li>{"🟡 Gateway de PC2 = 192.168.10.1 au lieu de 192.168.20.1"}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      ),
+      solutionContentLab3: (
+        <div className="max-w-5xl mx-auto space-y-8 pb-16">
+          <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">{"Raccourcis:"}</span>
+              {[
+                { id: 'dep2-scenario', label: 'Scénario', icon: '📋' },
+                { id: 'dep2-err1', label: 'Erreur 1', icon: '🔴' },
+                { id: 'dep2-err2', label: 'Erreur 2', icon: '🟠' },
+                { id: 'dep2-err3', label: 'Erreur 3', icon: '🟡' },
+                { id: 'dep2-final', label: 'Test final', icon: '✅' },
+              ].map(({ id, label, icon }) => (
+                <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <div className="space-y-8">
+
+            {/* SCÉNARIO */}
+            <section id="dep2-scenario" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-red-900/20 to-purple-900/20 rounded-xl p-6 border border-red-500/30">
+                <h2 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">{"📋 Scénario — Le réseau fantôme"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-slate-300 text-sm">{"La topologie est montée. Toutes les interfaces sont UP. Les routes statiques semblent configurées sur les deux routeurs. Pourtant, aucun ping inter-sites ne passe. Il y a "}<strong className="text-red-300">{"3 erreurs"}</strong>{" subtiles à trouver."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"🔧 Mise en place :"}</p>
+                  <p className="text-slate-400 text-xs mb-3">{"Monte la topologie du lab 1, mais avec ces modifications :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-2">
+                    <li>{"• R1 : configure normalement SAUF la route statique → "}<strong className="text-red-300">{"ip route 192.168.2.0 255.255.255.0 10.0.0.2"}</strong>{" (192.168.2.0 au lieu de 192.168.20.0 — faute de frappe)"}</li>
+                    <li>{"• R2 G0/0 (WAN) → "}<strong className="text-red-300">{"ip address 10.0.0.10 255.255.255.252"}</strong>{" (10.0.0.10 au lieu de 10.0.0.2)"}</li>
+                    <li>{"• R2 : G0/1 et route statique configurés normalement"}</li>
+                    <li>{"• PC0 : IP = 192.168.10.10, masque = 255.255.255.0, mais "}<strong className="text-red-300">{"gateway = (vide, ne rien mettre)"}</strong></li>
+                    <li>{"• PC1, PC2, PC3 : configurés normalement"}</li>
+                  </ul>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"🔍 Symptômes observés :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• PC0 ping PC1 → ✅ (même LAN, pas besoin de gateway)"}</li>
+                    <li>{"• PC2 ping PC3 → ✅ (même LAN)"}</li>
+                    <li>{"• R1# ping 10.0.0.2 → ❌"}</li>
+                    <li>{"• PC1 ping 192.168.20.10 → ❌"}</li>
+                    <li>{"• PC0 ping 192.168.20.10 → ❌"}</li>
+                  </ul>
+                  <p className="text-amber-300 font-bold text-sm mt-4">{"🎯 Ta mission : trouve les 3 erreurs et corrige-les."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* ERREUR 1 */}
+            <section id="dep2-err1" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-red-900/20 to-amber-900/20 rounded-xl p-6 border border-red-500/30">
+                <h2 className="text-lg font-bold text-red-400 mb-3 flex items-center gap-2">{"🔴 Erreur 1 — Mauvaise IP WAN sur R2"}</h2>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-red-300 font-bold text-sm mb-2">{"💢 Symptôme :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R1# ping 10.0.0.2"}</p>
+                    <p className="text-red-400">{"→ Request timed out ❌"}</p>
+                  </div>
+                  <p className="text-slate-300 text-sm mt-2">{"Les deux interfaces sont UP, mais les routeurs ne se pinguent pas."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"🔍 Logique de recherche :"}</p>
+                  <p className="text-slate-300 text-sm mb-2">{"Interfaces UP mais pas de communication → vérifier que les IPs sont dans le même sous-réseau. Compare les IPs WAN :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1 mb-3">
+                    <p className="text-white font-bold">{"R1# show ip interface brief"}</p>
+                    <p>{"G0/1  10.0.0.1  up  up"}</p>
+                  </div>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-white font-bold">{"R2# show ip interface brief"}</p>
+                    <p className="text-red-400">{"G0/0  10.0.0.10  up  up"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"⚠️ Erreur trouvée :"}</p>
+                  <p className="text-slate-300 text-sm">{"R1 (10.0.0.1) est dans le sous-réseau 10.0.0.0/30 (IPs utilisables : .1 et .2). R2 (10.0.0.10) est dans le sous-réseau 10.0.0.8/30 (IPs : .9 et .10). Ils ne sont PAS dans le même /30 → communication impossible."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"✏️ Résolution :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R2# configure terminal"}</p>
+                    <p>{"R2(config)# interface GigabitEthernet0/0"}</p>
+                    <p>{"R2(config-if)# ip address 10.0.0.2 255.255.255.252"}</p>
+                    <p>{"R2(config-if)# end"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"🧪 Test :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R1# ping 10.0.0.2"}</p>
+                    <p className="text-emerald-400">{"→ Reply from 10.0.0.2 ✅"}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* ERREUR 2 */}
+            <section id="dep2-err2" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-orange-900/20 to-purple-900/20 rounded-xl p-6 border border-orange-500/30">
+                <h2 className="text-lg font-bold text-orange-400 mb-3 flex items-center gap-2">{"🟠 Erreur 2 — Faute de frappe dans la route de R1"}</h2>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-red-300 font-bold text-sm mb-2">{"💢 Symptôme :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Depuis PC1 : C:\\> ping 192.168.20.10"}</p>
+                    <p className="text-red-400">{"→ Request timed out ❌"}</p>
+                  </div>
+                  <p className="text-slate-300 text-sm mt-2">{"Le WAN marche (erreur 1 corrigée), R1 et R2 se pinguent. Mais les pings inter-sites échouent."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"🔍 Logique de recherche :"}</p>
+                  <p className="text-slate-300 text-sm mb-2">{"Le WAN fonctionne, donc le problème est au niveau du routage. Vérifie la table de routage de R1 et lis attentivement le réseau de destination :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-white font-bold">{"R1# show ip route static"}</p>
+                    <p className="text-red-400">{"S   192.168.2.0/24 [1/0] via 10.0.0.2"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Le next-hop est bon (10.0.0.2)… mais le réseau de destination, c'est 192.168.2.0. Or le réseau distant c'est 192.168.20.0 !"}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"⚠️ Erreur trouvée :"}</p>
+                  <p className="text-slate-300 text-sm">{"Faute de frappe classique : "}<strong className="text-red-300">{"192.168.2.0"}</strong>{" au lieu de "}<strong className="text-emerald-300">{"192.168.20.0"}</strong>{". R1 sait joindre un réseau 192.168.2.0 qui n'existe pas, mais ne connaît pas le vrai réseau 192.168.20.0 du site B."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"✏️ Résolution :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R1# configure terminal"}</p>
+                    <p className="text-red-400">{"R1(config)# no ip route 192.168.2.0 255.255.255.0 10.0.0.2"}</p>
+                    <p className="text-emerald-400">{"R1(config)# ip route 192.168.20.0 255.255.255.0 10.0.0.2"}</p>
+                    <p>{"R1(config)# end"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"🧪 Test :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Depuis PC1 : C:\\> ping 192.168.20.10"}<span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{"Depuis PC0 : C:\\> ping 192.168.20.10"}<span className="text-red-400">{" ❌ (il reste 1 erreur)"}</span></p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* ERREUR 3 */}
+            <section id="dep2-err3" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-yellow-900/20 to-purple-900/20 rounded-xl p-6 border border-yellow-500/30">
+                <h2 className="text-lg font-bold text-yellow-400 mb-3 flex items-center gap-2">{"🟡 Erreur 3 — PC0 sans default gateway"}</h2>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-red-300 font-bold text-sm mb-2">{"💢 Symptôme :"}</p>
+                  <p className="text-slate-300 text-sm">{"PC1 ping PC2 → ✅, mais PC0 ping PC2 → ❌. Un seul PC du site A ne fonctionne pas."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"🔍 Logique de recherche :"}</p>
+                  <p className="text-slate-300 text-sm mb-2">{"PC0 et PC1 sont sur le même switch, même réseau. Si l'un marche et pas l'autre, le problème est sur le PC qui ne marche pas. Vérifie sa config :"}</p>
+                  <p className="text-slate-300 text-sm">{"PC0 → Desktop → IP Configuration :"}</p>
+                  <div className="grid grid-cols-3 gap-2 text-sm mt-2">
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"IP Address"}</p><p className="font-mono text-emerald-400">{"192.168.10.10"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Subnet Mask"}</p><p className="font-mono text-white">{"255.255.255.0"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Default Gateway"}</p><p className="font-mono text-red-400">{"(vide)"}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"⚠️ Erreur trouvée :"}</p>
+                  <p className="text-slate-300 text-sm">{"Pas de default gateway. Sans gateway, PC0 peut pinger les machines de son réseau local (192.168.10.x) mais ne sait pas où envoyer les paquets pour les réseaux distants (192.168.20.x)."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"✏️ Résolution :"}</p>
+                  <p className="text-slate-300 text-sm mb-2">{"PC0 → Desktop → IP Configuration → Default Gateway :"}</p>
+                  <div className="grid grid-cols-3 gap-2 text-sm mt-2">
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"IP Address"}</p><p className="font-mono text-emerald-400">{"192.168.10.10"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Subnet Mask"}</p><p className="font-mono text-white">{"255.255.255.0"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Default Gateway"}</p><p className="font-mono text-emerald-400">{"192.168.10.1 ✅"}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"🧪 Test :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Depuis PC0 : C:\\> ping 192.168.20.10"}<span className="text-emerald-400">{" ✅ ça marche !"}</span></p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* TEST FINAL */}
+            <section id="dep2-final" className="scroll-mt-4">
+              <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-6">
+                <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Test final — Tout fonctionne"}</p>
+                <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1 mb-4">
+                  <p className="text-slate-400">{"Depuis PC0 :"}</p>
+                  <p>{"C:\\> ping 192.168.20.10"}<span className="text-emerald-400">{" ✅"}</span></p>
+                  <p>{"C:\\> ping 192.168.20.11"}<span className="text-emerald-400">{" ✅"}</span></p>
+                  <p>{""}</p>
+                  <p className="text-slate-400">{"Depuis PC2 :"}</p>
+                  <p>{"C:\\> ping 192.168.10.10"}<span className="text-emerald-400">{" ✅"}</span></p>
+                  <p>{"C:\\> ping 192.168.10.11"}<span className="text-emerald-400">{" ✅"}</span></p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Récap des 3 erreurs :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"🔴 R2 G0/0 avait l'IP 10.0.0.10/30 au lieu de 10.0.0.2/30 → mauvais sous-réseau WAN"}</li>
+                    <li>{"🟠 Route de R1 pointait vers 10.0.0.1 (lui-même) au lieu de 10.0.0.2 → boucle"}</li>
+                    <li>{"🟡 PC0 n'avait pas de default gateway → impossible de sortir du réseau local"}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+          </div>
         </div>
       )
     },
@@ -10918,8 +11651,7 @@ const session8Commands = [
   { command: "show ip route static", description: "Afficher uniquement les routes statiques configurées", syntax: "show ip route static" },
   { command: "show ip interface brief", description: "Résumé de l'état et de l'adresse IP de toutes les interfaces", syntax: "show ip interface brief" },
   { command: "ping", description: "Tester la connectivité vers une destination (ICMP echo)", syntax: "ping [adresse_ip]" },
-  { command: "traceroute", description: "Afficher le chemin emprunté par les paquets vers une destination", syntax: "traceroute [adresse_ip]" },
-  { command: "clock rate", description: "Définir la fréquence d'horloge sur l'interface série DCE", syntax: "clock rate [vitesse]" }
+  { command: "traceroute", description: "Afficher le chemin emprunté par les paquets vers une destination", syntax: "traceroute [adresse_ip]" }
 ];
 
 // --- LISTE PÉDAGOGIQUE DES COMMANDES ---
@@ -13284,14 +14016,15 @@ const PacketTracerSection = () => {
 };
 
 // --- LAB INDÉPENDANT : Session 1 ou 2 (consignes + corrections) ---
-const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sessionId = 1 }) => {
-  const [labTab, setLabTab] = useState(lab.consignes ? 'consignes' : 'correction'); // 'consignes' | 'correction' | 'correction_lab2' | 'correction_lab3' | 'correction_lab4'
+const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sessionId = 1, hideCorrection = false }) => {
+  const [labTab, setLabTab] = useState(lab.consignes ? 'consignes' : (hideCorrection ? 'consignes' : 'correction')); // 'consignes' | 'correction' | 'correction_lab2' | 'correction_lab3' | 'correction_lab4'
   const isSession2 = sessionId === 2;
   const isSession3 = sessionId === 3;
   const isSession4 = sessionId === 4;
   const isSession5 = sessionId === 5;
   const isSession6 = sessionId === 6;
   const isSession7 = sessionId === 7;
+  const isSession8 = sessionId === 8;
   return (
     <div className="h-full flex flex-col">
       <div className="bg-[#1a1035] p-6 rounded-t-xl border border-white/[0.15] border-b-0">
@@ -13310,37 +14043,39 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
               <BookOpen className="w-4 h-4" /> Consignes
             </button>
           )}
-          <button
-            onClick={() => setLabTab('correction')}
-            className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
-          >
-            <CheckCircle className="w-4 h-4" /> {isSession7 ? 'Correction Lab Adressage' : isSession6 ? 'Correction Lab Syslog' : isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
-          </button>
-          {(isSession2 || isSession3 || isSession4 || isSession5 || isSession6) && lab.solutionContentLab2 && (
+          {!hideCorrection && (
+            <button
+              onClick={() => setLabTab('correction')}
+              className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
+            >
+              <CheckCircle className="w-4 h-4" /> {isSession8 ? 'Correction Lab Routage' : isSession7 ? 'Correction Lab Adressage' : isSession6 ? 'Correction Lab Syslog' : isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
+            </button>
+          )}
+          {!hideCorrection && (isSession2 || isSession3 || isSession4 || isSession5 || isSession6 || isSession8) && lab.solutionContentLab2 && (
             <button
               onClick={() => setLabTab('correction_lab2')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab2' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession6 ? 'Correction Lab 2 (Synthèse)' : isSession5 ? 'Correction Lab 2 (HTTP/FTP/ARP)' : isSession4 ? 'Correction Lab 2 (Étendu)' : isSession3 ? 'Correction Lab 2 (Dépannage)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
+              <CheckCircle className="w-4 h-4" /> {isSession8 ? 'Dépannage 1' : isSession6 ? 'Correction Lab 2 (Synthèse)' : isSession5 ? 'Correction Lab 2 (HTTP/FTP/ARP)' : isSession4 ? 'Correction Lab 2 (Étendu)' : isSession3 ? 'Correction Lab 2 (Dépannage)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
             </button>
           )}
-          {isSession5 && lab.solutionContentLab3 && (
+          {!hideCorrection && (isSession5 || isSession8) && lab.solutionContentLab3 && (
             <button
               onClick={() => setLabTab('correction_lab3')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab3' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
             >
-              <CheckCircle className="w-4 h-4" /> Correction Lab 3 (Synthèse)
+              <CheckCircle className="w-4 h-4" /> {isSession8 ? 'Dépannage 2' : 'Correction Lab 3 (Synthèse)'}
             </button>
           )}
-          {isSession5 && lab.solutionContentLab4 && (
+          {!hideCorrection && isSession5 && lab.solutionContentLab4 && (
             <button
               onClick={() => setLabTab('correction_lab4')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab4' ? 'bg-red-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
             >
-              <CheckCircle className="w-4 h-4" /> Correction Lab 4 (Dépannage)
+              <CheckCircle className="w-4 h-4" /> {'Correction Lab 4 (Dépannage)'}
             </button>
           )}
-          {isSession3 && (
+          {!hideCorrection && isSession3 && (
             <>
               <button
                 onClick={() => setLabTab('correction_lab3')}
@@ -13356,12 +14091,17 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
               </button>
             </>
           )}
+          {hideCorrection && (
+            <div className="px-4 py-2 rounded-md text-sm font-semibold text-slate-600 flex items-center gap-2 cursor-not-allowed">
+              <Lock className="w-4 h-4" /> Correction bientôt disponible
+            </div>
+          )}
         </div>
       </div>
       {labTab === 'consignes' && lab.consignes && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl px-6 py-5 overflow-y-auto">
           <h4 className="text-white font-bold flex items-center gap-2 mb-4 text-base">
-            <BookOpen className="w-5 h-5 text-amber-400" /> {isSession7 ? 'Consignes Lab Adressage IP & Masques' : isSession6 ? 'Consignes Labs Syslog & Synthèse – à réaliser sur Cisco Packet Tracer' : isSession4 ? 'Consignes des deux labs DHCP & DNS – à réaliser sur Cisco Packet Tracer' : isSession3 ? 'Consignes du lab – à réaliser sur Cisco Packet Tracer' : isSession2 ? 'Consignes des deux labs Session 2' : 'Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer'}
+            <BookOpen className="w-5 h-5 text-amber-400" /> {isSession8 ? 'Consignes Lab Routage Statique' : isSession7 ? 'Consignes Lab Adressage IP & Masques' : isSession6 ? 'Consignes Labs Syslog & Synthèse – à réaliser sur Cisco Packet Tracer' : isSession4 ? 'Consignes des deux labs DHCP & DNS – à réaliser sur Cisco Packet Tracer' : isSession3 ? 'Consignes du lab – à réaliser sur Cisco Packet Tracer' : isSession2 ? 'Consignes des deux labs Session 2' : 'Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer'}
           </h4>
           <div className="pr-4 space-y-1 text-slate-300">
             {lab.consignes}
@@ -13371,14 +14111,14 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
       {labTab === 'correction' && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {(isSession4 || isSession5 || isSession6 || isSession7) && lab.solutionContent ? lab.solutionContent : isSession3 ? <LabCorrectionSection3Verbose /> : isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSectionVerbose />}
+            {(isSession4 || isSession5 || isSession6 || isSession7 || isSession8) && lab.solutionContent ? lab.solutionContent : isSession3 ? <LabCorrectionSection3Verbose /> : isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSectionVerbose />}
           </div>
         </div>
       )}
       {labTab === 'correction_lab2' && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {(isSession4 || isSession5 || isSession6) ? (lab.solutionContentLab2) : isSession3 ? <LabTroubleshootingSection3 /> : isSession2 ? (lab.solutionContentLab2 || (
+            {(isSession4 || isSession5 || isSession6 || isSession8) ? (lab.solutionContentLab2) : isSession3 ? <LabTroubleshootingSection3 /> : isSession2 ? (lab.solutionContentLab2 || (
               <div className="max-w-2xl mx-auto bg-[#1a1035]/50 border border-white/20 rounded-xl p-8 text-center">
                 <h3 className="text-xl font-bold text-purple-400 mb-3">Correction Lab 2 – VLAN avancés et sécurisation</h3>
                 <p className="text-slate-400">Trunk, VLAN autorisés, VLAN natif. Pour les consignes et la correction détaillée, suivre le PDF « 3 - Introduction Vlan avancés et sécurisation - LAB.pdf ».</p>
@@ -13387,7 +14127,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
           </div>
         </div>
       )}
-      {labTab === 'correction_lab3' && isSession5 && lab.solutionContentLab3 && (
+      {labTab === 'correction_lab3' && (isSession5 || isSession8) && lab.solutionContentLab3 && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl overflow-y-auto">
           <div className="p-6">
             {lab.solutionContentLab3}
@@ -16887,7 +17627,77 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
       .from('student_progress')
       .upsert({ user_id: user.id, completed_sessions: completedSessions }, { onConflict: 'user_id' });
   }, [completedSessions, user?.id]);
-  
+
+  // Lab visibility (controlled by admin)
+  const [labVisibility, setLabVisibility] = useState({});
+  useEffect(() => {
+    supabase
+      .from('lab_visibility')
+      .select('*')
+      .then(({ data }) => {
+        if (data) {
+          const map = {};
+          data.forEach(row => { map[row.lab_key] = row; });
+          setLabVisibility(map);
+        }
+      });
+  }, []);
+
+  function isLabVisible(labKey) {
+    return labVisibility[labKey]?.visible ?? false;
+  }
+  function isCorrectionVisible(labKey) {
+    return labVisibility[labKey]?.correction_visible ?? false;
+  }
+
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'prof';
+
+  const LabButton = ({ viewModeKey, labKey, icon: Icon, label, sublabel }) => {
+    const visible = isAdmin || isLabVisible(labKey);
+    return (
+      <button
+        onClick={() => {
+          if (!visible) return;
+          setViewMode(viewModeKey);
+          if (window.innerWidth < 1024) setSidebarOpen(false);
+        }}
+        className={`w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs ${
+          !visible
+            ? 'bg-[#0e0920]/50 border-white/5 text-slate-600 cursor-not-allowed'
+            : viewMode === viewModeKey
+              ? 'bg-purple-600/20 border-purple-500 text-purple-100'
+              : 'bg-[#0e0920] border-white/10 hover:bg-[#1a1035] text-slate-400 hover:border-white/20'
+        }`}
+      >
+        <div className={`p-1.5 rounded ${viewMode === viewModeKey ? 'bg-purple-600 text-white' : 'bg-[#1a1035]'}`}>
+          <Icon className="w-4 h-4" />
+        </div>
+        <div className="text-left flex-1">
+          <p className={`font-bold ${!visible ? 'text-slate-600' : ''}`}>{label}</p>
+          <p className="text-[9px] text-slate-500">{sublabel}</p>
+        </div>
+        {!visible && (
+          <span className="text-[8px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold shrink-0">SOON</span>
+        )}
+      </button>
+    );
+  };
+
+  function renderLabContent(labKey, labComponent) {
+    if (!isAdmin && !isLabVisible(labKey)) {
+      return (
+        <div className="h-full min-h-[500px] flex items-center justify-center">
+          <div className="text-center">
+            <Lock size={40} className="text-slate-600 mx-auto mb-3" />
+            <h3 className="text-white font-bold text-lg mb-1">Lab non disponible</h3>
+            <p className="text-slate-500 text-sm">Ce lab sera bientôt accessible.</p>
+          </div>
+        </div>
+      );
+    }
+    return <div className="h-full min-h-[500px]">{labComponent}</div>;
+  }
+
   // Tracking du temps passé
   const [sessionStartTime, setSessionStartTime] = useState(Date.now());
   const [timeTracker, setTimeTracker] = useState(null);
@@ -17124,63 +17934,9 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
               
               {expandedLabWeek === 1 && (
                 <div className="mt-2 ml-3 space-y-2 border-l-2 border-white/10 pl-3">
-                  <button
-                    onClick={() => {
-                      setViewMode('labs');
-                      if (window.innerWidth < 1024) setSidebarOpen(false);
-                    }}
-                    className={`w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs ${
-                      viewMode === 'labs'
-                        ? 'bg-purple-600/20 border-purple-500 text-purple-100'
-                        : 'bg-[#0e0920] border-white/10 hover:bg-[#1a1035] text-slate-400 hover:border-white/20'
-                    }`}
-                  >
-                    <div className={`p-1.5 rounded ${viewMode === 'labs' ? 'bg-purple-600 text-white' : 'bg-[#1a1035]'}`}>
-                      <Terminal className="w-4 h-4" />
-                    </div>
-                    <div className="text-left flex-1">
-                      <p className="font-bold">Lab Session 1</p>
-                      <p className="text-[9px] text-slate-500">Labs S1, S2, S3</p>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setViewMode('labs_s2');
-                      if (window.innerWidth < 1024) setSidebarOpen(false);
-                    }}
-                    className={`w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs ${
-                      viewMode === 'labs_s2'
-                        ? 'bg-purple-600/20 border-purple-500 text-purple-100'
-                        : 'bg-[#0e0920] border-white/10 hover:bg-[#1a1035] text-slate-400 hover:border-white/20'
-                    }`}
-                  >
-                    <div className={`p-1.5 rounded ${viewMode === 'labs_s2' ? 'bg-purple-600 text-white' : 'bg-[#1a1035]'}`}>
-                      <Network className="w-4 h-4" />
-                    </div>
-                    <div className="text-left flex-1">
-                      <p className="font-bold">Lab Session 2</p>
-                      <p className="text-[9px] text-slate-500">VLAN, VLAN avancés</p>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setViewMode('labs_s3');
-                      if (window.innerWidth < 1024) setSidebarOpen(false);
-                    }}
-                    className={`w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs ${
-                      viewMode === 'labs_s3'
-                        ? 'bg-purple-600/20 border-purple-500 text-purple-100'
-                        : 'bg-[#0e0920] border-white/10 hover:bg-[#1a1035] text-slate-400 hover:border-white/20'
-                    }`}
-                  >
-                    <div className={`p-1.5 rounded ${viewMode === 'labs_s3' ? 'bg-purple-600 text-white' : 'bg-[#1a1035]'}`}>
-                      <Link className="w-4 h-4" />
-                    </div>
-                    <div className="text-left flex-1">
-                      <p className="font-bold">Lab Session 3</p>
-                      <p className="text-[9px] text-slate-500">Trunk et inter-VLAN</p>
-                    </div>
-                  </button>
+                  <LabButton viewModeKey="labs" labKey="labs_s1" icon={Terminal} label="Lab Session 1" sublabel="Labs S1, S2, S3" />
+                  <LabButton viewModeKey="labs_s2" labKey="labs_s2" icon={Network} label="Lab Session 2" sublabel="VLAN, VLAN avancés" />
+                  <LabButton viewModeKey="labs_s3" labKey="labs_s3" icon={Link} label="Lab Session 3" sublabel="Trunk et inter-VLAN" />
                 </div>
               )}
             </div>
@@ -17203,63 +17959,9 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
               </button>
               {expandedLabWeek === 2 && (
                 <div className="mt-2 ml-3 space-y-2 border-l-2 border-white/10 pl-3">
-                  <button
-                    onClick={() => {
-                      setViewMode('labs_s4');
-                      if (window.innerWidth < 1024) setSidebarOpen(false);
-                    }}
-                    className={`w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs ${
-                      viewMode === 'labs_s4'
-                        ? 'bg-purple-600/20 border-purple-500 text-purple-100'
-                        : 'bg-[#0e0920] border-white/10 hover:bg-[#1a1035] text-slate-400 hover:border-white/20'
-                    }`}
-                  >
-                    <div className={`p-1.5 rounded ${viewMode === 'labs_s4' ? 'bg-purple-600 text-white' : 'bg-[#1a1035]'}`}>
-                      <Server className="w-4 h-4" />
-                    </div>
-                    <div className="text-left flex-1">
-                      <p className="font-bold">Lab DHCP & DNS</p>
-                      <p className="text-[9px] text-slate-500">Mise en œuvre TechCorp</p>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setViewMode('labs_s5');
-                      if (window.innerWidth < 1024) setSidebarOpen(false);
-                    }}
-                    className={`w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs ${
-                      viewMode === 'labs_s5'
-                        ? 'bg-purple-600/20 border-purple-500 text-purple-100'
-                        : 'bg-[#0e0920] border-white/10 hover:bg-[#1a1035] text-slate-400 hover:border-white/20'
-                    }`}
-                  >
-                    <div className={`p-1.5 rounded ${viewMode === 'labs_s5' ? 'bg-purple-600 text-white' : 'bg-[#1a1035]'}`}>
-                      <Globe className="w-4 h-4" />
-                    </div>
-                    <div className="text-left flex-1">
-                      <p className="font-bold">Lab FTP (Session 2)</p>
-                      <p className="text-[9px] text-slate-500">HTTP, FTP et ARP</p>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setViewMode('labs_s6');
-                      if (window.innerWidth < 1024) setSidebarOpen(false);
-                    }}
-                    className={`w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs ${
-                      viewMode === 'labs_s6'
-                        ? 'bg-purple-600/20 border-purple-500 text-purple-100'
-                        : 'bg-[#0e0920] border-white/10 hover:bg-[#1a1035] text-slate-400 hover:border-white/20'
-                    }`}
-                  >
-                    <div className={`p-1.5 rounded ${viewMode === 'labs_s6' ? 'bg-purple-600 text-white' : 'bg-[#1a1035]'}`}>
-                      <Activity className="w-4 h-4" />
-                    </div>
-                    <div className="text-left flex-1">
-                      <p className="font-bold">Lab Syslog (Session 3)</p>
-                      <p className="text-[9px] text-slate-500">Supervision centralisée</p>
-                    </div>
-                  </button>
+                  <LabButton viewModeKey="labs_s4" labKey="labs_s4" icon={Server} label="Lab DHCP & DNS" sublabel="Mise en oeuvre TechCorp" />
+                  <LabButton viewModeKey="labs_s5" labKey="labs_s5" icon={Globe} label="Lab FTP (Session 2)" sublabel="HTTP, FTP et ARP" />
+                  <LabButton viewModeKey="labs_s6" labKey="labs_s6" icon={Activity} label="Lab Syslog (Session 3)" sublabel="Supervision centralisée" />
                 </div>
               )}
             </div>
@@ -17282,44 +17984,8 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
               </button>
               {expandedLabWeek === 3 && (
                 <div className="mt-2 ml-3 space-y-2 border-l-2 border-white/10 pl-3">
-                  <button
-                    onClick={() => {
-                      setViewMode('labs_s7');
-                      if (window.innerWidth < 1024) setSidebarOpen(false);
-                    }}
-                    className={`w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs ${
-                      viewMode === 'labs_s7'
-                        ? 'bg-purple-600/20 border-purple-500 text-purple-100'
-                        : 'bg-[#0e0920] border-white/10 hover:bg-[#1a1035] text-slate-400 hover:border-white/20'
-                    }`}
-                  >
-                    <div className={`p-1.5 rounded ${viewMode === 'labs_s7' ? 'bg-purple-600 text-white' : 'bg-[#1a1035]'}`}>
-                      <Network className="w-4 h-4" />
-                    </div>
-                    <div className="text-left flex-1">
-                      <p className="font-bold">Lab Adressage & Masques</p>
-                      <p className="text-[9px] text-slate-500">NetSolutions — 3 services</p>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setViewMode('labs_s8');
-                      if (window.innerWidth < 1024) setSidebarOpen(false);
-                    }}
-                    className={`w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs ${
-                      viewMode === 'labs_s8'
-                        ? 'bg-purple-600/20 border-purple-500 text-purple-100'
-                        : 'bg-[#0e0920] border-white/10 hover:bg-[#1a1035] text-slate-400 hover:border-white/20'
-                    }`}
-                  >
-                    <div className={`p-1.5 rounded ${viewMode === 'labs_s8' ? 'bg-purple-600 text-white' : 'bg-[#1a1035]'}`}>
-                      <Network className="w-4 h-4" />
-                    </div>
-                    <div className="text-left flex-1">
-                      <p className="font-bold">Lab Routage Statique</p>
-                      <p className="text-[9px] text-slate-500">2 routeurs — 4 PCs</p>
-                    </div>
-                  </button>
+                  <LabButton viewModeKey="labs_s7" labKey="labs_s7" icon={Network} label="Lab Adressage & Masques" sublabel="NetSolutions — 3 services" />
+                  <LabButton viewModeKey="labs_s8" labKey="labs_s8" icon={Network} label="Lab Routage Statique" sublabel="2 routeurs — 4 PCs" />
                 </div>
               )}
             </div>
@@ -17462,57 +18128,21 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
               <PacketTracerSection />
             </div>
           ) : viewMode === 'labs' ? (
-            <div className="h-full min-h-[500px]">
-              <LabsSection lab={sessions[0].lab} sessionLabel="Session 1" sessionDescription="Les trois labs (S1, S2, S3) se réalisent sur Cisco Packet Tracer. Consignes et corrections ci-dessous." sessionId={1} />
-            </div>
+            renderLabContent('labs_s1', <LabsSection lab={sessions[0].lab} sessionLabel="Session 1" sessionDescription="Les trois labs (S1, S2, S3) se réalisent sur Cisco Packet Tracer. Consignes et corrections ci-dessous." sessionId={1} hideCorrection={!isAdmin && !isCorrectionVisible('labs_s1')} />)
           ) : viewMode === 'labs_s2' ? (
-            <div className="h-full min-h-[500px]">
-              <LabsSection lab={sessions[1].lab} sessionLabel="Session 2" sessionDescription="Les deux labs (Introduction VLAN, VLAN avancés et sécurisation) se réalisent sur Cisco Packet Tracer. Consignes et corrections ci-dessous." sessionId={2} />
-            </div>
+            renderLabContent('labs_s2', <LabsSection lab={sessions[1].lab} sessionLabel="Session 2" sessionDescription="Les deux labs (Introduction VLAN, VLAN avancés et sécurisation) se réalisent sur Cisco Packet Tracer. Consignes et corrections ci-dessous." sessionId={2} hideCorrection={!isAdmin && !isCorrectionVisible('labs_s2')} />)
           ) : viewMode === 'labs_s3' ? (
-            <div className="h-full min-h-[500px]">
-              <LabsSection lab={sessions[2].lab} sessionLabel="Session 3" sessionDescription="Lab Trunk et routage inter-VLAN (Router-on-a-Stick) sur Cisco Packet Tracer. Consignes ci-dessous." sessionId={3} />
-            </div>
+            renderLabContent('labs_s3', <LabsSection lab={sessions[2].lab} sessionLabel="Session 3" sessionDescription="Lab Trunk et routage inter-VLAN (Router-on-a-Stick) sur Cisco Packet Tracer. Consignes ci-dessous." sessionId={3} hideCorrection={!isAdmin && !isCorrectionVisible('labs_s3')} />)
           ) : viewMode === 'labs_s4' ? (
-            <div className="h-full min-h-[500px]">
-              <LabsSection lab={sessions[3].lab} sessionLabel="DHCP & DNS" sessionDescription="Lab TechCorp : mise en œuvre DHCP et DNS sur Cisco Packet Tracer. Consignes et correction ci-dessous." sessionId={4} />
-            </div>
+            renderLabContent('labs_s4', <LabsSection lab={sessions[3].lab} sessionLabel="DHCP & DNS" sessionDescription="Lab TechCorp : mise en œuvre DHCP et DNS sur Cisco Packet Tracer. Consignes et correction ci-dessous." sessionId={4} hideCorrection={!isAdmin && !isCorrectionVisible('labs_s4')} />)
           ) : viewMode === 'labs_s5' ? (
-          <div className="h-full min-h-[500px]">
-            <LabsSection
-              lab={sessions[4].lab}
-              sessionLabel="Session 2 – HTTP, FTP et ARP"
-              sessionDescription="Lab FTP (Session 2) : mise en œuvre du transfert de fichiers entre un client et un serveur FTP sur Cisco Packet Tracer. Consignes et correction ci-dessous."
-              sessionId={5}
-            />
-          </div>
+            renderLabContent('labs_s5', <LabsSection lab={sessions[4].lab} sessionLabel="Session 2 – HTTP, FTP et ARP" sessionDescription="Lab FTP (Session 2) : mise en œuvre du transfert de fichiers entre un client et un serveur FTP sur Cisco Packet Tracer. Consignes et correction ci-dessous." sessionId={5} hideCorrection={!isAdmin && !isCorrectionVisible('labs_s5')} />)
           ) : viewMode === 'labs_s6' ? (
-          <div className="h-full min-h-[500px]">
-            <LabsSection
-              lab={sessions[5].lab}
-              sessionLabel="Session 3 – Syslog"
-              sessionDescription="Lab Syslog : supervision centralisée d'une infrastructure réseau. Configuration du serveur Syslog et envoi des logs depuis un routeur Cisco."
-              sessionId={6}
-            />
-          </div>
+            renderLabContent('labs_s6', <LabsSection lab={sessions[5].lab} sessionLabel="Session 3 – Syslog" sessionDescription="Lab Syslog : supervision centralisée d'une infrastructure réseau. Configuration du serveur Syslog et envoi des logs depuis un routeur Cisco." sessionId={6} hideCorrection={!isAdmin && !isCorrectionVisible('labs_s6')} />)
           ) : viewMode === 'labs_s7' ? (
-          <div className="h-full min-h-[500px]">
-            <LabsSection
-              lab={sessions[6].lab}
-              sessionLabel="Adressage IP & Masques"
-              sessionDescription="Lab DataFlow : créez 4 réseaux séparés pour une entreprise. Calculez les masques VLSM, configurez les IPs dans Packet Tracer, et testez la connectivité."
-              sessionId={7}
-            />
-          </div>
+            renderLabContent('labs_s7', <LabsSection lab={sessions[6].lab} sessionLabel="Adressage IP & Masques" sessionDescription="Lab DataFlow : créez 4 réseaux séparés pour une entreprise. Calculez les masques VLSM, configurez les IPs dans Packet Tracer, et testez la connectivité." sessionId={7} hideCorrection={!isAdmin && !isCorrectionVisible('labs_s7')} />)
           ) : viewMode === 'labs_s8' ? (
-          <div className="h-full min-h-[500px]">
-            <LabsSection
-              lab={sessions[7].lab}
-              sessionLabel="Routage Statique"
-              sessionDescription="Interconnectez deux réseaux distants avec du routage statique. Configurez 2 routeurs, 4 PCs et vérifiez la connectivité inter-réseau."
-              sessionId={8}
-            />
-          </div>
+            renderLabContent('labs_s8', <LabsSection lab={sessions[7].lab} sessionLabel="Routage Statique" sessionDescription="Interconnectez deux réseaux distants avec du routage statique. Configurez 2 routeurs, 4 PCs et vérifiez la connectivité inter-réseau." sessionId={8} hideCorrection={!isAdmin && !isCorrectionVisible('labs_s8')} />)
           ) : (
           <div className="max-w-6xl mx-auto h-full flex flex-col">
             {activeTab === 'theory' && <TheoryPlayer slides={activeSession.slides} lab={activeSession.lab} sessionId={activeSessionId} />}
