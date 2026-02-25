@@ -509,13 +509,9 @@ const V2InfoCards = ({ cards }) => (
           <h4 className={`${c.text} font-bold text-sm uppercase tracking-wider mb-3 flex items-center gap-2`}>
             <Icon size={16} /> {card.title}
           </h4>
-          {card.items ? (
-            <ul className="space-y-2 text-sm text-slate-300">
-              {card.items.map((item, j) => <li key={j} className="flex items-start gap-2"><span className="text-slate-500 mt-0.5">•</span> {item}</li>)}
-            </ul>
-          ) : card.desc ? (
-            <p className="text-sm text-slate-300 leading-relaxed">{card.desc}</p>
-          ) : null}
+          <ul className="space-y-2 text-sm text-slate-300">
+            {card.items.map((item, j) => <li key={j} className="flex items-start gap-2"><span className="text-slate-500 mt-0.5">•</span> {item}</li>)}
+          </ul>
         </div>
       );
     })}
@@ -10147,505 +10143,6 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
       { q: "Quelle est l'adresse de broadcast du réseau 192.168.0.128/26 ?", options: ["192.168.0.255", "192.168.0.191", "192.168.0.192"], a: 1, explanation: "Bloc de 64, début à .128 → broadcast = 128+64-1 = .191." },
       { q: "Qu'est-ce que le VLSM ?", options: ["Un protocole de routage", "Une technique pour utiliser des masques de taille différente par sous-réseau", "Un type de câble réseau"], a: 1, explanation: "VLSM = Variable Length Subnet Masking. Permet d'adapter le masque à chaque sous-réseau selon le besoin en machines." }
     ]
-  },
-  // ==================== SESSION 8 : ROUTAGE STATIQUE ====================
-  {
-    id: 8,
-    title: "Routage Statique",
-    duration: "2h",
-    icon: "🛣️",
-    slides: [
-      // ── SLIDE 1 : INTRODUCTION AU ROUTAGE ──
-      {
-        type: 'rich_text',
-        title: "C'est quoi le routage ?",
-        content: (
-          <div>
-            <V2Header module="MODULE 08" section="Introduction" title="Le routage : connecter les réseaux entre eux" description="Un switch connecte des machines dans le MÊME réseau (couche 2). Mais pour que deux réseaux DIFFÉRENTS communiquent, il faut un routeur. Le routage, c'est le mécanisme qui permet à un paquet de traverser un ou plusieurs routeurs pour atteindre sa destination." />
-            <V2InfoCards cards={[
-              { title: "Sans routeur", color: "red", icon: AlertTriangle, items: ["Deux réseaux différents NE PEUVENT PAS communiquer", "Un switch ne transmet qu'au sein du même réseau (couche 2)", "Exemple : 192.168.1.0/24 et 192.168.2.0/24 sont isolés", "Le ping entre ces 2 réseaux échoue systématiquement"] },
-              { title: "Avec routeur", color: "emerald", icon: CheckCircle2, items: ["Le routeur a une interface dans CHAQUE réseau", "Il lit l'adresse IP de destination (couche 3)", "Il consulte sa table de routage", "Il transmet le paquet vers le bon réseau via la bonne interface"] }
-            ]} />
-            <V2Whiteboard title="Comment ça marche concrètement ?" code={"! PC1 (192.168.1.10) veut envoyer un paquet à PC2 (192.168.2.10)\n!\n! ❶ PC1 regarde : est-ce que 192.168.2.10 est dans MON réseau ?\n!    Mon réseau = 192.168.1.0/24\n!    192.168.2.10 n'est PAS dans 192.168.1.0/24\n!    → PC1 envoie le paquet à sa PASSERELLE (gateway)\n!\n! ❷ La passerelle de PC1 = 192.168.1.1 (interface du routeur)\n!    Le paquet arrive au routeur\n!\n! ❸ Le routeur regarde sa TABLE DE ROUTAGE :\n!    « Pour aller vers 192.168.2.0/24, je dois envoyer\n!      par mon interface GigabitEthernet0/1 »\n!\n! ❹ Le routeur transmet le paquet à PC2 via le réseau 192.168.2.0/24\n!\n! ❺ PC2 reçoit le paquet → il peut répondre\n!    (à condition que le routeur connaisse aussi le chemin RETOUR !)"} />
-            <V2Whiteboard title="Le routeur = un appareil avec PLUSIEURS interfaces" code={"! Un routeur a au minimum 2 interfaces réseau :\n!\n!    ┌──────────────────────────────────┐\n!    │           ROUTEUR R1             │\n!    │                                  │\n!    │  G0/0          G0/1         S0/0 │\n!    │  192.168.1.1   192.168.2.1  10.0.0.1\n!    └──┬───────────────┬──────────────┬┘\n!       │               │              │\n!   Réseau 1       Réseau 2      Lien série\n!   192.168.1.0/24 192.168.2.0/24 vers un autre routeur\n!\n! Chaque interface est dans un réseau DIFFÉRENT\n! Le routeur fait le PONT entre ces réseaux\n!\n! G0/0, G0/1 = GigabitEthernet (câble cuivre, vers switches/PCs)\n! S0/0 = Serial (liaison WAN, vers un autre routeur distant)"} />
-            <V2Tip title="Analogie">Le routeur est comme un aiguillage ferroviaire : chaque paquet (train) arrive, le routeur consulte sa table (le plan des voies) et l'envoie dans la bonne direction.</V2Tip>
-          </div>
-        )
-      },
-      // ── SLIDE 2 : LA TABLE DE ROUTAGE ──
-      {
-        type: 'rich_text',
-        title: "La table de routage",
-        content: (
-          <div>
-            <V2Header module="MODULE 08" section="Concepts" title="La table de routage : le GPS du routeur" description="Chaque routeur possède une TABLE DE ROUTAGE. C'est une liste qui dit : 'pour aller vers tel réseau, envoie le paquet par telle interface ou vers tel prochain routeur'. Sans table de routage, le routeur ne sait rien faire." />
-            <V2InfoCards cards={[
-              { title: "Comment elle se remplit ?", color: "purple", icon: Network, items: ["Routes CONNECTED (C) : ajoutées automatiquement quand une interface est UP", "Routes STATIQUES (S) : ajoutées manuellement par l'admin avec ip route", "Routes DYNAMIQUES (D, O, R...) : apprises via des protocoles (OSPF, RIP...)", "Dans cette session on voit les routes C et S uniquement"] },
-              { title: "Comment le routeur choisit ?", color: "amber", icon: Lightbulb, items: ["Le routeur cherche la route la PLUS SPÉCIFIQUE (longest prefix match)", "Exemple : /24 est plus spécifique que /16", "S'il ne trouve AUCUNE route → le paquet est JETÉ (dropped)", "D'où l'importance de la route par défaut (on verra plus tard)"] }
-            ]} />
-            <V2Terminal title="Exemple de table de routage (show ip route)" code={"R1# show ip route\n! Codes: C - connected, S - static, R - RIP, O - OSPF\n!\n! Gateway of last resort is not set\n!\n!      192.168.1.0/24 is variably subnetted\nC        192.168.1.0/24 is directly connected, GigabitEthernet0/0\n!\n!      10.0.0.0/30 is subnetted\nC        10.0.0.0/30 is directly connected, Serial0/0/0\n!\nS     192.168.2.0/24 [1/0] via 10.0.0.2"} />
-            <V2Whiteboard title="Lire la table de routage" code={"! Chaque ligne de la table contient :\n!\n! ❶ Le CODE (comment la route a été apprise)\n!    C = Connected (automatique, interface directement branchée)\n!    S = Static (configurée manuellement par l'admin)\n!    S* = Route par défaut statique\n!    R = RIP, O = OSPF, D = EIGRP (protocoles dynamiques)\n!\n! ❷ Le RÉSEAU DESTINATION + son masque\n!    192.168.2.0/24 = le réseau qu'on peut atteindre\n!\n! ❸ La DISTANCE ADMINISTRATIVE et la MÉTRIQUE [1/0]\n!    [1/0] → distance admin = 1 (statique), métrique = 0\n!    Plus le chiffre est bas, plus la route est prioritaire\n!    Connected = 0, Statique = 1, OSPF = 110, RIP = 120\n!\n! ❹ Le NEXT-HOP (via 10.0.0.2)\n!    = l'IP du prochain routeur vers qui envoyer le paquet\n!    OU l'interface de sortie (pour les routes connected)"} />
-            <V2Tip title="Règle importante">Un routeur ne connaît QUE les réseaux de ses interfaces actives (connected) et les routes qu'on lui a ajoutées (statiques ou dynamiques). Il ne devine rien tout seul !</V2Tip>
-          </div>
-        )
-      },
-      // ── SLIDE 3 : ROUTAGE STATIQUE VS DYNAMIQUE ──
-      {
-        type: 'rich_text',
-        title: "Statique vs Dynamique",
-        content: (
-          <div>
-            <V2Header module="MODULE 08" section="Concepts" title="Deux façons de remplir la table de routage" description="Il existe deux grandes familles de routage. Le routage STATIQUE où l'administrateur configure chaque route à la main, et le routage DYNAMIQUE où les routeurs s'échangent automatiquement leurs routes via des protocoles." />
-            <V2Whiteboard title="Comparaison détaillée" code={"!                    STATIQUE              DYNAMIQUE\n! ─────────────────────────────────────────────────────────\n! Configuration    Manuelle (ip route)   Automatique (protocoles)\n! Protocoles       Aucun                 RIP, OSPF, EIGRP, BGP\n! Mise à jour      Manuelle si ça change S'adapte tout seul\n! Charge CPU/RAM   Aucune                Consomme des ressources\n! Sécurité         Plus sûr (pas échange)Échanges entre routeurs\n! Bande passante   Aucun trafic en plus  Paquets de mise à jour\n! Adapté pour      Petits réseaux, stub  Grands réseaux, redondance\n! Tolérance panne  NON (intervention)    OUI (recalcul auto)\n! Complexité       Facile à comprendre   Plus complexe à déployer"} />
-            <V2InfoCards cards={[
-              { title: "Routage statique — Avantages", color: "emerald", icon: CheckCircle2, items: ["Aucune consommation CPU/RAM/bande passante", "Plus sécurisé (pas d'échange de routes avec d'autres routeurs)", "Le chemin est prévisible et contrôlé par l'admin", "Simple à configurer sur de petits réseaux", "Idéal pour les réseaux stub (une seule sortie)"] },
-              { title: "Routage statique — Inconvénients", color: "red", icon: AlertTriangle, items: ["Ne s'adapte PAS si un lien tombe en panne", "Maintenance lourde quand le réseau grandit (chaque route à la main)", "Risque d'erreur humaine (oubli de routes, typos)", "Sur 50 routeurs avec 20 réseaux = des centaines de routes à écrire", "Pas de redondance automatique"] }
-            ]} />
-            <V2Whiteboard title="Quand utiliser quoi ?" code={"! ✓ Routage STATIQUE quand :\n!   → Petit réseau (2-5 routeurs)\n!   → Réseau stub (une seule sortie, ex: succursale)\n!   → Route par défaut vers Internet\n!   → Besoin de contrôle total sur le chemin\n!   → Sécurité maximale (pas d'échange de routes)\n!\n! ✓ Routage DYNAMIQUE quand :\n!   → Grand réseau (10+ routeurs)\n!   → Topologie complexe avec redondance\n!   → Le réseau change souvent\n!   → Besoin de tolérance de panne automatique\n!\n! En pratique : on MÉLANGE souvent les deux !\n!   → Statique pour la route par défaut\n!   → Dynamique (OSPF) pour le reste du réseau"} />
-            <V2Tip title="Focus de cette session">Dans cette session on se concentre sur le routage STATIQUE. Le routage dynamique (OSPF, RIP, EIGRP...) viendra dans des sessions dédiées.</V2Tip>
-          </div>
-        )
-      },
-      // ── SLIDE 4 : LA COMMANDE IP ROUTE ──
-      {
-        type: 'rich_text',
-        title: "La commande ip route",
-        content: (
-          <div>
-            <V2Header module="MODULE 08" section="Configuration" title="ip route : ajouter une route statique" description="C'est LA commande centrale de cette session. Elle dit au routeur : 'pour aller vers ce réseau distant, envoie le paquet à ce prochain routeur (next-hop)'. Elle se tape en mode configuration globale." />
-            <V2Terminal title="Syntaxe de la commande" code={"R1> enable\nR1# configure terminal\nR1(config)# ip route [réseau_dest] [masque] [next-hop]\n!\n! Exemple concret :\nR1(config)# ip route 192.168.2.0 255.255.255.0 10.0.0.2\n↳ Pour aller vers le réseau 192.168.2.0/24,\n↳ envoie le paquet au routeur 10.0.0.2"} />
-            <V2Whiteboard title="Décomposition de chaque paramètre" code={"! ip route 192.168.2.0 255.255.255.0 10.0.0.2\n!          ─────────── ─────────────── ────────\n!          Paramètre 1  Paramètre 2   Paramètre 3\n!\n! ❶ Réseau destination : 192.168.2.0\n!    C'est l'adresse du RÉSEAU (pas d'un PC !)\n!    Mauvais : ip route 192.168.2.10 ... (c'est un hôte)\n!    Bon     : ip route 192.168.2.0  ... (c'est le réseau)\n!\n! ❷ Masque : 255.255.255.0\n!    Le masque du réseau de destination\n!    Doit correspondre au vrai masque de ce réseau\n!\n! ❸ Next-hop : 10.0.0.2\n!    L'adresse IP du PROCHAIN ROUTEUR sur le chemin\n!    C'est l'IP de l'interface du routeur VOISIN\n!    qui est directement connecté à nous\n!\n! ALTERNATIVE : utiliser l'interface de sortie\n!    ip route 192.168.2.0 255.255.255.0 Serial0/0/0\n!    → Au lieu de dire 'envoie à 10.0.0.2'\n!    → On dit 'envoie par mon interface S0/0/0'\n!    → Fonctionne bien sur les liens point-à-point (série)"} />
-            <V2InfoCards cards={[
-              { title: "Erreur fréquente n°1", color: "red", icon: AlertTriangle, items: ["Mettre l'IP d'un PC au lieu de l'adresse réseau", "FAUX : ip route 192.168.2.10 255.255.255.0 10.0.0.2", "JUSTE : ip route 192.168.2.0 255.255.255.0 10.0.0.2", "Le réseau finit toujours par .0 (pour un /24)"] },
-              { title: "Erreur fréquente n°2", color: "red", icon: AlertTriangle, items: ["Confondre le next-hop avec la destination", "Le next-hop = l'IP du routeur VOISIN directement connecté", "Ce n'est PAS l'IP du PC qu'on veut joindre", "C'est le 'prochain saut' sur le chemin"] }
-            ]} />
-            <V2Tip title="Rappel crucial">Il faut configurer une route dans CHAQUE direction ! Si R1 sait aller vers LAN2 mais que R2 ne sait pas revenir vers LAN1, le ping échouera. L'aller fonctionne, mais le retour est perdu.</V2Tip>
-          </div>
-        )
-      },
-      // ── SLIDE 5 : ROUTE PAR DÉFAUT ──
-      {
-        type: 'rich_text',
-        title: "La route par défaut",
-        content: (
-          <div>
-            <V2Header module="MODULE 08" section="Configuration" title="La route par défaut : le filet de sécurité" description="Et si le routeur reçoit un paquet vers un réseau qu'il ne connaît PAS du tout ? Sans route par défaut, il jette le paquet. Avec une route par défaut, il l'envoie vers un routeur 'principal' qui, lui, saura peut-être où l'envoyer." />
-            <V2Terminal title="Configuration de la route par défaut" code={"R1(config)# ip route 0.0.0.0 0.0.0.0 10.0.0.2\n↳ 0.0.0.0 0.0.0.0 = TOUTES les destinations\n↳ Si aucune route spécifique ne correspond,\n↳ envoie le paquet à 10.0.0.2\n!\n! Vérification :\nR1# show ip route\n! Gateway of last resort is 10.0.0.2 to network 0.0.0.0\n! S*   0.0.0.0/0 [1/0] via 10.0.0.2\n!\n! Le S* signifie : route Statique par défaut (candidate default)"} />
-            <V2Whiteboard title="Quand utiliser la route par défaut ?" code={"! Cas n°1 : ROUTEUR STUB (cul-de-sac)\n!\n!    [Internet] ←── [R-Central] ←── [R-Succursale] ── [LAN]\n!                                        ↑\n!                            Ce routeur n'a qu'UNE SEULE sortie\n!                            → Route par défaut vers R-Central\n!                            → Pas besoin de connaître chaque réseau\n!\n! Cas n°2 : SORTIE INTERNET\n!\n!    [LAN1] ── [R1] ── [R-Bordure] ── [Internet]\n!                           ↑\n!               ip route 0.0.0.0 0.0.0.0 [IP du FAI]\n!               Tout ce qu'on ne connaît pas → vers Internet\n!\n! Cas n°3 : SIMPLIFICATION\n!    Au lieu d'écrire 50 routes statiques,\n!    une seule route par défaut suffit si tout\n!    passe par le même routeur central"} />
-            <V2InfoCards cards={[
-              { title: "Comment ça marche ?", color: "blue", icon: Network, items: ["0.0.0.0 0.0.0.0 = réseau 0, masque 0 = TOUT", "C'est la route la MOINS spécifique possible", "Elle ne s'utilise QUE si aucune autre route ne correspond", "Le routeur cherche d'abord les routes précises, puis la par défaut", "Si même la route par défaut n'existe pas → paquet jeté"] },
-              { title: "Gateway of last resort", color: "emerald", icon: CheckCircle2, items: ["C'est le nom officiel Cisco de la route par défaut", "Visible dans 'show ip route' tout en haut", "S* = le * indique que c'est la candidate par défaut", "Sans gateway of last resort, le routeur affiche :", "'Gateway of last resort is not set'"] }
-            ]} />
-            <V2Tip title="Best Practice">Un routeur stub (une seule sortie vers le reste du réseau) n'a besoin QUE d'une route par défaut. Inutile d'écrire des dizaines de routes spécifiques si tout passe par le même chemin.</V2Tip>
-          </div>
-        )
-      },
-      // ── SLIDE 6 : TOPOLOGIE DE RÉFÉRENCE ──
-      {
-        type: 'rich_text',
-        title: "Topologie de référence",
-        content: (
-          <div>
-            <V2Header module="MODULE 08" section="Mise en pratique" title="Scénario : 3 réseaux, 2 routeurs" description="On va travailler sur une topologie simple mais complète : 2 LANs reliés par 2 routeurs via un lien série. C'est le cas le plus courant en routage statique. L'objectif : que PC1 et PC2 puissent se pinguer." />
-            <V2Whiteboard title="Schéma de la topologie" code={"!     LAN 1                                         LAN 2\n!  192.168.1.0/24                                192.168.2.0/24\n!\n!  [PC1]──[SW1]──[R1]═══════════════[R2]──[SW2]──[PC2]\n!  .10          G0/0  S0/0/0    S0/0/0  G0/0      .10\n!               .1    .1    lien série   .2    .1\n!                        10.0.0.0/30\n!\n! 3 réseaux au total :\n!   1) LAN 1 : 192.168.1.0/24 (derrière R1)\n!   2) Lien série : 10.0.0.0/30 (entre R1 et R2)\n!   3) LAN 2 : 192.168.2.0/24 (derrière R2)"} />
-            <V2Whiteboard title="Plan d'adressage complet" code={"! Équipement │ Interface   │ Adresse IP     │ Masque\n! ───────────┼─────────────┼────────────────┼──────────────────\n! R1         │ G0/0        │ 192.168.1.1    │ 255.255.255.0\n! R1         │ S0/0/0 (DCE)│ 10.0.0.1       │ 255.255.255.252\n! R2         │ S0/0/0      │ 10.0.0.2       │ 255.255.255.252\n! R2         │ G0/0        │ 192.168.2.1    │ 255.255.255.0\n! PC1        │ NIC         │ 192.168.1.10   │ 255.255.255.0\n! PC2        │ NIC         │ 192.168.2.10   │ 255.255.255.0\n!\n! Passerelles par défaut (gateway) :\n!   PC1 → 192.168.1.1 (interface G0/0 de R1)\n!   PC2 → 192.168.2.1 (interface G0/0 de R2)"} />
-            <V2InfoCards cards={[
-              { title: "Le problème initial", color: "red", icon: AlertTriangle, items: ["R1 connaît : LAN1 (192.168.1.0/24) et le lien série (10.0.0.0/30)", "R1 ne connaît PAS : LAN2 (192.168.2.0/24)", "R2 connaît : LAN2 et le lien série", "R2 ne connaît PAS : LAN1", "→ PC1 ping PC2 = ÉCHEC ! Chaque routeur ne voit que ses réseaux connectés"] },
-              { title: "La solution", color: "emerald", icon: CheckCircle2, items: ["Sur R1 : ip route 192.168.2.0 255.255.255.0 10.0.0.2", "→ 'Pour aller vers LAN2, envoie à R2 (10.0.0.2)'", "Sur R2 : ip route 192.168.1.0 255.255.255.0 10.0.0.1", "→ 'Pour aller vers LAN1, envoie à R1 (10.0.0.1)'", "→ PC1 ping PC2 = SUCCÈS ! Aller ET retour configurés"] }
-            ]} />
-            <V2Whiteboard title="Pourquoi /30 pour le lien série ?" code={"! Le lien série entre R1 et R2 utilise un /30 (255.255.255.252)\n!\n! /30 = 2 bits hôte = 2^2 = 4 adresses\n!   10.0.0.0  → adresse réseau (réservée)\n!   10.0.0.1  → R1 (côté DCE)\n!   10.0.0.2  → R2\n!   10.0.0.3  → broadcast (réservée)\n!\n! 4 adresses, 2 utilisables = PARFAIT pour un lien point-à-point\n! On ne gaspille que 2 adresses (au lieu de 254 avec un /24)\n!\n! C'est la bonne pratique pour tout lien entre 2 routeurs !\n! En vrai réseau, on peut même utiliser /31 (2 adresses, 0 perdue)"} />
-            <V2Tip title="Erreur n°1 des débutants">Oublier la route RETOUR ! Si R1 sait envoyer vers LAN2 mais R2 ne sait pas renvoyer vers LAN1, le ping de PC1 vers PC2 arrivera... mais la réponse sera perdue. Le ping affichera 'timeout'.</V2Tip>
-          </div>
-        )
-      },
-      // ── SLIDE 7 : CONFIGURATION COMPLÈTE ÉTAPE PAR ÉTAPE ──
-      {
-        type: 'rich_text',
-        title: "Configuration complète R1",
-        content: (
-          <div>
-            <V2Header module="MODULE 08" section="Configuration" title="Configuration de R1 — étape par étape" description="On configure le premier routeur : ses 2 interfaces (LAN et série) puis la route statique vers le réseau distant. Chaque commande est expliquée." />
-            <V2Terminal title="Configuration complète de R1" code={"R1> enable\nR1# configure terminal\n!\n! ── Interface LAN (vers le switch et les PCs) ──\nR1(config)# interface GigabitEthernet0/0\nR1(config-if)# ip address 192.168.1.1 255.255.255.0\n↳ IP du routeur côté LAN 1 (sera la gateway des PCs)\nR1(config-if)# no shutdown\n↳ Active l'interface (éteinte par défaut sur un routeur)\nR1(config-if)# exit\n!\n! ── Interface série (vers R2) ──\nR1(config)# interface Serial0/0/0\nR1(config-if)# ip address 10.0.0.1 255.255.255.252\n↳ IP du routeur côté lien série (/30 = 2 hôtes)\nR1(config-if)# clock rate 128000\n↳ Obligatoire UNIQUEMENT sur le côté DCE du câble série\n↳ Définit la vitesse de synchronisation de la liaison\nR1(config-if)# no shutdown\nR1(config-if)# exit\n!\n! ── Route statique vers LAN 2 ──\nR1(config)# ip route 192.168.2.0 255.255.255.0 10.0.0.2\n↳ Pour joindre 192.168.2.0/24 → envoyer via 10.0.0.2 (R2)\n!\nR1(config)# end\nR1# copy running-config startup-config\n↳ Sauvegarder ! Sans ça, tout est perdu au reboot"} />
-            <V2InfoCards cards={[
-              { title: "clock rate — c'est quoi ?", color: "amber", icon: Lightbulb, items: ["Sur un lien série, un côté fournit l'horloge (DCE) et l'autre la reçoit (DTE)", "Le côté DCE doit configurer le clock rate", "Dans Packet Tracer, le câble indique quel côté est DCE", "Valeurs courantes : 64000, 128000, 256000", "Si tu oublies le clock rate côté DCE, le lien ne monte PAS"] },
-              { title: "no shutdown — ne l'oublie pas !", color: "red", icon: AlertTriangle, items: ["Sur un SWITCH, les interfaces sont UP par défaut", "Sur un ROUTEUR, les interfaces sont DOWN par défaut", "Il faut TOUJOURS taper 'no shutdown' pour activer une interface", "C'est l'erreur la plus fréquente : tout est bien configuré mais l'interface est éteinte", "Vérifier avec 'show ip interface brief'"] }
-            ]} />
-            <V2Tip title="Astuce Packet Tracer">Pour savoir quel côté du câble série est DCE : clique sur le câble dans Packet Tracer. Le côté avec l'icône d'horloge est le DCE. Ou utilise la commande <code className="text-emerald-400 font-mono">show controllers serial 0/0/0</code> qui affiche 'DCE' ou 'DTE'.</V2Tip>
-          </div>
-        )
-      },
-      // ── SLIDE 8 : CONFIGURATION R2 + PCs ──
-      {
-        type: 'rich_text',
-        title: "Configuration R2 et PCs",
-        content: (
-          <div>
-            <V2Header module="MODULE 08" section="Configuration" title="Configuration de R2 + les PCs" description="Même logique pour R2 mais en miroir. Ensuite on configure les adresses IP des PCs avec leur passerelle par défaut." />
-            <V2Terminal title="Configuration complète de R2" code={"R2> enable\nR2# configure terminal\n!\n! ── Interface LAN (vers switch et PCs) ──\nR2(config)# interface GigabitEthernet0/0\nR2(config-if)# ip address 192.168.2.1 255.255.255.0\n↳ IP du routeur côté LAN 2\nR2(config-if)# no shutdown\nR2(config-if)# exit\n!\n! ── Interface série (vers R1) ──\nR2(config)# interface Serial0/0/0\nR2(config-if)# ip address 10.0.0.2 255.255.255.252\n↳ Pas de clock rate ici (R2 est côté DTE)\nR2(config-if)# no shutdown\nR2(config-if)# exit\n!\n! ── Route statique vers LAN 1 (route RETOUR) ──\nR2(config)# ip route 192.168.1.0 255.255.255.0 10.0.0.1\n↳ Pour joindre 192.168.1.0/24 → envoyer via 10.0.0.1 (R1)\n!\nR2(config)# end\nR2# copy running-config startup-config"} />
-            <V2Whiteboard title="Configuration des PCs (Desktop → IP Configuration)" code={"! ── PC1 ──\n!   IP Address    : 192.168.1.10\n!   Subnet Mask   : 255.255.255.0\n!   Default Gateway: 192.168.1.1\n!   ↳ La gateway = l'IP de l'interface du routeur dans CE réseau\n!\n! ── PC2 ──\n!   IP Address    : 192.168.2.10\n!   Subnet Mask   : 255.255.255.0\n!   Default Gateway: 192.168.2.1\n!\n! ATTENTION : si tu oublies la gateway sur un PC,\n! il pourra communiquer dans son réseau local MAIS\n! il ne pourra JAMAIS joindre un autre réseau !\n! Le PC ne saura pas à qui envoyer les paquets 'hors réseau'"} />
-            <V2InfoCards cards={[
-              { title: "Récapitulatif des routes configurées", color: "emerald", icon: CheckCircle2, items: ["R1 : ip route 192.168.2.0 255.255.255.0 10.0.0.2 (→ LAN2 via R2)", "R2 : ip route 192.168.1.0 255.255.255.0 10.0.0.1 (→ LAN1 via R1)", "Les 2 routes sont SYMÉTRIQUES (aller + retour)", "Les routes connected (C) sont ajoutées automatiquement", "Au total : 2 routes statiques + 4 routes connected"] },
-              { title: "Default Gateway vs ip route", color: "amber", icon: Lightbulb, items: ["Default Gateway = sur les PCs (config manuelle)", "ip route = sur les routeurs (commande Cisco IOS)", "Les deux font la même chose : dire 'par où sortir'", "Le PC envoie tout ce qui est hors réseau à sa gateway", "Le routeur consulte sa table de routage pour chaque destination"] }
-            ]} />
-            <V2Tip title="Avant de tester">Vérifie que TOUTES les interfaces sont UP avec <code className="text-emerald-400 font-mono">show ip interface brief</code> sur chaque routeur. Si une interface est 'administratively down', tu as oublié le <code className="text-emerald-400 font-mono">no shutdown</code>.</V2Tip>
-          </div>
-        )
-      },
-      // ── SLIDE 9 : VÉRIFICATION ET DÉPANNAGE ──
-      {
-        type: 'rich_text',
-        title: "Vérification et dépannage",
-        content: (
-          <div>
-            <V2Header module="MODULE 08" section="Vérification" title="Les commandes pour vérifier et dépanner le routage" description="Tu as tout configuré, maintenant il faut VÉRIFIER que ça marche. Et si ça marche pas, savoir où chercher l'erreur. Voici les commandes essentielles de diagnostic." />
-            <V2Terminal title="Vérification étape par étape" code={"! ❶ Vérifier les interfaces\nR1# show ip interface brief\n! Interface         IP-Address      OK? Method Status Protocol\n! Gi0/0             192.168.1.1     YES manual up     up\n! Se0/0/0           10.0.0.1        YES manual up     up\n↳ Les deux doivent être 'up up'. Si 'down' → no shutdown oublié\n!\n! ❷ Vérifier la table de routage\nR1# show ip route\n! C   192.168.1.0/24 is directly connected, Gi0/0\n! C   10.0.0.0/30 is directly connected, Se0/0/0\n! S   192.168.2.0/24 [1/0] via 10.0.0.2\n↳ La route S vers 192.168.2.0 DOIT apparaître\n!\n! ❸ Voir uniquement les routes statiques\nR1# show ip route static\n! S   192.168.2.0/24 [1/0] via 10.0.0.2\n!\n! ❹ Tester la connectivité\nR1# ping 10.0.0.2\n↳ Teste le lien série (doit marcher en premier)\nR1# ping 192.168.2.1\n↳ Teste qu'on atteint l'interface LAN de R2\nR1# ping 192.168.2.10\n↳ Teste la connectivité bout en bout vers PC2"} />
-            <V2Terminal title="Traceroute : voir le chemin" code={"! traceroute montre chaque routeur traversé :\nPC1> tracert 192.168.2.10\n!\n! 1   192.168.1.1    (R1 - gateway de PC1)\n! 2   10.0.0.2       (R2 - via le lien série)\n! 3   192.168.2.10   (PC2 - destination finale)\n!\n! Si ça s'arrête au milieu, le problème est au routeur suivant\n! Exemple : si ça s'arrête à 10.0.0.2 → R2 n'a pas la route retour"} />
-            <V2Whiteboard title="Guide de dépannage" code={"! Le ping PC1 → PC2 échoue ? Suit ce guide :\n!\n! ❶ ping de PC1 vers sa gateway (192.168.1.1)\n!    ÉCHEC → Problème local : IP du PC ou interface R1 G0/0\n!    OK → Continue...\n!\n! ❷ ping de R1 vers R2 série (10.0.0.2)\n!    ÉCHEC → Lien série : clock rate ? no shutdown ? IPs ?\n!    OK → Continue...\n!\n! ❸ ping de R1 vers 192.168.2.10\n!    ÉCHEC → Route statique manquante sur R1\n!    OK → Continue...\n!\n! ❹ ping de PC2 vers PC1 (192.168.1.10)\n!    ÉCHEC → Route RETOUR manquante sur R2 !\n!    OK → Tout fonctionne ✓\n!\n! Les 3 erreurs les plus courantes :\n!    1. no shutdown oublié sur une interface\n!    2. Route statique absente ou mal configurée\n!    3. Route retour manquante (erreur n°1 !)"} />
-            <V2Tip title="Astuce ping">Le premier ping échoue souvent (timeout) puis les suivants réussissent. C'est NORMAL ! Le premier ping déclenche une requête ARP pour résoudre l'adresse MAC. Le deuxième ping passe car l'ARP est en cache.</V2Tip>
-          </div>
-        )
-      },
-      // ── SLIDE 10 : GÉRER ET SUPPRIMER DES ROUTES ──
-      {
-        type: 'rich_text',
-        title: "Gérer les routes statiques",
-        content: (
-          <div>
-            <V2Header module="MODULE 08" section="Gestion" title="Supprimer, modifier, bonnes pratiques" description="Une fois les routes en place, il faut savoir les gérer. Comment supprimer une route ? Comment la modifier ? Et quelles sont les bonnes pratiques à suivre en entreprise ?" />
-            <V2Terminal title="Supprimer et modifier une route" code={"! ── Supprimer une route statique ──\nR1(config)# no ip route 192.168.2.0 255.255.255.0 10.0.0.2\n↳ Il faut remettre TOUS les paramètres (réseau + masque + next-hop)\n↳ Si un seul paramètre est différent, la suppression ÉCHOUE\n!\n! ── Vérifier la suppression ──\nR1# show ip route static\n↳ La route ne doit plus apparaître\n!\n! ── Modifier une route ──\n! Il n'existe PAS de commande 'modifier' !\n! Il faut : 1) Supprimer l'ancienne  2) Créer la nouvelle\nR1(config)# no ip route 192.168.2.0 255.255.255.0 10.0.0.2\nR1(config)# ip route 192.168.2.0 255.255.255.0 10.0.0.5\n↳ Maintenant le next-hop est 10.0.0.5 au lieu de 10.0.0.2"} />
-            <V2Whiteboard title="Commandes essentielles — Récapitulatif" code={"! ┌─────────────────────────────┬─────────────────────────────────────────┐\n! │ Action                      │ Commande                                │\n! ├─────────────────────────────┼─────────────────────────────────────────┤\n! │ Ajouter une route           │ ip route [réseau] [masque] [next-hop]   │\n! │ Route par défaut            │ ip route 0.0.0.0 0.0.0.0 [next-hop]    │\n! │ Supprimer une route         │ no ip route [réseau] [masque] [next-hop]│\n! │ Voir toutes les routes      │ show ip route                           │\n! │ Voir routes statiques       │ show ip route static                    │\n! │ Voir état des interfaces    │ show ip interface brief                 │\n! │ Tester connectivité         │ ping [destination]                      │\n! │ Tracer le chemin            │ traceroute [destination]                │\n! │ Sauvegarder                 │ copy running-config startup-config      │\n! └─────────────────────────────┴─────────────────────────────────────────┘"} />
-            <V2InfoCards cards={[
-              { title: "Bonnes pratiques", color: "emerald", icon: CheckCircle2, items: ["Toujours documenter les routes (description sur les interfaces)", "Vérifier avec show ip route après chaque ajout ou suppression", "Ne JAMAIS oublier les routes retour", "Utiliser la route par défaut pour les réseaux stub", "Sauvegarder avec copy run start après chaque modification", "Tester avec ping ET traceroute avant de valider"] },
-              { title: "Résumé : ce qu'il faut retenir", color: "purple", icon: Network, items: ["Un routeur ne connaît que ses réseaux connectés (C)", "Pour les autres réseaux → routes statiques (S) ou dynamiques", "ip route = la commande magique de cette session", "Route par défaut = filet de sécurité (0.0.0.0 0.0.0.0)", "Toujours configurer aller + retour", "Le routage statique = parfait pour les petits réseaux"] }
-            ]} />
-            <V2Tip title="Règle d'or" color="amber">Avant de quitter la config d'un routeur, tape TOUJOURS <code className="text-emerald-400 font-mono">show ip route</code> pour vérifier tes routes, puis <code className="text-emerald-400 font-mono">copy running-config startup-config</code> pour sauvegarder. C'est un réflexe à prendre dès maintenant.</V2Tip>
-          </div>
-        )
-      }
-    ],
-    lab: {
-      consignes: (
-        <div className="space-y-8 text-slate-300 leading-relaxed">
-          <section>
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-3">{"🎯 Objectif du Lab"}</h2>
-            <p className="mb-4">{"Interconnecter deux réseaux distants avec du routage statique. À la fin du lab, les 4 PCs doivent pouvoir se pinguer entre eux (local ET inter-réseau)."}</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-3">{"📦 Matériel nécessaire dans Packet Tracer"}</h2>
-            <ul className="space-y-1 mb-4 text-sm">
-              <li>{"• 2 routeurs (Cisco 1941)"}</li>
-              <li>{"• 2 switches (2960)"}</li>
-              <li>{"• 4 PCs (2 par réseau)"}</li>
-              <li>{"• Câbles Ethernet (copper straight-through)"}</li>
-              <li>{"• Câble Ethernet entre les deux routeurs (ou câble série selon interfaces)"}</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-3">{"🏗️ Topologie à construire"}</h2>
-            <div className="bg-black/40 rounded-xl p-5 font-mono text-sm space-y-2">
-              <p className="text-purple-300 font-bold mb-3">{"Schéma :"}</p>
-              <p>{"[PC0]---[SW0]---[R1]======[R2]---[SW1]---[PC2]"}</p>
-              <p>{"[PC1]                                     [PC3]"}</p>
-              <p className="text-slate-500 mt-3">{"LAN 1                  Lien WAN                  LAN 2"}</p>
-              <p className="text-slate-500">{"192.168.10.0/24       10.0.0.0/30       192.168.20.0/24"}</p>
-            </div>
-            <ul className="space-y-1 mt-3 text-sm">
-              <li>{"• Le lien R1 ↔ R2 peut être en Ethernet (G0/1 ↔ G0/0) ou en série"}</li>
-              <li>{"• Chaque routeur est connecté à son propre LAN"}</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-3">{"📋 Plan d'adressage"}</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm border-collapse">
-                <thead>
-                  <tr className="border-b border-white/20">
-                    <th className="text-left p-2 text-purple-300">{"Appareil"}</th>
-                    <th className="text-left p-2 text-purple-300">{"Interface"}</th>
-                    <th className="text-left p-2 text-purple-300">{"Adresse IP"}</th>
-                    <th className="text-left p-2 text-purple-300">{"Masque"}</th>
-                  </tr>
-                </thead>
-                <tbody className="font-mono">
-                  <tr className="border-b border-white/10"><td className="p-2">{"PC0"}</td><td className="p-2">{"FastEthernet0"}</td><td className="p-2 text-emerald-400">{"192.168.10.10"}</td><td className="p-2">{"255.255.255.0"}</td></tr>
-                  <tr className="border-b border-white/10"><td className="p-2">{"PC1"}</td><td className="p-2">{"FastEthernet0"}</td><td className="p-2 text-emerald-400">{"192.168.10.11"}</td><td className="p-2">{"255.255.255.0"}</td></tr>
-                  <tr className="border-b border-white/10"><td className="p-2">{"PC2"}</td><td className="p-2">{"FastEthernet0"}</td><td className="p-2 text-emerald-400">{"192.168.20.10"}</td><td className="p-2">{"255.255.255.0"}</td></tr>
-                  <tr className="border-b border-white/10"><td className="p-2">{"PC3"}</td><td className="p-2">{"FastEthernet0"}</td><td className="p-2 text-emerald-400">{"192.168.20.11"}</td><td className="p-2">{"255.255.255.0"}</td></tr>
-                  <tr className="border-b border-white/10"><td className="p-2">{"R1"}</td><td className="p-2">{"G0/0 (LAN)"}</td><td className="p-2 text-emerald-400">{"192.168.10.1"}</td><td className="p-2">{"255.255.255.0"}</td></tr>
-                  <tr className="border-b border-white/10"><td className="p-2">{"R1"}</td><td className="p-2">{"G0/1 (WAN)"}</td><td className="p-2 text-emerald-400">{"10.0.0.1"}</td><td className="p-2">{"255.255.255.252"}</td></tr>
-                  <tr className="border-b border-white/10"><td className="p-2">{"R2"}</td><td className="p-2">{"G0/0 (WAN)"}</td><td className="p-2 text-emerald-400">{"10.0.0.2"}</td><td className="p-2">{"255.255.255.252"}</td></tr>
-                  <tr><td className="p-2">{"R2"}</td><td className="p-2">{"G0/1 (LAN)"}</td><td className="p-2 text-emerald-400">{"192.168.20.1"}</td><td className="p-2">{"255.255.255.0"}</td></tr>
-                </tbody>
-              </table>
-            </div>
-            <p className="text-amber-300/80 text-sm mt-3">{"⚠️ Passerelle par défaut : PC0/PC1 → 192.168.10.1 | PC2/PC3 → 192.168.20.1"}</p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-3">{"📝 Étapes du LAB"}</h2>
-
-            <h3 className="text-slate-200 font-bold mb-3 border-b border-white/20 pb-2">{"Étape 1 : Mise en place de la topologie"}</h3>
-            <ul className="space-y-1 mb-6 text-sm">
-              <li>{"• Placer 2 routeurs (Cisco 1941)"}</li>
-              <li>{"• Placer 2 switches (2960)"}</li>
-              <li>{"• Placer 4 PCs (2 de chaque côté)"}</li>
-              <li>{"• Connecter PC0 et PC1 → SW0 → R1 (G0/0) avec des câbles droits"}</li>
-              <li>{"• Connecter R1 (G0/1) → R2 (G0/0) avec un câble Ethernet croisé (ou droit si auto-MDIX)"}</li>
-              <li>{"• Connecter R2 (G0/1) → SW1 → PC2 et PC3 avec des câbles droits"}</li>
-            </ul>
-
-            <h3 className="text-slate-200 font-bold mb-3 border-b border-white/20 pb-2">{"Étape 2 : Configuration IP des routeurs"}</h3>
-            <p className="text-purple-300 font-bold mb-2">{"Sur R1 :"}</p>
-            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-4 space-y-1">
-              <p>{"enable"}</p>
-              <p>{"configure terminal"}</p>
-              <p>{"hostname R1"}</p>
-              <p>{"!"}</p>
-              <p>{"interface GigabitEthernet0/0"}</p>
-              <p>{"ip address 192.168.10.1 255.255.255.0"}</p>
-              <p>{"no shutdown"}</p>
-              <p>{"exit"}</p>
-              <p>{"!"}</p>
-              <p>{"interface GigabitEthernet0/1"}</p>
-              <p>{"ip address 10.0.0.1 255.255.255.252"}</p>
-              <p>{"no shutdown"}</p>
-              <p>{"exit"}</p>
-            </div>
-            <p className="text-purple-300 font-bold mb-2">{"Sur R2 :"}</p>
-            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-6 space-y-1">
-              <p>{"enable"}</p>
-              <p>{"configure terminal"}</p>
-              <p>{"hostname R2"}</p>
-              <p>{"!"}</p>
-              <p>{"interface GigabitEthernet0/0"}</p>
-              <p>{"ip address 10.0.0.2 255.255.255.252"}</p>
-              <p>{"no shutdown"}</p>
-              <p>{"exit"}</p>
-              <p>{"!"}</p>
-              <p>{"interface GigabitEthernet0/1"}</p>
-              <p>{"ip address 192.168.20.1 255.255.255.0"}</p>
-              <p>{"no shutdown"}</p>
-              <p>{"exit"}</p>
-            </div>
-
-            <h3 className="text-slate-200 font-bold mb-3 border-b border-white/20 pb-2">{"Étape 3 : Configuration IP des PCs"}</h3>
-            <p className="mb-2 text-sm">{"Aller dans Desktop → IP Configuration sur chaque PC :"}</p>
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-black/30 rounded-lg p-3 text-sm">
-                <p className="text-purple-300 font-bold mb-1">{"PC0"}</p>
-                <p>{"IP : 192.168.10.10"}</p>
-                <p>{"Masque : 255.255.255.0"}</p>
-                <p>{"Gateway : 192.168.10.1"}</p>
-              </div>
-              <div className="bg-black/30 rounded-lg p-3 text-sm">
-                <p className="text-purple-300 font-bold mb-1">{"PC1"}</p>
-                <p>{"IP : 192.168.10.11"}</p>
-                <p>{"Masque : 255.255.255.0"}</p>
-                <p>{"Gateway : 192.168.10.1"}</p>
-              </div>
-              <div className="bg-black/30 rounded-lg p-3 text-sm">
-                <p className="text-purple-300 font-bold mb-1">{"PC2"}</p>
-                <p>{"IP : 192.168.20.10"}</p>
-                <p>{"Masque : 255.255.255.0"}</p>
-                <p>{"Gateway : 192.168.20.1"}</p>
-              </div>
-              <div className="bg-black/30 rounded-lg p-3 text-sm">
-                <p className="text-purple-300 font-bold mb-1">{"PC3"}</p>
-                <p>{"IP : 192.168.20.11"}</p>
-                <p>{"Masque : 255.255.255.0"}</p>
-                <p>{"Gateway : 192.168.20.1"}</p>
-              </div>
-            </div>
-
-            <h3 className="text-slate-200 font-bold mb-3 border-b border-white/20 pb-2">{"Étape 4 : Vérifier la connectivité locale"}</h3>
-            <p className="mb-2 text-sm">{"Tester les pings LOCAUX (même réseau) :"}</p>
-            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-2">
-              <p>{"PC0> ping 192.168.10.11   → PC1 (même LAN) ✅"}</p>
-              <p>{"PC0> ping 192.168.10.1    → R1 gateway ✅"}</p>
-              <p>{"PC2> ping 192.168.20.11   → PC3 (même LAN) ✅"}</p>
-              <p>{"PC2> ping 192.168.20.1    → R2 gateway ✅"}</p>
-            </div>
-            <p className="mb-2 text-sm mt-4">{"Tester un ping INTER-RÉSEAU (devrait échouer) :"}</p>
-            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-2">
-              <p>{"PC0> ping 192.168.20.10   → PC2 (autre réseau) ❌ ÉCHEC"}</p>
-            </div>
-            <p className="text-amber-300/80 text-sm mb-6">{"⚠️ C'est NORMAL ! On n'a pas encore configuré les routes statiques. Les routeurs ne savent pas comment atteindre l'autre réseau."}</p>
-
-            <h3 className="text-slate-200 font-bold mb-3 border-b border-white/20 pb-2">{"Étape 5 : Ajouter les routes statiques"}</h3>
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-black/30 rounded-lg p-3">
-                <p className="text-purple-300 font-bold mb-1">{"Sur R1"}</p>
-                <div className="font-mono text-sm text-emerald-300">
-                  <p>{"ip route 192.168.20.0 255.255.255.0 10.0.0.2"}</p>
-                </div>
-                <p className="text-slate-400 text-xs mt-1">{"Pour joindre le réseau 192.168.20.0/24, passer par R2 (10.0.0.2)"}</p>
-              </div>
-              <div className="bg-black/30 rounded-lg p-3">
-                <p className="text-purple-300 font-bold mb-1">{"Sur R2"}</p>
-                <div className="font-mono text-sm text-emerald-300">
-                  <p>{"ip route 192.168.10.0 255.255.255.0 10.0.0.1"}</p>
-                </div>
-                <p className="text-slate-400 text-xs mt-1">{"Pour joindre le réseau 192.168.10.0/24, passer par R1 (10.0.0.1)"}</p>
-              </div>
-            </div>
-
-            <h3 className="text-slate-200 font-bold mb-3 border-b border-white/20 pb-2">{"Étape 6 : Tests de connectivité inter-réseau"}</h3>
-            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-2 space-y-1">
-              <p className="text-slate-400">{"Pings locaux (doivent toujours fonctionner) :"}</p>
-              <p>{"PC0> ping 192.168.10.11   → PC1 ✅"}</p>
-              <p>{"PC2> ping 192.168.20.11   → PC3 ✅"}</p>
-              <p>{""}</p>
-              <p className="text-slate-400">{"Ping inter-réseau (doit maintenant fonctionner) :"}</p>
-              <p>{"PC0> ping 192.168.20.10   → PC2 ✅"}</p>
-              <p>{"PC0> ping 192.168.20.11   → PC3 ✅"}</p>
-              <p>{"PC2> ping 192.168.10.10   → PC0 ✅"}</p>
-              <p>{"PC3> ping 192.168.10.11   → PC1 ✅"}</p>
-            </div>
-            <p className="text-slate-400 text-sm mb-6">{"Tester aussi les pings depuis les routeurs eux-mêmes."}</p>
-
-            <h3 className="text-slate-200 font-bold mb-3 border-b border-white/20 pb-2">{"Étape 7 : Vérification de la table de routage"}</h3>
-            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 mb-2 space-y-1">
-              <p>{"R1# show ip route"}</p>
-              <p className="text-slate-500">{"→ Vérifier la présence de S 192.168.20.0/24 [1/0] via 10.0.0.2"}</p>
-              <p>{""}</p>
-              <p>{"R2# show ip route"}</p>
-              <p className="text-slate-500">{"→ Vérifier la présence de S 192.168.10.0/24 [1/0] via 10.0.0.1"}</p>
-              <p>{""}</p>
-              <p className="text-slate-400">{"Si un ping échoue, utiliser traceroute pour identifier où le paquet se perd."}</p>
-            </div>
-          </section>
-
-          <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-5 mt-4">
-            <p className="text-emerald-400 text-sm font-bold flex items-center gap-2 mb-2"><CheckCircle className="w-5 h-5" /> {"Résultat attendu"}</p>
-            <ul className="text-slate-300 text-xs space-y-1">
-              <li>{"• Les 4 PCs peuvent se ping entre eux (local et inter-réseau)"}</li>
-              <li>{"• Les routes statiques sont visibles dans la table de routage (show ip route)"}</li>
-              <li>{"• Tu sais configurer les interfaces IP sur les routeurs et les PCs"}</li>
-              <li>{"• Tu sais ajouter des routes statiques avec ip route"}</li>
-              <li>{"• Tu sais vérifier avec show ip route, ping et traceroute"}</li>
-            </ul>
-          </div>
-        </div>
-      ),
-      solutionContent: (
-        <div className="space-y-8 text-slate-300 leading-relaxed">
-          <h2 className="text-xl font-bold text-white mb-4">{"Solution complète — Routage Statique"}</h2>
-
-          <section>
-            <h3 className="text-slate-200 font-bold mb-3 border-b border-white/20 pb-2">{"Configuration R1"}</h3>
-            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
-              <p>{"enable"}</p>
-              <p>{"configure terminal"}</p>
-              <p>{"hostname R1"}</p>
-              <p>{"!"}</p>
-              <p>{"interface GigabitEthernet0/0"}</p>
-              <p>{"ip address 192.168.10.1 255.255.255.0"}</p>
-              <p>{"no shutdown"}</p>
-              <p>{"exit"}</p>
-              <p>{"!"}</p>
-              <p>{"interface GigabitEthernet0/1"}</p>
-              <p>{"ip address 10.0.0.1 255.255.255.252"}</p>
-              <p>{"no shutdown"}</p>
-              <p>{"exit"}</p>
-              <p>{"!"}</p>
-              <p>{"ip route 192.168.20.0 255.255.255.0 10.0.0.2"}</p>
-              <p>{"!"}</p>
-              <p>{"end"}</p>
-              <p>{"copy running-config startup-config"}</p>
-            </div>
-          </section>
-
-          <section>
-            <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-white/20 pb-2">{"Configuration R2"}</h3>
-            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
-              <p>{"enable"}</p>
-              <p>{"configure terminal"}</p>
-              <p>{"hostname R2"}</p>
-              <p>{"!"}</p>
-              <p>{"interface GigabitEthernet0/0"}</p>
-              <p>{"ip address 10.0.0.2 255.255.255.252"}</p>
-              <p>{"no shutdown"}</p>
-              <p>{"exit"}</p>
-              <p>{"!"}</p>
-              <p>{"interface GigabitEthernet0/1"}</p>
-              <p>{"ip address 192.168.20.1 255.255.255.0"}</p>
-              <p>{"no shutdown"}</p>
-              <p>{"exit"}</p>
-              <p>{"!"}</p>
-              <p>{"ip route 192.168.10.0 255.255.255.0 10.0.0.1"}</p>
-              <p>{"!"}</p>
-              <p>{"end"}</p>
-              <p>{"copy running-config startup-config"}</p>
-            </div>
-          </section>
-
-          <section>
-            <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-white/20 pb-2">{"Configuration des PCs"}</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-black/30 rounded-lg p-3 text-sm font-mono">
-                <p className="text-purple-300 font-bold mb-1 font-sans">{"PC0"}</p>
-                <p>{"IP: 192.168.10.10"}</p>
-                <p>{"Mask: 255.255.255.0"}</p>
-                <p>{"GW: 192.168.10.1"}</p>
-              </div>
-              <div className="bg-black/30 rounded-lg p-3 text-sm font-mono">
-                <p className="text-purple-300 font-bold mb-1 font-sans">{"PC1"}</p>
-                <p>{"IP: 192.168.10.11"}</p>
-                <p>{"Mask: 255.255.255.0"}</p>
-                <p>{"GW: 192.168.10.1"}</p>
-              </div>
-              <div className="bg-black/30 rounded-lg p-3 text-sm font-mono">
-                <p className="text-purple-300 font-bold mb-1 font-sans">{"PC2"}</p>
-                <p>{"IP: 192.168.20.10"}</p>
-                <p>{"Mask: 255.255.255.0"}</p>
-                <p>{"GW: 192.168.20.1"}</p>
-              </div>
-              <div className="bg-black/30 rounded-lg p-3 text-sm font-mono">
-                <p className="text-purple-300 font-bold mb-1 font-sans">{"PC3"}</p>
-                <p>{"IP: 192.168.20.11"}</p>
-                <p>{"Mask: 255.255.255.0"}</p>
-                <p>{"GW: 192.168.20.1"}</p>
-              </div>
-            </div>
-          </section>
-
-          <section>
-            <h3 className="text-slate-200 font-bold mb-3 mt-6 border-b border-white/20 pb-2">{"Vérification"}</h3>
-            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
-              <p>{"R1# show ip route"}</p>
-              <p className="text-slate-400">{"C   192.168.10.0/24 is directly connected, GigabitEthernet0/0"}</p>
-              <p className="text-slate-400">{"C   10.0.0.0/30 is directly connected, GigabitEthernet0/1"}</p>
-              <p className="text-slate-400">{"S   192.168.20.0/24 [1/0] via 10.0.0.2"}</p>
-              <p>{""}</p>
-              <p>{"R2# show ip route"}</p>
-              <p className="text-slate-400">{"C   10.0.0.0/30 is directly connected, GigabitEthernet0/0"}</p>
-              <p className="text-slate-400">{"C   192.168.20.0/24 is directly connected, GigabitEthernet0/1"}</p>
-              <p className="text-slate-400">{"S   192.168.10.0/24 [1/0] via 10.0.0.1"}</p>
-              <p>{""}</p>
-              <p>{"PC0> ping 192.168.20.10 → Success ✅"}</p>
-              <p>{"PC2> ping 192.168.10.10 → Success ✅"}</p>
-              <p>{"PC1> ping 192.168.20.11 → Success ✅"}</p>
-              <p>{"PC3> ping 192.168.10.11 → Success ✅"}</p>
-            </div>
-          </section>
-        </div>
-      )
-    },
-    quiz: [
-      { q: "Quel est le rôle principal d'un routeur ?", options: ["Connecter les PCs dans le même réseau", "Acheminer les paquets entre réseaux différents", "Attribuer des adresses IP"], a: 1, explanation: "Le routeur achemine (route) les paquets entre des réseaux différents en utilisant les adresses IP de couche 3." },
-      { q: "Que signifie 'C' dans la table de routage (show ip route) ?", options: ["Route configurée manuellement", "Réseau directement connecté", "Route par défaut"], a: 1, explanation: "C = Connected. Ce sont les réseaux directement connectés aux interfaces actives du routeur." },
-      { q: "Quelle commande ajoute une route statique ?", options: ["route add", "ip route", "static route"], a: 1, explanation: "La commande Cisco est 'ip route [réseau] [masque] [next-hop]' en mode (config)#." },
-      { q: "Que représente le next-hop dans ip route ?", options: ["L'adresse du PC de destination", "L'adresse du prochain routeur sur le chemin", "L'adresse de broadcast"], a: 1, explanation: "Le next-hop est l'adresse IP de l'interface du routeur voisin directement connecté." },
-      { q: "Comment configurer une route par défaut ?", options: ["ip route default", "ip route 0.0.0.0 0.0.0.0 [next-hop]", "ip default-gateway"], a: 1, explanation: "La route par défaut utilise 0.0.0.0 0.0.0.0 comme réseau et masque, signifiant 'toutes les destinations'." },
-      { q: "Pourquoi un ping échoue si on oublie la route retour ?", options: ["Le paquet ne part pas", "Le paquet arrive mais la réponse ne peut pas revenir", "L'adresse IP est invalide"], a: 1, explanation: "Le paquet aller arrive à destination, mais le routeur distant ne sait pas comment renvoyer la réponse sans route retour." },
-      { q: "Quel masque utilise-t-on typiquement pour un lien série point-à-point ?", options: ["/24 (255.255.255.0)", "/30 (255.255.255.252)", "/16 (255.255.0.0)"], a: 1, explanation: "/30 donne 2 adresses utilisables, ce qui est exactement ce qu'il faut pour un lien point-à-point entre 2 routeurs." },
-      { q: "Comment supprimer une route statique ?", options: ["delete route", "no ip route [réseau] [masque] [next-hop]", "clear ip route"], a: 1, explanation: "On utilise 'no' devant la commande ip route complète avec tous ses paramètres." },
-      { q: "Quelle commande affiche uniquement les routes statiques ?", options: ["show ip route static", "show static routes", "show ip route S"], a: 0, explanation: "La commande 'show ip route static' filtre la table de routage pour n'afficher que les routes statiques (S)." },
-      { q: "Quel type de réseau est idéal pour le routage statique ?", options: ["Un réseau avec 50 routeurs et de la redondance", "Un petit réseau ou un réseau stub (une seule sortie)", "Un réseau qui change souvent de topologie"], a: 1, explanation: "Le routage statique convient aux petits réseaux et réseaux stub. Pour les grands réseaux, on préfère le routage dynamique." }
-    ]
   }
 ];
 
@@ -10908,18 +10405,6 @@ const session6Commands = [
   { command: "snmp-server host", description: "Configurer l'adresse du serveur NMS pour recevoir les traps", syntax: "snmp-server host [ip] version [v2c|v3] [communauté]" },
   { command: "snmp-server enable traps", description: "Activer l'envoi des traps SNMP (notifications d'événements)", syntax: "snmp-server enable traps" },
   { command: "show snmp", description: "Afficher les statistiques SNMP (paquets envoyés/reçus, erreurs)", syntax: "show snmp" }
-];
-
-const session8Commands = [
-  { command: "ip route", description: "Ajouter une route statique vers un réseau distant", syntax: "ip route [réseau_dest] [masque] [next-hop | interface]" },
-  { command: "no ip route", description: "Supprimer une route statique existante", syntax: "no ip route [réseau_dest] [masque] [next-hop]" },
-  { command: "ip route 0.0.0.0 0.0.0.0", description: "Configurer la route par défaut (gateway of last resort)", syntax: "ip route 0.0.0.0 0.0.0.0 [next-hop]" },
-  { command: "show ip route", description: "Afficher la table de routage complète du routeur", syntax: "show ip route" },
-  { command: "show ip route static", description: "Afficher uniquement les routes statiques configurées", syntax: "show ip route static" },
-  { command: "show ip interface brief", description: "Résumé de l'état et de l'adresse IP de toutes les interfaces", syntax: "show ip interface brief" },
-  { command: "ping", description: "Tester la connectivité vers une destination (ICMP echo)", syntax: "ping [adresse_ip]" },
-  { command: "traceroute", description: "Afficher le chemin emprunté par les paquets vers une destination", syntax: "traceroute [adresse_ip]" },
-  { command: "clock rate", description: "Définir la fréquence d'horloge sur l'interface série DCE", syntax: "clock rate [vitesse]" }
 ];
 
 // --- LISTE PÉDAGOGIQUE DES COMMANDES ---
@@ -16311,9 +15796,9 @@ const weeks = [
   },
   {
     id: 3,
-    title: "Adressage IP & Routage",
-    subtitle: "Adressage IP, masques, VLSM, routage statique",
-    sessions: [7, 8],
+    title: "Adressage IP",
+    subtitle: "Adressage IP, masques de sous-réseau, VLSM",
+    sessions: [7],
     available: true
   },
   {
@@ -16852,7 +16337,7 @@ const DrawingBoard = ({ open, onClose }) => {
 
 export default function NetMasterClass({ onShowAdmin, onShowStats }) {
   const { user, profile, signOut } = useAuth();
-  const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer' | 'labs' | 'labs_s2' | 'labs_s3' | 'labs_s4' | 'labs_s5' | 'labs_s6' | 'labs_s7' | 'labs_s8'
+  const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'packet_tracer' | 'labs' | 'labs_s2' | 'labs_s3' | 'labs_s4' | 'labs_s5' | 'labs_s6' | 'labs_s7'
   const [activeSessionId, setActiveSessionId] = useState(1);
   const [activeTab, setActiveTab] = useState('theory');
   const [completedSessions, setCompletedSessions] = useState([]);
@@ -17276,7 +16761,7 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
               >
                 <div className="text-left flex-1">
                   <p className="font-bold text-sm">Adressage IP</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">2 labs disponibles</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">1 lab disponible</p>
                 </div>
                 <ChevronRight className={`w-4 h-4 transition-transform ${expandedLabWeek === 3 ? 'rotate-90' : ''}`} />
               </button>
@@ -17299,25 +16784,6 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
                     <div className="text-left flex-1">
                       <p className="font-bold">Lab Adressage & Masques</p>
                       <p className="text-[9px] text-slate-500">NetSolutions — 3 services</p>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setViewMode('labs_s8');
-                      if (window.innerWidth < 1024) setSidebarOpen(false);
-                    }}
-                    className={`w-full p-2.5 rounded-lg flex items-center gap-2 transition-all border text-xs ${
-                      viewMode === 'labs_s8'
-                        ? 'bg-purple-600/20 border-purple-500 text-purple-100'
-                        : 'bg-[#0e0920] border-white/10 hover:bg-[#1a1035] text-slate-400 hover:border-white/20'
-                    }`}
-                  >
-                    <div className={`p-1.5 rounded ${viewMode === 'labs_s8' ? 'bg-purple-600 text-white' : 'bg-[#1a1035]'}`}>
-                      <Network className="w-4 h-4" />
-                    </div>
-                    <div className="text-left flex-1">
-                      <p className="font-bold">Lab Routage Statique</p>
-                      <p className="text-[9px] text-slate-500">2 routeurs — 4 PCs</p>
                     </div>
                   </button>
                 </div>
@@ -17414,8 +16880,6 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
                   ? 'Lab Syslog (Session 3)'
                   : viewMode === 'labs_s7'
                   ? 'Lab Adressage IP & Masques'
-                  : viewMode === 'labs_s8'
-                  ? 'Lab Routage Statique'
                   : activeSession.title}
               </h2>
             </div>
@@ -17504,15 +16968,6 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
               sessionId={7}
             />
           </div>
-          ) : viewMode === 'labs_s8' ? (
-          <div className="h-full min-h-[500px]">
-            <LabsSection
-              lab={sessions[7].lab}
-              sessionLabel="Routage Statique"
-              sessionDescription="Interconnectez deux réseaux distants avec du routage statique. Configurez 2 routeurs, 4 PCs et vérifiez la connectivité inter-réseau."
-              sessionId={8}
-            />
-          </div>
           ) : (
           <div className="max-w-6xl mx-auto h-full flex flex-col">
             {activeTab === 'theory' && <TheoryPlayer slides={activeSession.slides} lab={activeSession.lab} sessionId={activeSessionId} />}
@@ -17551,7 +17006,6 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
                       activeSessionId === 4 ? session4Commands :
                       activeSessionId === 5 ? session5Commands :
                       activeSessionId === 6 ? session6Commands :
-                      activeSessionId === 8 ? session8Commands :
                       []
                     }
                   />

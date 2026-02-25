@@ -1,0 +1,29 @@
+  },
+  // SESSION 8 - ROUTAGE STATIQUE
+  {
+    id: 8,
+    title: "Session 2 : Routage Statique",
+    duration: "1h30",
+    icon: <RouterIcon className="w-5 h-5" />,
+    slides: [
+      // -- SLIDE 1 : INTRO --
+      {
+        type: 'intro',
+        title: "Introduction au Routage Statique",
+        content: `Bienvenue dans cette session sur le ROUTAGE STATIQUE !
+
+Le routage statique permet à des réseaux DIFFÉRENTS de communiquer entre eux grâce à un ROUTEUR.
+
+Sans routage, chaque réseau est isolé : les machines dans 192.168.1.0/24 ne peuvent PAS joindre celles dans 192.168.2.0/24.
+
+Dans cette session, on va apprendre à configurer des ROUTES STATIQUES sur des routeurs Cisco.
+
+🎯 À la fin de cette session, vous serez capable de :
+
+✅ Comprendre le rôle d'un routeur
+📋 Lire et comprendre une table de routage
+🔧 Configurer des routes statiques
+🏁 Configurer une route par défaut
+🔍 Vérifier la connectivité avec ping et traceroute
+💻 Réaliser un lab complet de routage statique`
+      },
