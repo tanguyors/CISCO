@@ -10321,9 +10321,55 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
             <V2Tip title="Règle d'or" color="amber">Avant de quitter la config d'un routeur, tape TOUJOURS <code className="text-emerald-400 font-mono">show ip route</code> pour vérifier tes routes, puis <code className="text-emerald-400 font-mono">copy running-config startup-config</code> pour sauvegarder. C'est un réflexe à prendre dès maintenant.</V2Tip>
           </div>
         )
+      },
+      // ── MÉMO — FLASHCARDS COMMANDES ──
+      {
+        type: 'flashcards',
+        title: "Mémo : Toutes les commandes du routage statique",
+        mode: 'command_to_definition',
+        cards: [
+          { q: "ip route 192.168.20.0 255.255.255.0 10.0.0.2", a: "Ajouter une route statique : pour joindre 192.168.20.0/24, envoyer vers le next-hop 10.0.0.2" },
+          { q: "ip route 0.0.0.0 0.0.0.0 10.0.0.2", a: "Route par défaut : tout trafic sans route connue est envoyé vers 10.0.0.2 (passerelle de dernier recours)" },
+          { q: "no ip route 192.168.20.0 255.255.255.0 10.0.0.2", a: "Supprimer une route statique (utiliser 'no' devant la commande complète)" },
+          { q: "show ip route", a: "Afficher la table de routage (C = connected, S = static, O = OSPF…)" },
+          { q: "show ip route static", a: "Afficher uniquement les routes statiques configurées" },
+          { q: "show ip route connected", a: "Afficher uniquement les réseaux directement connectés" },
+          { q: "show ip interface brief", a: "Afficher le statut et les IPs de toutes les interfaces (up/down)" },
+          { q: "interface GigabitEthernet0/0", a: "Accéder à l'interface G0/0 pour la configurer (en mode config#)" },
+          { q: "ip address 192.168.10.1 255.255.255.0", a: "Configurer l'adresse IP d'une interface (en mode config-if#)" },
+          { q: "no shutdown", a: "Activer une interface (les interfaces routeur sont shutdown par défaut)" },
+          { q: "ping 10.0.0.2", a: "Tester la connectivité vers le next-hop (routeur voisin direct)" },
+          { q: "traceroute 192.168.20.10", a: "Tracer le chemin saut par saut vers une destination" },
+          { q: "show running-config | section ip route", a: "Filtrer la config pour afficher uniquement les routes ip route" },
+          { q: "show ip arp", a: "Afficher la table ARP (correspondances IP ↔ MAC des voisins connus)" },
+          { q: "copy running-config startup-config", a: "Sauvegarder la configuration en NVRAM (survivre au reboot)" }
+        ]
+      },
+      // ── COMMAND BUILDER ──
+      {
+        type: 'command_builder',
+        title: "Configurer le Routage Statique étape par étape",
+        steps: [
+          { cmd: "enable", desc: "Passer en mode privilégié (> → #)" },
+          { cmd: "configure terminal", desc: "Mode configuration globale (config#)" },
+          { cmd: "interface GigabitEthernet0/0", desc: "Sélectionner l'interface LAN (côté PCs)" },
+          { cmd: "ip address 192.168.10.1 255.255.255.0", desc: "Configurer l'IP et masque de l'interface LAN" },
+          { cmd: "no shutdown", desc: "Activer l'interface LAN" },
+          { cmd: "exit", desc: "Sortir de l'interface" },
+          { cmd: "interface GigabitEthernet0/1", desc: "Sélectionner l'interface WAN (lien vers R2)" },
+          { cmd: "ip address 10.0.0.1 255.255.255.252", desc: "Configurer l'IP WAN avec masque /30" },
+          { cmd: "no shutdown", desc: "Activer l'interface WAN" },
+          { cmd: "exit", desc: "Sortir de l'interface" },
+          { cmd: "ip route 192.168.20.0 255.255.255.0 10.0.0.2", desc: "Route statique vers le réseau distant (via R2)" },
+          { cmd: "end", desc: "Sortir du mode config et retourner en mode privilégié" },
+          { cmd: "show ip route", desc: "Vérifier la table de routage — doit afficher S 192.168.20.0/24" },
+          { cmd: "copy running-config startup-config", desc: "Sauvegarder la configuration" }
+        ]
       }
     ],
     lab: {
+      title: "Mémo des Commandes – Session 8",
+      context: "Retrouvez ici toutes les commandes vues dans le cours sur le routage statique : configuration des interfaces, routes statiques, route par défaut et vérification de la table de routage.",
       consignes: (
         <div className="space-y-8 text-slate-300 leading-relaxed">
           <section>
@@ -11379,6 +11425,1435 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
       { q: "Quelle commande affiche uniquement les routes statiques ?", options: ["show ip route static", "show static routes", "show ip route S"], a: 0, explanation: "La commande 'show ip route static' filtre la table de routage pour n'afficher que les routes statiques (S)." },
       { q: "Quel type de réseau est idéal pour le routage statique ?", options: ["Un réseau avec 50 routeurs et de la redondance", "Un petit réseau ou un réseau stub (une seule sortie)", "Un réseau qui change souvent de topologie"], a: 1, explanation: "Le routage statique convient aux petits réseaux et réseaux stub. Pour les grands réseaux, on préfère le routage dynamique." }
     ]
+  },
+  // ==================== SESSION 9 : ROUTAGE DYNAMIQUE — OSPF ====================
+  {
+    id: 9,
+    title: "Routage Dynamique — OSPF",
+    duration: "2h",
+    icon: "🌐",
+    slides: [
+      // ── SLIDE 1 : POURQUOI LE ROUTAGE DYNAMIQUE ? ──
+      {
+        type: 'rich_text',
+        title: "Pourquoi le routage dynamique ?",
+        content: (
+          <div>
+            <V2Header module="MODULE 09" section="Introduction" title="Les limites du routage statique" description="En Session 8, on a configuré des routes statiques à la main sur chaque routeur. Ça marche bien pour 2-3 routeurs. Mais dans un vrai réseau d'entreprise avec des dizaines de routeurs, c'est ingérable." />
+            <V2InfoCards cards={[
+              { title: "Le problème du routage statique", color: "red", icon: AlertTriangle, items: ["10 routeurs × 20 réseaux = des centaines de routes à écrire à la main", "Un lien qui tombe → intervention manuelle sur chaque routeur", "Aucune adaptation automatique aux pannes", "Un oubli ou une typo → une partie du réseau devient injoignable", "Impossible à gérer sur un grand réseau"] },
+              { title: "La solution : routage dynamique", color: "emerald", icon: CheckCircle2, items: ["Les routeurs s'échangent leurs routes automatiquement", "Un lien qui tombe → les routeurs recalculent un autre chemin tout seuls", "L'admin configure le protocole une fois sur chaque routeur", "Le réseau s'adapte sans intervention humaine", "Protocoles les plus utilisés : OSPF, EIGRP, BGP"] }
+            ]} />
+            <V2Whiteboard title="Les deux grandes familles" code={"! ┌─────────────────────────────────────────────────────────┐\n! │          Protocoles de routage dynamique                 │\n! │                                                         │\n! │  IGP — Pour DANS un réseau d'entreprise                 │\n! │  ├── RIP      → simple mais limité (15 sauts max)       │\n! │  ├── OSPF     → le standard en entreprise ← NOTRE COURS │\n! │  └── EIGRP    → puissant mais propriétaire Cisco        │\n! │                                                         │\n! │  EGP — Pour ENTRE organisations (ISP, Internet)         │\n! │  └── BGP      → le protocole d'Internet                 │\n! └─────────────────────────────────────────────────────────┘"} />
+            <V2Tip title="Ce qu'on va voir">On va apprendre OSPF — le protocole de routage dynamique le plus utilisé dans les réseaux d'entreprise. À la fin de cette session, tes routeurs vont apprendre leurs routes tout seuls.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 2 : OSPF EN 3 ÉTAPES ──
+      {
+        type: 'rich_text',
+        title: "OSPF en 3 étapes",
+        content: (
+          <div>
+            <V2Header module="MODULE 09" section="OSPF" title="Comment fonctionne OSPF ?" description="OSPF fait trois choses automatiquement, dans l'ordre. Comprendre ces 3 étapes, c'est comprendre 80% d'OSPF." />
+            <V2Whiteboard title="Les 3 étapes d'OSPF" code={"! ┌──────────────────────────────────────────────────────────┐\n! │  ÉTAPE 1 — Découvrir les voisins                         │\n! │                                                          │\n! │  Chaque routeur envoie des paquets « Hello »             │\n! │  Si un voisin répond → adjacency formée (état FULL)      │\n! │  Si pas de réponse → pas de voisin                       │\n! └──────────────────────────────────────────────────────────┘\n!         ↓\n! ┌──────────────────────────────────────────────────────────┐\n! │  ÉTAPE 2 — Partager la carte du réseau                   │\n! │                                                          │\n! │  Chaque routeur envoie des LSA (Link-State Advertisement)│\n! │  « Moi, j'ai ces réseaux directement connectés »         │\n! │  Tous les routeurs finissent par avoir la même carte      │\n! └──────────────────────────────────────────────────────────┘\n!         ↓\n! ┌──────────────────────────────────────────────────────────┐\n! │  ÉTAPE 3 — Calculer le meilleur chemin                   │\n! │                                                          │\n! │  Algorithme de Dijkstra (SPF) sur la carte complète      │\n! │  → Installe les meilleures routes dans la table          │\n! │  → Les routes apparaissent avec le code O dans ip route  │\n! └──────────────────────────────────────────────────────────┘"} />
+            <V2InfoCards cards={[
+              { title: "Analogie : GPS avec carte complète", color: "purple", icon: Network, items: ["OSPF = un GPS qui a la carte COMPLÈTE du réseau", "Chaque routeur connaît tous les liens et tous les réseaux", "Il calcule lui-même le meilleur chemin → pas besoin de l'admin", "Si un lien tombe → il recalcule immédiatement un autre chemin", "Contrairement à RIP qui ne voit que ses voisins directs"] },
+              { title: "Ce que tu vas voir dans le lab", color: "emerald", icon: CheckCircle2, items: ["Après config : show ip ospf neighbor → état FULL ✅", "show ip route → routes O apprises automatiquement ✅", "PC0 ping PC4 → fonctionne sans routes statiques ✅", "Tu modifies rien : le réseau se maintient tout seul", "C'est la magie du routage dynamique"] }
+            ]} />
+          </div>
+        )
+      },
+      // ── SLIDE 3 : L'ADJACENCY OSPF ──
+      {
+        type: 'rich_text',
+        title: "L'adjacency OSPF",
+        content: (
+          <div>
+            <V2Header module="MODULE 09" section="OSPF" title="Comment deux routeurs deviennent voisins" description="Avant d'échanger des routes, deux routeurs OSPF doivent d'abord former une 'adjacency' (voisinage). Ça se fait via les paquets Hello. C'est la base de tout." />
+            <V2Whiteboard title="Le paquet Hello" code={"! Les routeurs OSPF envoient des paquets Hello toutes les 10 secondes\n!\n! Ce que contient un Hello :\n!   - Mon Router-ID (mon identifiant unique)\n!   - Mon area (ma zone OSPF)\n!   - Mes timers Hello et Dead\n!   - La liste de mes voisins déjà connus\n!\n! Pour former une adjacency, les deux côtés doivent avoir :\n!   ✅ La MÊME area (ex: area 0 des deux côtés)\n!   ✅ Les MÊMES timers (Hello=10, Dead=40 par défaut)\n!   ✅ Être dans le MÊME sous-réseau IP\n!\n! Adresse de destination : 224.0.0.5 (multicast, tous les routeurs OSPF)"} />
+            <V2InfoCards cards={[
+              { title: "Les timers Hello et Dead", color: "amber", icon: Lightbulb, items: ["Hello timer : fréquence d'envoi des Hello (10s par défaut sur Ethernet)", "Dead timer : délai avant de déclarer le voisin mort (40s par défaut = 4×Hello)", "Si Dead timer expire → le voisin est retiré de la table", "Les deux côtés DOIVENT avoir les mêmes timers → sinon pas d'adjacency", "C'est l'erreur du Dépannage 4 (timers différents)"] },
+              { title: "L'état FULL = tout va bien", color: "emerald", icon: CheckCircle2, items: ["DOWN → INIT → 2-WAY → FULL (chemin normal)", "FULL = synchronisation complète, échange de routes OK", "Si bloqué en INIT → problem d'area ou de sous-réseau", "Si bloqué en 2-WAY → voir les logs OSPF", "show ip ospf neighbor → affiche l'état de chaque voisin"] }
+            ]} />
+            <V2Terminal title="Vérifier l'adjacency" code={"R1# show ip ospf neighbor\n!\nNeighbor ID  Pri  State   Dead Time  Address    Interface\n2.2.2.2        1  FULL/-  00:00:35   10.0.0.2   Gi0/1\n!\n! Neighbor ID = Router-ID du voisin (2.2.2.2 = R2)\n! State FULL  = adjacency complète, tout fonctionne ✅\n! Dead Time   = temps restant avant de déclarer R2 mort\n!\n! Si la table est VIDE → OSPF n'a trouvé aucun voisin ❌"} />
+          </div>
+        )
+      },
+      // ── SLIDE 4 : LES AREAS OSPF ──
+      {
+        type: 'rich_text',
+        title: "Les Areas OSPF",
+        content: (
+          <div>
+            <V2Header module="MODULE 09" section="OSPF" title="Les zones (Areas) : pour organiser le réseau" description="OSPF divise le réseau en zones appelées 'areas'. Dans notre lab, on utilise 3 areas différentes. L'area 0 est spéciale : c'est le cœur obligatoire de tout réseau OSPF." />
+            <V2Whiteboard title="Notre topologie OSPF — 3 areas" code={"!  Area 1              Area 0 (Backbone)         Area 2\n! ─────────           ─────────────────          ─────────\n!\n!  [PC0]              R1 G0/1 ── R2 G0/0          R2 G0/2 ── R3\n!  [PC1]──SW0──R1    10.0.0.1   10.0.0.2         10.0.0.5  10.0.0.6\n!         G0/0                                                  |\n!      192.168.10.1          R2 G0/1                        R3 G0/1\n!                         192.168.20.1               SW2──[PC4]\n!                            SW1──[PC2]               └──[PC5]\n!                                 └──[PC3]\n!                        ← Area 1 aussi →\n!\n! Area 0 → le lien R1↔R2 (10.0.0.0/30)\n! Area 1 → le LAN de R1 (192.168.10.0/24) et R1 lui-même\n! Area 2 → le lien R2↔R3 + le LAN de R2 + tout R3\n!\n! R2 est ABR : il appartient à Area 0, Area 1 ET Area 2"} />
+            <V2InfoCards cards={[
+              { title: "La règle d'or : toujours area 0", color: "purple", icon: Network, items: ["Area 0 est le BACKBONE — c'est le cœur du réseau", "Toutes les autres areas DOIVENT être connectées à area 0", "Dans notre lab : le lien R1↔R2 est en area 0", "Un routeur peut appartenir à plusieurs areas (c'est l'ABR)", "R2 dans notre lab = ABR entre area 0, area 1 et area 2"] },
+              { title: "Pourquoi déclarer la bonne area ?", color: "red", icon: AlertTriangle, items: ["Chaque commande network déclare un réseau DANS une area", "Si tu mets le mauvais numéro d'area → pas d'adjacency !", "R1 côté area 0, R2 côté area 1 → mismatch → pas de FULL", "C'est exactement l'erreur du Dépannage 2", "Retiens : le lien entre deux routeurs = même area des deux côtés"] }
+            ]} />
+            <V2Tip title="Pour bien configurer">Sur chaque routeur, demande-toi pour chaque interface : dans quelle area est ce réseau ? Puis utilise ce numéro dans la commande network. Le lien R1↔R2 = area 0. Le LAN de R1 = area 1. Les réseaux de R3 = area 2.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 5 : LE WILDCARD MASK ──
+      {
+        type: 'rich_text',
+        title: "Le Wildcard Mask",
+        content: (
+          <div>
+            <V2Header module="MODULE 09" section="OSPF" title="Le Wildcard Mask : l'inverse du masque" description="La commande network d'OSPF n'utilise pas le masque de sous-réseau habituel. Elle utilise le Wildcard Mask — son inverse. C'est simple à calculer une fois qu'on a compris le principe." />
+            <V2Whiteboard title="Comment calculer le Wildcard" code={"! RÈGLE : Wildcard = 255.255.255.255 − masque de sous-réseau\n!\n! Exemples les plus courants :\n!\n!   Masque          Soustraction         Wildcard\n!   ─────────────   ────────────────     ────────\n!   255.255.255.0   255.255.255.255      0.0.0.255    ← /24\n!                 − 255.255.255.0\n!                 = 0.0.0.255\n!\n!   255.255.255.252 255.255.255.255      0.0.0.3      ← /30\n!                 − 255.255.255.252\n!                 = 0.0.0.3\n!\n! ASTUCE : soustrait juste le DERNIER octet\n!   /24 → 255 − 255 = 0  →  wildcard 0.0.0.255\n!   /30 → 255 − 252 = 3  →  wildcard 0.0.0.3\n!   /28 → 255 − 240 = 15 →  wildcard 0.0.0.15\n!   /25 → 255 − 128 = 127 → wildcard 0.0.0.127"} />
+            <V2InfoCards cards={[
+              { title: "Que signifie le Wildcard ?", color: "purple", icon: Network, items: ["0 dans le wildcard = ce bit DOIT correspondre (fixe)", "1 dans le wildcard = ce bit peut être n'importe quoi (libre)", "0.0.0.255 → les 3 premiers octets sont fixes, le 4ème est libre", "0.0.0.3 → les 30 premiers bits sont fixes, les 2 derniers sont libres", "C'est l'inverse exact du masque de sous-réseau"] },
+              { title: "Les deux wildcards du lab", color: "emerald", icon: CheckCircle2, items: ["Réseaux LAN (/24) → wildcard 0.0.0.255", "Exemples : 192.168.10.0, 192.168.20.0, 192.168.30.0", "Liens WAN (/30) → wildcard 0.0.0.3", "Exemples : 10.0.0.0, 10.0.0.4", "Dans notre lab, tu n'utiliseras que ces deux wildcards"] }
+            ]} />
+            <V2Terminal title="Application directe dans OSPF" code={"! LAN de R1 → 192.168.10.0/24 → wildcard 0.0.0.255\nR1(config-router)# network 192.168.10.0 0.0.0.255 area 1\n!\n! Lien WAN R1↔R2 → 10.0.0.0/30 → wildcard 0.0.0.3\nR1(config-router)# network 10.0.0.0 0.0.0.3 area 0\n!\n! LAN de R2 → 192.168.20.0/24 → wildcard 0.0.0.255\nR2(config-router)# network 192.168.20.0 0.0.0.255 area 1\n!\n! Lien WAN R2↔R3 → 10.0.0.4/30 → wildcard 0.0.0.3\nR2(config-router)# network 10.0.0.4 0.0.0.3 area 2"} />
+          </div>
+        )
+      },
+      // ── SLIDE 6 : CONFIGURER OSPF ──
+      {
+        type: 'rich_text',
+        title: "Configurer OSPF",
+        content: (
+          <div>
+            <V2Header module="MODULE 09" section="Configuration" title="Les commandes OSPF étape par étape" description="La configuration d'OSPF se fait en deux commandes principales : activer le processus, puis déclarer chaque réseau. Voici comment faire sur chaque routeur du lab." />
+            <V2Terminal title="Structure de base — à faire sur chaque routeur" code={"! ÉTAPE 1 — Activer OSPF\nR1(config)# router ospf 1\n!   Le « 1 » = process-id (numéro local, peut être différent sur chaque routeur)\n!   Par convention on met 1 partout\n!\n! ÉTAPE 2 — Déclarer le Router-ID (recommandé)\nR1(config-router)# router-id 1.1.1.1\n!   Identifiant unique du routeur dans OSPF\n!   R1 → 1.1.1.1  /  R2 → 2.2.2.2  /  R3 → 3.3.3.3\n!\n! ÉTAPE 3 — Déclarer chaque réseau connecté\nR1(config-router)# network 192.168.10.0 0.0.0.255 area 1\nR1(config-router)# network 10.0.0.0 0.0.0.3 area 0\n!   Une ligne par réseau, avec le bon wildcard et la bonne area\n!\n! ÉTAPE 4 — Interface passive sur les LANs (recommandé)\nR1(config-router)# passive-interface GigabitEthernet0/0\n!   G0/0 = côté LAN (côté PCs) → pas besoin d'envoyer des Hello aux PCs"} />
+            <V2Whiteboard title="Configuration complète des 3 routeurs" code={"! ── R1 ──────────────────────────────────────────────────\nR1(config)# router ospf 1\nR1(config-router)# router-id 1.1.1.1\nR1(config-router)# network 192.168.10.0 0.0.0.255 area 1\nR1(config-router)# network 10.0.0.0 0.0.0.3 area 0\nR1(config-router)# passive-interface GigabitEthernet0/0\n!\n! ── R2 ──────────────────────────────────────────────────\nR2(config)# router ospf 1\nR2(config-router)# router-id 2.2.2.2\nR2(config-router)# network 10.0.0.0 0.0.0.3 area 0\nR2(config-router)# network 192.168.20.0 0.0.0.255 area 1\nR2(config-router)# network 10.0.0.4 0.0.0.3 area 2\nR2(config-router)# passive-interface GigabitEthernet0/1\n!\n! ── R3 ──────────────────────────────────────────────────\nR3(config)# router ospf 1\nR3(config-router)# router-id 3.3.3.3\nR3(config-router)# network 10.0.0.4 0.0.0.3 area 2\nR3(config-router)# network 192.168.30.0 0.0.0.255 area 2\nR3(config-router)# passive-interface GigabitEthernet0/1"} />
+            <V2InfoCards cards={[
+              { title: "Pourquoi passive-interface ?", color: "amber", icon: Lightbulb, items: ["Une interface passive N'ENVOIE PLUS de paquets Hello", "Mais OSPF annonce quand même le réseau de cette interface", "À utiliser sur les interfaces côté LAN (côté PCs/switches)", "Ça évite d'envoyer des Hellos dans le vide vers des PCs", "Sans ça ça marche quand même — c'est juste une bonne pratique"] },
+              { title: "Si ça ne marche pas", color: "red", icon: AlertTriangle, items: ["Vérifie que les IPs des interfaces sont bien configurées (no shutdown)", "Vérifie le bon numéro d'area de chaque côté d'un lien", "Vérifie les wildcards (0.0.0.255 pour /24, 0.0.0.3 pour /30)", "Si tu changes le router-id → clear ip ospf process", "show ip ospf neighbor : si vide → relis tes commandes network"] }
+            ]} />
+          </div>
+        )
+      },
+      // ── SLIDE 7 : VÉRIFICATION OSPF ──
+      {
+        type: 'rich_text',
+        title: "Vérifier OSPF",
+        content: (
+          <div>
+            <V2Header module="MODULE 09" section="Vérification" title="Vérifier que tout fonctionne" description="Après configuration, 3 commandes suffisent pour confirmer qu'OSPF fonctionne correctement. Voici comment les lire." />
+            <V2Terminal title="Commande 1 — Les voisins" code={"R1# show ip ospf neighbor\n!\nNeighbor ID  Pri  State   Dead Time  Address    Interface\n2.2.2.2        1  FULL/-  00:00:35   10.0.0.2   Gi0/1\n!\n! ✅ State FULL = adjacency complète, OSPF fonctionne\n! ❌ Table vide = OSPF n'a pas trouvé de voisin"} />
+            <V2Terminal title="Commande 2 — Les routes apprises" code={"R1# show ip route\n!\nC    192.168.10.0/24 is directly connected, Gi0/0    ← connecté directement\nC    10.0.0.0/30    is directly connected, Gi0/1    ← connecté directement\nO IA 192.168.20.0/24 [110/2] via 10.0.0.2, Gi0/1   ← appris par OSPF ✅\nO IA 192.168.30.0/24 [110/3] via 10.0.0.2, Gi0/1   ← appris par OSPF ✅\n!\n! O    = route OSPF intra-area (même zone)\n! O IA = route OSPF inter-area (autre zone)\n! [110/2] = distance administrative 110 / coût 2"} />
+            <V2Terminal title="Commande 3 — État des interfaces" code={"R1# show ip ospf interface brief\n!\nInterface  PID  Area  IP Address/Mask     Cost  State   Nbrs\nGi0/0      1    1     192.168.10.1/24     1     PASSIVE 0/0   ← LAN passif\nGi0/1      1    0     10.0.0.1/30         1     BDR     1/1   ← voisin trouvé ✅\n!\n! State PASSIVE = interface passive (pas de Hello envoyé)\n! State DR/BDR/DROTH = interface active avec voisin(s)"} />
+            <V2Tip title="Ordre de vérification">1. show ip ospf neighbor → FULL ? 2. show ip route → routes O/O IA présentes ? 3. ping depuis PC → répond ? Si tout ça est OK, OSPF fonctionne parfaitement.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 8 : OSPF MULTI-AREA — COMPRENDRE LES ROUTES O IA ──
+      {
+        type: 'rich_text',
+        title: "Routes O et O IA",
+        content: (
+          <div>
+            <V2Header module="MODULE 09" section="OSPF" title="Routes O vs O IA : quelle différence ?" description="Dans notre lab multi-area, tu vas voir deux types de routes OSPF dans la table de routage. Voici ce qu'elles signifient et comment les lire." />
+            <V2Whiteboard title="O vs O IA dans la table de routage" code={"! O   = OSPF intra-area  → réseau dans la MÊME area que toi\n! O IA = OSPF inter-area  → réseau dans une AUTRE area\n!\n! Exemple sur R1 (qui est dans Area 0 et Area 1) :\n!\n! R1# show ip route\n!   C    192.168.10.0/24  ← connecté (area 1, LAN de R1)\n!   C    10.0.0.0/30      ← connecté (area 0, lien R1↔R2)\n!   O IA 192.168.20.0/24  ← réseau area 1 de R2 (autre area)\n!   O IA 10.0.0.4/30      ← lien R2↔R3 area 2 (autre area)\n!   O IA 192.168.30.0/24  ← réseau area 2 de R3 (autre area)\n!\n! Pourquoi O IA et pas O ?\n!   R1 est dans area 0 et area 1.\n!   Les réseaux de R2 (area 1) et R3 (area 2) sont dans d'autres areas\n!   → ils apparaissent en O IA (inter-area) dans la table de R1"} />
+            <V2InfoCards cards={[
+              { title: "Ce que ça veut dire concrètement", color: "purple", icon: Network, items: ["O = j'ai appris cette route depuis un routeur dans MA zone", "O IA = j'ai appris cette route via l'ABR (Area Border Router)", "R2 est l'ABR de notre lab : il redistribue les routes entre les zones", "Les deux types de routes fonctionnent pareil pour le trafic", "La distinction O/O IA est surtout utile pour le dépannage"] },
+              { title: "Ce qu'il faut vérifier", color: "emerald", icon: CheckCircle2, items: ["Sur R1 : O IA vers 192.168.20.0 et 192.168.30.0 → ✅", "Sur R2 : O vers les réseaux des 2 LANs adjacents → ✅", "Sur R3 : O IA vers 192.168.10.0 et 192.168.20.0 → ✅", "Si O IA absentes sur R1 → problème entre R2 et R3", "Si toutes les O/O IA absentes → problème d'adjacency"] }
+            ]} />
+          </div>
+        )
+      },
+      // ── SLIDE 9 : RÉCAPITULATIF ──
+      {
+        type: 'rich_text',
+        title: "Récapitulatif",
+        content: (
+          <div>
+            <V2Header module="MODULE 09" section="Résumé" title="Ce qu'il faut retenir" description="Tout ce dont tu as besoin pour réussir le lab et comprendre OSPF en résumé." />
+            <V2Whiteboard title="Les commandes OSPF — aide-mémoire" code={"! ═══════ CONFIGURATION ══════════════════════════════════\n!\n  R1(config)# router ospf 1\n  R1(config-router)# router-id 1.1.1.1\n  R1(config-router)# network 192.168.10.0 0.0.0.255 area 1\n  R1(config-router)# network 10.0.0.0 0.0.0.3 area 0\n  R1(config-router)# passive-interface GigabitEthernet0/0\n!\n! ═══════ VÉRIFICATION ════════════════════════════════════\n!\n  R1# show ip ospf neighbor          ← FULL = OK\n  R1# show ip route                  ← cherche les O et O IA\n  R1# show ip ospf interface brief   ← état de chaque interface\n!\n! ═══════ WILDCARDS À CONNAÎTRE ═══════════════════════════\n!\n  /24  →  0.0.0.255    (réseaux LAN)\n  /30  →  0.0.0.3      (liens WAN point-à-point)\n!\n! ═══════ SI ÇA NE MARCHE PAS ════════════════════════════\n!\n  R1# clear ip ospf process          ← force la reconvergence"} />
+            <V2InfoCards cards={[
+              { title: "Les 3 erreurs classiques", color: "red", icon: AlertTriangle, items: ["❶ Mauvais numéro d'area → adjacency impossible (même lien, deux areas différentes)", "❷ Mauvais wildcard → le réseau n'est pas déclaré dans OSPF", "❸ Interface passive sur un lien WAN → plus de Hello = plus de voisin", "Dans le dépannage : vérifie toujours area + wildcard + passive-interface", "show ip ospf neighbor vide = cherche dans ces 3 directions"] },
+              { title: "Checklist avant le lab", color: "emerald", icon: CheckCircle2, items: ["✅ IPs configurées sur toutes les interfaces (no shutdown)", "✅ router ospf 1 + router-id sur chaque routeur", "✅ Une commande network par réseau, bonne area, bon wildcard", "✅ passive-interface côté LAN uniquement", "✅ show ip ospf neighbor → FULL sur tous les routeurs"] }
+            ]} />
+          </div>
+        )
+      }
+    ],
+    lab: {
+      consignes: (
+        <div className="space-y-8 text-slate-300 leading-relaxed">
+          <section>
+            <div className="bg-gradient-to-r from-emerald-900/20 to-purple-900/20 rounded-xl p-6 border border-emerald-500/30 mb-6">
+              <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"🌐 Lab Avancé — Routage dynamique OSPF et hiérarchie de zones"}</h2>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-amber-300 font-bold text-sm mb-2">{"Thématique :"}</p>
+                <p className="text-slate-300 text-sm italic">{"Mettre en œuvre OSPF avec plusieurs zones (area 0, area 1 et area 2), observer le rôle d'un ABR (Area Border Router), et vérifier le routage interzones via des LSA."}</p>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-emerald-300 font-bold text-sm mb-2">{"Objectifs :"}</p>
+                <ol className="text-slate-300 text-sm space-y-1 list-decimal list-inside">
+                  <li>{"Configurer les adresses IP sur tous les équipements"}</li>
+                  <li>{"Activer OSPF sur chaque routeur avec le bon numéro d'area"}</li>
+                  <li>{"Vérifier les voisins OSPF"}</li>
+                  <li>{"Visualiser la base de données OSPF et les routes interzones"}</li>
+                  <li>{"Vérifier la connectivité complète entre tous les PC"}</li>
+                </ol>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-purple-300 font-bold text-sm mb-2">{"Topologie logique :"}</p>
+                <div className="font-mono text-sm text-emerald-300 bg-black/30 rounded p-3">
+                  <p>{"[PC0]──[SW0]──[R1]═══(Area 0)═══[R2]═══(Area 2)═══[R3]──[SW2]──[PC4]"}</p>
+                  <p>{"[PC1]                  │                                         [PC5]"}</p>
+                  <p>{"                     [SW1]"}</p>
+                  <p>{"                     ├[PC2]"}</p>
+                  <p>{"                     └[PC3]"}</p>
+                  <p>{""}</p>
+                  <p className="text-slate-500">{"• R1 et R2 sont dans area 0"}</p>
+                  <p className="text-slate-500">{"• R2 (vers réseau 20.0) → area 1"}</p>
+                  <p className="text-slate-500">{"• R2 (vers R3) et R3 → area 2"}</p>
+                  <p className="text-amber-300 mt-2 font-bold">{"• R2 est l'ABR (Area Border Router) — il fait le pont entre toutes les zones"}</p>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <p className="text-emerald-300 font-bold text-sm mb-2">{"Plan d'adressage IP :"}</p>
+                <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                  <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"Appareil"}</th><th className="p-2 text-left">{"Interface"}</th><th className="p-2 text-left">{"Adresse IP"}</th><th className="p-2 text-left">{"Masque"}</th><th className="p-2 text-left">{"Passerelle"}</th></tr></thead>
+                  <tbody>
+                    <tr className="border-t border-white/20 bg-purple-900/10"><td className="p-2 font-bold text-purple-300">{"R1"}</td><td className="p-2 font-mono">{"G0/0 (LAN)"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.10.1"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                    <tr className="border-t border-white/20 bg-purple-900/10"><td className="p-2 font-bold text-purple-300">{"R1"}</td><td className="p-2 font-mono">{"G0/1 (→R2)"}</td><td className="p-2 font-mono text-emerald-400">{"10.0.0.1"}</td><td className="p-2 font-mono">{"255.255.255.252"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                    <tr className="border-t border-white/20 bg-blue-900/10"><td className="p-2 font-bold text-blue-300">{"R2"}</td><td className="p-2 font-mono">{"G0/0 (→R1)"}</td><td className="p-2 font-mono text-emerald-400">{"10.0.0.2"}</td><td className="p-2 font-mono">{"255.255.255.252"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                    <tr className="border-t border-white/20 bg-blue-900/10"><td className="p-2 font-bold text-blue-300">{"R2"}</td><td className="p-2 font-mono">{"G0/1 (LAN)"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.20.1"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                    <tr className="border-t border-white/20 bg-blue-900/10"><td className="p-2 font-bold text-blue-300">{"R2"}</td><td className="p-2 font-mono">{"G0/2 (→R3)"}</td><td className="p-2 font-mono text-emerald-400">{"10.0.0.5"}</td><td className="p-2 font-mono">{"255.255.255.252"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                    <tr className="border-t border-white/20 bg-cyan-900/10"><td className="p-2 font-bold text-cyan-300">{"R3"}</td><td className="p-2 font-mono">{"G0/0 (→R2)"}</td><td className="p-2 font-mono text-emerald-400">{"10.0.0.6"}</td><td className="p-2 font-mono">{"255.255.255.252"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                    <tr className="border-t border-white/20 bg-cyan-900/10"><td className="p-2 font-bold text-cyan-300">{"R3"}</td><td className="p-2 font-mono">{"G0/1 (LAN)"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.30.1"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2">{"PC0"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.10.10"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono text-amber-300">{"192.168.10.1"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2">{"PC1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.10.11"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono text-amber-300">{"192.168.10.1"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2">{"PC2"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.20.10"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono text-amber-300">{"192.168.20.1"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2">{"PC3"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.20.11"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono text-amber-300">{"192.168.20.1"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2">{"PC4"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.30.10"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono text-amber-300">{"192.168.30.1"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2">{"PC5"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.30.11"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono text-amber-300">{"192.168.30.1"}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          {/* MATÉRIEL */}
+          <section>
+            <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 rounded-xl p-6 border border-amber-500/30">
+              <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"🖥️ Matériel dans Packet Tracer"}</h2>
+              <ul className="text-slate-300 text-sm space-y-1 mb-4">
+                <li>{"• 3 routeurs (Cisco 1941) — ⚠️ R2 a besoin de 3 ports GigE → utilise un 2911 pour R2"}</li>
+                <li>{"• 3 switches (2960)"}</li>
+                <li>{"• 6 PCs (2 par LAN)"}</li>
+                <li>{"• Câbles : Copper Straight-Through (PC↔Switch, Switch↔Routeur) et Cross-Over (Routeur↔Routeur)"}</li>
+              </ul>
+              <div className="bg-black/30 rounded-lg p-4">
+                <p className="text-purple-300 font-bold text-sm mb-2">{"Câblage :"}</p>
+                <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                  <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"De"}</th><th className="p-2 text-left">{"Port"}</th><th className="p-2 text-center">{"Câble"}</th><th className="p-2 text-left">{"Vers"}</th><th className="p-2 text-left">{"Port"}</th></tr></thead>
+                  <tbody>
+                    <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC0"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW0"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW0"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2 font-bold">{"SW0"}</td><td className="p-2 font-mono">{"G0/1"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"R1"}</td><td className="p-2 font-mono">{"G0/0"}</td></tr>
+                    <tr className="border-t border-white/20 bg-amber-500/10"><td className="p-2 font-bold text-amber-300">{"R1"}</td><td className="p-2 font-mono text-amber-300">{"G0/1"}</td><td className="p-2 text-center text-amber-300 font-bold">{"Cross-Over"}</td><td className="p-2 font-bold text-amber-300">{"R2"}</td><td className="p-2 font-mono text-amber-300">{"G0/0"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC2"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC3"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2 font-bold">{"SW1"}</td><td className="p-2 font-mono">{"G0/1"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"R2"}</td><td className="p-2 font-mono">{"G0/1"}</td></tr>
+                    <tr className="border-t border-white/20 bg-amber-500/10"><td className="p-2 font-bold text-amber-300">{"R2"}</td><td className="p-2 font-mono text-amber-300">{"G0/2"}</td><td className="p-2 text-center text-amber-300 font-bold">{"Cross-Over"}</td><td className="p-2 font-bold text-amber-300">{"R3"}</td><td className="p-2 font-mono text-amber-300">{"G0/0"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC4"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW2"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC5"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW2"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2 font-bold">{"SW2"}</td><td className="p-2 font-mono">{"G0/1"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"R3"}</td><td className="p-2 font-mono">{"G0/1"}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          {/* ÉTAPE 1 : CONFIG DE BASE */}
+          <section>
+            <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-xl p-6 border border-purple-500/30">
+              <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"⚙️ Étape 1 — Configuration de base"}</h2>
+              <ul className="text-slate-300 text-sm space-y-2">
+                <li>{"• Câble tous les équipements selon le tableau ci-dessus"}</li>
+                <li>{"• Configure les adresses IP des interfaces de chaque routeur (R1, R2, R3)"}</li>
+                <li>{"• Configure les adresses IP et passerelles des 6 PCs"}</li>
+                <li>{"• Vérifie la connectivité locale avec ping : chaque PC doit pouvoir pinger son routeur (passerelle)"}</li>
+              </ul>
+              <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20 mt-4">
+                <p className="text-amber-300 font-bold text-sm mb-1">{"💡 Rappel :"}</p>
+                <p className="text-slate-300 text-sm">{"N'oublie pas le « no shutdown » sur chaque interface de routeur. Vérifie avec show ip interface brief que toutes les interfaces sont UP/UP."}</p>
+              </div>
+            </div>
+          </section>
+
+          {/* ÉTAPE 2 : ACTIVATION OSPF */}
+          <section>
+            <div className="bg-gradient-to-r from-emerald-900/20 to-blue-900/20 rounded-xl p-6 border border-emerald-500/30">
+              <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"🌐 Étape 2 — Activation d'OSPF"}</h2>
+              <p className="text-slate-300 text-sm mb-4">{"Active OSPF sur chaque routeur avec un ID de processus unique. La partie cruciale : associer chaque réseau à la BONNE area."}</p>
+
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-purple-300 font-bold text-sm mb-2">{"Assignation des areas :"}</p>
+                <div className="space-y-3">
+                  <div className="bg-purple-900/20 rounded-lg p-3 border border-purple-500/20">
+                    <p className="text-purple-300 font-bold text-sm">{"Area 0 (Backbone) :"}</p>
+                    <ul className="text-slate-300 text-sm mt-1 space-y-0.5">
+                      <li>{"• R1 : réseau LAN 192.168.10.0/24"}</li>
+                      <li>{"• R1 : réseau WAN vers R2 (10.0.0.0/30)"}</li>
+                      <li>{"• R2 : réseau WAN vers R1 (10.0.0.0/30)"}</li>
+                    </ul>
+                  </div>
+                  <div className="bg-blue-900/20 rounded-lg p-3 border border-blue-500/20">
+                    <p className="text-blue-300 font-bold text-sm">{"Area 1 :"}</p>
+                    <ul className="text-slate-300 text-sm mt-1 space-y-0.5">
+                      <li>{"• R2 : réseau LAN 192.168.20.0/24"}</li>
+                    </ul>
+                  </div>
+                  <div className="bg-cyan-900/20 rounded-lg p-3 border border-cyan-500/20">
+                    <p className="text-cyan-300 font-bold text-sm">{"Area 2 :"}</p>
+                    <ul className="text-slate-300 text-sm mt-1 space-y-0.5">
+                      <li>{"• R2 : réseau WAN vers R3 (10.0.0.4/30)"}</li>
+                      <li>{"• R3 : réseau WAN vers R2 (10.0.0.4/30)"}</li>
+                      <li>{"• R3 : réseau LAN 192.168.30.0/24"}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-red-900/20 rounded-lg p-4 border border-red-500/20 mb-4">
+                <p className="text-red-300 font-bold text-sm mb-2">{"⚠️ Points d'attention :"}</p>
+                <ul className="text-slate-300 text-sm space-y-1">
+                  <li>{"• Utilise des WILDCARD masks précis (/24 → 0.0.0.255, /30 → 0.0.0.3)"}</li>
+                  <li>{"• R2 est l'ABR : il a des réseaux dans 3 areas différentes !"}</li>
+                  <li>{"• Chaque routeur doit avoir un router-id unique"}</li>
+                  <li>{"• Pense au passive-interface sur les interfaces LAN"}</li>
+                </ul>
+              </div>
+
+              <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20">
+                <p className="text-amber-300 font-bold text-sm mb-1">{"🎯 Rappel des commandes utiles :"}</p>
+                <ul className="text-slate-300 text-sm space-y-0.5 font-mono">
+                  <li>{"router ospf <process-id>"}</li>
+                  <li>{"router-id X.X.X.X"}</li>
+                  <li>{"network <réseau> <wildcard> area <numéro>"}</li>
+                  <li>{"passive-interface <interface>"}</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          {/* ÉTAPE 3 : VÉRIFICATION */}
+          <section>
+            <div className="bg-gradient-to-r from-cyan-900/20 to-purple-900/20 rounded-xl p-6 border border-cyan-500/30">
+              <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center gap-2">{"🔍 Étape 3 — Vérification OSPF"}</h2>
+              <ul className="text-slate-300 text-sm space-y-2">
+                <li>{"• Vérifie les voisins OSPF : R1 ↔ R2, R2 ↔ R3 (show ip ospf neighbor)"}</li>
+                <li>{"• Vérifie la base de données OSPF (show ip ospf database)"}</li>
+                <li>{"• Vérifie les routes dans la table de routage (show ip route)"}</li>
+              </ul>
+              <div className="bg-black/30 rounded-lg p-4 mt-4">
+                <p className="text-amber-300 font-bold text-sm mb-2">{"Que chercher dans show ip route ?"}</p>
+                <ul className="text-slate-300 text-sm space-y-1">
+                  <li><span className="text-emerald-400 font-mono font-bold">{"O"}</span>{" = route OSPF intra-area (dans la même zone)"}</li>
+                  <li><span className="text-amber-400 font-mono font-bold">{"O IA"}</span>{" = route OSPF inter-area (entre zones, via l'ABR)"}</li>
+                  <li>{"• Sur R1 : les réseaux area 1 et area 2 apparaîtront comme O IA"}</li>
+                  <li>{"• Sur R3 : les réseaux area 0 et area 1 apparaîtront comme O IA"}</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          {/* ÉTAPE 4 : TESTS FINAUX */}
+          <section>
+            <div className="bg-gradient-to-r from-emerald-900/20 to-blue-900/20 rounded-xl p-6 border border-emerald-500/30">
+              <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"📡 Étape 4 — Tests finaux"}</h2>
+              <ul className="text-slate-300 text-sm space-y-2 mb-4">
+                <li>{"• Ping tous les PC depuis tous les autres (6 PCs = connectivité complète)"}</li>
+                <li>{"• Vérifie qu'il n'y a AUCUNE route statique"}</li>
+                <li>{"• Vérifie que R2 est bien identifié comme ABR"}</li>
+              </ul>
+              <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-6">
+                <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Résultats attendus"}</p>
+                <ul className="text-slate-300 text-sm space-y-1">
+                  <li>{"✅ Tous les PC peuvent communiquer entre eux"}</li>
+                  <li>{"✅ R2 joue bien le rôle d'ABR (Area Border Router)"}</li>
+                  <li>{"✅ La hiérarchie OSPF fonctionne : les LSA traversent d'une zone à l'autre"}</li>
+                  <li>{"✅ Les tables de routage montrent des routes OSPF intra (O) et inter-area (O IA)"}</li>
+                  <li>{"✅ Aucune route statique n'a été configurée"}</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+        </div>
+      ),
+      solutionContent: (
+        <div className="max-w-5xl mx-auto space-y-8 pb-16">
+          <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
+              {[
+                { id: 'lab9-plan', label: 'Plan câblage', icon: '🔌' },
+                { id: 'lab9-objectif', label: 'Objectif', icon: '🎯' },
+                { id: 'lab9-cablage', label: 'Câblage', icon: '🧩' },
+                { id: 'lab9-r1ip', label: 'IP R1', icon: '⚙️' },
+                { id: 'lab9-r2ip', label: 'IP R2', icon: '⚙️' },
+                { id: 'lab9-r3ip', label: 'IP R3', icon: '⚙️' },
+                { id: 'lab9-pcs', label: 'Config PCs', icon: '🖥️' },
+                { id: 'lab9-ospf-r1', label: 'OSPF R1', icon: '🌐' },
+                { id: 'lab9-ospf-r2', label: 'OSPF R2', icon: '🌐' },
+                { id: 'lab9-ospf-r3', label: 'OSPF R3', icon: '🌐' },
+                { id: 'lab9-verif', label: 'Vérification', icon: '📡' },
+                { id: 'lab9-tests', label: 'Tests', icon: '✅' },
+                { id: 'lab9-depannage', label: 'Dépannage', icon: '🔧' },
+              ].map(({ id, label, icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
+                >
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <div className="space-y-8">
+
+            {/* PLAN DE CÂBLAGE */}
+            <section id="lab9-plan" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/20 to-purple-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-4 flex items-center gap-2">{"🔌 Plan de câblage"}</h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                    <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"Appareil"}</th><th className="p-2 text-left">{"Port"}</th><th className="p-2 text-center text-slate-400">{"Câble"}</th><th className="p-2 text-left">{"Appareil"}</th><th className="p-2 text-left">{"Port"}</th></tr></thead>
+                    <tbody>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC0"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight-Through"}</td><td className="p-2 font-bold">{"SW0"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight-Through"}</td><td className="p-2 font-bold">{"SW0"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"SW0"}</td><td className="p-2 font-mono">{"G0/1"}</td><td className="p-2 text-center text-emerald-400">{"Straight-Through"}</td><td className="p-2 font-bold">{"R1"}</td><td className="p-2 font-mono">{"G0/0"}</td></tr>
+                      <tr className="border-t border-white/20 bg-amber-500/10"><td className="p-2 font-bold text-amber-300">{"R1"}</td><td className="p-2 font-mono text-amber-300">{"G0/1"}</td><td className="p-2 text-center text-amber-300 font-bold">{"Cross-Over"}</td><td className="p-2 font-bold text-amber-300">{"R2"}</td><td className="p-2 font-mono text-amber-300">{"G0/0"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC2"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight-Through"}</td><td className="p-2 font-bold">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC3"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight-Through"}</td><td className="p-2 font-bold">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"SW1"}</td><td className="p-2 font-mono">{"G0/1"}</td><td className="p-2 text-center text-emerald-400">{"Straight-Through"}</td><td className="p-2 font-bold">{"R2"}</td><td className="p-2 font-mono">{"G0/1"}</td></tr>
+                      <tr className="border-t border-white/20 bg-amber-500/10"><td className="p-2 font-bold text-amber-300">{"R2"}</td><td className="p-2 font-mono text-amber-300">{"G0/2"}</td><td className="p-2 text-center text-amber-300 font-bold">{"Cross-Over"}</td><td className="p-2 font-bold text-amber-300">{"R3"}</td><td className="p-2 font-mono text-amber-300">{"G0/0"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC4"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight-Through"}</td><td className="p-2 font-bold">{"SW2"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC5"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight-Through"}</td><td className="p-2 font-bold">{"SW2"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"SW2"}</td><td className="p-2 font-mono">{"G0/1"}</td><td className="p-2 text-center text-emerald-400">{"Straight-Through"}</td><td className="p-2 font-bold">{"R3"}</td><td className="p-2 font-mono">{"G0/1"}</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-amber-300/80 text-xs mt-3">{"⚠️ Les lignes en orange = liens WAN entre routeurs. Utilise Copper Cross-Over (ou Straight-Through si Auto-MDIX est activé). Attends 10–20s que les triangles passent au vert."}</p>
+              </div>
+            </section>
+
+            {/* OBJECTIF */}
+            <section id="lab9-objectif" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/20 rounded-xl p-6 border border-purple-500/30">
+                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"🎯 Étape 1 — Comprendre l'objectif"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Le scénario :"}</p>
+                  <p className="text-slate-300 text-sm">{"Une entreprise a 3 sites reliés par 3 routeurs. Chaque routeur gère un réseau local (LAN). On veut que TOUS les PCs (6 au total) puissent communiquer entre eux, sans aucune route statique — uniquement via OSPF."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Topologie :"}</p>
+                  <div className="font-mono text-sm text-emerald-300 bg-black/30 rounded p-3">
+                    <p>{"[PC0]─┐                                              ┌─[PC4]"}</p>
+                    <p>{"      ├─[SW0]─[R1]═══(Area 0)═══[R2]═══(Area 2)═══[R3]─[SW2]─┤"}</p>
+                    <p>{"[PC1]─┘              │                                         └─[PC5]"}</p>
+                    <p>{"                  [SW1]"}</p>
+                    <p>{"                  ├─[PC2]"}</p>
+                    <p>{"                  └─[PC3]"}</p>
+                    <p className="text-slate-500 mt-2">{"LAN1: 192.168.10.0/24   WAN1: 10.0.0.0/30   LAN2: 192.168.20.0/24   WAN2: 10.0.0.4/30   LAN3: 192.168.30.0/24"}</p>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Les 3 zones OSPF :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• "}<span className="text-purple-300 font-bold">{"Area 0"}</span>{" (backbone) : R1 et le lien R1↔R2. Obligatoire dans tout réseau OSPF multi-area."}</li>
+                    <li>{"• "}<span className="text-blue-300 font-bold">{"Area 1"}</span>{" : le LAN de R2 (réseau 192.168.20.0/24 connecté à SW1)."}</li>
+                    <li>{"• "}<span className="text-cyan-300 font-bold">{"Area 2"}</span>{" : le lien R2↔R3 et tout R3 avec son LAN."}</li>
+                    <li>{"• "}<span className="text-amber-300 font-bold">{"R2 = ABR"}</span>{" (Area Border Router) : il a des interfaces dans 3 areas différentes."}</li>
+                  </ul>
+                </div>
+                <div className="overflow-x-auto">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Plan d'adressage complet :"}</p>
+                  <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                    <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"Appareil"}</th><th className="p-2 text-left">{"Interface"}</th><th className="p-2 text-left">{"Adresse IP"}</th><th className="p-2 text-left">{"Masque"}</th><th className="p-2 text-left">{"Passerelle"}</th></tr></thead>
+                    <tbody>
+                      <tr className="border-t border-white/20 bg-purple-900/10"><td className="p-2 font-bold text-purple-300">{"R1"}</td><td className="p-2 font-mono">{"G0/0 (LAN)"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.10.1"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                      <tr className="border-t border-white/20 bg-purple-900/10"><td className="p-2 font-bold text-purple-300">{"R1"}</td><td className="p-2 font-mono">{"G0/1 (→R2)"}</td><td className="p-2 font-mono text-emerald-400">{"10.0.0.1"}</td><td className="p-2 font-mono">{"255.255.255.252"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                      <tr className="border-t border-white/20 bg-blue-900/10"><td className="p-2 font-bold text-blue-300">{"R2"}</td><td className="p-2 font-mono">{"G0/0 (→R1)"}</td><td className="p-2 font-mono text-emerald-400">{"10.0.0.2"}</td><td className="p-2 font-mono">{"255.255.255.252"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                      <tr className="border-t border-white/20 bg-blue-900/10"><td className="p-2 font-bold text-blue-300">{"R2"}</td><td className="p-2 font-mono">{"G0/1 (LAN)"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.20.1"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                      <tr className="border-t border-white/20 bg-blue-900/10"><td className="p-2 font-bold text-blue-300">{"R2"}</td><td className="p-2 font-mono">{"G0/2 (→R3)"}</td><td className="p-2 font-mono text-emerald-400">{"10.0.0.5"}</td><td className="p-2 font-mono">{"255.255.255.252"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                      <tr className="border-t border-white/20 bg-cyan-900/10"><td className="p-2 font-bold text-cyan-300">{"R3"}</td><td className="p-2 font-mono">{"G0/0 (→R2)"}</td><td className="p-2 font-mono text-emerald-400">{"10.0.0.6"}</td><td className="p-2 font-mono">{"255.255.255.252"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                      <tr className="border-t border-white/20 bg-cyan-900/10"><td className="p-2 font-bold text-cyan-300">{"R3"}</td><td className="p-2 font-mono">{"G0/1 (LAN)"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.30.1"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2">{"PC0"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.10.10"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono text-amber-300">{"192.168.10.1"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2">{"PC1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.10.11"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono text-amber-300">{"192.168.10.1"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2">{"PC2"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.20.10"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono text-amber-300">{"192.168.20.1"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2">{"PC3"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.20.11"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono text-amber-300">{"192.168.20.1"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2">{"PC4"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.30.10"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono text-amber-300">{"192.168.30.1"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2">{"PC5"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.30.11"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono text-amber-300">{"192.168.30.1"}</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
+            {/* CÂBLAGE */}
+            <section id="lab9-cablage" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 rounded-xl p-6 border border-amber-500/30">
+                <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"🧩 Étape 2 — Câblage dans Packet Tracer"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Étape 2.1 — Placer les équipements :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• R1 et R3 : cherche « 1941 » dans Network Devices → Routers"}</li>
+                    <li>{"• "}<span className="text-amber-300 font-bold">{"R2 : cherche « 2911 »"}</span>{" — R2 a besoin de 3 ports GigabitEthernet, le 1941 n'en a que 2"}</li>
+                    <li>{"• 3 switches : cherche « 2960 » dans Switches"}</li>
+                    <li>{"• 6 PCs : dans End Devices → PC"}</li>
+                    <li>{"• Renomme chaque appareil : clic → Config → Display Name → R1, R2, R3, SW0, SW1, SW2, PC0…PC5"}</li>
+                  </ul>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Étape 2.2 — Brancher les câbles :"}</p>
+                  <p className="text-slate-400 text-xs mb-3">{"Utilise Copper Straight-Through partout, sauf R1↔R2 et R2↔R3 où tu utilises Copper Cross-Over (lignes orange)."}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                      <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"Appareil"}</th><th className="p-2 text-left">{"Port"}</th><th className="p-2 text-center">{"Câble"}</th><th className="p-2 text-left">{"Appareil"}</th><th className="p-2 text-left">{"Port"}</th></tr></thead>
+                      <tbody>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC0"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW0"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW0"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"SW0"}</td><td className="p-2 font-mono">{"G0/1"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"R1"}</td><td className="p-2 font-mono">{"G0/0"}</td></tr>
+                        <tr className="border-t border-white/20 bg-amber-500/5"><td className="p-2 text-amber-300 font-bold">{"R1"}</td><td className="p-2 font-mono text-amber-300">{"G0/1"}</td><td className="p-2 text-center text-amber-300">{"Cross-Over"}</td><td className="p-2 text-amber-300 font-bold">{"R2"}</td><td className="p-2 font-mono text-amber-300">{"G0/0"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC2"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC3"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"SW1"}</td><td className="p-2 font-mono">{"G0/1"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"R2"}</td><td className="p-2 font-mono">{"G0/1"}</td></tr>
+                        <tr className="border-t border-white/20 bg-amber-500/5"><td className="p-2 text-amber-300 font-bold">{"R2"}</td><td className="p-2 font-mono text-amber-300">{"G0/2"}</td><td className="p-2 text-center text-amber-300">{"Cross-Over"}</td><td className="p-2 text-amber-300 font-bold">{"R3"}</td><td className="p-2 font-mono text-amber-300">{"G0/0"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC4"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW2"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC5"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW2"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"SW2"}</td><td className="p-2 font-mono">{"G0/1"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"R3"}</td><td className="p-2 font-mono">{"G0/1"}</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 3 : CONFIG IP R1 */}
+            <section id="lab9-r1ip" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-xl p-6 border border-purple-500/30">
+                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"⚙️ Étape 3 — Configurer les IPs sur R1"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Clique sur R1 → onglet CLI → appuie sur Entrée pour accéder à la console."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"3.1 — Nommer le routeur :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-slate-500">{"Router>"}</p>
+                    <p>{"enable"}</p>
+                    <p className="text-slate-500">{"Router#"}</p>
+                    <p>{"configure terminal"}</p>
+                    <p className="text-slate-500">{"Router(config)#"}</p>
+                    <p>{"hostname R1"}</p>
+                    <p className="text-slate-500">{"R1(config)#"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"3.2 — Interface LAN (G0/0) — vers SW0 :"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"G0/0 est l'interface côté réseau local. Elle sera la passerelle de PC0 et PC1."}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"interface GigabitEthernet0/0"}</p>
+                    <p>{"ip address 192.168.10.1 255.255.255.0"}</p>
+                    <p>{"no shutdown"}</p>
+                    <p>{"exit"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ 192.168.10.1 sera la Default Gateway de PC0 et PC1."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"3.3 — Interface WAN (G0/1) — vers R2 :"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"G0/1 est le lien point-à-point vers R2. Le masque /30 donne seulement 2 adresses utilisables : 10.0.0.1 (R1) et 10.0.0.2 (R2)."}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"interface GigabitEthernet0/1"}</p>
+                    <p>{"ip address 10.0.0.1 255.255.255.252"}</p>
+                    <p>{"no shutdown"}</p>
+                    <p>{"exit"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ 255.255.255.252 = /30. Wildcard pour OSPF = 0.0.0.3."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"3.4 — Vérifier :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"end"}</p>
+                    <p>{"show ip interface brief"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ G0/0 et G0/1 doivent être « up / up ». Si une interface est « administratively down », tu as oublié le no shutdown."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 4 : CONFIG IP R2 */}
+            <section id="lab9-r2ip" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-xl p-6 border border-blue-500/30">
+                <h2 className="text-lg font-bold text-blue-300 mb-3 flex items-center gap-2">{"⚙️ Étape 4 — Configurer les IPs sur R2 (ABR)"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"R2 est le routeur le plus complexe : il a 3 interfaces (G0/0 vers R1, G0/1 vers le LAN, G0/2 vers R3). C'est pour ça qu'on utilise un Cisco 2911."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-blue-300 font-bold text-sm mb-2">{"4.1 — Nommer le routeur :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"enable"}</p>
+                    <p>{"configure terminal"}</p>
+                    <p>{"hostname R2"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-blue-300 font-bold text-sm mb-2">{"4.2 — Interface WAN (G0/0) — vers R1 :"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"G0/0 est connecté à G0/1 de R1. Les deux forment le réseau point-à-point 10.0.0.0/30."}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"interface GigabitEthernet0/0"}</p>
+                    <p>{"ip address 10.0.0.2 255.255.255.252"}</p>
+                    <p>{"no shutdown"}</p>
+                    <p>{"exit"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ R1 a 10.0.0.1, R2 a 10.0.0.2 — ils sont dans le même /30."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-blue-300 font-bold text-sm mb-2">{"4.3 — Interface LAN (G0/1) — vers SW1 :"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"G0/1 est connecté au switch SW1 où sont branchés PC2 et PC3."}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"interface GigabitEthernet0/1"}</p>
+                    <p>{"ip address 192.168.20.1 255.255.255.0"}</p>
+                    <p>{"no shutdown"}</p>
+                    <p>{"exit"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ 192.168.20.1 sera la Default Gateway de PC2 et PC3."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-blue-300 font-bold text-sm mb-2">{"4.4 — Interface WAN (G0/2) — vers R3 :"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"G0/2 est connecté à G0/0 de R3. Ils forment le réseau point-à-point 10.0.0.4/30."}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"interface GigabitEthernet0/2"}</p>
+                    <p>{"ip address 10.0.0.5 255.255.255.252"}</p>
+                    <p>{"no shutdown"}</p>
+                    <p>{"exit"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ R2 a 10.0.0.5, R3 a 10.0.0.6 — ils sont dans le même /30 (10.0.0.4–10.0.0.7)."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-blue-300 font-bold text-sm mb-2">{"4.5 — Vérifier :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"end"}</p>
+                    <p>{"show ip interface brief"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ G0/0, G0/1 et G0/2 doivent être « up / up »."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 5 : CONFIG IP R3 */}
+            <section id="lab9-r3ip" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-cyan-900/20 to-blue-900/20 rounded-xl p-6 border border-cyan-500/30">
+                <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center gap-2">{"⚙️ Étape 5 — Configurer les IPs sur R3"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Clique sur R3 → onglet CLI → appuie sur Entrée."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"5.1 — Nommer le routeur :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"enable"}</p>
+                    <p>{"configure terminal"}</p>
+                    <p>{"hostname R3"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"5.2 — Interface WAN (G0/0) — vers R2 :"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"G0/0 est connecté à G0/2 de R2 sur le réseau 10.0.0.4/30."}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"interface GigabitEthernet0/0"}</p>
+                    <p>{"ip address 10.0.0.6 255.255.255.252"}</p>
+                    <p>{"no shutdown"}</p>
+                    <p>{"exit"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"5.3 — Interface LAN (G0/1) — vers SW2 :"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"G0/1 est connecté au switch SW2 où sont branchés PC4 et PC5."}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"interface GigabitEthernet0/1"}</p>
+                    <p>{"ip address 192.168.30.1 255.255.255.0"}</p>
+                    <p>{"no shutdown"}</p>
+                    <p>{"exit"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ 192.168.30.1 sera la Default Gateway de PC4 et PC5."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"5.4 — Vérifier :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"end"}</p>
+                    <p>{"show ip interface brief"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ G0/0 et G0/1 doivent être « up / up »."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 6 : CONFIG PCs */}
+            <section id="lab9-pcs" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-violet-900/20 to-purple-900/20 rounded-xl p-6 border border-violet-500/30">
+                <h2 className="text-lg font-bold text-violet-300 mb-3 flex items-center gap-2">{"🖥️ Étape 6 — Configurer les 6 PCs"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Pour chaque PC : clic → Desktop → IP Configuration. Remplis les 3 champs."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-3">{"6.1 — PC0 (LAN R1 — Area 0) :"}</p>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"IP Address"}</p><p className="font-mono text-emerald-400">{"192.168.10.10"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Subnet Mask"}</p><p className="font-mono text-white">{"255.255.255.0"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Default Gateway"}</p><p className="font-mono text-amber-300">{"192.168.10.1"}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-3">{"6.2 — PC1 (LAN R1 — Area 0) :"}</p>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"IP Address"}</p><p className="font-mono text-emerald-400">{"192.168.10.11"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Subnet Mask"}</p><p className="font-mono text-white">{"255.255.255.0"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Default Gateway"}</p><p className="font-mono text-amber-300">{"192.168.10.1"}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-blue-300 font-bold text-sm mb-3">{"6.3 — PC2 (LAN R2 — Area 1) :"}</p>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"IP Address"}</p><p className="font-mono text-emerald-400">{"192.168.20.10"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Subnet Mask"}</p><p className="font-mono text-white">{"255.255.255.0"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Default Gateway"}</p><p className="font-mono text-amber-300">{"192.168.20.1"}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-blue-300 font-bold text-sm mb-3">{"6.4 — PC3 (LAN R2 — Area 1) :"}</p>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"IP Address"}</p><p className="font-mono text-emerald-400">{"192.168.20.11"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Subnet Mask"}</p><p className="font-mono text-white">{"255.255.255.0"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Default Gateway"}</p><p className="font-mono text-amber-300">{"192.168.20.1"}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-3">{"6.5 — PC4 (LAN R3 — Area 2) :"}</p>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"IP Address"}</p><p className="font-mono text-emerald-400">{"192.168.30.10"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Subnet Mask"}</p><p className="font-mono text-white">{"255.255.255.0"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Default Gateway"}</p><p className="font-mono text-amber-300">{"192.168.30.1"}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-3">{"6.6 — PC5 (LAN R3 — Area 2) :"}</p>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"IP Address"}</p><p className="font-mono text-emerald-400">{"192.168.30.11"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Subnet Mask"}</p><p className="font-mono text-white">{"255.255.255.0"}</p></div>
+                    <div className="bg-black/40 rounded p-2"><p className="text-slate-500 text-[10px]">{"Default Gateway"}</p><p className="font-mono text-amber-300">{"192.168.30.1"}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"⚠️ Erreurs fréquentes :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• Oublier la Default Gateway → le PC ne peut pas sortir de son réseau"}</li>
+                    <li>{"• Mettre la mauvaise gateway → PC2/PC3 doivent avoir 192.168.20.1, pas 192.168.10.1"}</li>
+                    <li>{"• Avant de configurer OSPF, vérifie que chaque PC peut pinger son routeur local"}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 7 : OSPF R1 */}
+            <section id="lab9-ospf-r1" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/20 to-purple-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"🌐 Étape 7 — Activer OSPF sur R1 (Area 0)"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Clique sur R1 → CLI. R1 est entièrement dans l'area 0 (le backbone). Les 2 réseaux de R1 — son LAN et son lien WAN vers R2 — sont tous les deux déclarés en area 0."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Configuration complète OSPF sur R1 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"enable"}</p>
+                    <p>{"configure terminal"}</p>
+                    <p>{"router ospf 1"}</p>
+                    <p>{" router-id 1.1.1.1"}</p>
+                    <p>{" network 192.168.10.0 0.0.0.255 area 0"}</p>
+                    <p>{" network 10.0.0.0 0.0.0.3 area 0"}</p>
+                    <p>{" passive-interface GigabitEthernet0/0"}</p>
+                    <p>{"end"}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[15rem]">{"router ospf 1"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Active le processus OSPF avec l'ID de processus 1 (ce chiffre est local au routeur, il n'a pas besoin d'être identique sur tous les routeurs)."}</p></div>
+                  <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[15rem]">{"router-id 1.1.1.1"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Donne une identité unique à R1 dans OSPF. Ce sera son nom dans la table de voisinage (show ip ospf neighbor). Convention : R1 = 1.1.1.1, R2 = 2.2.2.2, R3 = 3.3.3.3."}</p></div>
+                  <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[15rem]">{"network 192.168.10.0 0.0.0.255 area 0"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Déclare le réseau LAN de R1 dans OSPF area 0. Le wildcard 0.0.0.255 correspond au masque /24 (255.255.255.0). Formule : wildcard = 255.255.255.255 − masque. Donc 255.255.255.255 − 255.255.255.0 = 0.0.0.255."}</p></div>
+                  <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[15rem]">{"network 10.0.0.0 0.0.0.3 area 0"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Déclare le lien WAN R1↔R2 dans OSPF area 0. Le wildcard 0.0.0.3 correspond au masque /30 (255.255.255.252). Formule : 255.255.255.255 − 255.255.255.252 = 0.0.0.3."}</p></div>
+                  <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[15rem]">{"passive-interface GigabitEthernet0/0"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Empêche R1 d'envoyer des paquets Hello OSPF sur le LAN. Il n'y a pas de routeur voisin dans le LAN (seulement des PCs), donc c'est inutile et ça réduit le trafic. L'interface continue de participer à OSPF (le réseau est annoncé), elle envoie juste plus de Hello."}</p></div>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 8 : OSPF R2 ABR */}
+            <section id="lab9-ospf-r2" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-xl p-6 border border-blue-500/30">
+                <h2 className="text-lg font-bold text-blue-300 mb-3 flex items-center gap-2">{"🌐 Étape 8 — Activer OSPF sur R2 (ABR : Area 0 + Area 1 + Area 2)"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"R2 est l'ABR (Area Border Router). Chacune de ses 3 interfaces appartient à une area différente. C'est lui qui fait le pont entre les zones et redistribue les routes inter-area."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-blue-300 font-bold text-sm mb-2">{"Configuration complète OSPF sur R2 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"enable"}</p>
+                    <p>{"configure terminal"}</p>
+                    <p>{"router ospf 1"}</p>
+                    <p>{" router-id 2.2.2.2"}</p>
+                    <p>{" network 10.0.0.0 0.0.0.3 area 0"}</p>
+                    <p>{" network 192.168.20.0 0.0.0.255 area 1"}</p>
+                    <p>{" network 10.0.0.4 0.0.0.3 area 2"}</p>
+                    <p>{" passive-interface GigabitEthernet0/1"}</p>
+                    <p>{"end"}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-blue-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[15rem]">{"router-id 2.2.2.2"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Identifiant unique de R2 dans OSPF. On verra 2.2.2.2 dans show ip ospf neighbor sur R1 et R3."}</p></div>
+                  <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-blue-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[15rem]">{"network 10.0.0.0 0.0.0.3 area 0"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Déclare le lien WAN R1↔R2 (10.0.0.0–10.0.0.3) dans l'area 0 (backbone). C'est grâce à cette ligne que R2 devient voisin OSPF de R1."}</p></div>
+                  <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-blue-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[15rem]">{"network 192.168.20.0 0.0.0.255 area 1"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Déclare le LAN de R2 (réseau 192.168.20.0/24) dans l'area 1. Ce réseau sera annoncé aux autres routeurs comme une route inter-area (O IA)."}</p></div>
+                  <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-blue-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[15rem]">{"network 10.0.0.4 0.0.0.3 area 2"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Déclare le lien WAN R2↔R3 (10.0.0.4–10.0.0.7) dans l'area 2. C'est grâce à cette ligne que R2 devient voisin OSPF de R3."}</p></div>
+                  <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-blue-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[15rem]">{"passive-interface GigabitEthernet0/1"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Pas de paquets Hello OSPF envoyés vers SW1 (pas de routeur là-bas). Le réseau 192.168.20.0/24 est quand même annoncé en OSPF."}</p></div>
+                </div>
+
+                <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20 mt-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"⚠️ Pourquoi R2 est-il l'ABR ?"}</p>
+                  <p className="text-slate-300 text-sm">{"Un routeur devient automatiquement ABR dès qu'il a des interfaces dans au moins 2 areas différentes. R2 a des interfaces dans les areas 0, 1 et 2 → il est ABR. C'est lui qui génère les LSA de type 3 (Summary LSA) pour annoncer les réseaux d'une area vers les autres."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 9 : OSPF R3 */}
+            <section id="lab9-ospf-r3" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-cyan-900/20 to-blue-900/20 rounded-xl p-6 border border-cyan-500/30">
+                <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center gap-2">{"🌐 Étape 9 — Activer OSPF sur R3 (Area 2)"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Clique sur R3 → CLI. R3 est entièrement dans l'area 2. Ses 2 réseaux — le lien WAN vers R2 et son LAN — sont tous les deux déclarés en area 2."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"Configuration complète OSPF sur R3 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"enable"}</p>
+                    <p>{"configure terminal"}</p>
+                    <p>{"router ospf 1"}</p>
+                    <p>{" router-id 3.3.3.3"}</p>
+                    <p>{" network 10.0.0.4 0.0.0.3 area 2"}</p>
+                    <p>{" network 192.168.30.0 0.0.0.255 area 2"}</p>
+                    <p>{" passive-interface GigabitEthernet0/1"}</p>
+                    <p>{"end"}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[15rem]">{"router-id 3.3.3.3"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Identifiant unique de R3 dans OSPF. On verra 3.3.3.3 dans show ip ospf neighbor sur R2."}</p></div>
+                  <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[15rem]">{"network 10.0.0.4 0.0.0.3 area 2"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Déclare le lien WAN R2↔R3 côté R3 dans l'area 2. Doit correspondre exactement au network déclaré sur R2 pour ce même lien — c'est comme ça que les deux routeurs se trouvent et deviennent voisins OSPF."}</p></div>
+                  <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[15rem]">{"network 192.168.30.0 0.0.0.255 area 2"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Déclare le LAN de R3 dans l'area 2. Ce réseau sera annoncé à R1 et R2 comme une route inter-area (O IA)."}</p></div>
+                  <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[15rem]">{"passive-interface GigabitEthernet0/1"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Pas de Hello envoyés vers SW2. Le réseau 192.168.30.0/24 est quand même annoncé en OSPF."}</p></div>
+                </div>
+              </div>
+            </section>
+
+            {/* ÉTAPE 10 : SAUVEGARDE */}
+            <section className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/20 to-blue-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"💾 Étape 10 — Sauvegarder la configuration"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Sur CHAQUE routeur (R1, R2, R3), sauvegarde la config en NVRAM."}</p>
+                <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                  <p>{"copy running-config startup-config"}</p>
+                  <p className="text-slate-500">{"Destination filename [startup-config]?"}</p>
+                  <p className="text-slate-500">{"→ Appuie sur Entrée"}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* VÉRIFICATION */}
+            <section id="lab9-verif" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-cyan-900/20 to-purple-900/20 rounded-xl p-6 border border-cyan-500/30">
+                <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center gap-2">{"📡 Étape 11 — Vérifications OSPF"}</h2>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"11.1 — show ip ospf neighbor (sur R2, l'ABR) :"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"Cette commande confirme que R2 a bien établi des adjacences avec R1 et R3."}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-white font-bold">{"R2# show ip ospf neighbor"}</p>
+                    <p>{""}</p>
+                    <p className="text-slate-400">{"Neighbor ID  Pri  State     Dead Time  Address     Interface"}</p>
+                    <p>{"1.1.1.1       1   FULL/  -  00:00:39   10.0.0.1    Gi0/0"}</p>
+                    <p>{"3.3.3.3       1   FULL/  -  00:00:37   10.0.0.6    Gi0/2"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 mt-3 text-xs space-y-1">
+                    <p className="text-slate-400">{"• "}<span className="text-amber-300">{"FULL"}</span>{" = la synchronisation OSPF est complète. Les deux routeurs ont échangé leurs bases de données."}</p>
+                    <p className="text-slate-400">{"• 1.1.1.1 = R1 (router-id), 3.3.3.3 = R3 (router-id)."}</p>
+                    <p className="text-slate-400">{"• Si l'état est INIT ou 2WAY, l'adjacence n'est pas établie → vérifie les IPs et les areas."}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"11.2 — show ip route (sur R1) :"}</p>
+                  <p className="text-slate-400 text-xs mb-2">{"Depuis R1, on doit voir des routes O IA (OSPF Inter-Area) vers les réseaux des areas 1 et 2."}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-white font-bold">{"R1# show ip route"}</p>
+                    <p>{""}</p>
+                    <p className="text-slate-400">{"C   192.168.10.0/24 is directly connected, GigabitEthernet0/0"}</p>
+                    <p className="text-slate-400">{"C   10.0.0.0/30 is directly connected, GigabitEthernet0/1"}</p>
+                    <p className="text-amber-300">{"O IA  192.168.20.0/24 [110/2] via 10.0.0.2, GigabitEthernet0/1"}</p>
+                    <p className="text-amber-300">{"O IA  10.0.0.4/30 [110/2] via 10.0.0.2, GigabitEthernet0/1"}</p>
+                    <p className="text-amber-300">{"O IA  192.168.30.0/24 [110/3] via 10.0.0.2, GigabitEthernet0/1"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 mt-3 text-xs space-y-1">
+                    <p className="text-slate-400">{"• "}<span className="text-slate-300">{"C"}</span>{" = Connected (réseau directement connecté à une interface)."}</p>
+                    <p className="text-slate-400">{"• "}<span className="text-amber-300">{"O IA"}</span>{" = OSPF Inter-Area : route apprise d'une autre area via l'ABR R2."}</p>
+                    <p className="text-slate-400">{"• [110/2] = distance administrative 110 (OSPF) / métrique 2 (coût)."}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"11.3 — show ip route (sur R3) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-white font-bold">{"R3# show ip route"}</p>
+                    <p>{""}</p>
+                    <p className="text-slate-400">{"C   10.0.0.4/30 is directly connected, GigabitEthernet0/0"}</p>
+                    <p className="text-slate-400">{"C   192.168.30.0/24 is directly connected, GigabitEthernet0/1"}</p>
+                    <p className="text-amber-300">{"O IA  192.168.10.0/24 [110/3] via 10.0.0.5, GigabitEthernet0/0"}</p>
+                    <p className="text-amber-300">{"O IA  10.0.0.0/30 [110/2] via 10.0.0.5, GigabitEthernet0/0"}</p>
+                    <p className="text-amber-300">{"O IA  192.168.20.0/24 [110/2] via 10.0.0.5, GigabitEthernet0/0"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ R3 voit les réseaux de R1 (area 0) et du LAN R2 (area 1) via 10.0.0.5 (R2). Tout passe par l'ABR R2."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"11.4 — show ip ospf (sur R2) — Confirmer le rôle ABR :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-white font-bold">{"R2# show ip ospf"}</p>
+                    <p>{""}</p>
+                    <p>{"Routing Process \"ospf 1\" with ID 2.2.2.2"}</p>
+                    <p className="text-amber-300 font-bold">{" It is an area border router"}</p>
+                    <p>{" Number of areas in this router is 3"}</p>
+                    <p>{""}</p>
+                    <p>{"    Area BACKBONE(0)"}</p>
+                    <p>{"        Number of interfaces in this area is 1"}</p>
+                    <p>{"    Area 1"}</p>
+                    <p>{"        Number of interfaces in this area is 1"}</p>
+                    <p>{"    Area 2"}</p>
+                    <p>{"        Number of interfaces in this area is 1"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ « It is an area border router » : c'est la preuve que R2 est bien l'ABR. 3 areas, 1 interface par area."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* TESTS */}
+            <section id="lab9-tests" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/20 to-cyan-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"✅ Étape 12 — Tests de connectivité"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Pour chaque test : clic sur le PC → Desktop → Command Prompt → tape ping."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"12.1 — Tests LOCAUX (même réseau, doivent fonctionner en premier) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-slate-400">{"Depuis PC0 :"}</p>
+                    <p>{"C:\\> ping 192.168.10.11"}<span className="text-slate-500">{" ← PC1 (même LAN)"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{"C:\\> ping 192.168.10.1"}<span className="text-slate-500">{"  ← R1 (gateway)"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{""}</p>
+                    <p className="text-slate-400">{"Depuis PC2 :"}</p>
+                    <p>{"C:\\> ping 192.168.20.11"}<span className="text-slate-500">{" ← PC3 (même LAN)"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{"C:\\> ping 192.168.20.1"}<span className="text-slate-500">{"  ← R2 (gateway)"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{""}</p>
+                    <p className="text-slate-400">{"Depuis PC4 :"}</p>
+                    <p>{"C:\\> ping 192.168.30.11"}<span className="text-slate-500">{" ← PC5 (même LAN)"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{"C:\\> ping 192.168.30.1"}<span className="text-slate-500">{"  ← R3 (gateway)"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"12.2 — Tests INTER-AREA (doivent fonctionner grâce à OSPF) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-slate-400">{"Depuis PC0 (Area 0) vers les autres areas :"}</p>
+                    <p>{"C:\\> ping 192.168.20.10"}<span className="text-slate-500">{" ← PC2 (Area 1)"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{"C:\\> ping 192.168.20.11"}<span className="text-slate-500">{" ← PC3 (Area 1)"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{"C:\\> ping 192.168.30.10"}<span className="text-slate-500">{" ← PC4 (Area 2)"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{"C:\\> ping 192.168.30.11"}<span className="text-slate-500">{" ← PC5 (Area 2)"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{""}</p>
+                    <p className="text-slate-400">{"Depuis PC2 (Area 1) vers les autres areas :"}</p>
+                    <p>{"C:\\> ping 192.168.10.10"}<span className="text-slate-500">{" ← PC0 (Area 0)"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{"C:\\> ping 192.168.30.10"}<span className="text-slate-500">{" ← PC4 (Area 2)"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{""}</p>
+                    <p className="text-slate-400">{"Depuis PC4 (Area 2) vers les autres areas :"}</p>
+                    <p>{"C:\\> ping 192.168.10.10"}<span className="text-slate-500">{" ← PC0 (Area 0)"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                    <p>{"C:\\> ping 192.168.20.10"}<span className="text-slate-500">{" ← PC2 (Area 1)"}</span><span className="text-emerald-400">{" ✅"}</span></p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* DÉPANNAGE */}
+            <section id="lab9-depannage" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-red-900/20 to-amber-900/20 rounded-xl p-6 border border-red-500/30">
+                <h2 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">{"🔧 Dépannage — Si ça ne marche pas"}</h2>
+                <div className="space-y-3">
+                  <div className="bg-black/30 rounded-lg p-4">
+                    <p className="text-amber-300 font-bold text-sm mb-1">{"Ping local échoue (PC0 → PC1) ?"}</p>
+                    <ul className="text-slate-300 text-sm space-y-1">
+                      <li>{"• Vérifie que les IPs des PCs sont dans le bon réseau (192.168.10.x)"}</li>
+                      <li>{"• Vérifie que la Default Gateway est correcte (192.168.10.1)"}</li>
+                      <li>{"• Vérifie que G0/0 de R1 est UP : R1# show ip interface brief"}</li>
+                    </ul>
+                  </div>
+                  <div className="bg-black/30 rounded-lg p-4">
+                    <p className="text-amber-300 font-bold text-sm mb-1">{"Pas de voisin OSPF (show ip ospf neighbor vide) ?"}</p>
+                    <ul className="text-slate-300 text-sm space-y-1">
+                      <li>{"• Vérifie que les interfaces WAN sont UP des deux côtés : show ip interface brief"}</li>
+                      <li>{"• Vérifie les IPs WAN — R1:10.0.0.1 et R2:10.0.0.2 doivent être dans le même /30"}</li>
+                      <li>{"• Vérifie que les commandes network correspondent aux bons réseaux et wildcards"}</li>
+                      <li>{"• Teste le lien WAN : R1# ping 10.0.0.2. Si ça échoue → problème IP ou câble"}</li>
+                    </ul>
+                  </div>
+                  <div className="bg-black/30 rounded-lg p-4">
+                    <p className="text-amber-300 font-bold text-sm mb-1">{"Voisin en état INIT ou 2WAY (pas FULL) ?"}</p>
+                    <ul className="text-slate-300 text-sm space-y-1">
+                      <li>{"• Vérifie que les deux routeurs ont le même process-id OSPF (c'est local, ça n'a pas d'importance)"}</li>
+                      <li>{"• Vérifie que les liens ne sont pas passive-interface des deux côtés"}</li>
+                      <li>{"• Attends 30–60 secondes, OSPF converge parfois lentement dans Packet Tracer"}</li>
+                    </ul>
+                  </div>
+                  <div className="bg-black/30 rounded-lg p-4">
+                    <p className="text-amber-300 font-bold text-sm mb-1">{"Routes O IA manquantes dans show ip route ?"}</p>
+                    <ul className="text-slate-300 text-sm space-y-1">
+                      <li>{"• Vérifie que R2 a bien déclaré ses 3 réseaux dans les 3 areas différentes"}</li>
+                      <li>{"• Vérifie que network 10.0.0.4 0.0.0.3 area 2 est présent sur R2 ET sur R3"}</li>
+                      <li>{"• Vérifie show ip ospf sur R2 → doit dire « It is an area border router »"}</li>
+                    </ul>
+                  </div>
+                  <div className="bg-black/30 rounded-lg p-4">
+                    <p className="text-amber-300 font-bold text-sm mb-1">{"Ping inter-area échoue (PC0 → PC4) ?"}</p>
+                    <ul className="text-slate-300 text-sm space-y-1">
+                      <li>{"• Utilise traceroute : C:\\> tracert 192.168.30.10 → voir où le paquet s'arrête"}</li>
+                      <li>{"• Vérifie que les tables de routage de R1 et R3 ont bien les routes O IA"}</li>
+                      <li>{"• Vérifie que le lien R2↔R3 fonctionne : R2# ping 10.0.0.6"}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* RÉSUMÉ FINAL */}
+            <section className="scroll-mt-4">
+              <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-6">
+                <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Résultat attendu"}</p>
+                <ul className="text-slate-300 text-sm space-y-1">
+                  <li>{"✅ Les 6 PCs se pinguent entre eux (local ET inter-area)"}</li>
+                  <li>{"✅ show ip ospf neighbor sur R2 montre 2 voisins FULL (R1 et R3)"}</li>
+                  <li>{"✅ show ip route sur R1 et R3 affiche des routes O IA"}</li>
+                  <li>{"✅ show ip ospf sur R2 dit « It is an area border router »"}</li>
+                  <li>{"✅ Aucune route statique dans les tables de routage"}</li>
+                  <li>{"✅ Tu sais calculer les wildcard masks (/24 → 0.0.0.255, /30 → 0.0.0.3)"}</li>
+                  <li>{"✅ Tu comprends la différence entre O (intra-area) et O IA (inter-area)"}</li>
+                </ul>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      ),
+      solutionContentLab2: (
+        <div className="max-w-5xl mx-auto space-y-8 pb-16">
+          <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">{"Raccourcis:"}</span>
+              {[
+                { id: 'dep-ospf1-scenario', label: 'Scénario', icon: '📋' },
+                { id: 'dep-ospf1-err', label: 'Erreur', icon: '🔴' },
+                { id: 'dep-ospf1-final', label: 'Test final', icon: '✅' },
+              ].map(({ id, label, icon }) => (
+                <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <div className="space-y-8">
+
+            <section id="dep-ospf1-scenario" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-red-900/20 to-purple-900/20 rounded-xl p-6 border border-red-500/30">
+                <h2 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">{"📋 Scénario — OSPF silencieux sur R1"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-slate-300 text-sm">{"Un stagiaire a monté le lab OSPF multi-area. Les IPs sont correctes, les PCs bien configurés. Pourtant "}<code className="text-red-400">{"show ip ospf neighbor"}</code>{" est vide sur R1. Il y a "}<strong className="text-red-300">{"1 erreur"}</strong>{" à trouver."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"🔧 Mise en place :"}</p>
+                  <p className="text-slate-400 text-xs mb-3">{"Monte la topologie complète du lab OSPF avec le même câblage, les mêmes IPs et les mêmes PCs. Applique uniquement cette modification sur R1 :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-2">
+                    <li>{"• Tous les IPs et PCs : "}<strong className="text-emerald-400">{"correctement configurés"}</strong></li>
+                    <li>{"• OSPF sur R2 et R3 : "}<strong className="text-emerald-400">{"correctement configuré"}</strong></li>
+                    <li>{"• R1 : configure OSPF normalement, mais "}<strong className="text-red-300">{"AJOUTE passive-interface GigabitEthernet0/1"}</strong>{" sous router ospf 1"}</li>
+                  </ul>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"🔍 Symptômes observés :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• R1# show ip ospf neighbor → ❌ table vide"}</li>
+                    <li>{"• R2# show ip ospf neighbor → R1 absent ❌ (R3 peut apparaître FULL)"}</li>
+                    <li>{"• PC0 ping 192.168.20.10 → ❌"}</li>
+                    <li>{"• PC0 ping 192.168.30.10 → ❌"}</li>
+                  </ul>
+                  <p className="text-amber-300 font-bold text-sm mt-4">{"🎯 Ta mission : trouve et corrige l'erreur."}</p>
+                </div>
+              </div>
+            </section>
+
+            <section id="dep-ospf1-err" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-red-900/20 to-amber-900/20 rounded-xl p-6 border border-red-500/30">
+                <h2 className="text-lg font-bold text-red-400 mb-3 flex items-center gap-2">{"🔴 Erreur — Interface WAN de R1 en mode passif"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-red-300 font-bold text-sm mb-2">{"💢 Symptôme :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R1# show ip ospf neighbor"}</p>
+                    <p className="text-red-400">{"→ Table vide ❌ (aucun voisin OSPF)"}</p>
+                  </div>
+                  <p className="text-slate-300 text-sm mt-2">{"R1 ne forme aucune adjacency malgré un câblage et des IPs corrects. Une interface n'envoie pas de paquets Hello."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"🔍 Logique de recherche :"}</p>
+                  <p className="text-slate-300 text-sm mb-2">{"Vérifie l'état OSPF de chaque interface de R1 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R1# show ip ospf interface brief"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 mt-3 text-xs font-mono">
+                    <p className="text-slate-300">{"Interface    PID  Area    IP Address/Mask      Cost  State    Nbrs F/C"}</p>
+                    <p className="text-emerald-400">{"Gi0/0        1    1       192.168.10.1/24      1     DROTH    0/0"}</p>
+                    <p className="text-red-400">{"Gi0/1        1    0       10.0.0.1/30          1     PASSIVE  0/0  ← !"}</p>
+                  </div>
+                  <p className="text-slate-300 text-sm mt-3">{"G0/1 est en état PASSIVE. Une interface passive ne peut ni envoyer ni recevoir de Hello → impossible de former une adjacency avec R2."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"⚠️ Erreur trouvée :"}</p>
+                  <p className="text-slate-300 text-sm">{"La commande "}<code className="text-red-400">{"passive-interface GigabitEthernet0/1"}</code>{" a été appliquée sur le port WAN de R1. G0/1 relie R1 à R2 — c'est un lien routeur-à-routeur où OSPF doit envoyer des Hello. Le mode passif est réservé aux interfaces LAN."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"✏️ Résolution :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R1# configure terminal"}</p>
+                    <p>{"R1(config)# router ospf 1"}</p>
+                    <p>{"R1(config-router)# no passive-interface GigabitEthernet0/1"}</p>
+                    <p>{"R1(config-router)# end"}</p>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"🧪 Test :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-slate-400 text-xs mb-1">{"Force la reconvergence :"}</p>
+                    <p>{"R1# clear ip ospf process"}</p>
+                    <p className="text-amber-300">{"Reset ALL OSPF processes? [no]: yes"}</p>
+                    <p>{"R2# clear ip ospf process"}</p>
+                    <p className="text-amber-300">{"Reset ALL OSPF processes? [no]: yes"}</p>
+                    <p className="text-slate-400 text-xs mt-1 mb-1">{"Attends 30s, puis :"}</p>
+                    <p>{"R1# show ip ospf neighbor"}</p>
+                    <p className="text-emerald-400">{"→ R2 apparaît en état FULL ✅"}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="dep-ospf1-final" className="scroll-mt-4">
+              <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-6">
+                <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Test final — Tout fonctionne"}</p>
+                <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1 mb-4">
+                  <p className="text-slate-400">{"Depuis PC0 :"}</p>
+                  <p>{"C:\\> ping 192.168.20.10"}<span className="text-emerald-400">{" ✅"}</span></p>
+                  <p>{"C:\\> ping 192.168.30.10"}<span className="text-emerald-400">{" ✅"}</span></p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"L'erreur :"}</p>
+                  <ul className="text-slate-300 text-sm">
+                    <li>{"🔴 passive-interface GigabitEthernet0/1 sur R1 → le port WAN ne doit jamais être passif"}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      ),
+      solutionContentLab3: (
+        <div className="max-w-5xl mx-auto space-y-8 pb-16">
+          <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">{"Raccourcis:"}</span>
+              {[
+                { id: 'dep-ospf2-scenario', label: 'Scénario', icon: '📋' },
+                { id: 'dep-ospf2-err', label: 'Erreur', icon: '🟠' },
+                { id: 'dep-ospf2-final', label: 'Test final', icon: '✅' },
+              ].map(({ id, label, icon }) => (
+                <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <div className="space-y-8">
+
+            <section id="dep-ospf2-scenario" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-red-900/20 to-purple-900/20 rounded-xl p-6 border border-red-500/30">
+                <h2 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">{"📋 Scénario — Voisinage partiel"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-slate-300 text-sm">{"Un stagiaire a configuré le lab OSPF multi-area. R2 voit R3 comme voisin FULL, mais R1 et R2 ne se voient jamais. Il y a "}<strong className="text-red-300">{"1 erreur"}</strong>{" à trouver."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"🔧 Mise en place :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-2">
+                    <li>{"• Tous les IPs et PCs : "}<strong className="text-emerald-400">{"correctement configurés"}</strong></li>
+                    <li>{"• OSPF sur R1 et R3 : "}<strong className="text-emerald-400">{"correctement configuré"}</strong></li>
+                    <li>{"• R2 : configure OSPF mais écris "}<strong className="text-red-300">{"network 10.0.0.0 0.0.0.3 area 1"}</strong>{" au lieu de area 0"}</li>
+                  </ul>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"🔍 Symptômes observés :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• R1# show ip ospf neighbor → ❌ table vide"}</li>
+                    <li>{"• R2# show ip ospf neighbor → R1 absent ❌, R3 FULL ✅"}</li>
+                    <li>{"• PC0 ping 192.168.20.10 → ❌ (pas de route R1↔R2)"}</li>
+                    <li>{"• PC4 ping 192.168.20.10 → ✅ (R3↔R2 fonctionne)"}</li>
+                  </ul>
+                  <p className="text-amber-300 font-bold text-sm mt-4">{"🎯 Ta mission : trouve et corrige l'erreur."}</p>
+                </div>
+              </div>
+            </section>
+
+            <section id="dep-ospf2-err" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-orange-900/20 to-purple-900/20 rounded-xl p-6 border border-orange-500/30">
+                <h2 className="text-lg font-bold text-orange-400 mb-3 flex items-center gap-2">{"🟠 Erreur — Incohérence d'area sur le lien R1↔R2"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-red-300 font-bold text-sm mb-2">{"💢 Symptôme :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R1# show ip ospf neighbor"}</p>
+                    <p className="text-red-400">{"→ Table vide ❌"}</p>
+                    <p>{"R2# show ip ospf neighbor"}</p>
+                    <p className="text-red-400">{"→ R1 absent ❌"}</p>
+                    <p className="text-emerald-400">{"→ R3 : FULL ✅ (R2↔R3 fonctionne bien)"}</p>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"🔍 Logique de recherche :"}</p>
+                  <p className="text-slate-300 text-sm mb-2">{"Le problème est isolé sur le lien R1↔R2. Compare l'area des deux côtés :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1 mb-3">
+                    <p className="text-white font-bold">{"R1# show ip ospf interface GigabitEthernet0/1"}</p>
+                    <p className="text-emerald-400">{"  ...Area 0... → G0/1 est en Area 0 ✅"}</p>
+                  </div>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-white font-bold">{"R2# show ip ospf interface GigabitEthernet0/0"}</p>
+                    <p className="text-red-400">{"  ...Area 1... → G0/0 est en Area 1 ❌ (devrait être Area 0)"}</p>
+                  </div>
+                  <p className="text-slate-300 text-sm mt-3">{"Area mismatch : R1 annonce Area 0, R2 s'attend à Area 1. Les deux doivent partager la même area pour former une adjacency."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"⚠️ Erreur trouvée :"}</p>
+                  <p className="text-slate-300 text-sm">{"Sur R2, la commande "}<code className="text-red-400">{"network 10.0.0.0 0.0.0.3 area 1"}</code>{" place G0/0 (10.0.0.2) en Area 1. Or le lien R1↔R2 appartient au "}<strong className="text-emerald-400">{"backbone Area 0"}</strong>{"."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"✏️ Résolution :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R2# configure terminal"}</p>
+                    <p>{"R2(config)# router ospf 1"}</p>
+                    <p>{"R2(config-router)# no network 10.0.0.0 0.0.0.3 area 1"}</p>
+                    <p>{"R2(config-router)# network 10.0.0.0 0.0.0.3 area 0"}</p>
+                    <p>{"R2(config-router)# end"}</p>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"🧪 Test :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-slate-400 text-xs mb-1">{"Force la reconvergence :"}</p>
+                    <p>{"R1# clear ip ospf process"}</p>
+                    <p className="text-amber-300">{"Reset ALL OSPF processes? [no]: yes"}</p>
+                    <p>{"R2# clear ip ospf process"}</p>
+                    <p className="text-amber-300">{"Reset ALL OSPF processes? [no]: yes"}</p>
+                    <p>{"R3# clear ip ospf process"}</p>
+                    <p className="text-amber-300">{"Reset ALL OSPF processes? [no]: yes"}</p>
+                    <p className="text-slate-400 text-xs mt-1 mb-1">{"Attends 30s, puis :"}</p>
+                    <p>{"R1# show ip ospf neighbor"}</p>
+                    <p className="text-emerald-400">{"→ R2 : FULL ✅"}</p>
+                    <p>{"R2# show ip ospf neighbor"}</p>
+                    <p className="text-emerald-400">{"→ R1 : FULL ✅  |  R3 : FULL ✅"}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="dep-ospf2-final" className="scroll-mt-4">
+              <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-6">
+                <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Test final — Tout fonctionne"}</p>
+                <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1 mb-4">
+                  <p>{"R1# show ip route"}<span className="text-slate-400">{" → routes O IA vers 192.168.20.0 et 192.168.30.0 ✅"}</span></p>
+                  <p className="text-slate-400 mt-2">{"Depuis PC0 :"}</p>
+                  <p>{"C:\\> ping 192.168.20.10"}<span className="text-emerald-400">{" ✅"}</span></p>
+                  <p>{"C:\\> ping 192.168.30.10"}<span className="text-emerald-400">{" ✅"}</span></p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"L'erreur :"}</p>
+                  <ul className="text-slate-300 text-sm">
+                    <li>{"🟠 network 10.0.0.0 0.0.0.3 area 1 sur R2 → le lien R1↔R2 doit être en Area 0 (backbone)"}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      ),
+      solutionContentLab4: (
+        <div className="max-w-5xl mx-auto space-y-8 pb-16">
+          <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">{"Raccourcis:"}</span>
+              {[
+                { id: 'dep-ospf3-scenario', label: 'Scénario', icon: '📋' },
+                { id: 'dep-ospf3-err', label: 'Erreur', icon: '🟡' },
+                { id: 'dep-ospf3-final', label: 'Test final', icon: '✅' },
+              ].map(({ id, label, icon }) => (
+                <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <div className="space-y-8">
+
+            <section id="dep-ospf3-scenario" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-red-900/20 to-purple-900/20 rounded-xl p-6 border border-red-500/30">
+                <h2 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">{"📋 Scénario — Area 2 injoignable"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-slate-300 text-sm">{"Un stagiaire a configuré le lab OSPF. R1↔R2 fonctionnent parfaitement. Mais R3 n'apparaît jamais comme voisin de R2. Il y a "}<strong className="text-red-300">{"1 erreur"}</strong>{" à trouver."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"🔧 Mise en place :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-2">
+                    <li>{"• Tous les IPs et PCs : "}<strong className="text-emerald-400">{"correctement configurés"}</strong></li>
+                    <li>{"• OSPF sur R1 et R2 : "}<strong className="text-emerald-400">{"correctement configuré"}</strong></li>
+                    <li>{"• R3 : configure OSPF mais écris "}<strong className="text-red-300">{"network 10.0.0.0 0.0.0.3 area 2"}</strong>{" au lieu de network 10.0.0.4 0.0.0.3 area 2"}</li>
+                  </ul>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"🔍 Symptômes observés :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• R1# show ip ospf neighbor → R2 : FULL ✅"}</li>
+                    <li>{"• R2# show ip ospf neighbor → R1 : FULL ✅, R3 absent ❌"}</li>
+                    <li>{"• PC0 ping 192.168.20.10 → ✅ (R1↔R2 OK)"}</li>
+                    <li>{"• PC0 ping 192.168.30.10 → ❌ (R3 injoignable)"}</li>
+                  </ul>
+                  <p className="text-amber-300 font-bold text-sm mt-4">{"🎯 Ta mission : trouve et corrige l'erreur sur R3."}</p>
+                </div>
+              </div>
+            </section>
+
+            <section id="dep-ospf3-err" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-yellow-900/20 to-purple-900/20 rounded-xl p-6 border border-yellow-500/30">
+                <h2 className="text-lg font-bold text-yellow-400 mb-3 flex items-center gap-2">{"🟡 Erreur — Mauvaise adresse de base dans la commande network de R3"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-red-300 font-bold text-sm mb-2">{"💢 Symptôme :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R2# show ip ospf neighbor"}</p>
+                    <p className="text-emerald-400">{"→ R1 : FULL ✅"}</p>
+                    <p className="text-red-400">{"→ R3 absent ❌"}</p>
+                  </div>
+                  <p className="text-slate-300 text-sm mt-2">{"R3 ne s'annonce jamais à R2. L'adjacency R2↔R3 ne se forme pas."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"🔍 Logique de recherche :"}</p>
+                  <p className="text-slate-300 text-sm mb-2">{"Vérifie si R3 a bien activé OSPF sur son interface WAN G0/0 (10.0.0.6) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R3# show ip ospf interface brief"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 mt-3 text:xs font-mono">
+                    <p className="text-slate-300">{"Interface    PID  Area    IP Address/Mask      Cost  State  Nbrs F/C"}</p>
+                    <p className="text-emerald-400">{"Gi0/1        1    2       192.168.30.1/24      1     DR     0/0"}</p>
+                    <p className="text-red-400">{"  ← Gi0/0 (10.0.0.6) est absent !"}</p>
+                  </div>
+                  <p className="text-slate-300 text-sm mt-3">{"G0/0 n'est pas dans la liste OSPF. La commande network ne couvre pas 10.0.0.6. Vérifie la config :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1 mt-2">
+                    <p>{"R3# show running-config | section ospf"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 mt-3 text-xs font-mono">
+                    <p className="text-red-400">{"  network 10.0.0.0 0.0.0.3 area 2  ← couvre 10.0.0.0–10.0.0.3"}</p>
+                    <p className="text-slate-400">{"  10.0.0.6 est dans 10.0.0.4–10.0.0.7 (sous-réseau 10.0.0.4/30) !"}</p>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"⚠️ Erreur trouvée :"}</p>
+                  <p className="text-slate-300 text-sm">{"La commande "}<code className="text-red-400">{"network 10.0.0.0 0.0.0.3 area 2"}</code>{" couvre 10.0.0.0–10.0.0.3. Or G0/0 de R3 (10.0.0.6) appartient au sous-réseau "}<strong className="text-emerald-400">{"10.0.0.4/30"}</strong>{". La bonne adresse de base est 10.0.0.4."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-3">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"✏️ Résolution :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R3# configure terminal"}</p>
+                    <p>{"R3(config)# router ospf 1"}</p>
+                    <p>{"R3(config-router)# no network 10.0.0.0 0.0.0.3 area 2"}</p>
+                    <p>{"R3(config-router)# network 10.0.0.4 0.0.0.3 area 2"}</p>
+                    <p>{"R3(config-router)# end"}</p>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"🧪 Test :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-slate-400 text-xs mb-1">{"Force la reconvergence :"}</p>
+                    <p>{"R2# clear ip ospf process"}</p>
+                    <p className="text-amber-300">{"Reset ALL OSPF processes? [no]: yes"}</p>
+                    <p>{"R3# clear ip ospf process"}</p>
+                    <p className="text-amber-300">{"Reset ALL OSPF processes? [no]: yes"}</p>
+                    <p className="text-slate-400 text-xs mt-1 mb-1">{"Attends 30s, puis :"}</p>
+                    <p>{"R2# show ip ospf neighbor"}</p>
+                    <p className="text-emerald-400">{"→ R1 : FULL ✅  |  R3 : FULL ✅"}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="dep-ospf3-final" className="scroll-mt-4">
+              <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-6">
+                <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Test final — Tout fonctionne"}</p>
+                <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1 mb-4">
+                  <p className="text-slate-400">{"Depuis PC0 :"}</p>
+                  <p>{"C:\\> ping 192.168.30.10"}<span className="text-emerald-400">{" ✅ (PC4, Area 2 maintenant joignable)"}</span></p>
+                  <p>{"C:\\> ping 192.168.30.11"}<span className="text-emerald-400">{" ✅"}</span></p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"L'erreur :"}</p>
+                  <ul className="text-slate-300 text-sm">
+                    <li>{"🟡 network 10.0.0.0 0.0.0.3 area 2 sur R3 → mauvaise adresse de base : 10.0.0.6 est dans 10.0.0.4/30"}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      ),
+    },
+    quiz: [
+      { q: "Quel est le principal avantage du routage dynamique sur le statique ?", options: ["Il consomme moins de CPU", "Les routes sont apprises et mises à jour automatiquement", "Il ne nécessite aucune configuration"], a: 1, explanation: "Le routage dynamique permet aux routeurs d'apprendre et de mettre à jour les routes automatiquement, sans intervention manuelle." },
+      { q: "OSPF est quel type de protocole de routage ?", options: ["Vecteur de distance (Distance Vector)", "État de liens (Link-State)", "Hybride"], a: 1, explanation: "OSPF est un protocole à état de liens (link-state). Chaque routeur construit une carte complète du réseau et calcule le meilleur chemin avec l'algorithme de Dijkstra." },
+      { q: "Quel algorithme OSPF utilise-t-il pour calculer le meilleur chemin ?", options: ["Bellman-Ford", "Dijkstra (SPF)", "DUAL"], a: 1, explanation: "OSPF utilise l'algorithme SPF (Shortest Path First) de Dijkstra pour calculer le chemin le moins coûteux vers chaque destination." },
+      { q: "Quel est le wildcard mask pour un réseau /24 (255.255.255.0) ?", options: ["255.255.255.0", "0.0.0.255", "0.0.0.0"], a: 1, explanation: "Wildcard = 255.255.255.255 − 255.255.255.0 = 0.0.0.255. On soustrait chaque octet du masque de 255." },
+      { q: "Quel est le wildcard mask pour un lien /30 (255.255.255.252) ?", options: ["0.0.0.3", "0.0.0.4", "0.0.0.252"], a: 0, explanation: "Wildcard = 255.255.255.255 − 255.255.255.252 = 0.0.0.3. Un /30 a un wildcard de 0.0.0.3." },
+      { q: "Quelle commande active OSPF sur un routeur Cisco ?", options: ["ospf enable 1", "router ospf 1", "ip ospf start"], a: 1, explanation: "La commande 'router ospf 1' active le processus OSPF avec le process-id 1 sur le routeur." },
+      { q: "Que signifie l'état FULL dans show ip ospf neighbor ?", options: ["Le voisin est hors ligne", "La synchronisation OSPF est complète", "Il y a un conflit de Router-ID"], a: 1, explanation: "L'état FULL signifie que les deux routeurs voisins ont terminé l'échange de leurs bases de données OSPF et sont synchronisés." },
+      { q: "Quel est le rôle de passive-interface en OSPF ?", options: ["Désactiver OSPF sur une interface", "Empêcher l'envoi de paquets Hello sur une interface", "Bloquer tout trafic sur l'interface"], a: 1, explanation: "passive-interface empêche l'envoi de paquets Hello OSPF sur l'interface spécifiée. On l'utilise sur les interfaces LAN où il n'y a pas de routeur voisin." },
+      { q: "Quelle est la distance administrative d'OSPF ?", options: ["1", "90", "110"], a: 2, explanation: "La distance administrative d'OSPF est 110. Connected = 0, Statique = 1, EIGRP = 90, OSPF = 110, RIP = 120. Plus la valeur est basse, plus la route est prioritaire." },
+      { q: "Quelle area est obligatoire dans tout réseau OSPF ?", options: ["Area 1", "Area 0 (backbone)", "Area 255"], a: 1, explanation: "L'area 0 (backbone) est obligatoire dans tout réseau OSPF. Toutes les autres areas doivent y être connectées." }
+    ]
   }
 ];
 
@@ -11504,9 +12979,9 @@ const TheoryPlayer = ({ slides, lab, sessionId }) => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto pb-12">
+    <div className="max-w-5xl mx-auto h-full flex flex-col">
       {/* Slide header */}
-      <div className="flex justify-between items-center mb-6 px-1">
+      <div className="flex-shrink-0 flex justify-between items-center mb-4 px-1">
         <h2 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
           <span className="bg-gradient-to-br from-purple-600 to-blue-600 w-9 h-9 rounded-lg flex items-center justify-center text-sm shadow-lg shadow-purple-900/50">
             {currentSlide + 1}
@@ -11519,7 +12994,7 @@ const TheoryPlayer = ({ slides, lab, sessionId }) => {
       </div>
 
       {/* Animated slide content */}
-      <div className="mb-6 min-h-[300px]">
+      <div className="flex-1 overflow-y-auto min-h-0 pb-4">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={currentSlide}
@@ -11535,8 +13010,8 @@ const TheoryPlayer = ({ slides, lab, sessionId }) => {
         </AnimatePresence>
       </div>
 
-      {/* Bottom navigation - Vibe 2 style */}
-      <div className="flex justify-between items-center bg-[#0e0920]/80 backdrop-blur-xl p-4 rounded-xl border border-white/10 sticky bottom-4">
+      {/* Bottom navigation */}
+      <div className="flex-shrink-0 mt-4 flex justify-between items-center bg-[#0e0920]/80 backdrop-blur-xl p-4 rounded-xl border border-white/10">
         <button
           onClick={prev}
           disabled={currentSlide === 0}
@@ -14025,6 +15500,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
   const isSession6 = sessionId === 6;
   const isSession7 = sessionId === 7;
   const isSession8 = sessionId === 8;
+  const isSession9 = sessionId === 9;
   return (
     <div className="h-full flex flex-col">
       <div className="bg-[#1a1035] p-6 rounded-t-xl border border-white/[0.15] border-b-0">
@@ -14048,31 +15524,31 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
               onClick={() => setLabTab('correction')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession8 ? 'Correction Lab Routage' : isSession7 ? 'Correction Lab Adressage' : isSession6 ? 'Correction Lab Syslog' : isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
+              <CheckCircle className="w-4 h-4" /> {isSession9 ? 'Correction Lab OSPF' : isSession8 ? 'Correction Lab Routage' : isSession7 ? 'Correction Lab Adressage' : isSession6 ? 'Correction Lab Syslog' : isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
             </button>
           )}
-          {!hideCorrection && (isSession2 || isSession3 || isSession4 || isSession5 || isSession6 || isSession8) && lab.solutionContentLab2 && (
+          {!hideCorrection && (isSession2 || isSession3 || isSession4 || isSession5 || isSession6 || isSession8 || isSession9) && lab.solutionContentLab2 && (
             <button
               onClick={() => setLabTab('correction_lab2')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab2' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession8 ? 'Dépannage 1' : isSession6 ? 'Correction Lab 2 (Synthèse)' : isSession5 ? 'Correction Lab 2 (HTTP/FTP/ARP)' : isSession4 ? 'Correction Lab 2 (Étendu)' : isSession3 ? 'Correction Lab 2 (Dépannage)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
+              <CheckCircle className="w-4 h-4" /> {isSession9 ? 'Dépannage OSPF' : isSession8 ? 'Dépannage 1' : isSession6 ? 'Correction Lab 2 (Synthèse)' : isSession5 ? 'Correction Lab 2 (HTTP/FTP/ARP)' : isSession4 ? 'Correction Lab 2 (Étendu)' : isSession3 ? 'Correction Lab 2 (Dépannage)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
             </button>
           )}
-          {!hideCorrection && (isSession5 || isSession8) && lab.solutionContentLab3 && (
+          {!hideCorrection && (isSession5 || isSession8 || isSession9) && lab.solutionContentLab3 && (
             <button
               onClick={() => setLabTab('correction_lab3')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab3' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession8 ? 'Dépannage 2' : 'Correction Lab 3 (Synthèse)'}
+              <CheckCircle className="w-4 h-4" /> {isSession9 ? 'Dépannage 2' : isSession8 ? 'Dépannage 2' : 'Correction Lab 3 (Synthèse)'}
             </button>
           )}
-          {!hideCorrection && isSession5 && lab.solutionContentLab4 && (
+          {!hideCorrection && (isSession5 || isSession9) && lab.solutionContentLab4 && (
             <button
               onClick={() => setLabTab('correction_lab4')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab4' ? 'bg-red-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {'Correction Lab 4 (Dépannage)'}
+              <CheckCircle className="w-4 h-4" /> {isSession9 ? 'Dépannage 3' : 'Correction Lab 4 (Dépannage)'}
             </button>
           )}
           {!hideCorrection && isSession3 && (
@@ -14101,7 +15577,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
       {labTab === 'consignes' && lab.consignes && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl px-6 py-5 overflow-y-auto">
           <h4 className="text-white font-bold flex items-center gap-2 mb-4 text-base">
-            <BookOpen className="w-5 h-5 text-amber-400" /> {isSession8 ? 'Consignes Lab Routage Statique' : isSession7 ? 'Consignes Lab Adressage IP & Masques' : isSession6 ? 'Consignes Labs Syslog & Synthèse – à réaliser sur Cisco Packet Tracer' : isSession4 ? 'Consignes des deux labs DHCP & DNS – à réaliser sur Cisco Packet Tracer' : isSession3 ? 'Consignes du lab – à réaliser sur Cisco Packet Tracer' : isSession2 ? 'Consignes des deux labs Session 2' : 'Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer'}
+            <BookOpen className="w-5 h-5 text-amber-400" /> {isSession9 ? 'Consignes Lab OSPF – à réaliser sur Cisco Packet Tracer' : isSession8 ? 'Consignes Lab Routage Statique' : isSession7 ? 'Consignes Lab Adressage IP & Masques' : isSession6 ? 'Consignes Labs Syslog & Synthèse – à réaliser sur Cisco Packet Tracer' : isSession4 ? 'Consignes des deux labs DHCP & DNS – à réaliser sur Cisco Packet Tracer' : isSession3 ? 'Consignes du lab – à réaliser sur Cisco Packet Tracer' : isSession2 ? 'Consignes des deux labs Session 2' : 'Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer'}
           </h4>
           <div className="pr-4 space-y-1 text-slate-300">
             {lab.consignes}
@@ -14111,14 +15587,14 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
       {labTab === 'correction' && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {(isSession4 || isSession5 || isSession6 || isSession7 || isSession8) && lab.solutionContent ? lab.solutionContent : isSession3 ? <LabCorrectionSection3Verbose /> : isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSectionVerbose />}
+            {(isSession4 || isSession5 || isSession6 || isSession7 || isSession8 || isSession9) && lab.solutionContent ? lab.solutionContent : isSession3 ? <LabCorrectionSection3Verbose /> : isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSectionVerbose />}
           </div>
         </div>
       )}
       {labTab === 'correction_lab2' && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {(isSession4 || isSession5 || isSession6 || isSession8) ? (lab.solutionContentLab2) : isSession3 ? <LabTroubleshootingSection3 /> : isSession2 ? (lab.solutionContentLab2 || (
+            {(isSession4 || isSession5 || isSession6 || isSession8 || isSession9) ? (lab.solutionContentLab2) : isSession3 ? <LabTroubleshootingSection3 /> : isSession2 ? (lab.solutionContentLab2 || (
               <div className="max-w-2xl mx-auto bg-[#1a1035]/50 border border-white/20 rounded-xl p-8 text-center">
                 <h3 className="text-xl font-bold text-purple-400 mb-3">Correction Lab 2 – VLAN avancés et sécurisation</h3>
                 <p className="text-slate-400">Trunk, VLAN autorisés, VLAN natif. Pour les consignes et la correction détaillée, suivre le PDF « 3 - Introduction Vlan avancés et sécurisation - LAB.pdf ».</p>
@@ -14127,14 +15603,14 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
           </div>
         </div>
       )}
-      {labTab === 'correction_lab3' && (isSession5 || isSession8) && lab.solutionContentLab3 && (
+      {labTab === 'correction_lab3' && (isSession5 || isSession8 || isSession9) && lab.solutionContentLab3 && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl overflow-y-auto">
           <div className="p-6">
             {lab.solutionContentLab3}
           </div>
         </div>
       )}
-      {labTab === 'correction_lab4' && isSession5 && lab.solutionContentLab4 && (
+      {labTab === 'correction_lab4' && (isSession5 || isSession9) && lab.solutionContentLab4 && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl overflow-y-auto">
           <div className="p-6">
             {lab.solutionContentLab4}
@@ -17052,8 +18528,8 @@ const weeks = [
   {
     id: 3,
     title: "Adressage IP & Routage",
-    subtitle: "Adressage IP, masques, VLSM, routage statique",
-    sessions: [7, 8],
+    subtitle: "Adressage IP, masques, VLSM, routage statique, OSPF",
+    sessions: [7, 8, 9],
     available: true
   },
   {
@@ -17977,8 +19453,8 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
                 }`}
               >
                 <div className="text-left flex-1">
-                  <p className="font-bold text-sm">Adressage IP</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">2 labs disponibles</p>
+                  <p className="font-bold text-sm">Adressage IP & Routage</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">3 labs disponibles</p>
                 </div>
                 <ChevronRight className={`w-4 h-4 transition-transform ${expandedLabWeek === 3 ? 'rotate-90' : ''}`} />
               </button>
@@ -17986,6 +19462,7 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
                 <div className="mt-2 ml-3 space-y-2 border-l-2 border-white/10 pl-3">
                   <LabButton viewModeKey="labs_s7" labKey="labs_s7" icon={Network} label="Lab Adressage & Masques" sublabel="NetSolutions — 3 services" />
                   <LabButton viewModeKey="labs_s8" labKey="labs_s8" icon={Network} label="Lab Routage Statique" sublabel="2 routeurs — 4 PCs" />
+                  <LabButton viewModeKey="labs_s9" labKey="labs_s9" icon={Globe} label="Lab OSPF" sublabel="3 routeurs — 6 PCs" />
                 </div>
               )}
             </div>
@@ -18082,6 +19559,8 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
                   ? 'Lab Adressage IP & Masques'
                   : viewMode === 'labs_s8'
                   ? 'Lab Routage Statique'
+                  : viewMode === 'labs_s9'
+                  ? 'Lab OSPF — Routage Dynamique'
                   : activeSession.title}
               </h2>
             </div>
@@ -18122,7 +19601,7 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8">
+        <main className={`flex-1 p-4 lg:p-8 ${viewMode === 'sessions' && activeTab === 'theory' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           {viewMode === 'packet_tracer' ? (
             <div className="h-full min-h-[500px]">
               <PacketTracerSection />
@@ -18143,6 +19622,8 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
             renderLabContent('labs_s7', <LabsSection lab={sessions[6].lab} sessionLabel="Adressage IP & Masques" sessionDescription="Lab DataFlow : créez 4 réseaux séparés pour une entreprise. Calculez les masques VLSM, configurez les IPs dans Packet Tracer, et testez la connectivité." sessionId={7} hideCorrection={!isAdmin && !isCorrectionVisible('labs_s7')} />)
           ) : viewMode === 'labs_s8' ? (
             renderLabContent('labs_s8', <LabsSection lab={sessions[7].lab} sessionLabel="Routage Statique" sessionDescription="Interconnectez deux réseaux distants avec du routage statique. Configurez 2 routeurs, 4 PCs et vérifiez la connectivité inter-réseau." sessionId={8} hideCorrection={!isAdmin && !isCorrectionVisible('labs_s8')} />)
+          ) : viewMode === 'labs_s9' ? (
+            renderLabContent('labs_s9', <LabsSection lab={sessions[8].lab} sessionLabel="OSPF — Routage Dynamique" sessionDescription="Configurez OSPF sur 3 routeurs en triangle. Découvrez les wildcard masks, les voisinages OSPF et la convergence automatique des routes." sessionId={9} hideCorrection={!isAdmin && !isCorrectionVisible('labs_s9')} />)
           ) : (
           <div className="max-w-6xl mx-auto h-full flex flex-col">
             {activeTab === 'theory' && <TheoryPlayer slides={activeSession.slides} lab={activeSession.lab} sessionId={activeSessionId} />}

@@ -199,6 +199,7 @@ export default function AdminDashboard({ onBack }) {
     { key: 'labs_s6', label: 'Lab Syslog' },
     { key: 'labs_s7', label: 'Lab Adressage & Masques' },
     { key: 'labs_s8', label: 'Lab Routage Statique' },
+    { key: 'labs_s9', label: 'Lab OSPF' },
   ];
 
   function getLabVis(labKey) {
