@@ -12854,6 +12854,664 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
       { q: "Quelle est la distance administrative d'OSPF ?", options: ["1", "90", "110"], a: 2, explanation: "La distance administrative d'OSPF est 110. Connected = 0, Statique = 1, EIGRP = 90, OSPF = 110, RIP = 120. Plus la valeur est basse, plus la route est prioritaire." },
       { q: "Quelle area est obligatoire dans tout réseau OSPF ?", options: ["Area 1", "Area 0 (backbone)", "Area 255"], a: 1, explanation: "L'area 0 (backbone) est obligatoire dans tout réseau OSPF. Toutes les autres areas doivent y être connectées." }
     ]
+  },
+  // ==================== SESSION 10 : STP — SPANNING TREE PROTOCOL ====================
+  {
+    id: 10,
+    title: "STP — Spanning Tree Protocol",
+    duration: "2h",
+    icon: "🔄",
+    slides: [
+      // ── SLIDE 1 : LE PROBLÈME DES BOUCLES LAYER 2 ──
+      {
+        type: 'rich_text',
+        title: "Le problème des boucles",
+        content: (
+          <div>
+            <V2Header module="MODULE 10" section="Introduction" title="Pourquoi STP existe : les boucles de commutation" description="Quand on ajoute de la redondance dans un réseau (plusieurs chemins entre switches), on crée un problème mortel : les boucles Layer 2. Sans STP, le réseau s'effondre en quelques secondes." />
+            <V2InfoCards cards={[
+              { title: "La redondance, c'est bien... mais", color: "red", icon: AlertTriangle, items: ["En entreprise, on câble plusieurs chemins entre switches pour la tolérance de panne", "Si un lien tombe, le trafic passe par l'autre → haute disponibilité", "MAIS au Layer 2, les trames n'ont pas de TTL (contrairement aux paquets IP)", "Une trame broadcast qui entre dans une boucle → elle tourne à l'INFINI", "En quelques secondes : CPU à 100%, réseau saturé, plus rien ne passe"] },
+              { title: "STP : la solution automatique", color: "emerald", icon: CheckCircle2, items: ["Spanning Tree Protocol (IEEE 802.1D)", "STP détecte les boucles et BLOQUE un port pour les casser", "Le réseau garde la redondance physique mais sans boucle logique", "Si un lien actif tombe → STP débloque automatiquement le port de secours", "Tout ça se fait automatiquement, sans intervention de l'admin"] }
+            ]} />
+            <V2Whiteboard title="Boucle Layer 2 — ce qui se passe sans STP" code={"! Sans STP, voilà ce qui se passe :\n!\n!   SW1 ──────── SW2       PC1 envoie un broadcast (ex: ARP)\n!    │  \\      /  │\n!    │   \\    /   │        La trame va SW1→SW2 ET SW1→SW3\n!    │    \\  /    │        SW2 la renvoie vers SW3, SW3 vers SW1...\n!   SW3 ──────── SW4       Elle tourne en boucle INFINIMENT\n!\n!   Résultat :\n!   ❌ Broadcast storm : le réseau est noyé de trames en boucle\n!   ❌ Instabilité MAC : les tables MAC changent sans arrêt\n!   ❌ CPU à 100% sur tous les switches\n!   ❌ Plus AUCUN trafic utile ne passe\n!\n! Avec STP :\n!   SW1 ──────── SW2       STP bloque UN port (ex: SW3→SW4)\n!    │            │        → Plus de boucle, trafic normal\n!    │            │        Si SW1→SW2 tombe → STP débloque SW3→SW4\n!   SW3 ───╳──── SW4       Le réseau se répare tout seul !"} />
+            <V2Tip title="Retiens ça">STP = le protocole qui empêche les boucles Layer 2 en bloquant intelligemment des ports. Activé par défaut sur tous les switches Cisco. Tu n'as rien à faire pour qu'il fonctionne — mais tu dois comprendre comment il marche pour le dépannage.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 2 : COMMENT STP FONCTIONNE ──
+      {
+        type: 'rich_text',
+        title: "Comment STP fonctionne",
+        content: (
+          <div>
+            <V2Header module="MODULE 10" section="STP" title="Les 3 étapes de STP" description="STP suit un processus précis pour décider quels ports bloquer. Tout se fait via des messages appelés BPDU (Bridge Protocol Data Unit) que les switches s'échangent." />
+            <V2Whiteboard title="Les 3 étapes de STP" code={"! ┌──────────────────────────────────────────────────────────┐\n! │  ÉTAPE 1 — Élire le Root Bridge                          │\n! │                                                          │\n! │  UN switch est élu « chef » (Root Bridge)                │\n! │  Critère : le plus petit Bridge ID gagne                 │\n! │  Bridge ID = Priorité (32768 par défaut) + adresse MAC   │\n! │  → Le switch avec la plus petite priorité (ou MAC) gagne │\n! └──────────────────────────────────────────────────────────┘\n!         ↓\n! ┌──────────────────────────────────────────────────────────┐\n! │  ÉTAPE 2 — Choisir les rôles des ports                   │\n! │                                                          │\n! │  Root Port (RP) : le port le plus proche du Root Bridge  │\n! │  → Un seul Root Port par switch (sauf le Root Bridge)    │\n! │                                                          │\n! │  Designated Port (DP) : le meilleur port sur chaque lien │\n! │  → Tous les ports du Root Bridge sont Designated         │\n! │                                                          │\n! │  Blocked Port (BP) : les ports en trop → BLOQUÉS         │\n! │  → C'est eux qui cassent la boucle                       │\n! └──────────────────────────────────────────────────────────┘\n!         ↓\n! ┌──────────────────────────────────────────────────────────┐\n! │  ÉTAPE 3 — Converger                                     │\n! │                                                          │\n! │  Les ports passent par : Blocking → Listening →          │\n! │  Learning → Forwarding (ou restent Blocking)             │\n! │  Convergence totale ≈ 30-50 secondes en STP classique    │\n! └──────────────────────────────────────────────────────────┘"} />
+            <V2InfoCards cards={[
+              { title: "Les BPDU — les messages STP", color: "purple", icon: Network, items: ["BPDU = Bridge Protocol Data Unit", "Envoyés toutes les 2 secondes par le Root Bridge", "Contiennent : Bridge ID, coût du chemin, port ID", "Les autres switches relaient les BPDU en ajoutant leur coût", "C'est grâce aux BPDU que chaque switch sait qui est le Root Bridge"] },
+              { title: "Pourquoi c'est important ?", color: "amber", icon: Lightbulb, items: ["STP est activé PAR DÉFAUT sur les switches Cisco", "Tu n'as pas besoin de l'activer — il tourne déjà", "Mais si tu ne le comprends pas, tu ne sauras pas pourquoi un port est bloqué", "En dépannage : un port en Blocking = STP fait son travail, pas une panne", "Tu peux influencer l'élection du Root Bridge en modifiant la priorité"] }
+            ]} />
+          </div>
+        )
+      },
+      // ── SLIDE 3 : L'ÉLECTION DU ROOT BRIDGE ──
+      {
+        type: 'rich_text',
+        title: "L'élection du Root Bridge",
+        content: (
+          <div>
+            <V2Header module="MODULE 10" section="STP" title="Qui devient Root Bridge ?" description="Le Root Bridge est le switch central de STP. Tous les calculs de chemin se font PAR RAPPORT à lui. L'élection est automatique, mais tu peux (et tu dois) l'influencer." />
+            <V2Whiteboard title="Le Bridge ID" code={"! Le Bridge ID (BID) détermine qui devient Root Bridge\n!\n!   Bridge ID = Priorité + Adresse MAC\n!   ────────────────────────────────────\n!\n!   Priorité : 32768 par défaut (modifiable par multiples de 4096)\n!   MAC      : adresse MAC du switch (unique, non modifiable)\n!\n!   RÈGLE : le BID le plus PETIT gagne\n!\n!   Exemple :\n!   SW1 : priorité 32768 + MAC aa:bb:cc:00:00:01 → BID = 32768.aabb.cc00.0001\n!   SW2 : priorité 32768 + MAC aa:bb:cc:00:00:02 → BID = 32768.aabb.cc00.0002\n!   SW3 : priorité 32768 + MAC aa:bb:cc:00:00:03 → BID = 32768.aabb.cc00.0003\n!\n!   → SW1 gagne (plus petite MAC à priorité égale)\n!\n!   Mais si on change la priorité de SW2 :\n!   SW2 : priorité 4096 → BID = 4096.aabb.cc00.0002\n!   → SW2 gagne maintenant (4096 < 32768)"} />
+            <V2InfoCards cards={[
+              { title: "Choisir le bon Root Bridge", color: "emerald", icon: CheckCircle2, items: ["Par défaut : le switch avec la plus petite MAC gagne → aléatoire !", "En production, on veut que le Root Bridge soit au CENTRE du réseau", "On baisse sa priorité : spanning-tree vlan 1 priority 4096", "Les valeurs possibles : 0, 4096, 8192, 12288... jusqu'à 61440", "Ou plus simple : spanning-tree vlan 1 root primary → met la priorité à 24576"] },
+              { title: "Vérifier le Root Bridge", color: "purple", icon: Network, items: ["show spanning-tree → affiche le Root ID et le Bridge ID local", "Si Root ID = Bridge ID → CE switch est le Root Bridge", "Si Root ID ≠ Bridge ID → le Root est un autre switch", "show spanning-tree root → résumé rapide du Root Bridge", "Le Root Bridge a TOUS ses ports en Designated (Forwarding)"] }
+            ]} />
+            <V2Terminal title="Modifier la priorité" code={"! Méthode 1 — Priorité manuelle\nSW2(config)# spanning-tree vlan 1 priority 4096\n!\n! Méthode 2 — Root primary (plus simple)\nSW2(config)# spanning-tree vlan 1 root primary\n!   → Met automatiquement la priorité à 24576\n!   (ou 4096 de moins que le Root actuel si besoin)\n!\n! Méthode 3 — Root secondary (backup)\nSW3(config)# spanning-tree vlan 1 root secondary\n!   → Met la priorité à 28672 (sera Root si le primary tombe)"} />
+          </div>
+        )
+      },
+      // ── SLIDE 4 : LES RÔLES DES PORTS ──
+      {
+        type: 'rich_text',
+        title: "Les rôles des ports",
+        content: (
+          <div>
+            <V2Header module="MODULE 10" section="STP" title="Root Port, Designated Port, Blocked Port" description="Chaque port d'un switch reçoit un rôle dans STP. Comprendre ces rôles, c'est comprendre pourquoi un port forwarde ou bloque du trafic." />
+            <V2Whiteboard title="Les 3 rôles STP" code={"! ┌─────────────────────────────────────────────────────────────┐\n! │  ROOT PORT (RP)                                             │\n! │  → Le port qui mène le plus rapidement vers le Root Bridge  │\n! │  → Un seul par switch (sauf le Root Bridge qui n'en a pas)  │\n! │  → État : Forwarding                                        │\n! ├─────────────────────────────────────────────────────────────┤\n! │  DESIGNATED PORT (DP)                                       │\n! │  → Le meilleur port sur chaque segment/lien                 │\n! │  → Tous les ports du Root Bridge sont Designated             │\n! │  → État : Forwarding                                        │\n! ├─────────────────────────────────────────────────────────────┤\n! │  BLOCKED PORT (BP) / Alternate Port                         │\n! │  → Les ports « en trop » qui créeraient une boucle          │\n! │  → État : Blocking (ne forwarde RIEN sauf les BPDU)         │\n! │  → Si un lien actif tombe → ce port se débloque             │\n! └─────────────────────────────────────────────────────────────┘"} />
+            <V2Whiteboard title="Exemple concret" code={"!                    [Root Bridge = SW1]\n!                   DP/            \\DP\n!                    /              \\\n!     RP [SW2] ──────────────── [SW3] RP\n!                  DP         BP(bloqué)\n!\n!   SW1 est Root → tous ses ports sont Designated (DP)\n!   SW2 : port vers SW1 = Root Port (RP), port vers SW3 = Designated (DP)\n!   SW3 : port vers SW1 = Root Port (RP), port vers SW2 = Blocked (BP)\n!\n!   Pourquoi SW3→SW2 est bloqué et pas SW2→SW3 ?\n!   → Le port Designated gagne sur chaque segment\n!   → SW2 a un meilleur BID que SW3 → son port est Designated\n!   → Le port « perdant » de SW3 est bloqué"} />
+            <V2InfoCards cards={[
+              { title: "Comment STP choisit les rôles", color: "amber", icon: Lightbulb, items: ["1. Quel switch est Root ? → tous ses ports sont Designated", "2. Pour chaque autre switch : quel port a le coût le plus bas vers le Root ? → Root Port", "3. Sur chaque lien, quel switch a le meilleur BID ? → son port est Designated", "4. Tous les ports restants → Blocked", "En cas d'égalité de coût : le switch avec le plus petit BID gagne"] },
+              { title: "Résumé rapide", color: "emerald", icon: CheckCircle2, items: ["Root Port = chemin vers le chef (1 par switch)", "Designated Port = responsable du lien (forwarde le trafic)", "Blocked Port = sécurité anti-boucle (ne forwarde rien)", "Root Bridge = que des Designated Ports", "Un port bloqué n'est PAS une panne, c'est STP qui protège le réseau"] }
+            ]} />
+          </div>
+        )
+      },
+      // ── SLIDE 5 : LE COÛT DES LIENS ──
+      {
+        type: 'rich_text',
+        title: "Le coût des liens (Path Cost)",
+        content: (
+          <div>
+            <V2Header module="MODULE 10" section="STP" title="Path Cost : comment STP choisit le meilleur chemin" description="Le coût d'un lien dépend de sa vitesse. Plus le lien est rapide, plus le coût est bas. STP utilise le coût total pour déterminer le Root Port de chaque switch." />
+            <V2Whiteboard title="Coûts STP par vitesse de lien" code={"! ┌──────────────────────────────────────────────┐\n! │  Vitesse           Coût STP (802.1D)         │\n! │  ─────────────     ──────────────────         │\n! │  10 Mbps           100                        │\n! │  100 Mbps          19                         │\n! │  1 Gbps            4                          │\n! │  10 Gbps           2                          │\n! └──────────────────────────────────────────────┘\n!\n! Le Root Port = le port avec le PLUS PETIT coût total vers le Root\n!\n!  Exemple :\n!  [Root SW1]───(Gi, coût 4)───[SW2]───(Fa, coût 19)───[SW3]\n!                                                        │\n!                  (Gi, coût 4)                          │\n!  [Root SW1]────────────────────────────────────────────[SW3]\n!\n!  SW3 vers Root par SW2 : coût = 4 + 19 = 23\n!  SW3 vers Root directement : coût = 4\n!  → Root Port de SW3 = le lien direct (coût 4 < 23)"} />
+            <V2InfoCards cards={[
+              { title: "Calcul du coût", color: "purple", icon: Network, items: ["Le coût se cumule à chaque switch traversé", "Chaque switch ajoute le coût de son port d'ENTRÉE", "Root Port = chemin avec le coût total le plus bas", "En cas d'égalité : on compare le Bridge ID du voisin", "En dernier recours : on compare le Port ID (numéro de port)"] },
+              { title: "Dans notre lab", color: "emerald", icon: CheckCircle2, items: ["Tous les liens sont en FastEthernet (100 Mbps) → coût 19", "Ou GigabitEthernet (1 Gbps) → coût 4", "Avec des coûts égaux, c'est le BID qui départage", "Tu peux modifier le coût manuellement si besoin", "spanning-tree vlan 1 cost <valeur> sur l'interface"] }
+            ]} />
+            <V2Terminal title="Modifier le coût d'un port" code={"! Voir le coût actuel\nSW2# show spanning-tree\n!   → Regarde la colonne « Cost » pour chaque port\n!\n! Modifier le coût manuellement\nSW2(config)# interface FastEthernet0/1\nSW2(config-if)# spanning-tree vlan 1 cost 10\n!   → Force le coût à 10 sur ce port (au lieu de 19)\n!\n! Revenir au coût par défaut\nSW2(config-if)# no spanning-tree vlan 1 cost"} />
+          </div>
+        )
+      },
+      // ── SLIDE 6 : LES ÉTATS DES PORTS STP ──
+      {
+        type: 'rich_text',
+        title: "Les états des ports",
+        content: (
+          <div>
+            <V2Header module="MODULE 10" section="STP" title="Les 5 états d'un port STP" description="Un port STP ne passe pas directement de Blocking à Forwarding. Il traverse plusieurs états pour éviter de créer des boucles temporaires pendant la convergence." />
+            <V2Whiteboard title="Les 5 états STP (802.1D)" code={"! ┌────────────┐    ┌────────────┐    ┌────────────┐    ┌────────────┐\n! │  BLOCKING  │───→│ LISTENING  │───→│  LEARNING  │───→│ FORWARDING │\n! │            │    │            │    │            │    │            │\n! │ Pas de     │    │ Écoute les │    │ Apprend les│    │ Forwarde   │\n! │ trafic     │    │ BPDU       │    │ MAC        │    │ tout       │\n! │ (sauf BPDU)│    │ 15 sec     │    │ 15 sec     │    │ ✅         │\n! └────────────┘    └────────────┘    └────────────┘    └────────────┘\n!\n!         ┌────────────┐\n!         │  DISABLED   │  ← Port administrativement shutdown\n!         └────────────┘\n!\n! Blocking → Forwarding = 30 secondes minimum (15+15)\n! C'est LONG ! C'est pour ça que PortFast existe (on le verra)"} />
+            <V2InfoCards cards={[
+              { title: "Détail de chaque état", color: "purple", icon: Network, items: ["Blocking : ne forwarde RIEN, reçoit les BPDU seulement", "Listening : participe à l'élection STP, envoie/reçoit des BPDU (15 sec)", "Learning : apprend les adresses MAC mais ne forwarde pas encore (15 sec)", "Forwarding : forwarde tout le trafic normalement", "Disabled : port éteint (shutdown)"] },
+              { title: "Pourquoi 30 secondes ?", color: "amber", icon: Lightbulb, items: ["STP doit s'assurer qu'il n'y a pas de boucle avant de forwarder", "Listening (15s) : le temps de vérifier la topologie STP", "Learning (15s) : le temps de remplir la table MAC sans boucle", "30 secondes = le temps qu'un PC attend avant d'avoir du réseau !", "PortFast permet de sauter ces étapes sur les ports d'accès (PC)"] }
+            ]} />
+            <V2Tip title="En résumé">Quand tu branches un PC, son port met 30 secondes à passer en Forwarding. C'est normal — c'est STP qui vérifie qu'il n'y a pas de boucle. Pour les ports PC, on utilise PortFast pour sauter cette attente.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 7 : PORTFAST ET BPDU GUARD ──
+      {
+        type: 'rich_text',
+        title: "PortFast et BPDU Guard",
+        content: (
+          <div>
+            <V2Header module="MODULE 10" section="STP" title="Optimisations STP pour les ports d'accès" description="Attendre 30 secondes chaque fois qu'on branche un PC, c'est pas idéal. PortFast et BPDU Guard résolvent ce problème de manière sécurisée." />
+            <V2InfoCards cards={[
+              { title: "PortFast — passe direct en Forwarding", color: "emerald", icon: Zap, items: ["Le port passe de Blocking à Forwarding IMMÉDIATEMENT", "Skip les étapes Listening et Learning (0 seconde au lieu de 30)", "À utiliser UNIQUEMENT sur les ports d'accès (PC, imprimante, serveur)", "JAMAIS sur un port trunk ou un lien vers un autre switch !", "Si un switch est branché dessus → risque de boucle temporaire"] },
+              { title: "BPDU Guard — protection contre les boucles", color: "red", icon: Shield, items: ["Si un port PortFast reçoit un BPDU → il se DÉSACTIVE immédiatement", "Un BPDU = un switch est branché dessus (danger de boucle !)", "Le port passe en état err-disabled", "Pour le réactiver : shutdown puis no shutdown", "C'est la sécurité qui va avec PortFast : toujours les configurer ensemble"] }
+            ]} />
+            <V2Terminal title="Configurer PortFast et BPDU Guard" code={"! Méthode 1 — Par interface (port par port)\nSW1(config)# interface FastEthernet0/1\nSW1(config-if)# spanning-tree portfast\nSW1(config-if)# spanning-tree bpduguard enable\n!\n! Méthode 2 — Globalement (tous les ports access)\nSW1(config)# spanning-tree portfast default\n!   → Active PortFast sur TOUS les ports en mode access\n!   → Les ports trunk ne sont PAS affectés\n!\nSW1(config)# spanning-tree portfast bpduguard default\n!   → Active BPDU Guard sur tous les ports PortFast\n!\n! Vérifier\nSW1# show spanning-tree interface Fa0/1 detail\n!   → Affiche si PortFast et BPDU Guard sont actifs\n!\n! Si un port est en err-disabled (BPDU Guard déclenché) :\nSW1(config)# interface FastEthernet0/1\nSW1(config-if)# shutdown\nSW1(config-if)# no shutdown"} />
+            <V2Tip title="Règle d'or">PortFast = ports PC. JAMAIS sur un lien vers un switch. Toujours accompagné de BPDU Guard pour la sécurité. Dans le doute, ne mets pas PortFast.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 8 : COMMANDES DE VÉRIFICATION ──
+      {
+        type: 'rich_text',
+        title: "Vérifier STP",
+        content: (
+          <div>
+            <V2Header module="MODULE 10" section="Vérification" title="Les commandes de vérification STP" description="Pour vérifier et dépanner STP, il y a une commande principale : show spanning-tree. Voici comment la lire." />
+            <V2Terminal title="show spanning-tree — La commande principale" code={"SW2# show spanning-tree\n!\nVLAN0001\n  Spanning tree enabled protocol ieee\n  Root ID    Priority    4096\n             Address     aabb.cc00.0100\n             Cost        19\n             Port        1 (FastEthernet0/1)\n             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec\n!\n  Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)\n             Address     aabb.cc00.0200\n             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec\n!\nInterface        Role Sts Cost      Prio.Nbr Type\n---------------- ---- --- --------- -------- ----\nFa0/1            Root FWD 19        128.1    P2p\nFa0/2            Desg FWD 19        128.2    P2p\nFa0/3            Altn BLK 19        128.3    P2p"} />
+            <V2InfoCards cards={[
+              { title: "Comment lire le résultat", color: "purple", icon: Network, items: ["Root ID → identité du Root Bridge (priorité + MAC)", "Bridge ID → identité de CE switch", "Si Root ID = Bridge ID → ce switch EST le Root Bridge", "Cost → coût total du chemin vers le Root Bridge", "Port → le Root Port de ce switch (chemin vers le Root)"] },
+              { title: "Les colonnes de la table des ports", color: "amber", icon: Lightbulb, items: ["Role : Root (RP), Desg (DP), Altn (Blocked/Backup)", "Sts : FWD (Forwarding), BLK (Blocking), LIS (Listening), LRN (Learning)", "Cost : coût STP de ce port", "FWD = le port forwarde du trafic ✅", "BLK = le port est bloqué par STP (anti-boucle) ⛔"] }
+            ]} />
+            <V2Terminal title="Autres commandes utiles" code={"! Résumé rapide du Root Bridge\nSW2# show spanning-tree root\n!\n! Voir le détail d'une interface\nSW2# show spanning-tree interface Fa0/1 detail\n!\n! Voir quel switch est le Root\nSW2# show spanning-tree | include Root\n!\n! Voir les ports bloqués\nSW2# show spanning-tree blockedports"} />
+          </div>
+        )
+      },
+      // ── SLIDE 9 : RÉCAPITULATIF ──
+      {
+        type: 'rich_text',
+        title: "Récapitulatif",
+        content: (
+          <div>
+            <V2Header module="MODULE 10" section="Résumé" title="Ce qu'il faut retenir" description="Tout ce dont tu as besoin pour le lab et le quiz STP." />
+            <V2Whiteboard title="Aide-mémoire STP" code={"! ═══════ CONCEPTS CLÉS ══════════════════════════════════════\n!\n  STP empêche les boucles Layer 2 en bloquant des ports\n  Root Bridge = le switch avec le plus petit Bridge ID\n  Bridge ID = Priorité (32768 défaut) + MAC\n!\n! ═══════ RÔLES DES PORTS ═══════════════════════════════════\n!\n  Root Port     → chemin vers le Root (1 par switch)\n  Designated    → meilleur port sur chaque segment\n  Blocked/Altn  → port bloqué (anti-boucle)\n!\n! ═══════ ÉTATS DES PORTS ═══════════════════════════════════\n!\n  Blocking → Listening (15s) → Learning (15s) → Forwarding\n!\n! ═══════ CONFIGURATION ═════════════════════════════════════\n!\n  spanning-tree vlan 1 priority 4096   ← forcer Root Bridge\n  spanning-tree vlan 1 root primary    ← raccourci Root\n  spanning-tree portfast               ← skip 30s sur port PC\n  spanning-tree bpduguard enable       ← sécurité PortFast\n!\n! ═══════ VÉRIFICATION ══════════════════════════════════════\n!\n  show spanning-tree                   ← état complet STP\n  show spanning-tree root              ← qui est Root ?\n  show spanning-tree blockedports      ← ports bloqués"} />
+            <V2InfoCards cards={[
+              { title: "Les 3 erreurs classiques", color: "red", icon: AlertTriangle, items: ["❶ PortFast sur un port trunk → boucle temporaire possible", "❷ Ne pas choisir le Root Bridge → un switch au bord du réseau devient Root", "❸ Confondre port bloqué avec une panne → c'est STP qui protège", "Si un PC met 30s à avoir du réseau → il manque PortFast", "Si un port est en err-disabled → BPDU Guard s'est déclenché"] },
+              { title: "Checklist avant le lab", color: "emerald", icon: CheckCircle2, items: ["✅ Comprendre pourquoi STP existe (boucles Layer 2)", "✅ Savoir identifier le Root Bridge (show spanning-tree)", "✅ Connaître les rôles : Root Port, Designated, Blocked", "✅ Savoir configurer la priorité pour choisir le Root Bridge", "✅ Savoir mettre PortFast + BPDU Guard sur les ports PC"] }
+            ]} />
+          </div>
+        )
+      },
+      // ── SLIDE 10 : FLASHCARDS ──
+      {
+        type: 'flashcards',
+        title: "Flashcards : STP",
+        mode: 'command_to_definition',
+        cards: [
+          { q: "show spanning-tree", a: "Afficher l'état complet de STP (Root ID, Bridge ID, rôles et états des ports)" },
+          { q: "spanning-tree vlan 1 priority 4096", a: "Forcer ce switch comme Root Bridge en mettant la priorité la plus basse" },
+          { q: "spanning-tree vlan 1 root primary", a: "Raccourci pour faire de ce switch le Root Bridge (priorité 24576)" },
+          { q: "spanning-tree vlan 1 root secondary", a: "Faire de ce switch le Root Bridge de secours (priorité 28672)" },
+          { q: "spanning-tree portfast", a: "Passer le port directement en Forwarding (skip les 30 secondes d'attente)" },
+          { q: "spanning-tree bpduguard enable", a: "Désactiver le port si un BPDU est reçu (protection contre les boucles)" },
+          { q: "spanning-tree portfast default", a: "Activer PortFast sur tous les ports en mode access (config globale)" },
+          { q: "show spanning-tree root", a: "Afficher un résumé du Root Bridge pour chaque VLAN" },
+          { q: "show spanning-tree blockedports", a: "Afficher les ports actuellement bloqués par STP" },
+          { q: "spanning-tree vlan 1 cost 10", a: "Modifier manuellement le coût STP d'un port (sur l'interface)" }
+        ]
+      },
+      // ── SLIDE 11 : COMMAND BUILDER ──
+      {
+        type: 'command_builder',
+        title: "Configurer STP étape par étape",
+        commandBuilderTitle: "Configuration STP complète",
+        steps: [
+          { cmd: "enable", desc: "Passer en mode privilégié" },
+          { cmd: "configure terminal", desc: "Entrer en configuration globale" },
+          { cmd: "spanning-tree vlan 1 root primary", desc: "Faire de ce switch le Root Bridge" },
+          { cmd: "interface range FastEthernet0/1 - 10", desc: "Sélectionner les ports d'accès (côté PC)" },
+          { cmd: "spanning-tree portfast", desc: "Activer PortFast (skip les 30 secondes)" },
+          { cmd: "spanning-tree bpduguard enable", desc: "Activer BPDU Guard (protection anti-boucle)" },
+          { cmd: "exit", desc: "Sortir de la configuration d'interface" },
+          { cmd: "end", desc: "Revenir en mode privilégié" },
+          { cmd: "show spanning-tree", desc: "Vérifier que ce switch est bien Root Bridge" }
+        ]
+      }
+    ],
+    lab: {
+      consignes: (
+        <div className="space-y-8 text-slate-300 leading-relaxed">
+          <section>
+            <div className="bg-gradient-to-r from-emerald-900/20 to-purple-900/20 rounded-xl p-6 border border-emerald-500/30 mb-6">
+              <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"🔄 Lab — Spanning Tree Protocol : observer et contrôler STP"}</h2>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-amber-300 font-bold text-sm mb-2">{"Thématique :"}</p>
+                <p className="text-slate-300 text-sm italic">{"Construire une topologie redondante avec 3 switches, observer le comportement de STP, identifier le Root Bridge, manipuler l'élection, et configurer PortFast sur les ports d'accès."}</p>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-emerald-300 font-bold text-sm mb-2">{"Objectifs :"}</p>
+                <ol className="text-slate-300 text-sm space-y-1 list-decimal list-inside">
+                  <li>{"Câbler une topologie redondante (boucle entre 3 switches)"}</li>
+                  <li>{"Observer STP en action : identifier le Root Bridge et les ports bloqués"}</li>
+                  <li>{"Forcer un switch spécifique comme Root Bridge"}</li>
+                  <li>{"Configurer PortFast et BPDU Guard sur les ports d'accès"}</li>
+                  <li>{"Vérifier la connectivité entre tous les PC"}</li>
+                </ol>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-purple-300 font-bold text-sm mb-2">{"Topologie logique :"}</p>
+                <div className="font-mono text-sm text-emerald-300 bg-black/30 rounded p-3">
+                  <p>{"        [PC0]  [PC1]                [PC2]  [PC3]"}</p>
+                  <p>{"          │      │                    │      │"}</p>
+                  <p>{"        Fa0/1  Fa0/2                Fa0/1  Fa0/2"}</p>
+                  <p>{"      ┌────[SW1]────┐          ┌────[SW2]────┐"}</p>
+                  <p>{"      │     Fa0/23  Fa0/24─────Fa0/24  Fa0/23│"}</p>
+                  <p>{"      │                                       │"}</p>
+                  <p>{"      │Fa0/23                           Fa0/23│"}</p>
+                  <p>{"      │         ┌────[SW3]────┐              │"}</p>
+                  <p>{"      └─────────┤Fa0/24 Fa0/23├──────────────┘"}</p>
+                  <p>{"                │Fa0/1  Fa0/2 │"}</p>
+                  <p>{"                │      │      │"}</p>
+                  <p>{"              [PC4]  [PC5]"}</p>
+                  <p>{""}</p>
+                  <p className="text-slate-500">{"• 3 switches interconnectés en triangle = boucle !"}</p>
+                  <p className="text-slate-500">{"• STP va bloquer un port pour casser la boucle"}</p>
+                  <p className="text-amber-300 mt-2 font-bold">{"• Réseau : 192.168.1.0/24 — Tous les PCs dans le même VLAN"}</p>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <p className="text-emerald-300 font-bold text-sm mb-2">{"Plan d'adressage IP :"}</p>
+                <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                  <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"Appareil"}</th><th className="p-2 text-left">{"Interface"}</th><th className="p-2 text-left">{"Adresse IP"}</th><th className="p-2 text-left">{"Masque"}</th></tr></thead>
+                  <tbody>
+                    <tr className="border-t border-white/20"><td className="p-2">{"PC0"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.10"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2">{"PC1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.11"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2">{"PC2"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.20"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2">{"PC3"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.21"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2">{"PC4"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.30"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2">{"PC5"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.31"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          {/* MATÉRIEL */}
+          <section>
+            <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 rounded-xl p-6 border border-amber-500/30">
+              <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"🖥️ Matériel dans Packet Tracer"}</h2>
+              <ul className="text-slate-300 text-sm space-y-1 mb-4">
+                <li>{"• 3 switches (2960) — SW1, SW2, SW3"}</li>
+                <li>{"• 6 PCs (2 par switch)"}</li>
+                <li>{"• Câbles : Copper Straight-Through (PC↔Switch) et Copper Cross-Over (Switch↔Switch)"}</li>
+              </ul>
+              <div className="bg-black/30 rounded-lg p-4">
+                <p className="text-purple-300 font-bold text-sm mb-2">{"Câblage :"}</p>
+                <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                  <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"De"}</th><th className="p-2 text-left">{"Port"}</th><th className="p-2 text-center">{"Câble"}</th><th className="p-2 text-left">{"Vers"}</th><th className="p-2 text-left">{"Port"}</th></tr></thead>
+                  <tbody>
+                    <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC0"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC2"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW2"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC3"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW2"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC4"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW3"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC5"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW3"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                    <tr className="border-t border-white/20 bg-amber-500/10"><td className="p-2 font-bold text-amber-300">{"SW1"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/24"}</td><td className="p-2 text-center text-amber-300 font-bold">{"Cross-Over"}</td><td className="p-2 font-bold text-amber-300">{"SW2"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/24"}</td></tr>
+                    <tr className="border-t border-white/20 bg-amber-500/10"><td className="p-2 font-bold text-amber-300">{"SW1"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/23"}</td><td className="p-2 text-center text-amber-300 font-bold">{"Cross-Over"}</td><td className="p-2 font-bold text-amber-300">{"SW3"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/24"}</td></tr>
+                    <tr className="border-t border-white/20 bg-amber-500/10"><td className="p-2 font-bold text-amber-300">{"SW2"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/23"}</td><td className="p-2 text-center text-amber-300 font-bold">{"Cross-Over"}</td><td className="p-2 font-bold text-amber-300">{"SW3"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/23"}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-amber-300/80 text-xs mt-3">{"⚠️ Les 3 liens Switch↔Switch créent un triangle = une boucle. STP va automatiquement bloquer un des ports pour empêcher la boucle."}</p>
+            </div>
+          </section>
+
+          {/* ÉTAPE 1 : CÂBLAGE ET IPs */}
+          <section>
+            <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-xl p-6 border border-purple-500/30">
+              <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"⚙️ Étape 1 — Câblage et configuration IP des PCs"}</h2>
+              <ul className="text-slate-300 text-sm space-y-2">
+                <li>{"• Place les 3 switches (2960) et les 6 PCs dans Packet Tracer"}</li>
+                <li>{"• Câble tout selon le tableau ci-dessus"}</li>
+                <li>{"• Configure les adresses IP de chaque PC (Desktop → IP Configuration)"}</li>
+                <li>{"• Pas de passerelle nécessaire (tous dans le même réseau 192.168.1.0/24)"}</li>
+              </ul>
+              <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20 mt-4">
+                <p className="text-amber-300 font-bold text-sm mb-1">{"💡 Astuce :"}</p>
+                <p className="text-slate-300 text-sm">{"Attends 30-60 secondes que STP converge après avoir tout câblé. Tu verras les indicateurs passer de orange à vert sur les liens actifs. Un lien peut rester orange = port bloqué par STP."}</p>
+              </div>
+            </div>
+          </section>
+
+          {/* ÉTAPE 2 : OBSERVER STP */}
+          <section>
+            <div className="bg-gradient-to-r from-emerald-900/20 to-blue-900/20 rounded-xl p-6 border border-emerald-500/30">
+              <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"🔍 Étape 2 — Observer STP en action"}</h2>
+              <p className="text-slate-300 text-sm mb-4">{"Sur chaque switch, exécute show spanning-tree et note les informations suivantes :"}</p>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-purple-300 font-bold text-sm mb-2">{"Questions à répondre :"}</p>
+                <ol className="text-slate-300 text-sm space-y-2 list-decimal list-inside">
+                  <li>{"Quel switch est le Root Bridge ? (Root ID = Bridge ID)"}</li>
+                  <li>{"Quels sont les Root Ports sur les switches non-Root ?"}</li>
+                  <li>{"Quel(s) port(s) sont en état Blocking ?"}</li>
+                  <li>{"Quel est le coût vers le Root Bridge depuis chaque switch ?"}</li>
+                </ol>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4">
+                <p className="text-emerald-300 font-bold text-sm mb-2">{"Commandes à utiliser :"}</p>
+                <ul className="text-slate-300 text-sm space-y-1 font-mono">
+                  <li>{"show spanning-tree"}</li>
+                  <li>{"show spanning-tree root"}</li>
+                  <li>{"show spanning-tree blockedports"}</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          {/* ÉTAPE 3 : FORCER LE ROOT BRIDGE */}
+          <section>
+            <div className="bg-gradient-to-r from-cyan-900/20 to-purple-900/20 rounded-xl p-6 border border-cyan-500/30">
+              <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center gap-2">{"👑 Étape 3 — Forcer SW1 comme Root Bridge"}</h2>
+              <p className="text-slate-300 text-sm mb-4">{"Par défaut, le Root Bridge est choisi par la MAC la plus basse (aléatoire). On veut forcer SW1 comme Root Bridge car il est au centre de notre topologie."}</p>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-cyan-300 font-bold text-sm mb-2">{"Sur SW1 :"}</p>
+                <ul className="text-slate-300 text-sm space-y-1">
+                  <li>{"• Configure SW1 comme Root Bridge primaire"}</li>
+                  <li>{"• Configure SW2 comme Root Bridge secondaire (backup)"}</li>
+                </ul>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-amber-300 font-bold text-sm mb-2">{"Commandes utiles :"}</p>
+                <ul className="text-slate-300 text-sm space-y-0.5 font-mono">
+                  <li>{"spanning-tree vlan 1 root primary"}</li>
+                  <li>{"spanning-tree vlan 1 root secondary"}</li>
+                </ul>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4">
+                <p className="text-purple-300 font-bold text-sm mb-2">{"Vérification :"}</p>
+                <ul className="text-slate-300 text-sm space-y-1">
+                  <li>{"• Relance show spanning-tree sur les 3 switches"}</li>
+                  <li>{"• SW1 doit maintenant être le Root Bridge"}</li>
+                  <li>{"• Note les changements de rôles des ports"}</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          {/* ÉTAPE 4 : PORTFAST ET BPDU GUARD */}
+          <section>
+            <div className="bg-gradient-to-r from-purple-900/20 to-emerald-900/20 rounded-xl p-6 border border-purple-500/30">
+              <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"⚡ Étape 4 — PortFast et BPDU Guard"}</h2>
+              <p className="text-slate-300 text-sm mb-4">{"Configure PortFast et BPDU Guard sur les ports d'accès (Fa0/1 et Fa0/2) de CHAQUE switch."}</p>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-purple-300 font-bold text-sm mb-2">{"Sur chaque switch (SW1, SW2, SW3) :"}</p>
+                <ul className="text-slate-300 text-sm space-y-1">
+                  <li>{"• Active PortFast sur les ports Fa0/1 et Fa0/2"}</li>
+                  <li>{"• Active BPDU Guard sur ces mêmes ports"}</li>
+                </ul>
+              </div>
+              <div className="bg-red-900/20 rounded-lg p-4 border border-red-500/20 mb-4">
+                <p className="text-red-300 font-bold text-sm mb-2">{"⚠️ Attention :"}</p>
+                <ul className="text-slate-300 text-sm space-y-1">
+                  <li>{"• NE PAS mettre PortFast sur Fa0/23 et Fa0/24 (liens inter-switch) !"}</li>
+                  <li>{"• PortFast = ports PC uniquement"}</li>
+                </ul>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4">
+                <p className="text-emerald-300 font-bold text-sm mb-2">{"Vérification :"}</p>
+                <ul className="text-slate-300 text-sm space-y-1">
+                  <li>{"• Débranche un PC et rebranche-le → le port doit passer directement en Forwarding"}</li>
+                  <li>{"• show spanning-tree interface Fa0/1 detail → PortFast enabled"}</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          {/* ÉTAPE 5 : TESTS FINAUX */}
+          <section>
+            <div className="bg-gradient-to-r from-emerald-900/20 to-blue-900/20 rounded-xl p-6 border border-emerald-500/30">
+              <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"📡 Étape 5 — Tests finaux"}</h2>
+              <ul className="text-slate-300 text-sm space-y-2 mb-4">
+                <li>{"• Ping entre tous les PC (PC0 → PC2, PC0 → PC4, PC2 → PC5, etc.)"}</li>
+                <li>{"• Vérifie la connectivité complète malgré le port bloqué"}</li>
+                <li>{"• Test de résilience : supprime le câble SW1↔SW2 et observe :"}</li>
+                <li>{"  → STP débloque le port de secours après 30-50 secondes"}</li>
+                <li>{"  → Les PCs peuvent de nouveau communiquer via le chemin alternatif"}</li>
+              </ul>
+              <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-6">
+                <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Résultats attendus"}</p>
+                <ul className="text-slate-300 text-sm space-y-1">
+                  <li>{"✅ SW1 est Root Bridge (priorité 24576)"}</li>
+                  <li>{"✅ Un port est bloqué quelque part (visible en orange dans Packet Tracer)"}</li>
+                  <li>{"✅ Tous les PCs peuvent se pinger"}</li>
+                  <li>{"✅ PortFast actif sur Fa0/1 et Fa0/2 de chaque switch"}</li>
+                  <li>{"✅ Après suppression d'un câble → STP reconverge et le réseau reste fonctionnel"}</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+        </div>
+      ),
+      solutionContent: (
+        <div className="max-w-5xl mx-auto space-y-8 pb-16">
+          <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
+              {[
+                { id: 'lab10-cablage', label: 'Câblage', icon: '🔌' },
+                { id: 'lab10-ips', label: 'IPs PCs', icon: '🖥️' },
+                { id: 'lab10-observer', label: 'Observer STP', icon: '🔍' },
+                { id: 'lab10-root', label: 'Root Bridge', icon: '👑' },
+                { id: 'lab10-portfast', label: 'PortFast', icon: '⚡' },
+                { id: 'lab10-tests', label: 'Tests', icon: '✅' },
+              ].map(({ id, label, icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
+                >
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <div className="space-y-8">
+
+            {/* CÂBLAGE */}
+            <section id="lab10-cablage" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 rounded-xl p-6 border border-amber-500/30">
+                <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"🔌 Étape 1 — Câblage dans Packet Tracer"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"1.1 — Placer les équipements :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• 3 switches : cherche « 2960 » dans Network Devices → Switches"}</li>
+                    <li>{"• 6 PCs : dans End Devices → PC"}</li>
+                    <li>{"• Renomme : SW1, SW2, SW3, PC0…PC5"}</li>
+                    <li>{"• Dispose les switches en triangle pour bien voir la topologie"}</li>
+                  </ul>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"1.2 — Brancher les câbles :"}</p>
+                  <p className="text-slate-400 text-xs mb-3">{"PC↔Switch = Copper Straight-Through. Switch↔Switch = Copper Cross-Over."}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                      <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"De"}</th><th className="p-2 text-left">{"Port"}</th><th className="p-2 text-center">{"Câble"}</th><th className="p-2 text-left">{"Vers"}</th><th className="p-2 text-left">{"Port"}</th></tr></thead>
+                      <tbody>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC0"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC2"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW2"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC3"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW2"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC4"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW3"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC5"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW3"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                        <tr className="border-t border-white/20 bg-amber-500/5"><td className="p-2 text-amber-300 font-bold">{"SW1"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/24"}</td><td className="p-2 text-center text-amber-300">{"Cross-Over"}</td><td className="p-2 text-amber-300 font-bold">{"SW2"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/24"}</td></tr>
+                        <tr className="border-t border-white/20 bg-amber-500/5"><td className="p-2 text-amber-300 font-bold">{"SW1"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/23"}</td><td className="p-2 text-center text-amber-300">{"Cross-Over"}</td><td className="p-2 text-amber-300 font-bold">{"SW3"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/24"}</td></tr>
+                        <tr className="border-t border-white/20 bg-amber-500/5"><td className="p-2 text-amber-300 font-bold">{"SW2"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/23"}</td><td className="p-2 text-center text-amber-300">{"Cross-Over"}</td><td className="p-2 text-amber-300 font-bold">{"SW3"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/23"}</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <p className="text-amber-300/80 text-xs mt-3">{"⚠️ Après câblage, attends 30-60s que STP converge. Tu verras un des liens inter-switch rester orange = port bloqué par STP. C'est normal !"}</p>
+              </div>
+            </section>
+
+            {/* CONFIG IPs */}
+            <section id="lab10-ips" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-xl p-6 border border-purple-500/30">
+                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"🖥️ Étape 2 — Configurer les IPs des PCs"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Clique sur chaque PC → Desktop → IP Configuration. Pas de passerelle nécessaire."}</p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                    <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"PC"}</th><th className="p-2 text-left">{"Adresse IP"}</th><th className="p-2 text-left">{"Masque"}</th></tr></thead>
+                    <tbody>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.10"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC1"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.11"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC2"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.20"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC3"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.21"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC4"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.30"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC5"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.31"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mt-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Test rapide :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-slate-400">{"Depuis PC0 :"}</p>
+                    <p>{"C:\\> ping 192.168.1.11"}<span className="text-emerald-400">{" ✅ (PC1, même switch)"}</span></p>
+                    <p>{"C:\\> ping 192.168.1.20"}<span className="text-emerald-400">{" ✅ (PC2, autre switch)"}</span></p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Si le premier ping échoue, c'est normal (ARP). Refais-le une deuxième fois."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* OBSERVER STP */}
+            <section id="lab10-observer" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/20 to-blue-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"🔍 Étape 3 — Observer STP"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Sur chaque switch, tape show spanning-tree pour voir l'état de STP."}</p>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Sur SW1 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1> enable"}</p>
+                    <p>{"SW1# show spanning-tree"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Note le Root ID et le Bridge ID. Si ils sont identiques → SW1 est le Root Bridge."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Ce qu'il faut repérer :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• "}<span className="text-emerald-400 font-bold">{"Root ID"}</span>{" → qui est le Root Bridge (priorité + MAC)"}</li>
+                    <li>{"• "}<span className="text-emerald-400 font-bold">{"Bridge ID"}</span>{" → l'identité de CE switch"}</li>
+                    <li>{"• "}<span className="text-emerald-400 font-bold">{"Role"}</span>{" → Root, Desg, ou Altn pour chaque port"}</li>
+                    <li>{"• "}<span className="text-emerald-400 font-bold">{"Sts"}</span>{" → FWD (Forwarding) ou BLK (Blocking)"}</li>
+                  </ul>
+                </div>
+                <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20">
+                  <p className="text-amber-300 font-bold text-sm mb-1">{"📝 Note :"}</p>
+                  <p className="text-slate-300 text-sm">{"Le Root Bridge par défaut dépend de l'adresse MAC des switches dans Packet Tracer. Le switch avec la MAC la plus basse gagne. Ça sera probablement un switch choisi « au hasard ». C'est pour ça qu'on va forcer le Root Bridge à l'étape suivante."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* FORCER ROOT BRIDGE */}
+            <section id="lab10-root" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-cyan-900/20 to-purple-900/20 rounded-xl p-6 border border-cyan-500/30">
+                <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center gap-2">{"👑 Étape 4 — Forcer SW1 comme Root Bridge"}</h2>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"4.1 — Sur SW1 — Root primary :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1> enable"}</p>
+                    <p>{"SW1# configure terminal"}</p>
+                    <p>{"SW1(config)# spanning-tree vlan 1 root primary"}</p>
+                    <p>{"SW1(config)# end"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ Met la priorité de SW1 à 24576 (ou moins si nécessaire)."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"4.2 — Sur SW2 — Root secondary (backup) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW2> enable"}</p>
+                    <p>{"SW2# configure terminal"}</p>
+                    <p>{"SW2(config)# spanning-tree vlan 1 root secondary"}</p>
+                    <p>{"SW2(config)# end"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ Met la priorité de SW2 à 28672. Si SW1 tombe, SW2 prend le relais."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"4.3 — Vérification :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# show spanning-tree"}</p>
+                    <p className="text-slate-400">{"!"}</p>
+                    <p className="text-slate-400">{"Root ID    Priority    24577"}</p>
+                    <p className="text-slate-400">{"           Address     xxxx.xxxx.xxxx ← MAC de SW1"}</p>
+                    <p className="text-slate-400">{"!"}</p>
+                    <p className="text-slate-400">{"Bridge ID  Priority    24577"}</p>
+                    <p className="text-slate-400">{"           Address     xxxx.xxxx.xxxx ← même MAC"}</p>
+                    <p className="text-emerald-400">{"!"}</p>
+                    <p className="text-emerald-400">{"→ Root ID = Bridge ID → SW1 est le Root Bridge ✅"}</p>
+                    <p className="text-emerald-400">{"→ Tous les ports de SW1 sont Designated (Desg FWD)"}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* PORTFAST */}
+            <section id="lab10-portfast" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-purple-900/20 to-emerald-900/20 rounded-xl p-6 border border-purple-500/30">
+                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"⚡ Étape 5 — PortFast et BPDU Guard"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Répète cette configuration sur les 3 switches (SW1, SW2, SW3) :"}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Configuration identique sur chaque switch :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# configure terminal"}</p>
+                    <p>{"SW1(config)# interface range FastEthernet0/1 - 2"}</p>
+                    <p>{"SW1(config-if-range)# spanning-tree portfast"}</p>
+                    <p className="text-amber-300">{"% Warning: portfast should only be enabled on ports..."}</p>
+                    <p>{"SW1(config-if-range)# spanning-tree bpduguard enable"}</p>
+                    <p>{"SW1(config-if-range)# exit"}</p>
+                    <p>{"SW1(config)# end"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ Le warning est normal. PortFast est bien activé sur Fa0/1 et Fa0/2."}</p>
+                </div>
+
+                <div className="bg-red-900/20 rounded-lg p-4 border border-red-500/20 mb-4">
+                  <p className="text-red-300 font-bold text-sm mb-1">{"⚠️ NE FAIS PAS ça sur Fa0/23 et Fa0/24 !"}</p>
+                  <p className="text-slate-300 text-sm">{"Ces ports sont connectés à d'autres switches. PortFast sur un port inter-switch = danger de boucle temporaire."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Vérification :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# show spanning-tree interface Fa0/1 detail"}</p>
+                    <p className="text-slate-400">{"→ Cherche « The port is in the portfast mode » ✅"}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* TESTS FINAUX */}
+            <section id="lab10-tests" className="scroll-mt-4">
+              <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-6">
+                <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Tests finaux"}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Test 1 — Connectivité :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-slate-400">{"Depuis PC0 :"}</p>
+                    <p>{"C:\\> ping 192.168.1.20"}<span className="text-emerald-400">{" ✅ (PC2, sur SW2)"}</span></p>
+                    <p>{"C:\\> ping 192.168.1.30"}<span className="text-emerald-400">{" ✅ (PC4, sur SW3)"}</span></p>
+                    <p>{"C:\\> ping 192.168.1.31"}<span className="text-emerald-400">{" ✅ (PC5, sur SW3)"}</span></p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Test 2 — Résilience STP :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"1. Supprime le câble SW1↔SW2 (Fa0/24)"}</li>
+                    <li>{"2. Attends 30-50 secondes (STP reconverge)"}</li>
+                    <li>{"3. Refais les pings → tout doit encore fonctionner"}</li>
+                    <li>{"4. Le trafic passe maintenant par SW3 au lieu du lien direct"}</li>
+                  </ul>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Résumé final :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"✅ SW1 est Root Bridge (priorité 24576)"}</li>
+                    <li>{"✅ SW2 est Root Bridge secondaire (priorité 28672)"}</li>
+                    <li>{"✅ Un port est bloqué pour empêcher la boucle"}</li>
+                    <li>{"✅ PortFast + BPDU Guard sur tous les ports PC"}</li>
+                    <li>{"✅ Connectivité complète entre les 6 PCs"}</li>
+                    <li>{"✅ Le réseau résiste à la perte d'un lien grâce à STP"}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      ),
+    },
+    quiz: [
+      { q: "Quel problème STP résout-il ?", options: ["Les conflits d'adresses IP", "Les boucles de commutation (Layer 2)", "Les erreurs de routage"], a: 1, explanation: "STP (Spanning Tree Protocol) empêche les boucles de commutation au Layer 2 en bloquant intelligemment des ports redondants." },
+      { q: "Quel critère détermine le Root Bridge ?", options: ["Le switch avec le plus de ports", "Le switch avec le plus petit Bridge ID (priorité + MAC)", "Le switch configuré en premier"], a: 1, explanation: "Le Root Bridge est le switch avec le plus petit Bridge ID, composé de la priorité (32768 par défaut) et de l'adresse MAC." },
+      { q: "Quelle est la priorité STP par défaut ?", options: ["0", "4096", "32768"], a: 2, explanation: "La priorité STP par défaut est 32768 sur tous les switches Cisco. On peut la modifier par multiples de 4096." },
+      { q: "Combien de Root Ports un switch non-Root possède-t-il ?", options: ["0", "1", "Autant que de liens vers le Root"], a: 1, explanation: "Un switch non-Root a exactement UN Root Port — celui qui offre le chemin le moins coûteux vers le Root Bridge." },
+      { q: "Quel est le coût STP d'un lien FastEthernet (100 Mbps) ?", options: ["4", "19", "100"], a: 1, explanation: "En STP 802.1D, un lien FastEthernet (100 Mbps) a un coût de 19. GigabitEthernet = 4, 10 Mbps = 100." },
+      { q: "Combien de temps un port met-il à passer de Blocking à Forwarding ?", options: ["Immédiatement", "15 secondes", "30 secondes (15s Listening + 15s Learning)"], a: 2, explanation: "Un port STP traverse Listening (15s) puis Learning (15s) avant d'atteindre Forwarding, soit 30 secondes au total." },
+      { q: "À quoi sert PortFast ?", options: ["Accélérer le débit du port", "Faire passer le port directement en Forwarding", "Désactiver STP sur le port"], a: 1, explanation: "PortFast fait passer le port directement en Forwarding (skip Listening et Learning), évitant les 30 secondes d'attente pour les PCs." },
+      { q: "Que fait BPDU Guard quand il reçoit un BPDU ?", options: ["Il ignore le BPDU", "Il désactive le port (err-disabled)", "Il change le Root Bridge"], a: 1, explanation: "BPDU Guard met le port en état err-disabled dès qu'il reçoit un BPDU, car ça signifie qu'un switch est branché sur un port qui devrait être réservé aux PCs." },
+      { q: "Quelle commande affiche l'état STP complet ?", options: ["show stp status", "show spanning-tree", "show bridge"], a: 1, explanation: "La commande show spanning-tree affiche le Root ID, le Bridge ID, et l'état de chaque port (rôle et état)." },
+      { q: "Sur quels ports NE FAUT-IL PAS mettre PortFast ?", options: ["Les ports connectés aux PCs", "Les ports trunk / liens vers d'autres switches", "Les ports en mode access"], a: 1, explanation: "PortFast ne doit JAMAIS être mis sur des ports reliés à d'autres switches (trunk), car cela pourrait créer des boucles temporaires avant que STP ne réagisse." }
+    ]
   }
 ];
 
@@ -15501,6 +16159,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
   const isSession7 = sessionId === 7;
   const isSession8 = sessionId === 8;
   const isSession9 = sessionId === 9;
+  const isSession10 = sessionId === 10;
   return (
     <div className="h-full flex flex-col">
       <div className="bg-[#1a1035] p-6 rounded-t-xl border border-white/[0.15] border-b-0">
@@ -15524,7 +16183,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
               onClick={() => setLabTab('correction')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession9 ? 'Correction Lab OSPF' : isSession8 ? 'Correction Lab Routage' : isSession7 ? 'Correction Lab Adressage' : isSession6 ? 'Correction Lab Syslog' : isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
+              <CheckCircle className="w-4 h-4" /> {isSession10 ? 'Correction Lab STP' : isSession9 ? 'Correction Lab OSPF' : isSession8 ? 'Correction Lab Routage' : isSession7 ? 'Correction Lab Adressage' : isSession6 ? 'Correction Lab Syslog' : isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
             </button>
           )}
           {!hideCorrection && (isSession2 || isSession3 || isSession4 || isSession5 || isSession6 || isSession8 || isSession9) && lab.solutionContentLab2 && (
@@ -15577,7 +16236,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
       {labTab === 'consignes' && lab.consignes && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl px-6 py-5 overflow-y-auto">
           <h4 className="text-white font-bold flex items-center gap-2 mb-4 text-base">
-            <BookOpen className="w-5 h-5 text-amber-400" /> {isSession9 ? 'Consignes Lab OSPF – à réaliser sur Cisco Packet Tracer' : isSession8 ? 'Consignes Lab Routage Statique' : isSession7 ? 'Consignes Lab Adressage IP & Masques' : isSession6 ? 'Consignes Labs Syslog & Synthèse – à réaliser sur Cisco Packet Tracer' : isSession4 ? 'Consignes des deux labs DHCP & DNS – à réaliser sur Cisco Packet Tracer' : isSession3 ? 'Consignes du lab – à réaliser sur Cisco Packet Tracer' : isSession2 ? 'Consignes des deux labs Session 2' : 'Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer'}
+            <BookOpen className="w-5 h-5 text-amber-400" /> {isSession10 ? 'Consignes Lab STP – à réaliser sur Cisco Packet Tracer' : isSession9 ? 'Consignes Lab OSPF – à réaliser sur Cisco Packet Tracer' : isSession8 ? 'Consignes Lab Routage Statique' : isSession7 ? 'Consignes Lab Adressage IP & Masques' : isSession6 ? 'Consignes Labs Syslog & Synthèse – à réaliser sur Cisco Packet Tracer' : isSession4 ? 'Consignes des deux labs DHCP & DNS – à réaliser sur Cisco Packet Tracer' : isSession3 ? 'Consignes du lab – à réaliser sur Cisco Packet Tracer' : isSession2 ? 'Consignes des deux labs Session 2' : 'Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer'}
           </h4>
           <div className="pr-4 space-y-1 text-slate-300">
             {lab.consignes}
@@ -15587,7 +16246,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
       {labTab === 'correction' && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {(isSession4 || isSession5 || isSession6 || isSession7 || isSession8 || isSession9) && lab.solutionContent ? lab.solutionContent : isSession3 ? <LabCorrectionSection3Verbose /> : isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSectionVerbose />}
+            {(isSession4 || isSession5 || isSession6 || isSession7 || isSession8 || isSession9 || isSession10) && lab.solutionContent ? lab.solutionContent : isSession3 ? <LabCorrectionSection3Verbose /> : isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSectionVerbose />}
           </div>
         </div>
       )}
@@ -18534,10 +19193,10 @@ const weeks = [
   },
   {
     id: 4,
-    title: "Commutation",
-    subtitle: "À venir",
-    sessions: [],
-    available: false
+    title: "Commutation avancée",
+    subtitle: "STP, PortFast, BPDU Guard",
+    sessions: [10],
+    available: true
   }
 ];
 
@@ -19467,19 +20126,28 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
               )}
             </div>
 
-            {/* Commutation - Coming Soon */}
-            <button
-              disabled
-              className="w-full p-3 rounded-xl flex items-center justify-between transition-all border bg-[#0e0920]/50 border-white/10/50 text-slate-600 cursor-not-allowed opacity-60"
-            >
-              <div className="text-left flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="font-bold text-sm">Commutation</p>
-                  <span className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/40 rounded-full text-[9px] font-bold text-amber-400 uppercase">Soon</span>
+            {/* Commutation avancée - Labs */}
+            <div className="mb-2">
+              <button
+                onClick={() => setExpandedLabWeek(expandedLabWeek === 4 ? null : 4)}
+                className={`w-full p-3 rounded-xl flex items-center justify-between transition-all border ${
+                  expandedLabWeek === 4
+                    ? 'bg-purple-600/10 border-purple-500/50 text-purple-100'
+                    : 'bg-[#0e0920] border-white/10 hover:bg-[#1a1035] text-slate-300 hover:border-white/20'
+                }`}
+              >
+                <div className="text-left flex-1">
+                  <p className="font-bold text-sm">Commutation avancée</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">1 lab disponible</p>
                 </div>
-                <p className="text-[10px] text-slate-600 mt-0.5">À venir</p>
-              </div>
-            </button>
+                <ChevronRight className={`w-4 h-4 transition-transform ${expandedLabWeek === 4 ? 'rotate-90' : ''}`} />
+              </button>
+              {expandedLabWeek === 4 && (
+                <div className="mt-2 ml-3 space-y-2 border-l-2 border-white/10 pl-3">
+                  <LabButton viewModeKey="labs_s10" labKey="labs_s10" icon={RotateCcw} label="Lab STP" sublabel="3 switches — boucle" />
+                </div>
+              )}
+            </div>
           </div>
 
         </div>
@@ -19624,6 +20292,8 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
             renderLabContent('labs_s8', <LabsSection lab={sessions[7].lab} sessionLabel="Routage Statique" sessionDescription="Interconnectez deux réseaux distants avec du routage statique. Configurez 2 routeurs, 4 PCs et vérifiez la connectivité inter-réseau." sessionId={8} hideCorrection={!isAdmin && !isCorrectionVisible('labs_s8')} />)
           ) : viewMode === 'labs_s9' ? (
             renderLabContent('labs_s9', <LabsSection lab={sessions[8].lab} sessionLabel="OSPF — Routage Dynamique" sessionDescription="Configurez OSPF sur 3 routeurs en triangle. Découvrez les wildcard masks, les voisinages OSPF et la convergence automatique des routes." sessionId={9} hideCorrection={!isAdmin && !isCorrectionVisible('labs_s9')} />)
+          ) : viewMode === 'labs_s10' ? (
+            renderLabContent('labs_s10', <LabsSection lab={sessions[9].lab} sessionLabel="STP — Spanning Tree Protocol" sessionDescription="Construisez une topologie redondante avec 3 switches en triangle. Observez STP en action, contrôlez le Root Bridge et configurez PortFast." sessionId={10} hideCorrection={!isAdmin && !isCorrectionVisible('labs_s10')} />)
           ) : (
           <div className="max-w-6xl mx-auto h-full flex flex-col">
             {activeTab === 'theory' && <TheoryPlayer slides={activeSession.slides} lab={activeSession.lab} sessionId={activeSessionId} />}
