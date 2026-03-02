@@ -14268,7 +14268,6 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
           </div>
         </div>
       ),
-    },
       solutionContentLab4: (
         <div className="max-w-5xl mx-auto space-y-8 pb-16">
           <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
@@ -14549,6 +14548,7 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
           </div>
         </div>
       ),
+    },
     quiz: [
       { q: "Quel problème STP résout-il ?", options: ["Les conflits d'adresses IP", "Les boucles de commutation (Layer 2)", "Les erreurs de routage"], a: 1, explanation: "STP (Spanning Tree Protocol) empêche les boucles de commutation au Layer 2 en bloquant intelligemment des ports redondants." },
       { q: "Quel critère détermine le Root Bridge ?", options: ["Le switch avec le plus de ports", "Le switch avec le plus petit Bridge ID (priorité + MAC)", "Le switch configuré en premier"], a: 1, explanation: "Le Root Bridge est le switch avec le plus petit Bridge ID, composé de la priorité (32768 par défaut) et de l'adresse MAC." },
