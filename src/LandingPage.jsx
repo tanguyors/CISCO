@@ -225,7 +225,6 @@ function Vibe2({ onLogin }) {
       gsap.set('.v2h-line',      { y: 90,  opacity: 0 });
       gsap.set('.v2h-sub',       { y: 16,  opacity: 0 });
       gsap.set('.v2h-btn',       { y: 12,  opacity: 0, scale: 0.85 });
-      gsap.set('.v2h-trust',     { y: 20,  opacity: 0 });
       gsap.set('.v2h-term',      { x: 40,  opacity: 0 });
       gsap.set('.v2h-term-line', { x: -6,  opacity: 0 });
 
@@ -243,14 +242,13 @@ function Vibe2({ onLogin }) {
         .to('.v2h-line',     { y: 0, opacity: 1, stagger: 0.1, duration: 0.4 }, 0.2)
         .to('.v2h-sub',      { y: 0, opacity: 1, duration: 0.3 }, 0.55)
         .to('.v2h-btn',      { y: 0, opacity: 1, scale: 1, duration: 0.25 }, 0.7)
-        .to('.v2h-trust',    { y: 0, opacity: 1, stagger: 0.07, duration: 0.25 }, 0.78)
         .to('.v2h-term',     { x: 0, opacity: 1, duration: 0.35 }, 0.72)
         .to('.v2h-term-line',{ x: 0, opacity: 1, stagger: 0.04, duration: 0.05 }, 0.85)
         .set({}, {}, 1.0)
         // EXIT: snap1 → snap2 (progress 1.0)
         .to('.v2h-bgimg',              { scale: 1.15, opacity: 0.3, duration: 0.7 }, 1.0)
         .to('.v2h-term',               { x: 30, opacity: 0, duration: 0.2 }, 1.05)
-        .to(['.v2h-trust', '.v2h-btn'],{ y: -90, opacity: 0, stagger: 0.05, duration: 0.3 }, 1.1)
+        .to('.v2h-btn',                  { y: -90, opacity: 0, duration: 0.3 }, 1.1)
         .to('.v2h-sub',                { y: -60, opacity: 0, duration: 0.3 }, 1.2)
         .to('.v2h-line',               { y: -160, opacity: 0, stagger: 0.1, duration: 0.45 }, 1.25)
         .to('.v2h-tag',                { y: -40, opacity: 0, duration: 0.25 }, 1.7)
@@ -326,7 +324,7 @@ function Vibe2({ onLogin }) {
           ease: 'none',
           scrollTrigger: {
             trigger: horizWrap.current, pin: true, scrub: true,
-            start: 'top top', end: () => `+=${horizTrack.current.scrollWidth * 0.6}`,
+            start: 'top top', end: () => `+=${horizTrack.current.scrollWidth * 0.12}`,
             invalidateOnRefresh: true, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep,
           },
         });
@@ -357,7 +355,7 @@ function Vibe2({ onLogin }) {
             trigger: howRef.current,
             pin: true,
             scrub: true,
-            end: () => '+=' + ((howSlider.current?.offsetWidth || window.innerWidth * 1.5) * 0.6),
+            end: () => '+=' + ((howSlider.current?.offsetWidth || window.innerWidth * 1.5) * 0.12),
             anticipatePin: 1,
             onLeave: sweep,
             onEnterBack: sweep,
@@ -383,7 +381,7 @@ function Vibe2({ onLogin }) {
           gsap.to(toolPanels, {
             xPercent: -100 * (toolPanels.length - 1),
             ease: 'none',
-            scrollTrigger: { trigger: toolsRef.current, pin: true, scrub: true, end: () => '+=' + ((toolsSlider.current?.offsetWidth || window.innerWidth * 6) * 0.6), anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+            scrollTrigger: { trigger: toolsRef.current, pin: true, scrub: true, end: () => '+=' + ((toolsSlider.current?.offsetWidth || window.innerWidth * 6) * 0.12), anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
           });
         }
       }
@@ -408,15 +406,13 @@ function Vibe2({ onLogin }) {
       gsap.set('.v2c-heading', { y: 30, opacity: 0 });
       gsap.set('.v2c-sub',     { y: 30, opacity: 0 });
       gsap.set('.v2c-btn',     { y: 30, opacity: 0 });
-      gsap.set('.v2c-trust',   { y: 30, opacity: 0 });
       gsap.timeline({
         scrollTrigger: { trigger: ctaRef.current, start: 'top top', end: '+=35%', pin: true, scrub: true, anticipatePin: 1 },
       })
         .to('.v2c-line',    { scaleY: 1, duration: 0.2 }, 0)
         .to('.v2c-heading', { y: 0, opacity: 1, duration: 0.35 }, 0.15)
         .to('.v2c-sub',     { y: 0, opacity: 1, duration: 0.3 }, 0.42)
-        .to('.v2c-btn',     { y: 0, opacity: 1, duration: 0.25 }, 0.6)
-        .to('.v2c-trust',   { y: 0, opacity: 1, stagger: 0.08, duration: 0.2 }, 0.75);
+        .to('.v2c-btn',     { y: 0, opacity: 1, duration: 0.25 }, 0.6);
 
       // ── NETWORK CABLE SIDEBAR ─────────────────────────────────────────────
       const NET_H      = 300;
@@ -588,19 +584,6 @@ function Vibe2({ onLogin }) {
           <button onClick={onLogin} className="v2h-btn px-10 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold tracking-widest text-sm rounded-full shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 transition-shadow flex items-center gap-2">
             <Play size={16} className="fill-white" /> Commencer la formation
           </button>
-          {/* trust strip */}
-          <div className="flex items-center gap-8 mt-10">
-            {[
-              { icon: Users, label: '247 étudiants inscrits' },
-              { icon: Star,  label: '4.9 / 5 de satisfaction' },
-              { icon: Award, label: 'CCST ready en 4 semaines' },
-            ].map((t, i) => (
-              <div key={i} className="v2h-trust flex items-center gap-2 text-slate-500 text-xs">
-                <t.icon size={14} className="text-purple-400 shrink-0" />
-                {t.label}
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* ── Floating terminal (xl+) ─────────────────────────────── */}
@@ -1131,14 +1114,6 @@ function Vibe2({ onLogin }) {
             className="v2c-btn px-14 py-5 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold text-sm tracking-widest rounded-full shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/60 hover:scale-105 transition-all flex items-center gap-2 mx-auto">
             <Play size={16} className="fill-white" /> Accéder à la formation
           </button>
-          <div className="flex items-center justify-center gap-8 mt-8">
-            {['Sans engagement', 'Accès immédiat', 'Support inclus'].map((t, i) => (
-              <div key={i} className="v2c-trust flex items-center gap-2 text-slate-600 text-xs">
-                <CheckCircle size={12} className="text-purple-400" />
-                {t}
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
