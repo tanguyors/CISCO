@@ -13260,12 +13260,11 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
             <div className="flex items-center gap-3 flex-wrap">
               <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
               {[
-                { id: 'lab10-cablage', label: 'Câblage', icon: '🔌' },
-                { id: 'lab10-ips', label: 'IPs PCs', icon: '🖥️' },
-                { id: 'lab10-observer', label: 'Observer STP', icon: '🔍' },
-                { id: 'lab10-root', label: 'Root Bridge', icon: '👑' },
-                { id: 'lab10-portfast', label: 'PortFast', icon: '⚡' },
-                { id: 'lab10-tests', label: 'Tests', icon: '✅' },
+                { id: 'lab1-s10-cablage', label: 'Câblage', icon: '🔌' },
+                { id: 'lab1-s10-hostname', label: 'Hostname', icon: '🏷️' },
+                { id: 'lab1-s10-observer', label: 'Observer STP', icon: '🔍' },
+                { id: 'lab1-s10-ips', label: 'IPs & Pings', icon: '🖥️' },
+                { id: 'lab1-s10-boucle', label: 'Boucle (opt.)', icon: '⚠️' },
               ].map(({ id, label, icon }) => (
                 <button
                   key={id}
@@ -13282,215 +13281,208 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
           <div className="space-y-8">
 
             {/* CÂBLAGE */}
-            <section id="lab10-cablage" className="scroll-mt-4">
+            <section id="lab1-s10-cablage" className="scroll-mt-4">
               <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 rounded-xl p-6 border border-amber-500/30">
                 <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"🔌 Étape 1 — Câblage dans Packet Tracer"}</h2>
                 <div className="bg-black/30 rounded-lg p-4 mb-4">
                   <p className="text-purple-300 font-bold text-sm mb-2">{"1.1 — Placer les équipements :"}</p>
                   <ul className="text-slate-300 text-sm space-y-1">
                     <li>{"• 3 switches : cherche « 2960 » dans Network Devices → Switches"}</li>
-                    <li>{"• 6 PCs : dans End Devices → PC"}</li>
-                    <li>{"• Renomme : SW1, SW2, SW3, PC0…PC5"}</li>
-                    <li>{"• Dispose les switches en triangle pour bien voir la topologie"}</li>
+                    <li>{"• 3 PCs : dans End Devices → PC"}</li>
+                    <li>{"• Renomme : SW1, SW2, SW3, PC1, PC2, PC3"}</li>
+                    <li>{"• Dispose les switches en triangle pour bien visualiser la boucle physique"}</li>
                   </ul>
                 </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-3">{"1.2 — Schéma de la topologie :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-4 text-emerald-300 leading-relaxed">
+                    <p>{"        [PC1]                  [PC2]"}</p>
+                    <p>{"          │                      │"}</p>
+                    <p>{"        Fa0/1                  Fa0/1"}</p>
+                    <p>{"       [SW1] ─── Fa0/24─Fa0/24 ─── [SW2]"}</p>
+                    <p>{"          │                              │"}</p>
+                    <p>{"        Fa0/23                       Fa0/23"}</p>
+                    <p>{"          │                              │"}</p>
+                    <p>{"        Fa0/24                       Fa0/23"}</p>
+                    <p>{"            └──────── [SW3] ────────────┘"}</p>
+                    <p>{"                       Fa0/1"}</p>
+                    <p>{"                         │"}</p>
+                    <p>{"                       [PC3]"}</p>
+                  </div>
+                </div>
                 <div className="bg-black/30 rounded-lg p-4">
-                  <p className="text-purple-300 font-bold text-sm mb-2">{"1.2 — Brancher les câbles :"}</p>
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"1.3 — Brancher les câbles :"}</p>
                   <p className="text-slate-400 text-xs mb-3">{"PC↔Switch = Copper Straight-Through. Switch↔Switch = Copper Cross-Over."}</p>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
                       <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"De"}</th><th className="p-2 text-left">{"Port"}</th><th className="p-2 text-center">{"Câble"}</th><th className="p-2 text-left">{"Vers"}</th><th className="p-2 text-left">{"Port"}</th></tr></thead>
                       <tbody>
-                        <tr className="border-t border-white/20"><td className="p-2">{"PC0"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
-                        <tr className="border-t border-white/20"><td className="p-2">{"PC1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
                         <tr className="border-t border-white/20"><td className="p-2">{"PC2"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW2"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
-                        <tr className="border-t border-white/20"><td className="p-2">{"PC3"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW2"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
-                        <tr className="border-t border-white/20"><td className="p-2">{"PC4"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW3"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
-                        <tr className="border-t border-white/20"><td className="p-2">{"PC5"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW3"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC3"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW3"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
                         <tr className="border-t border-white/20 bg-amber-500/5"><td className="p-2 text-amber-300 font-bold">{"SW1"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/24"}</td><td className="p-2 text-center text-amber-300">{"Cross-Over"}</td><td className="p-2 text-amber-300 font-bold">{"SW2"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/24"}</td></tr>
-                        <tr className="border-t border-white/20 bg-amber-500/5"><td className="p-2 text-amber-300 font-bold">{"SW1"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/23"}</td><td className="p-2 text-center text-amber-300">{"Cross-Over"}</td><td className="p-2 text-amber-300 font-bold">{"SW3"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/24"}</td></tr>
                         <tr className="border-t border-white/20 bg-amber-500/5"><td className="p-2 text-amber-300 font-bold">{"SW2"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/23"}</td><td className="p-2 text-center text-amber-300">{"Cross-Over"}</td><td className="p-2 text-amber-300 font-bold">{"SW3"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/23"}</td></tr>
+                        <tr className="border-t border-white/20 bg-amber-500/5"><td className="p-2 text-amber-300 font-bold">{"SW1"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/23"}</td><td className="p-2 text-center text-amber-300">{"Cross-Over"}</td><td className="p-2 text-amber-300 font-bold">{"SW3"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/24"}</td></tr>
                       </tbody>
                     </table>
                   </div>
                 </div>
-                <p className="text-amber-300/80 text-xs mt-3">{"⚠️ Après câblage, attends 30-60s que STP converge. Tu verras un des liens inter-switch rester orange = port bloqué par STP. C'est normal !"}</p>
+                <p className="text-amber-300/80 text-xs mt-3">{"⚠️ Après câblage, attends 30-60s que STP converge. Tu verras un des liens inter-switch rester orange = port bloqué par STP. C'est normal et c'est exactement ce qu'on veut observer !"}</p>
               </div>
             </section>
 
-            {/* CONFIG IPs */}
-            <section id="lab10-ips" className="scroll-mt-4">
+            {/* HOSTNAME */}
+            <section id="lab1-s10-hostname" className="scroll-mt-4">
               <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-xl p-6 border border-purple-500/30">
-                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"🖥️ Étape 2 — Configurer les IPs des PCs"}</h2>
-                <p className="text-slate-300 text-sm mb-4">{"Clique sur chaque PC → Desktop → IP Configuration. Pas de passerelle nécessaire."}</p>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
-                    <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"PC"}</th><th className="p-2 text-left">{"Adresse IP"}</th><th className="p-2 text-left">{"Masque"}</th></tr></thead>
-                    <tbody>
-                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.10"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
-                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC1"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.11"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
-                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC2"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.20"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
-                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC3"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.21"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
-                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC4"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.30"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
-                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC5"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.31"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-                <div className="bg-black/30 rounded-lg p-4 mt-4">
-                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Test rapide :"}</p>
+                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"🏷️ Étape 2 — Nommer les switches"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Aucune configuration STP manuelle n'est nécessaire — Cisco l'active par défaut. On commence juste par donner un nom à chaque switch."}</p>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW1 :"}</p>
                   <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
-                    <p className="text-slate-400">{"Depuis PC0 :"}</p>
-                    <p>{"C:\\> ping 192.168.1.11"}<span className="text-emerald-400">{" ✅ (PC1, même switch)"}</span></p>
-                    <p>{"C:\\> ping 192.168.1.20"}<span className="text-emerald-400">{" ✅ (PC2, autre switch)"}</span></p>
+                    <p>{"Switch> enable"}</p>
+                    <p>{"Switch# configure terminal"}</p>
+                    <p>{"Switch(config)# hostname SW1"}</p>
+                    <p>{"SW1(config)# end"}</p>
                   </div>
-                  <p className="text-slate-400 text-xs mt-2">{"Si le premier ping échoue, c'est normal (ARP). Refais-le une deuxième fois."}</p>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"enable"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Passe en mode privilégié (#). Obligatoire avant configure terminal."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"configure terminal"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Entre en mode configuration globale. Le prompt passe à (config)#."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"hostname SW1"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Donne le nom « SW1 » au switch. Le prompt change immédiatement : Switch(config)# → SW1(config)#. Répète avec hostname SW2 sur le deuxième, hostname SW3 sur le troisième."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"end"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Sort du mode config et retourne en mode privilégié (#)."}</p></div>
+                  </div>
+                </div>
+                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
+                  <p className="text-blue-300 font-bold text-sm mb-1">{"💡 Pourquoi pas de config STP ?"}</p>
+                  <p className="text-slate-300 text-sm">{"Cisco IOS active STP automatiquement sur tous les switches dès le démarrage. Dès que tu branches les câbles, STP détecte la boucle, élit un Root Bridge, et bloque un port. Tu n'as rien à faire — juste observer."}</p>
                 </div>
               </div>
             </section>
 
             {/* OBSERVER STP */}
-            <section id="lab10-observer" className="scroll-mt-4">
+            <section id="lab1-s10-observer" className="scroll-mt-4">
               <div className="bg-gradient-to-r from-emerald-900/20 to-blue-900/20 rounded-xl p-6 border border-emerald-500/30">
-                <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"🔍 Étape 3 — Observer STP"}</h2>
-                <p className="text-slate-300 text-sm mb-4">{"Sur chaque switch, tape show spanning-tree pour voir l'état de STP."}</p>
+                <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"🔍 Étape 3 — Observer l'état STP"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Sur chaque switch, tape show spanning-tree pour voir comment STP a stabilisé le réseau."}</p>
                 <div className="bg-black/30 rounded-lg p-4 mb-4">
-                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Sur SW1 :"}</p>
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Sur chaque switch :"}</p>
                   <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
-                    <p>{"SW1> enable"}</p>
                     <p>{"SW1# show spanning-tree"}</p>
                   </div>
-                  <p className="text-slate-400 text-xs mt-2">{"Note le Root ID et le Bridge ID. Si ils sont identiques → SW1 est le Root Bridge."}</p>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-emerald-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"show spanning-tree"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Affiche l'état complet de STP pour tous les VLANs. Montre qui est le Root Bridge, l'identité de ce switch, et le rôle/état de chaque port."}</p></div>
+                  </div>
                 </div>
                 <div className="bg-black/30 rounded-lg p-4 mb-4">
-                  <p className="text-purple-300 font-bold text-sm mb-2">{"Ce qu'il faut repérer :"}</p>
-                  <ul className="text-slate-300 text-sm space-y-1">
-                    <li>{"• "}<span className="text-emerald-400 font-bold">{"Root ID"}</span>{" → qui est le Root Bridge (priorité + MAC)"}</li>
-                    <li>{"• "}<span className="text-emerald-400 font-bold">{"Bridge ID"}</span>{" → l'identité de CE switch"}</li>
-                    <li>{"• "}<span className="text-emerald-400 font-bold">{"Role"}</span>{" → Root, Desg, ou Altn pour chaque port"}</li>
-                    <li>{"• "}<span className="text-emerald-400 font-bold">{"Sts"}</span>{" → FWD (Forwarding) ou BLK (Blocking)"}</li>
-                  </ul>
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"3.1 — Identifier le Root Bridge :"}</p>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1">
+                    <p className="text-slate-400">{"VLAN0001"}</p>
+                    <p className="text-slate-400">{"  Spanning tree enabled protocol ieee"}</p>
+                    <p className="text-emerald-400">{"  Root ID    Priority    32769"}</p>
+                    <p className="text-emerald-400">{"             Address     000A.0000.0001  ← MAC du Root Bridge"}</p>
+                    <p className="text-amber-400">{"             This bridge is the root      ← cette ligne = ce switch EST le Root"}</p>
+                    <p className="text-slate-400">{"  Bridge ID  Priority    32769"}</p>
+                    <p className="text-slate-400">{"             Address     000A.0000.0001  ← même MAC → Root Bridge confirmé"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Si Root ID Address = Bridge ID Address → ce switch est le Root Bridge. Si pas cette ligne → ce switch n'est PAS Root."}</p>
                 </div>
-                <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20">
-                  <p className="text-amber-300 font-bold text-sm mb-1">{"📝 Note :"}</p>
-                  <p className="text-slate-300 text-sm">{"Le Root Bridge par défaut dépend de l'adresse MAC des switches dans Packet Tracer. Le switch avec la MAC la plus basse gagne. Ça sera probablement un switch choisi « au hasard ». C'est pour ça qu'on va forcer le Root Bridge à l'étape suivante."}</p>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"3.2 — Identifier les rôles et états de ports :"}</p>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1">
+                    <p className="text-slate-400">{"Interface  Role   Sts  Cost  Prio.Nbr  Type"}</p>
+                    <p className="text-slate-400">{"---------- ------ ---- ----- --------- ----"}</p>
+                    <p className="text-emerald-400">{"Fa0/1      Desg   FWD  19    128.1     P2p  ← Designated, Forwarding (port PC)"}</p>
+                    <p className="text-cyan-400">{"Fa0/24     Root   FWD  19    128.24    P2p  ← Root Port, vers le Root Bridge"}</p>
+                    <p className="text-red-400">{"Fa0/23     Altn   BLK  19    128.23    P2p  ← Alternate, Bloqué ← brises la boucle !"}</p>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Ce que chaque rôle signifie :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-2">
+                    <li>{"• "}<span className="text-emerald-400 font-bold">{"Desg FWD"}</span>{" (Designated Forwarding) → port actif, transmet le trafic normalement"}</li>
+                    <li>{"• "}<span className="text-cyan-400 font-bold">{"Root FWD"}</span>{" (Root Port Forwarding) → meilleur chemin vers le Root Bridge, actif"}</li>
+                    <li>{"• "}<span className="text-red-400 font-bold">{"Altn BLK"}</span>{" (Alternate Blocking) → port bloqué par STP pour casser la boucle physique"}</li>
+                  </ul>
                 </div>
               </div>
             </section>
 
-            {/* FORCER ROOT BRIDGE */}
-            <section id="lab10-root" className="scroll-mt-4">
+            {/* IPs ET PINGS */}
+            <section id="lab1-s10-ips" className="scroll-mt-4">
               <div className="bg-gradient-to-r from-cyan-900/20 to-purple-900/20 rounded-xl p-6 border border-cyan-500/30">
-                <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center gap-2">{"👑 Étape 4 — Forcer SW1 comme Root Bridge"}</h2>
-
+                <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center gap-2">{"🖥️ Étape 4 — IPs statiques et vérification"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Clique sur chaque PC → Desktop → IP Configuration. Pas de passerelle (même réseau)."}</p>
+                <div className="overflow-x-auto mb-4">
+                  <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                    <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"PC"}</th><th className="p-2 text-left">{"Adresse IP"}</th><th className="p-2 text-left">{"Masque"}</th><th className="p-2 text-left">{"Switch"}</th></tr></thead>
+                    <tbody>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC1"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.10"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 text-slate-400">{"SW1"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC2"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.20"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 text-slate-400">{"SW2"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC3"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.30"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 text-slate-400">{"SW3"}</td></tr>
+                    </tbody>
+                  </table>
+                </div>
                 <div className="bg-black/30 rounded-lg p-4 mb-4">
-                  <p className="text-cyan-300 font-bold text-sm mb-2">{"4.1 — Sur SW1 — Root primary :"}</p>
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Test de connectivité :"}</p>
                   <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
-                    <p>{"SW1> enable"}</p>
-                    <p>{"SW1# configure terminal"}</p>
-                    <p>{"SW1(config)# spanning-tree vlan 1 root primary"}</p>
-                    <p>{"SW1(config)# end"}</p>
-                  </div>
-                  <p className="text-slate-400 text-xs mt-2">{"→ Met la priorité de SW1 à 24576 (ou moins si nécessaire)."}</p>
-                </div>
-
-                <div className="bg-black/30 rounded-lg p-4 mb-4">
-                  <p className="text-cyan-300 font-bold text-sm mb-2">{"4.2 — Sur SW2 — Root secondary (backup) :"}</p>
-                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
-                    <p>{"SW2> enable"}</p>
-                    <p>{"SW2# configure terminal"}</p>
-                    <p>{"SW2(config)# spanning-tree vlan 1 root secondary"}</p>
-                    <p>{"SW2(config)# end"}</p>
-                  </div>
-                  <p className="text-slate-400 text-xs mt-2">{"→ Met la priorité de SW2 à 28672. Si SW1 tombe, SW2 prend le relais."}</p>
-                </div>
-
-                <div className="bg-black/30 rounded-lg p-4">
-                  <p className="text-emerald-300 font-bold text-sm mb-2">{"4.3 — Vérification :"}</p>
-                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
-                    <p>{"SW1# show spanning-tree"}</p>
-                    <p className="text-slate-400">{"!"}</p>
-                    <p className="text-slate-400">{"Root ID    Priority    24577"}</p>
-                    <p className="text-slate-400">{"           Address     xxxx.xxxx.xxxx ← MAC de SW1"}</p>
-                    <p className="text-slate-400">{"!"}</p>
-                    <p className="text-slate-400">{"Bridge ID  Priority    24577"}</p>
-                    <p className="text-slate-400">{"           Address     xxxx.xxxx.xxxx ← même MAC"}</p>
-                    <p className="text-emerald-400">{"!"}</p>
-                    <p className="text-emerald-400">{"→ Root ID = Bridge ID → SW1 est le Root Bridge ✅"}</p>
-                    <p className="text-emerald-400">{"→ Tous les ports de SW1 sont Designated (Desg FWD)"}</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* PORTFAST */}
-            <section id="lab10-portfast" className="scroll-mt-4">
-              <div className="bg-gradient-to-r from-purple-900/20 to-emerald-900/20 rounded-xl p-6 border border-purple-500/30">
-                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"⚡ Étape 5 — PortFast et BPDU Guard"}</h2>
-                <p className="text-slate-300 text-sm mb-4">{"Répète cette configuration sur les 3 switches (SW1, SW2, SW3) :"}</p>
-
-                <div className="bg-black/30 rounded-lg p-4 mb-4">
-                  <p className="text-purple-300 font-bold text-sm mb-2">{"Configuration identique sur chaque switch :"}</p>
-                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
-                    <p>{"SW1# configure terminal"}</p>
-                    <p>{"SW1(config)# interface range FastEthernet0/1 - 2"}</p>
-                    <p>{"SW1(config-if-range)# spanning-tree portfast"}</p>
-                    <p className="text-amber-300">{"% Warning: portfast should only be enabled on ports..."}</p>
-                    <p>{"SW1(config-if-range)# spanning-tree bpduguard enable"}</p>
-                    <p>{"SW1(config-if-range)# exit"}</p>
-                    <p>{"SW1(config)# end"}</p>
-                  </div>
-                  <p className="text-slate-400 text-xs mt-2">{"→ Le warning est normal. PortFast est bien activé sur Fa0/1 et Fa0/2."}</p>
-                </div>
-
-                <div className="bg-red-900/20 rounded-lg p-4 border border-red-500/20 mb-4">
-                  <p className="text-red-300 font-bold text-sm mb-1">{"⚠️ NE FAIS PAS ça sur Fa0/23 et Fa0/24 !"}</p>
-                  <p className="text-slate-300 text-sm">{"Ces ports sont connectés à d'autres switches. PortFast sur un port inter-switch = danger de boucle temporaire."}</p>
-                </div>
-
-                <div className="bg-black/30 rounded-lg p-4">
-                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Vérification :"}</p>
-                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
-                    <p>{"SW1# show spanning-tree interface Fa0/1 detail"}</p>
-                    <p className="text-slate-400">{"→ Cherche « The port is in the portfast mode » ✅"}</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* TESTS FINAUX */}
-            <section id="lab10-tests" className="scroll-mt-4">
-              <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-6">
-                <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Tests finaux"}</p>
-
-                <div className="bg-black/30 rounded-lg p-4 mb-4">
-                  <p className="text-purple-300 font-bold text-sm mb-2">{"Test 1 — Connectivité :"}</p>
-                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
-                    <p className="text-slate-400">{"Depuis PC0 :"}</p>
+                    <p className="text-slate-400">{"Depuis PC1 :"}</p>
                     <p>{"C:\\> ping 192.168.1.20"}<span className="text-emerald-400">{" ✅ (PC2, sur SW2)"}</span></p>
-                    <p>{"C:\\> ping 192.168.1.30"}<span className="text-emerald-400">{" ✅ (PC4, sur SW3)"}</span></p>
-                    <p>{"C:\\> ping 192.168.1.31"}<span className="text-emerald-400">{" ✅ (PC5, sur SW3)"}</span></p>
+                    <p>{"C:\\> ping 192.168.1.30"}<span className="text-emerald-400">{" ✅ (PC3, sur SW3)"}</span></p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Si le premier ping échoue, c'est normal (ARP). Refais-le une deuxième fois."}</p>
+                </div>
+                <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/20">
+                  <p className="text-emerald-300 font-bold text-sm mb-1">{"✅ Ce que ça prouve :"}</p>
+                  <p className="text-slate-300 text-sm">{"Malgré la boucle physique (3 liens = 3 chemins entre chaque switch), STP a automatiquement bloqué un port. Le réseau est stable, sans tempête de broadcast, et les PC communiquent parfaitement."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* SIMULATION BOUCLE */}
+            <section id="lab1-s10-boucle" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-red-900/20 to-amber-900/20 rounded-xl p-6 border border-red-500/30">
+                <h2 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">{"⚠️ Étape 5 (optionnel) — Simuler une boucle"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Pour voir concrètement pourquoi STP est indispensable, désactive-le sur un switch :"}</p>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-red-300 font-bold text-sm mb-2">{"Sur SW1 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# configure terminal"}</p>
+                    <p>{"SW1(config)# no spanning-tree vlan 1"}</p>
+                    <p>{"SW1(config)# end"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-red-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"no spanning-tree vlan 1"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Désactive complètement STP sur le VLAN 1 pour ce switch. Sans STP, tous les ports passent en Forwarding → la boucle physique crée une tempête de broadcast. Les trames circulent en boucle infinie et saturent le réseau."}</p></div>
                   </div>
                 </div>
-
-                <div className="bg-black/30 rounded-lg p-4 mb-4">
-                  <p className="text-purple-300 font-bold text-sm mb-2">{"Test 2 — Résilience STP :"}</p>
+                <div className="bg-red-900/30 rounded-lg p-4 border border-red-500/30 mb-4">
+                  <p className="text-red-300 font-bold text-sm mb-2">{"🔴 Ce que tu vas observer :"}</p>
                   <ul className="text-slate-300 text-sm space-y-1">
-                    <li>{"1. Supprime le câble SW1↔SW2 (Fa0/24)"}</li>
-                    <li>{"2. Attends 30-50 secondes (STP reconverge)"}</li>
-                    <li>{"3. Refais les pings → tout doit encore fonctionner"}</li>
-                    <li>{"4. Le trafic passe maintenant par SW3 au lieu du lien direct"}</li>
+                    <li>{"• En mode Simulation → tu verras des trames broadcast circuler en boucle"}</li>
+                    <li>{"• Les LEDs des liens inter-switch vont s'emballer (collision, saturation)"}</li>
+                    <li>{"• Les pings deviennent impossibles (réseau saturé)"}</li>
                   </ul>
                 </div>
-
                 <div className="bg-black/30 rounded-lg p-4">
-                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Résumé final :"}</p>
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Rétablir STP :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1(config)# spanning-tree vlan 1"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"→ Réactive STP. Le réseau se stabilise après 30-50 secondes de convergence."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* RÉSUMÉ */}
+            <section className="scroll-mt-4">
+              <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-6">
+                <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Résumé Lab 1"}</p>
+                <div className="bg-black/30 rounded-lg p-4">
                   <ul className="text-slate-300 text-sm space-y-1">
-                    <li>{"✅ SW1 est Root Bridge (priorité 24576)"}</li>
-                    <li>{"✅ SW2 est Root Bridge secondaire (priorité 28672)"}</li>
-                    <li>{"✅ Un port est bloqué pour empêcher la boucle"}</li>
-                    <li>{"✅ PortFast + BPDU Guard sur tous les ports PC"}</li>
-                    <li>{"✅ Connectivité complète entre les 6 PCs"}</li>
-                    <li>{"✅ Le réseau résiste à la perte d'un lien grâce à STP"}</li>
+                    <li>{"✅ Topologie triangle câblée (3 switches + 3 PCs sur Fa0/1)"}</li>
+                    <li>{"✅ Switches nommés SW1, SW2, SW3 (hostname)"}</li>
+                    <li>{"✅ STP observé : Root Bridge identifié, port Alternate BLK repéré"}</li>
+                    <li>{"✅ Root Port (FWD), Designated Port (FWD), Alternate Port (BLK) compris"}</li>
+                    <li>{"✅ IPs configurées (192.168.1.10/20/30), pings entre les 3 PCs OK"}</li>
+                    <li>{"✅ Réseau stable malgré la boucle physique → STP fait son travail"}</li>
                   </ul>
                 </div>
               </div>
@@ -16420,7 +16412,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
               onClick={() => setLabTab('correction')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession10 ? 'Correction Lab STP' : isSession9 ? 'Correction Lab OSPF' : isSession8 ? 'Correction Lab Routage' : isSession7 ? 'Correction Lab Adressage' : isSession6 ? 'Correction Lab Syslog' : isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
+              <CheckCircle className="w-4 h-4" /> {isSession10 ? 'Correction Lab 1 (Intro STP)' : isSession9 ? 'Correction Lab OSPF' : isSession8 ? 'Correction Lab Routage' : isSession7 ? 'Correction Lab Adressage' : isSession6 ? 'Correction Lab Syslog' : isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
             </button>
           )}
           {!hideCorrection && (isSession2 || isSession3 || isSession4 || isSession5 || isSession6 || isSession8 || isSession9 || isSession10) && lab.solutionContentLab2 && (
