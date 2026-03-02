@@ -226,8 +226,8 @@ function Vibe2({ onLogin }) {
 
       gsap.timeline({
         scrollTrigger: {
-          trigger: heroRef.current, start: 'top top', end: '+=300%',
-          pin: true, scrub: 1, anticipatePin: 1,
+          trigger: heroRef.current, start: 'top top', end: '+=180%',
+          pin: true, scrub: 0.5, anticipatePin: 1,
           snap: { snapTo: [0, 0.5, 1], duration: { min: 0.3, max: 0.8 }, delay: 0.05, ease: 'power2.inOut' },
           onLeave: sweep, onEnterBack: sweep,
         },
@@ -255,7 +255,7 @@ function Vibe2({ onLogin }) {
       gsap.set('.v2j-hd',   { y: 60, opacity: 0 });
       gsap.set('.v2j-card', { y: 60, opacity: 0 });
       gsap.timeline({
-        scrollTrigger: { trigger: jobStatsRef.current, start: 'top top', end: '+=280%', pin: true, scrub: true, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        scrollTrigger: { trigger: jobStatsRef.current, start: 'top top', end: '+=160%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
         onStart: () => {
           JOB_STATS.forEach((s, i) => {
             const el = jobStatsRef.current?.querySelector(`.v2j-num-${i}`);
@@ -276,7 +276,7 @@ function Vibe2({ onLogin }) {
       gsap.set('.v2r-hd',  { y: 30, opacity: 0 });
       gsap.set(recCards,   { y: 60, opacity: 0, scale: 0.9 });
       gsap.timeline({
-        scrollTrigger: { trigger: recruitRef.current, start: 'top top', end: '+=250%', pin: true, scrub: true, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        scrollTrigger: { trigger: recruitRef.current, start: 'top top', end: '+=150%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
       })
         .to('.v2r-hd', { y: 0, opacity: 1, stagger: 0.06, duration: 0.2 }, 0)
         .to(recCards,  { y: 0, opacity: 1, scale: 1, stagger: 0.05, duration: 0.4 }, 0.15);
@@ -286,7 +286,7 @@ function Vibe2({ onLogin }) {
       gsap.set('.v2s-card',  { y: 50, opacity: 0 });
       gsap.set('.v2s-extra', { y: 50, opacity: 0 });
       gsap.timeline({
-        scrollTrigger: { trigger: statsRef.current, start: 'top top', end: '+=220%', pin: true, scrub: true, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        scrollTrigger: { trigger: statsRef.current, start: 'top top', end: '+=130%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
         onStart: () => {
           REAL_STATS2.forEach((s, i) => {
             const el = statsRef.current?.querySelector(`.v2s-num-${i}`);
@@ -307,7 +307,7 @@ function Vibe2({ onLogin }) {
       gsap.set('.v2ss-hd',   { y: 60, opacity: 0 });
       gsap.set('.v2ss-card', { y: 60, opacity: 0 });
       gsap.timeline({
-        scrollTrigger: { trigger: sessionsRef.current, start: 'top top', end: '+=280%', pin: true, scrub: true, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        scrollTrigger: { trigger: sessionsRef.current, start: 'top top', end: '+=160%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
       })
         .to('.v2ss-hd',   { y: 0, opacity: 1, duration: 0.2 }, 0)
         .to('.v2ss-card', { y: 0, opacity: 1, stagger: 0.05, duration: 0.4 }, 0.15);
@@ -316,7 +316,7 @@ function Vibe2({ onLogin }) {
       gsap.set('.v2cli-hd',    { y: 60, opacity: 0 });
       gsap.set('.v2cli-panel', { y: 60, opacity: 0 });
       const cliTl = gsap.timeline({
-        scrollTrigger: { trigger: cliRef.current, start: 'top top', end: '+=350%', pin: true, scrub: true, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        scrollTrigger: { trigger: cliRef.current, start: 'top top', end: '+=200%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
       });
       cliTl
         .to('.v2cli-hd',    { y: 0, opacity: 1, stagger: 0.06, duration: 0.2 }, 0)
@@ -331,7 +331,7 @@ function Vibe2({ onLogin }) {
       gsap.set('.v2w-hd',   { y: 40, opacity: 0 });
       gsap.set('.v2w-step', { x: -60, opacity: 0 });
       gsap.timeline({
-        scrollTrigger: { trigger: howRef.current, start: 'top top', end: '+=300%', pin: true, scrub: true, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        scrollTrigger: { trigger: howRef.current, start: 'top top', end: '+=180%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
       })
         .to('.v2w-hd',   { y: 0, opacity: 1, duration: 0.25 }, 0)
         .to('.v2w-step', { x: 0, opacity: 1, stagger: 0.2, duration: 0.5 }, 0.2);
@@ -345,7 +345,7 @@ function Vibe2({ onLogin }) {
           scrollTrigger: {
             trigger: horizWrap.current, start: 'top top',
             end: () => `+=${track.scrollWidth - window.innerWidth}`,
-            pin: true, scrub: 1, invalidateOnRefresh: true, anticipatePin: 1,
+            pin: true, scrub: 0.5, invalidateOnRefresh: true, anticipatePin: 1,
           },
         });
       }
@@ -355,7 +355,7 @@ function Vibe2({ onLogin }) {
       gsap.set('.v2p-img',  { x:  50, opacity: 0 });
       gsap.set('.v2p-feat', { y:  20, opacity: 0 });
       gsap.timeline({
-        scrollTrigger: { trigger: prevRef.current, start: 'top top', end: '+=220%', pin: true, scrub: true, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        scrollTrigger: { trigger: prevRef.current, start: 'top top', end: '+=130%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
       })
         .to('.v2p-txt',  { x: 0, opacity: 1, duration: 0.5 }, 0)
         .to('.v2p-img',  { x: 0, opacity: 1, duration: 0.5 }, 0.1)
@@ -365,7 +365,7 @@ function Vibe2({ onLogin }) {
       const mWords = gsap.utils.toArray(maniRef.current?.querySelectorAll('.v2m-word') ?? []);
       gsap.set(mWords, { color: '#1e1b4b' });
       gsap.timeline({
-        scrollTrigger: { trigger: maniRef.current, start: 'top top', end: '+=320%', pin: true, scrub: true, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        scrollTrigger: { trigger: maniRef.current, start: 'top top', end: '+=180%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
       })
         .to(mWords, { color: '#e2e8f0', stagger: 1 / (mWords.length || 1), duration: 1 }, 0);
 
@@ -373,7 +373,7 @@ function Vibe2({ onLogin }) {
       gsap.set('.v2tl-hd',   { y: 50, opacity: 0 });
       gsap.set('.v2tl-card', { y: 50, opacity: 0 });
       gsap.timeline({
-        scrollTrigger: { trigger: toolsRef.current, start: 'top top', end: '+=250%', pin: true, scrub: true, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        scrollTrigger: { trigger: toolsRef.current, start: 'top top', end: '+=150%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
       })
         .to('.v2tl-hd',   { y: 0, opacity: 1, duration: 0.25 }, 0)
         .to('.v2tl-card', { y: 0, opacity: 1, stagger: 0.1, duration: 0.4 }, 0.2);
@@ -382,7 +382,7 @@ function Vibe2({ onLogin }) {
       gsap.set('.v2t-hd',   { y: 60, opacity: 0 });
       gsap.set('.v2t-card', { y: 60, opacity: 0 });
       gsap.timeline({
-        scrollTrigger: { trigger: testRef.current, start: 'top top', end: '+=220%', pin: true, scrub: true, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        scrollTrigger: { trigger: testRef.current, start: 'top top', end: '+=130%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
       })
         .to('.v2t-hd',   { y: 0, opacity: 1, duration: 0.25 }, 0)
         .to('.v2t-card', { y: 0, opacity: 1, stagger: 0.15, duration: 0.4 }, 0.2);
@@ -393,7 +393,7 @@ function Vibe2({ onLogin }) {
       gsap.set(lgCards, { y: 60, opacity: 0, scale: 0.9 });
       if (lgHd) gsap.set(lgHd, { y: 30, opacity: 0 });
       gsap.timeline({
-        scrollTrigger: { trigger: logosRef.current, start: 'top top', end: '+=200%', pin: true, scrub: true, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        scrollTrigger: { trigger: logosRef.current, start: 'top top', end: '+=120%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
       })
         .to(lgHd,    { y: 0, opacity: 1, duration: 0.2 }, 0)
         .to(lgCards, { y: 0, opacity: 1, scale: 1, stagger: 0.08, duration: 0.4 }, 0.1);
