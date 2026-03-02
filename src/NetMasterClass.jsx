@@ -12862,167 +12862,284 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
     duration: "2h",
     icon: "🔄",
     slides: [
-      // ── SLIDE 1 : LE PROBLÈME DES BOUCLES LAYER 2 ──
+      // ── SLIDE 1 : C'EST QUOI UNE BOUCLE RÉSEAU ? ──
       {
         type: 'rich_text',
-        title: "Le problème des boucles",
+        title: "C'est quoi une boucle réseau ?",
         content: (
           <div>
-            <V2Header module="MODULE 10" section="Introduction" title="Pourquoi STP existe : les boucles de commutation" description="Quand on ajoute de la redondance dans un réseau (plusieurs chemins entre switches), on crée un problème mortel : les boucles Layer 2. Sans STP, le réseau s'effondre en quelques secondes." />
+            <V2Header module="MODULE 10" section="Introduction" title="Le problème des boucles Layer 2" description="Avant de comprendre STP, il faut comprendre le problème qu'il résout. Pourquoi est-ce qu'on ne peut pas juste brancher des câbles partout ?" />
             <V2InfoCards cards={[
-              { title: "La redondance, c'est bien... mais", color: "red", icon: AlertTriangle, items: ["En entreprise, on câble plusieurs chemins entre switches pour la tolérance de panne", "Si un lien tombe, le trafic passe par l'autre → haute disponibilité", "MAIS au Layer 2, les trames n'ont pas de TTL (contrairement aux paquets IP)", "Une trame broadcast qui entre dans une boucle → elle tourne à l'INFINI", "En quelques secondes : CPU à 100%, réseau saturé, plus rien ne passe"] },
-              { title: "STP : la solution automatique", color: "emerald", icon: CheckCircle2, items: ["Spanning Tree Protocol (IEEE 802.1D)", "STP détecte les boucles et BLOQUE un port pour les casser", "Le réseau garde la redondance physique mais sans boucle logique", "Si un lien actif tombe → STP débloque automatiquement le port de secours", "Tout ça se fait automatiquement, sans intervention de l'admin"] }
+              { title: "La redondance : c'est quoi ?", color: "emerald", icon: Network, items: ["En entreprise, on branche PLUSIEURS câbles entre les switches", "Exemple : SW1 est relié à SW2 par deux câbles différents", "Pourquoi ? Si un câble casse, l'autre prend le relais", "C'est ce qu'on appelle la redondance (avoir un plan B)", "C'est une très bonne idée... MAIS ça crée un nouveau problème"] },
+              { title: "Le problème : les boucles", color: "red", icon: AlertTriangle, items: ["Quand il y a plusieurs chemins entre switches → il y a une boucle", "Au Layer 2 (switches), les trames n'ont PAS de durée de vie (pas de TTL)", "Un paquet IP qui tourne en rond → il finit par mourir (TTL = 0)", "Une trame Layer 2 qui tourne en rond → elle tourne POUR TOUJOURS", "Résultat : le réseau s'effondre en quelques secondes"] }
             ]} />
-            <V2Whiteboard title="Boucle Layer 2 — ce qui se passe sans STP" code={"! Sans STP, voilà ce qui se passe :\n!\n!   SW1 ──────── SW2       PC1 envoie un broadcast (ex: ARP)\n!    │  \\      /  │\n!    │   \\    /   │        La trame va SW1→SW2 ET SW1→SW3\n!    │    \\  /    │        SW2 la renvoie vers SW3, SW3 vers SW1...\n!   SW3 ──────── SW4       Elle tourne en boucle INFINIMENT\n!\n!   Résultat :\n!   ❌ Broadcast storm : le réseau est noyé de trames en boucle\n!   ❌ Instabilité MAC : les tables MAC changent sans arrêt\n!   ❌ CPU à 100% sur tous les switches\n!   ❌ Plus AUCUN trafic utile ne passe\n!\n! Avec STP :\n!   SW1 ──────── SW2       STP bloque UN port (ex: SW3→SW4)\n!    │            │        → Plus de boucle, trafic normal\n!    │            │        Si SW1→SW2 tombe → STP débloque SW3→SW4\n!   SW3 ───╳──── SW4       Le réseau se répare tout seul !"} />
-            <V2Tip title="Retiens ça">STP = le protocole qui empêche les boucles Layer 2 en bloquant intelligemment des ports. Activé par défaut sur tous les switches Cisco. Tu n'as rien à faire pour qu'il fonctionne — mais tu dois comprendre comment il marche pour le dépannage.</V2Tip>
+            <V2Whiteboard title="Visualiser une boucle — exemple simple" code={"!  Imagine 3 switches câblés en triangle :\n!\n!           SW1\n!          /   \\\n!        SW2 ─── SW3\n!\n!  PC1 (branché sur SW1) envoie un message broadcast\n!  (ex : « Qui a l'adresse 192.168.1.1 ? »)\n!\n!  SW1 reçoit la trame → la renvoie vers SW2 ET vers SW3\n!  SW2 reçoit la trame → la renvoie vers SW3\n!  SW3 reçoit la trame → la renvoie vers SW1 ET vers SW2\n!  SW1 reçoit la trame... et la renvoie encore...\n!\n!  ⚠️  La trame ne s'arrête JAMAIS.\n!  En quelques secondes, il y a des milliers de copies\n!  qui tournent. Le réseau est saturé → plus rien ne passe."} />
+            <V2Tip title="Retiens l'analogie">Imagine que tu cries « Allo ? » dans une pièce avec des miroirs partout. Le son rebondit indéfiniment et devient de plus en plus fort jusqu'à ce que tu n'entendes plus rien. C'est exactement ce qui se passe avec une boucle réseau.</V2Tip>
           </div>
         )
       },
-      // ── SLIDE 2 : COMMENT STP FONCTIONNE ──
+      // ── SLIDE 2 : LE BROADCAST STORM ──
       {
         type: 'rich_text',
-        title: "Comment STP fonctionne",
+        title: "Le broadcast storm",
         content: (
           <div>
-            <V2Header module="MODULE 10" section="STP" title="Les 3 étapes de STP" description="STP suit un processus précis pour décider quels ports bloquer. Tout se fait via des messages appelés BPDU (Bridge Protocol Data Unit) que les switches s'échangent." />
-            <V2Whiteboard title="Les 3 étapes de STP" code={"! ┌──────────────────────────────────────────────────────────┐\n! │  ÉTAPE 1 — Élire le Root Bridge                          │\n! │                                                          │\n! │  UN switch est élu « chef » (Root Bridge)                │\n! │  Critère : le plus petit Bridge ID gagne                 │\n! │  Bridge ID = Priorité (32768 par défaut) + adresse MAC   │\n! │  → Le switch avec la plus petite priorité (ou MAC) gagne │\n! └──────────────────────────────────────────────────────────┘\n!         ↓\n! ┌──────────────────────────────────────────────────────────┐\n! │  ÉTAPE 2 — Choisir les rôles des ports                   │\n! │                                                          │\n! │  Root Port (RP) : le port le plus proche du Root Bridge  │\n! │  → Un seul Root Port par switch (sauf le Root Bridge)    │\n! │                                                          │\n! │  Designated Port (DP) : le meilleur port sur chaque lien │\n! │  → Tous les ports du Root Bridge sont Designated         │\n! │                                                          │\n! │  Blocked Port (BP) : les ports en trop → BLOQUÉS         │\n! │  → C'est eux qui cassent la boucle                       │\n! └──────────────────────────────────────────────────────────┘\n!         ↓\n! ┌──────────────────────────────────────────────────────────┐\n! │  ÉTAPE 3 — Converger                                     │\n! │                                                          │\n! │  Les ports passent par : Blocking → Listening →          │\n! │  Learning → Forwarding (ou restent Blocking)             │\n! │  Convergence totale ≈ 30-50 secondes en STP classique    │\n! └──────────────────────────────────────────────────────────┘"} />
+            <V2Header module="MODULE 10" section="Introduction" title="Ce qui se passe sans STP : le broadcast storm" description="Sans STP, une simple trame broadcast peut détruire tout un réseau en quelques secondes. Voici exactement ce qui se passe, étape par étape." />
+            <V2Whiteboard title="La catastrophe — étape par étape" code={"!  SECONDES 0-1 : PC1 envoie un ARP broadcast\n!  (« Qui a l'IP 192.168.1.1 ? »)\n!\n!  SW1 reçoit la trame → la copie et l'envoie sur tous ses ports\n!  → SW2 reçoit la copie, → SW3 reçoit la copie\n!\n!  SW2 renvoie la trame vers SW3\n!  SW3 renvoie la trame vers SW2 ET vers SW1\n!  SW1 renvoie encore... SW2 renvoie encore...\n!\n!  SECONDES 2-5 :\n!  Au lieu d'1 trame, il y en a maintenant des CENTAINES\n!  qui tournent dans tous les sens.\n!\n!  SECONDES 5-30 :\n!  ❌ Broadcast storm — le réseau est noyé de trames inutiles\n!  ❌ CPU à 100% sur chaque switch (ils n'arrivent plus à suivre)\n!  ❌ Table MAC instable — les switches ne savent plus qui est où\n!  ❌ Aucun trafic utile ne passe plus\n!  ❌ Tout le réseau est mort"} />
             <V2InfoCards cards={[
-              { title: "Les BPDU — les messages STP", color: "purple", icon: Network, items: ["BPDU = Bridge Protocol Data Unit", "Envoyés toutes les 2 secondes par le Root Bridge", "Contiennent : Bridge ID, coût du chemin, port ID", "Les autres switches relaient les BPDU en ajoutant leur coût", "C'est grâce aux BPDU que chaque switch sait qui est le Root Bridge"] },
-              { title: "Pourquoi c'est important ?", color: "amber", icon: Lightbulb, items: ["STP est activé PAR DÉFAUT sur les switches Cisco", "Tu n'as pas besoin de l'activer — il tourne déjà", "Mais si tu ne le comprends pas, tu ne sauras pas pourquoi un port est bloqué", "En dépannage : un port en Blocking = STP fait son travail, pas une panne", "Tu peux influencer l'élection du Root Bridge en modifiant la priorité"] }
+              { title: "Pourquoi c'est si grave ?", color: "red", icon: AlertTriangle, items: ["Ça peut arriver avec UN SEUL broadcast (comme un ARP)", "Ça se propage à toute la boucle instantanément", "Les switches sont dépassés : CPU 100%, mémoire pleine", "Les PCs ne peuvent plus communiquer du tout", "La seule solution sans STP : débrancher un câble manuellement"] },
+              { title: "Ce qu'il faut retenir", color: "amber", icon: Lightbulb, items: ["Redondance (plusieurs câbles) = risque de boucle", "Boucle + broadcast = catastrophe garantie", "Les trames Layer 2 n'ont pas de TTL → elles ne meurent jamais", "Ce n'est pas une question de 'si' ça arrive, mais de 'quand'", "→ C'est exactement pour ça que STP a été inventé"] }
             ]} />
           </div>
         )
       },
-      // ── SLIDE 3 : L'ÉLECTION DU ROOT BRIDGE ──
+      // ── SLIDE 3 : STP — LA SOLUTION ──
+      {
+        type: 'rich_text',
+        title: "STP : la solution",
+        content: (
+          <div>
+            <V2Header module="MODULE 10" section="STP" title="Spanning Tree Protocol — la solution aux boucles" description="STP est un protocole qui tourne automatiquement sur tous les switches Cisco. Son seul but : détecter les boucles et en bloquer une pour les casser." />
+            <V2Whiteboard title="Comment STP résout le problème" code={"!  SANS STP — boucle = catastrophe :\n!\n!           SW1\n!          /   \\\n!        SW2 ─── SW3    ← Boucle ! Tout s'effondre\n!\n!  ─────────────────────────────────────────────────────\n!\n!  AVEC STP — un port est bloqué :\n!\n!           SW1\n!          /   \\\n!        SW2 ─╳─ SW3    ← STP bloque ce port\n!\n!  Le port bloqué (╳) ne forwarde AUCUN trafic\n!  → La boucle est cassée\n!  → Le réseau fonctionne normalement\n!\n!  Et si le lien SW1─SW3 tombe ?\n!           SW1\n!          /   \n!        SW2 ─── SW3    ← STP débloque automatiquement le port\n!\n!  STP détecte la panne et débloque le port de secours !"} />
+            <V2InfoCards cards={[
+              { title: "Les 3 grandes idées de STP", color: "emerald", icon: CheckCircle2, items: ["1. BLOQUER un port pour casser la boucle (le minimum possible)", "2. Garder la redondance physique (les câbles restent branchés)", "3. DÉBLOQUER automatiquement si un lien actif tombe (plan B)", "Tout ça se fait sans toucher à rien — STP tourne en arrière-plan", "Standard IEEE 802.1D — tous les switches le supportent"] },
+              { title: "Ce que STP fait tout seul", color: "purple", icon: Network, items: ["Il élit un switch 'chef' (le Root Bridge)", "Il calcule le meilleur chemin vers ce chef pour chaque switch", "Il bloque les ports qui créeraient des boucles", "Il surveille en permanence (toutes les 2 secondes)", "En cas de panne : il recalcule et débloque un autre chemin"] }
+            ]} />
+            <V2Tip title="Point clé">STP est activé par défaut sur tous les switches Cisco. Tu n'as rien à faire pour l'activer. Mais tu dois le comprendre pour savoir pourquoi un port est bloqué et comment influencer son comportement.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 4 : LE ROOT BRIDGE — L'ANALOGIE ──
+      {
+        type: 'rich_text',
+        title: "C'est quoi le Root Bridge ?",
+        content: (
+          <div>
+            <V2Header module="MODULE 10" section="STP" title="Le Root Bridge : le chef du réseau STP" description="Pour fonctionner, STP a besoin d'un point de référence central. Ce switch s'appelle le Root Bridge. Tout le reste se calcule à partir de lui." />
+            <V2InfoCards cards={[
+              { title: "L'analogie du chef d'équipe", color: "purple", icon: Lightbulb, items: ["Imagine une équipe de travail avec plusieurs membres", "Pour éviter le chaos, on élit UN chef (le Root Bridge)", "Tout le monde se repère par rapport au chef", "Chaque membre cherche le chemin le plus court vers le chef", "Les chemins en trop (qui créent des doublons) sont bloqués"] },
+              { title: "Le rôle du Root Bridge dans STP", color: "emerald", icon: CheckCircle2, items: ["Il y a EXACTEMENT un Root Bridge par réseau STP", "Tous les chemins sont calculés PAR RAPPORT à lui", "Ses ports à lui ne sont jamais bloqués (il est le centre)", "Les autres switches cherchent le chemin le plus court vers lui", "C'est lui qui envoie les messages de contrôle (BPDU) en premier"] }
+            ]} />
+            <V2Whiteboard title="Le Root Bridge comme centre du réseau" code={"!              ┌──────────┐\n!              │  SW1     │  ← ROOT BRIDGE (le chef)\n!              │ (Root)   │     Tous ses ports : actifs\n!              └────┬─────┘\n!                   │  \\ \n!            ┌──────┘   └──────┐\n!            │                 │\n!       ┌────┴─────┐     ┌─────┴────┐\n!       │  SW2     │─────│  SW3     │\n!       │          │  ╳  │          │  ← Ce lien est BLOQUÉ\n!       └──────────┘     └──────────┘     par STP\n!\n!  SW2 et SW3 ont chacun un chemin vers SW1 (le Root)\n!  Le lien SW2─SW3 créerait une boucle → STP le bloque\n!  SW2 et SW3 peuvent quand même communiquer\n!  → ils passent par SW1 (le chef)"} />
+          </div>
+        )
+      },
+      // ── SLIDE 5 : LE BRIDGE ID ──
+      {
+        type: 'rich_text',
+        title: "Le Bridge ID",
+        content: (
+          <div>
+            <V2Header module="MODULE 10" section="STP" title="Comment les switches s'identifient : le Bridge ID" description="Pour élire le Root Bridge, les switches ont besoin d'une identité unique. Cette identité s'appelle le Bridge ID. Voici comment il fonctionne." />
+            <V2Whiteboard title="Composition du Bridge ID" code={"!  Bridge ID = Priorité + Adresse MAC du switch\n!  ─────────────────────────────────────────────\n!\n!  ┌─────────────────────┬──────────────────────────┐\n!  │  Priorité (2 octets)│  Adresse MAC (6 octets)  │\n!  │  32768 par défaut   │  unique sur chaque switch │\n!  └─────────────────────┴──────────────────────────┘\n!\n!  Exemples :\n!  SW1 : priorité 32768 + MAC aabb.cc00.0001\n!         → Bridge ID = 32768.aabb.cc00.0001\n!\n!  SW2 : priorité 32768 + MAC aabb.cc00.0002\n!         → Bridge ID = 32768.aabb.cc00.0002\n!\n!  SW3 : priorité 32768 + MAC aabb.cc00.0003\n!         → Bridge ID = 32768.aabb.cc00.0003\n!\n!  RÈGLE : le Bridge ID le plus PETIT gagne\n!  → À priorité égale (32768) : la plus petite MAC gagne\n!  → SW1 gagne car aabb.cc00.0001 < aabb.cc00.0002"} />
+            <V2InfoCards cards={[
+              { title: "La règle du plus petit gagne", color: "amber", icon: Lightbulb, items: ["On compare d'abord la Priorité", "Si la priorité est la même → on compare la MAC", "La MAC la plus petite gagne", "Priorité défaut = 32768 (sur tous les switches)", "Si tous ont la même priorité → c'est la MAC qui décide (aléatoire !)"] },
+              { title: "La priorité est modifiable", color: "emerald", icon: CheckCircle2, items: ["La priorité peut être changée par l'admin", "Valeurs possibles : 0, 4096, 8192, 12288, 16384... (multiples de 4096)", "Pour forcer un switch comme Root : mettre la priorité à 4096", "4096 < 32768 → ce switch gagne, quelle que soit sa MAC", "La MAC est fixe (gravée dans le matériel), la priorité non"] }
+            ]} />
+          </div>
+        )
+      },
+      // ── SLIDE 6 : L'ÉLECTION DU ROOT BRIDGE PAS À PAS ──
       {
         type: 'rich_text',
         title: "L'élection du Root Bridge",
         content: (
           <div>
-            <V2Header module="MODULE 10" section="STP" title="Qui devient Root Bridge ?" description="Le Root Bridge est le switch central de STP. Tous les calculs de chemin se font PAR RAPPORT à lui. L'élection est automatique, mais tu peux (et tu dois) l'influencer." />
-            <V2Whiteboard title="Le Bridge ID" code={"! Le Bridge ID (BID) détermine qui devient Root Bridge\n!\n!   Bridge ID = Priorité + Adresse MAC\n!   ────────────────────────────────────\n!\n!   Priorité : 32768 par défaut (modifiable par multiples de 4096)\n!   MAC      : adresse MAC du switch (unique, non modifiable)\n!\n!   RÈGLE : le BID le plus PETIT gagne\n!\n!   Exemple :\n!   SW1 : priorité 32768 + MAC aa:bb:cc:00:00:01 → BID = 32768.aabb.cc00.0001\n!   SW2 : priorité 32768 + MAC aa:bb:cc:00:00:02 → BID = 32768.aabb.cc00.0002\n!   SW3 : priorité 32768 + MAC aa:bb:cc:00:00:03 → BID = 32768.aabb.cc00.0003\n!\n!   → SW1 gagne (plus petite MAC à priorité égale)\n!\n!   Mais si on change la priorité de SW2 :\n!   SW2 : priorité 4096 → BID = 4096.aabb.cc00.0002\n!   → SW2 gagne maintenant (4096 < 32768)"} />
+            <V2Header module="MODULE 10" section="STP" title="Comment se déroule l'élection ?" description="Au démarrage, tous les switches pensent être le Root Bridge. Ils s'échangent des messages pour trouver qui a le plus petit Bridge ID. Voici comment ça se passe." />
+            <V2Whiteboard title="L'élection étape par étape" code={"!  ÉTAPE 1 — Au démarrage : chacun pense être le chef\n!\n!  SW1 : « Je suis le Root ! BID = 32768.aabb.cc00.0001 »\n!  SW2 : « Je suis le Root ! BID = 32768.aabb.cc00.0002 »\n!  SW3 : « Je suis le Root ! BID = 32768.aabb.cc00.0003 »\n!\n!  ─────────────────────────────────────────────────────────\n!\n!  ÉTAPE 2 — Échange de messages BPDU\n!  (BPDU = Bridge Protocol Data Unit = message STP)\n!\n!  Chaque switch envoie son Bridge ID dans un BPDU\n!  Chaque switch compare le BID reçu avec le sien\n!  Si le BID reçu est plus petit → « ok, tu es le Root »\n!\n!  ─────────────────────────────────────────────────────────\n!\n!  ÉTAPE 3 — Résultat\n!\n!  SW1 a le plus petit BID (plus petite MAC à priorité égale)\n!  SW2 reçoit le BPDU de SW1 → « SW1 est plus petit, c'est lui le Root »\n!  SW3 reçoit le BPDU de SW1 → « SW1 est plus petit, c'est lui le Root »\n!\n!  ✅ SW1 est élu Root Bridge !"} />
             <V2InfoCards cards={[
-              { title: "Choisir le bon Root Bridge", color: "emerald", icon: CheckCircle2, items: ["Par défaut : le switch avec la plus petite MAC gagne → aléatoire !", "En production, on veut que le Root Bridge soit au CENTRE du réseau", "On baisse sa priorité : spanning-tree vlan 1 priority 4096", "Les valeurs possibles : 0, 4096, 8192, 12288... jusqu'à 61440", "Ou plus simple : spanning-tree vlan 1 root primary → met la priorité à 24576"] },
-              { title: "Vérifier le Root Bridge", color: "purple", icon: Network, items: ["show spanning-tree → affiche le Root ID et le Bridge ID local", "Si Root ID = Bridge ID → CE switch est le Root Bridge", "Si Root ID ≠ Bridge ID → le Root est un autre switch", "show spanning-tree root → résumé rapide du Root Bridge", "Le Root Bridge a TOUS ses ports en Designated (Forwarding)"] }
+              { title: "C'est quoi un BPDU ?", color: "purple", icon: Network, items: ["BPDU = Bridge Protocol Data Unit", "C'est le 'message' que les switches utilisent pour STP", "Envoyé toutes les 2 secondes par le Root Bridge", "Contient : le Bridge ID, le coût du chemin, des timers", "Les autres switches relaient les BPDU en ajoutant leur coût"] },
+              { title: "Pourquoi c'est important ?", color: "amber", icon: Lightbulb, items: ["Par défaut, c'est le switch avec la plus petite MAC qui gagne", "C'est aléatoire → souvent pas le meilleur choix", "En production : on CHOISIT qui sera le Root Bridge", "On fait ça en modifiant la priorité manuellement", "→ On verra les commandes dans la prochaine slide"] }
             ]} />
-            <V2Terminal title="Modifier la priorité" code={"! Méthode 1 — Priorité manuelle\nSW2(config)# spanning-tree vlan 1 priority 4096\n!\n! Méthode 2 — Root primary (plus simple)\nSW2(config)# spanning-tree vlan 1 root primary\n!   → Met automatiquement la priorité à 24576\n!   (ou 4096 de moins que le Root actuel si besoin)\n!\n! Méthode 3 — Root secondary (backup)\nSW3(config)# spanning-tree vlan 1 root secondary\n!   → Met la priorité à 28672 (sera Root si le primary tombe)"} />
           </div>
         )
       },
-      // ── SLIDE 4 : LES RÔLES DES PORTS ──
+      // ── SLIDE 7 : FORCER L'ÉLECTION ──
       {
         type: 'rich_text',
-        title: "Les rôles des ports",
+        title: "Choisir son Root Bridge",
         content: (
           <div>
-            <V2Header module="MODULE 10" section="STP" title="Root Port, Designated Port, Blocked Port" description="Chaque port d'un switch reçoit un rôle dans STP. Comprendre ces rôles, c'est comprendre pourquoi un port forwarde ou bloque du trafic." />
-            <V2Whiteboard title="Les 3 rôles STP" code={"! ┌─────────────────────────────────────────────────────────────┐\n! │  ROOT PORT (RP)                                             │\n! │  → Le port qui mène le plus rapidement vers le Root Bridge  │\n! │  → Un seul par switch (sauf le Root Bridge qui n'en a pas)  │\n! │  → État : Forwarding                                        │\n! ├─────────────────────────────────────────────────────────────┤\n! │  DESIGNATED PORT (DP)                                       │\n! │  → Le meilleur port sur chaque segment/lien                 │\n! │  → Tous les ports du Root Bridge sont Designated             │\n! │  → État : Forwarding                                        │\n! ├─────────────────────────────────────────────────────────────┤\n! │  BLOCKED PORT (BP) / Alternate Port                         │\n! │  → Les ports « en trop » qui créeraient une boucle          │\n! │  → État : Blocking (ne forwarde RIEN sauf les BPDU)         │\n! │  → Si un lien actif tombe → ce port se débloque             │\n! └─────────────────────────────────────────────────────────────┘"} />
-            <V2Whiteboard title="Exemple concret" code={"!                    [Root Bridge = SW1]\n!                   DP/            \\DP\n!                    /              \\\n!     RP [SW2] ──────────────── [SW3] RP\n!                  DP         BP(bloqué)\n!\n!   SW1 est Root → tous ses ports sont Designated (DP)\n!   SW2 : port vers SW1 = Root Port (RP), port vers SW3 = Designated (DP)\n!   SW3 : port vers SW1 = Root Port (RP), port vers SW2 = Blocked (BP)\n!\n!   Pourquoi SW3→SW2 est bloqué et pas SW2→SW3 ?\n!   → Le port Designated gagne sur chaque segment\n!   → SW2 a un meilleur BID que SW3 → son port est Designated\n!   → Le port « perdant » de SW3 est bloqué"} />
+            <V2Header module="MODULE 10" section="STP" title="Forcer l'élection : choisir le Root Bridge" description="Laisser STP choisir le Root Bridge par défaut, c'est risqué. Le switch avec la plus petite MAC peut être n'importe lequel. En pratique, on choisit toujours manuellement." />
             <V2InfoCards cards={[
-              { title: "Comment STP choisit les rôles", color: "amber", icon: Lightbulb, items: ["1. Quel switch est Root ? → tous ses ports sont Designated", "2. Pour chaque autre switch : quel port a le coût le plus bas vers le Root ? → Root Port", "3. Sur chaque lien, quel switch a le meilleur BID ? → son port est Designated", "4. Tous les ports restants → Blocked", "En cas d'égalité de coût : le switch avec le plus petit BID gagne"] },
-              { title: "Résumé rapide", color: "emerald", icon: CheckCircle2, items: ["Root Port = chemin vers le chef (1 par switch)", "Designated Port = responsable du lien (forwarde le trafic)", "Blocked Port = sécurité anti-boucle (ne forwarde rien)", "Root Bridge = que des Designated Ports", "Un port bloqué n'est PAS une panne, c'est STP qui protège le réseau"] }
+              { title: "Pourquoi choisir manuellement ?", color: "red", icon: AlertTriangle, items: ["Par défaut : le plus petite MAC gagne → souvent un switch au bord du réseau", "Un Root Bridge mal placé = chemins sous-optimaux", "Ça peut surcharger des liens et ralentir le réseau", "En production : le Root Bridge doit être au CŒUR du réseau", "→ On le force en abaissant sa priorité en dessous de 32768"] },
+              { title: "Les 3 méthodes", color: "emerald", icon: CheckCircle2, items: ["Méthode 1 : priorité manuelle (spanning-tree vlan 1 priority 4096)", "Méthode 2 : commande raccourci (spanning-tree vlan 1 root primary)", "Méthode 3 : Root secondaire pour le backup (root secondary)", "Méthode 1 = contrôle précis | Méthode 2 = plus simple", "Les deux font la même chose — utilise root primary en lab"] }
             ]} />
+            <V2Terminal title="Les commandes pour forcer le Root Bridge" code={"! ── Méthode 1 : priorité manuelle ──────────────────────────\nSW1(config)# spanning-tree vlan 1 priority 4096\n!   Priorité 4096 < 32768 → SW1 devient Root Bridge\n!   Valeurs valides : 0, 4096, 8192, 12288... (multiples de 4096)\n!\n! ── Méthode 2 : root primary (recommandé en lab) ────────────\nSW1(config)# spanning-tree vlan 1 root primary\n!   Automatiquement met la priorité à 24576\n!   (ou encore plus bas si quelqu'un a déjà 24576)\n!\n! ── Méthode 3 : root secondary (plan B) ─────────────────────\nSW2(config)# spanning-tree vlan 1 root secondary\n!   Priorité = 28672 → devient Root si le primary tombe\n!\n! ── Vérifier ─────────────────────────────────────────────────\nSW1# show spanning-tree\n!   Regarde « Root ID » vs « Bridge ID »\n!   Si les deux sont identiques → CE switch est le Root Bridge"} />
           </div>
         )
       },
-      // ── SLIDE 5 : LE COÛT DES LIENS ──
+      // ── SLIDE 8 : LE ROOT PORT ──
       {
         type: 'rich_text',
-        title: "Le coût des liens (Path Cost)",
+        title: "Le Root Port",
         content: (
           <div>
-            <V2Header module="MODULE 10" section="STP" title="Path Cost : comment STP choisit le meilleur chemin" description="Le coût d'un lien dépend de sa vitesse. Plus le lien est rapide, plus le coût est bas. STP utilise le coût total pour déterminer le Root Port de chaque switch." />
-            <V2Whiteboard title="Coûts STP par vitesse de lien" code={"! ┌──────────────────────────────────────────────┐\n! │  Vitesse           Coût STP (802.1D)         │\n! │  ─────────────     ──────────────────         │\n! │  10 Mbps           100                        │\n! │  100 Mbps          19                         │\n! │  1 Gbps            4                          │\n! │  10 Gbps           2                          │\n! └──────────────────────────────────────────────┘\n!\n! Le Root Port = le port avec le PLUS PETIT coût total vers le Root\n!\n!  Exemple :\n!  [Root SW1]───(Gi, coût 4)───[SW2]───(Fa, coût 19)───[SW3]\n!                                                        │\n!                  (Gi, coût 4)                          │\n!  [Root SW1]────────────────────────────────────────────[SW3]\n!\n!  SW3 vers Root par SW2 : coût = 4 + 19 = 23\n!  SW3 vers Root directement : coût = 4\n!  → Root Port de SW3 = le lien direct (coût 4 < 23)"} />
+            <V2Header module="MODULE 10" section="STP — Rôles des ports" title="Rôle 1 : le Root Port" description="Une fois le Root Bridge élu, chaque switch doit trouver son chemin vers lui. Le port qui mène vers le Root Bridge s'appelle le Root Port." />
             <V2InfoCards cards={[
-              { title: "Calcul du coût", color: "purple", icon: Network, items: ["Le coût se cumule à chaque switch traversé", "Chaque switch ajoute le coût de son port d'ENTRÉE", "Root Port = chemin avec le coût total le plus bas", "En cas d'égalité : on compare le Bridge ID du voisin", "En dernier recours : on compare le Port ID (numéro de port)"] },
-              { title: "Dans notre lab", color: "emerald", icon: CheckCircle2, items: ["Tous les liens sont en FastEthernet (100 Mbps) → coût 19", "Ou GigabitEthernet (1 Gbps) → coût 4", "Avec des coûts égaux, c'est le BID qui départage", "Tu peux modifier le coût manuellement si besoin", "spanning-tree vlan 1 cost <valeur> sur l'interface"] }
+              { title: "C'est quoi le Root Port ?", color: "emerald", icon: Network, items: ["Le Root Port = le port du switch qui mène vers le Root Bridge", "C'est le 'chemin de retour vers le chef'", "Chaque switch non-Root a EXACTEMENT 1 Root Port", "Le Root Bridge lui-même n'a pas de Root Port (il est le chef)", "Le Root Port est toujours en état Forwarding (actif)"] },
+              { title: "Comment STP choisit le Root Port ?", color: "purple", icon: Lightbulb, items: ["Il cherche le chemin avec le coût total le plus bas vers le Root", "Coût = dépend de la vitesse du lien (100 Mbps = 19, 1 Gbps = 4)", "Le chemin le moins cher → Root Port", "Si deux chemins ont le même coût → on compare le Bridge ID du voisin", "Le voisin avec le plus petit BID → son port devient Root Port"] }
             ]} />
-            <V2Terminal title="Modifier le coût d'un port" code={"! Voir le coût actuel\nSW2# show spanning-tree\n!   → Regarde la colonne « Cost » pour chaque port\n!\n! Modifier le coût manuellement\nSW2(config)# interface FastEthernet0/1\nSW2(config-if)# spanning-tree vlan 1 cost 10\n!   → Force le coût à 10 sur ce port (au lieu de 19)\n!\n! Revenir au coût par défaut\nSW2(config-if)# no spanning-tree vlan 1 cost"} />
+            <V2Whiteboard title="Exemple — trouver les Root Ports" code={"!              ┌──────────┐\n!              │  SW1     │   ROOT BRIDGE\n!              └──┬────┬──┘\n!           Fa0/1 │    │ Fa0/2\n!    coût 19      │    │      coût 19\n!         ┌───────┘    └───────┐\n!         │                   │\n!    RP   │                   │  RP\n!    ┌────┴─────┐         ┌────┴─────┐\n!    │  SW2     │─────────│  SW3     │\n!    └──────────┘  Fa0/3  └──────────┘\n!\n!  SW2 → Root Port = Fa0/1 (chemin direct vers SW1, coût 19)\n!  SW3 → Root Port = Fa0/2 (chemin direct vers SW1, coût 19)\n!\n!  Le lien SW2─SW3 créerait une boucle\n!  → L'un des deux ports de ce lien sera BLOQUÉ"} />
+            <V2Tip title="Retiens">Root Port = le port qui mène vers le Root Bridge. 1 par switch. Toujours en Forwarding.</V2Tip>
           </div>
         )
       },
-      // ── SLIDE 6 : LES ÉTATS DES PORTS STP ──
+      // ── SLIDE 9 : LE DESIGNATED PORT ──
       {
         type: 'rich_text',
-        title: "Les états des ports",
+        title: "Le Designated Port",
         content: (
           <div>
-            <V2Header module="MODULE 10" section="STP" title="Les 5 états d'un port STP" description="Un port STP ne passe pas directement de Blocking à Forwarding. Il traverse plusieurs états pour éviter de créer des boucles temporaires pendant la convergence." />
-            <V2Whiteboard title="Les 5 états STP (802.1D)" code={"! ┌────────────┐    ┌────────────┐    ┌────────────┐    ┌────────────┐\n! │  BLOCKING  │───→│ LISTENING  │───→│  LEARNING  │───→│ FORWARDING │\n! │            │    │            │    │            │    │            │\n! │ Pas de     │    │ Écoute les │    │ Apprend les│    │ Forwarde   │\n! │ trafic     │    │ BPDU       │    │ MAC        │    │ tout       │\n! │ (sauf BPDU)│    │ 15 sec     │    │ 15 sec     │    │ ✅         │\n! └────────────┘    └────────────┘    └────────────┘    └────────────┘\n!\n!         ┌────────────┐\n!         │  DISABLED   │  ← Port administrativement shutdown\n!         └────────────┘\n!\n! Blocking → Forwarding = 30 secondes minimum (15+15)\n! C'est LONG ! C'est pour ça que PortFast existe (on le verra)"} />
+            <V2Header module="MODULE 10" section="STP — Rôles des ports" title="Rôle 2 : le Designated Port" description="Sur chaque lien entre deux switches, il faut désigner UN responsable. Ce port responsable s'appelle le Designated Port. Il est toujours actif (Forwarding)." />
             <V2InfoCards cards={[
-              { title: "Détail de chaque état", color: "purple", icon: Network, items: ["Blocking : ne forwarde RIEN, reçoit les BPDU seulement", "Listening : participe à l'élection STP, envoie/reçoit des BPDU (15 sec)", "Learning : apprend les adresses MAC mais ne forwarde pas encore (15 sec)", "Forwarding : forwarde tout le trafic normalement", "Disabled : port éteint (shutdown)"] },
-              { title: "Pourquoi 30 secondes ?", color: "amber", icon: Lightbulb, items: ["STP doit s'assurer qu'il n'y a pas de boucle avant de forwarder", "Listening (15s) : le temps de vérifier la topologie STP", "Learning (15s) : le temps de remplir la table MAC sans boucle", "30 secondes = le temps qu'un PC attend avant d'avoir du réseau !", "PortFast permet de sauter ces étapes sur les ports d'accès (PC)"] }
+              { title: "C'est quoi le Designated Port ?", color: "emerald", icon: CheckCircle2, items: ["Sur chaque segment réseau (lien entre 2 switches), 1 port est 'Designated'", "C'est lui qui forwarde le trafic sur ce lien", "C'est le 'responsable officiel' du segment", "Tous les ports du Root Bridge sont Designated (il est le meilleur)", "État : toujours Forwarding"] },
+              { title: "Comment STP choisit le Designated Port ?", color: "purple", icon: Lightbulb, items: ["Sur chaque lien, les 2 switches se comparent", "Celui qui a le coût total le plus bas vers le Root → son port est Designated", "Si coût égal → celui avec le plus petit Bridge ID → Designated", "L'autre switch (le 'perdant' du comparatif) → son port est Blocked", "Root Bridge = toujours Designated sur tous ses ports"] }
             ]} />
-            <V2Tip title="En résumé">Quand tu branches un PC, son port met 30 secondes à passer en Forwarding. C'est normal — c'est STP qui vérifie qu'il n'y a pas de boucle. Pour les ports PC, on utilise PortFast pour sauter cette attente.</V2Tip>
+            <V2Whiteboard title="Exemple — trouver les Designated Ports" code={"!              ┌──────────┐\n!              │  SW1     │   ROOT BRIDGE\n!              └──┬────┬──┘\n!        DP Fa0/1 │    │ DP Fa0/2     ← Tous les ports de SW1 = Designated\n!         ┌───────┘    └───────┐\n!    RP   │                   │  RP\n!    ┌────┴─────┐         ┌────┴─────┐\n!    │  SW2     │─────────│  SW3     │\n!    └──────────┘         └──────────┘\n!       Fa0/3 DP              Fa0/3 BLK\n!\n!  Sur le lien SW2─SW3 :\n!  SW2 coût total vers Root = 19 (direct vers SW1)\n!  SW3 coût total vers Root = 19 (direct vers SW1)\n!  Coûts égaux → on compare les Bridge ID\n!  SW2 a un plus petit BID que SW3\n!  → Fa0/3 de SW2 = Designated Port (DP)\n!  → Fa0/3 de SW3 = Blocked Port (BLK) ← casse la boucle !"} />
           </div>
         )
       },
-      // ── SLIDE 7 : PORTFAST ET BPDU GUARD ──
+      // ── SLIDE 10 : LE PORT BLOQUÉ ──
       {
         type: 'rich_text',
-        title: "PortFast et BPDU Guard",
+        title: "Le port Bloqué",
         content: (
           <div>
-            <V2Header module="MODULE 10" section="STP" title="Optimisations STP pour les ports d'accès" description="Attendre 30 secondes chaque fois qu'on branche un PC, c'est pas idéal. PortFast et BPDU Guard résolvent ce problème de manière sécurisée." />
+            <V2Header module="MODULE 10" section="STP — Rôles des ports" title="Rôle 3 : le port Bloqué (Alternate)" description="Tout port qui n'est ni Root Port ni Designated Port est bloqué par STP. Ce n'est PAS une panne — c'est STP qui fait son travail pour éviter les boucles." />
             <V2InfoCards cards={[
-              { title: "PortFast — passe direct en Forwarding", color: "emerald", icon: Zap, items: ["Le port passe de Blocking à Forwarding IMMÉDIATEMENT", "Skip les étapes Listening et Learning (0 seconde au lieu de 30)", "À utiliser UNIQUEMENT sur les ports d'accès (PC, imprimante, serveur)", "JAMAIS sur un port trunk ou un lien vers un autre switch !", "Si un switch est branché dessus → risque de boucle temporaire"] },
-              { title: "BPDU Guard — protection contre les boucles", color: "red", icon: Shield, items: ["Si un port PortFast reçoit un BPDU → il se DÉSACTIVE immédiatement", "Un BPDU = un switch est branché dessus (danger de boucle !)", "Le port passe en état err-disabled", "Pour le réactiver : shutdown puis no shutdown", "C'est la sécurité qui va avec PortFast : toujours les configurer ensemble"] }
+              { title: "C'est quoi un port Bloqué ?", color: "amber", icon: AlertTriangle, items: ["Un port Bloqué = un port 'en attente'", "Il ne forwarde AUCUN trafic utilisateur", "Mais il écoute quand même les messages BPDU (les messages STP)", "Si un lien actif tombe → il se débloque automatiquement", "C'est le 'plan B' du réseau : prêt à prendre le relais"] },
+              { title: "Ce n'est PAS une panne !", color: "emerald", icon: CheckCircle2, items: ["Voir un port en BLK (Blocking) dans show spanning-tree → c'est NORMAL", "STP a bloqué ce port pour éviter une boucle", "Le câble fonctionne, le port fonctionne, STP fait juste son job", "Si tu vois BLK et que le réseau marche → tout va bien", "C'est une erreur courante : débrancher un câble qui était intentionnellement bloqué !"] }
             ]} />
-            <V2Terminal title="Configurer PortFast et BPDU Guard" code={"! Méthode 1 — Par interface (port par port)\nSW1(config)# interface FastEthernet0/1\nSW1(config-if)# spanning-tree portfast\nSW1(config-if)# spanning-tree bpduguard enable\n!\n! Méthode 2 — Globalement (tous les ports access)\nSW1(config)# spanning-tree portfast default\n!   → Active PortFast sur TOUS les ports en mode access\n!   → Les ports trunk ne sont PAS affectés\n!\nSW1(config)# spanning-tree portfast bpduguard default\n!   → Active BPDU Guard sur tous les ports PortFast\n!\n! Vérifier\nSW1# show spanning-tree interface Fa0/1 detail\n!   → Affiche si PortFast et BPDU Guard sont actifs\n!\n! Si un port est en err-disabled (BPDU Guard déclenché) :\nSW1(config)# interface FastEthernet0/1\nSW1(config-if)# shutdown\nSW1(config-if)# no shutdown"} />
-            <V2Tip title="Règle d'or">PortFast = ports PC. JAMAIS sur un lien vers un switch. Toujours accompagné de BPDU Guard pour la sécurité. Dans le doute, ne mets pas PortFast.</V2Tip>
+            <V2Whiteboard title="Le port bloqué comme 'plan B'" code={"!  SITUATION NORMALE — SW3 Fa0/3 est bloqué par STP\n!\n!    SW1 ──── SW2 ──── SW3    Trafic SW2↔SW3 passe par SW1\n!     │                │\n!     └───────╳────────┘  ← Ce lien est bloqué (évite la boucle)\n!\n!  ─────────────────────────────────────────────────────────────\n!\n!  PANNE — le lien SW1─SW2 tombe\n!\n!    SW1   ╳╳╳╳ SW2 ──── SW3    SW2 n'a plus de chemin vers SW1 !\n!     │                │\n!     └────────────────┘  ← STP débloque ce port automatiquement\n!\n!  STP détecte la panne en ~20 secondes\n!  Le port bloqué passe en Forwarding\n!  SW2 peut de nouveau joindre SW1 (via SW3)\n!  Le réseau se répare tout seul !"} />
           </div>
         )
       },
-      // ── SLIDE 8 : COMMANDES DE VÉRIFICATION ──
+      // ── SLIDE 11 : RÉCAP DES 3 RÔLES ──
       {
         type: 'rich_text',
-        title: "Vérifier STP",
+        title: "Récap : les 3 rôles des ports",
         content: (
           <div>
-            <V2Header module="MODULE 10" section="Vérification" title="Les commandes de vérification STP" description="Pour vérifier et dépanner STP, il y a une commande principale : show spanning-tree. Voici comment la lire." />
-            <V2Terminal title="show spanning-tree — La commande principale" code={"SW2# show spanning-tree\n!\nVLAN0001\n  Spanning tree enabled protocol ieee\n  Root ID    Priority    4096\n             Address     aabb.cc00.0100\n             Cost        19\n             Port        1 (FastEthernet0/1)\n             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec\n!\n  Bridge ID  Priority    32769  (priority 32768 sys-id-ext 1)\n             Address     aabb.cc00.0200\n             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec\n!\nInterface        Role Sts Cost      Prio.Nbr Type\n---------------- ---- --- --------- -------- ----\nFa0/1            Root FWD 19        128.1    P2p\nFa0/2            Desg FWD 19        128.2    P2p\nFa0/3            Altn BLK 19        128.3    P2p"} />
-            <V2InfoCards cards={[
-              { title: "Comment lire le résultat", color: "purple", icon: Network, items: ["Root ID → identité du Root Bridge (priorité + MAC)", "Bridge ID → identité de CE switch", "Si Root ID = Bridge ID → ce switch EST le Root Bridge", "Cost → coût total du chemin vers le Root Bridge", "Port → le Root Port de ce switch (chemin vers le Root)"] },
-              { title: "Les colonnes de la table des ports", color: "amber", icon: Lightbulb, items: ["Role : Root (RP), Desg (DP), Altn (Blocked/Backup)", "Sts : FWD (Forwarding), BLK (Blocking), LIS (Listening), LRN (Learning)", "Cost : coût STP de ce port", "FWD = le port forwarde du trafic ✅", "BLK = le port est bloqué par STP (anti-boucle) ⛔"] }
-            ]} />
-            <V2Terminal title="Autres commandes utiles" code={"! Résumé rapide du Root Bridge\nSW2# show spanning-tree root\n!\n! Voir le détail d'une interface\nSW2# show spanning-tree interface Fa0/1 detail\n!\n! Voir quel switch est le Root\nSW2# show spanning-tree | include Root\n!\n! Voir les ports bloqués\nSW2# show spanning-tree blockedports"} />
+            <V2Header module="MODULE 10" section="STP" title="Root Port, Designated Port, Blocked — le résumé" description="Trois rôles, trois comportements. C'est le cœur de STP. Voici un récapitulatif complet avec un exemple pour tout clarifier d'un coup." />
+            <V2Whiteboard title="Les 3 rôles — tableau récapitulatif" code={"!  ┌──────────────────┬────────────────────────────────────┬──────────┐\n!  │ Rôle             │ Description                        │ État     │\n!  ├──────────────────┼────────────────────────────────────┼──────────┤\n!  │ Root Port (RP)   │ Port qui mène vers le Root Bridge  │ FWD ✅   │\n!  │                  │ 1 par switch (sauf Root Bridge)    │          │\n!  ├──────────────────┼────────────────────────────────────┼──────────┤\n!  │ Designated (DP)  │ Responsable du segment             │ FWD ✅   │\n!  │                  │ Tous les ports du Root Bridge      │          │\n!  ├──────────────────┼────────────────────────────────────┼──────────┤\n!  │ Blocked (BLK)    │ Port 'en trop' — casse la boucle  │ BLK ⛔   │\n!  │                  │ Plan B en cas de panne             │          │\n!  └──────────────────┴────────────────────────────────────┴──────────┘"} />
+            <V2Whiteboard title="Exemple complet avec SW1 / SW2 / SW3" code={"!                    ┌──────────┐\n!                    │  SW1     │   ← ROOT BRIDGE\n!                    └──┬────┬──┘      Priorité = 4096\n!              DP Fa0/1 │    │ DP Fa0/2\n!                ┌──────┘    └──────┐\n!                │                  │\n!          RP ┌──┴───────┐    ┌─────┴────┐ RP\n!      Fa0/1  │  SW2     ├────┤  SW3     │ Fa0/2\n!             └──────────┘    └──────────┘\n!               Fa0/2 DP        Fa0/3 BLK\n!\n!  SW1 (Root) → tous ses ports sont Designated (DP)\n!  SW2 → Fa0/1 = Root Port (vers SW1), Fa0/2 = Designated (responsable du lien SW2─SW3)\n!  SW3 → Fa0/2 = Root Port (vers SW1), Fa0/3 = Blocked (port en trop = casse la boucle)\n!\n!  Résultat : triangle de câbles, mais pas de boucle\n!  Si SW1─SW2 tombe → Fa0/3 de SW3 se débloque → SW2 passe par SW3"} />
           </div>
         )
       },
-      // ── SLIDE 9 : RÉCAPITULATIF ──
+      // ── SLIDE 12 : LE COÛT DES LIENS ──
       {
         type: 'rich_text',
-        title: "Récapitulatif",
+        title: "Le coût des liens",
         content: (
           <div>
-            <V2Header module="MODULE 10" section="Résumé" title="Ce qu'il faut retenir" description="Tout ce dont tu as besoin pour le lab et le quiz STP." />
-            <V2Whiteboard title="Aide-mémoire STP" code={"! ═══════ CONCEPTS CLÉS ══════════════════════════════════════\n!\n  STP empêche les boucles Layer 2 en bloquant des ports\n  Root Bridge = le switch avec le plus petit Bridge ID\n  Bridge ID = Priorité (32768 défaut) + MAC\n!\n! ═══════ RÔLES DES PORTS ═══════════════════════════════════\n!\n  Root Port     → chemin vers le Root (1 par switch)\n  Designated    → meilleur port sur chaque segment\n  Blocked/Altn  → port bloqué (anti-boucle)\n!\n! ═══════ ÉTATS DES PORTS ═══════════════════════════════════\n!\n  Blocking → Listening (15s) → Learning (15s) → Forwarding\n!\n! ═══════ CONFIGURATION ═════════════════════════════════════\n!\n  spanning-tree vlan 1 priority 4096   ← forcer Root Bridge\n  spanning-tree vlan 1 root primary    ← raccourci Root\n  spanning-tree portfast               ← skip 30s sur port PC\n  spanning-tree bpduguard enable       ← sécurité PortFast\n!\n! ═══════ VÉRIFICATION ══════════════════════════════════════\n!\n  show spanning-tree                   ← état complet STP\n  show spanning-tree root              ← qui est Root ?\n  show spanning-tree blockedports      ← ports bloqués"} />
+            <V2Header module="MODULE 10" section="STP" title="Path Cost : comment STP choisit le meilleur chemin" description="STP ne choisit pas le Root Port au hasard. Il calcule le 'coût' de chaque chemin vers le Root Bridge. Le coût dépend de la vitesse du lien. Plus c'est rapide, moins c'est cher." />
+            <V2Whiteboard title="Coût STP selon la vitesse du lien" code={"!  ┌──────────────────────────────────────────────────┐\n!  │  Vitesse du lien      Coût STP (IEEE 802.1D)     │\n!  │  ────────────────     ──────────────────────      │\n!  │  10 Mbps              100  (vieux, lent)          │\n!  │  100 Mbps (Fast)       19  (le plus courant)      │\n!  │  1 Gbps (Gigabit)       4  (rapide)               │\n!  │  10 Gbps                2  (très rapide)          │\n!  └──────────────────────────────────────────────────┘\n!\n!  Règle simple : plus le lien est RAPIDE, plus le coût est BAS\n!  STP préfère les liens rapides (coût bas)\n!\n!  Exemple — 2 chemins vers le Root :\n!\n!  Chemin A : SW2 ──(100 Mbps, coût 19)──> SW1 (Root)\n!             Total : 19\n!\n!  Chemin B : SW2 ──(100 Mbps, coût 19)──> SW3 ──(100 Mbps, coût 19)──> SW1\n!             Total : 19 + 19 = 38\n!\n!  → Root Port de SW2 = Chemin A (coût 19 < 38)"} />
             <V2InfoCards cards={[
-              { title: "Les 3 erreurs classiques", color: "red", icon: AlertTriangle, items: ["❶ PortFast sur un port trunk → boucle temporaire possible", "❷ Ne pas choisir le Root Bridge → un switch au bord du réseau devient Root", "❸ Confondre port bloqué avec une panne → c'est STP qui protège", "Si un PC met 30s à avoir du réseau → il manque PortFast", "Si un port est en err-disabled → BPDU Guard s'est déclenché"] },
-              { title: "Checklist avant le lab", color: "emerald", icon: CheckCircle2, items: ["✅ Comprendre pourquoi STP existe (boucles Layer 2)", "✅ Savoir identifier le Root Bridge (show spanning-tree)", "✅ Connaître les rôles : Root Port, Designated, Blocked", "✅ Savoir configurer la priorité pour choisir le Root Bridge", "✅ Savoir mettre PortFast + BPDU Guard sur les ports PC"] }
+              { title: "Comment se calcule le coût total ?", color: "purple", icon: Lightbulb, items: ["Le coût s'additionne à chaque saut", "Exemple : 2 liens de 100 Mbps = coût 19 + 19 = 38", "Le chemin avec le coût TOTAL le plus bas → Root Port", "Si deux chemins ont le même coût → on compare le Bridge ID du voisin", "En lab avec FastEthernet partout : tous les coûts directs = 19"] },
+              { title: "Dans nos labs STP", color: "amber", icon: CheckCircle2, items: ["Tous nos liens sont en FastEthernet (100 Mbps) → coût 19", "Avec des coûts égaux partout, c'est le Bridge ID qui décide", "SW1 a le plus petit Bridge ID → ses voisins ont SW1 comme Root Port", "Tu verras 'Cost 19' dans show spanning-tree", "Pas besoin de modifier le coût manuellement en lab"] }
             ]} />
           </div>
         )
       },
-      // ── SLIDE 10 : FLASHCARDS ──
+      // ── SLIDE 13 : LES ÉTATS DES PORTS ──
+      {
+        type: 'rich_text',
+        title: "Les états des ports STP",
+        content: (
+          <div>
+            <V2Header module="MODULE 10" section="STP" title="Les 5 états d'un port STP" description="Un port ne passe pas directement de 'éteint' à 'actif' dans STP. Il traverse plusieurs étapes. Comprendre ces étapes explique pourquoi un PC peut mettre 30 secondes à avoir du réseau." />
+            <V2Whiteboard title="Les 5 états — dans l'ordre" code={"!  ┌────────────┐\n!  │  BLOCKING  │  Ne forwarde rien. Écoute juste les BPDU.\n!  └─────┬──────┘  « Je vérifie si je dois rester bloqué »\n!        │ (décision STP : ce port doit être actif)\n!        ↓  15 secondes\n!  ┌────────────┐\n!  │ LISTENING  │  Participe à l'élection STP.\n!  └─────┬──────┘  Envoie/reçoit des BPDU. Pas de trafic encore.\n!        │\n!        ↓  15 secondes\n!  ┌────────────┐\n!  │  LEARNING  │  Apprend les adresses MAC.\n!  └─────┬──────┘  Remplit la table MAC. Toujours pas de trafic.\n!        │\n!        ↓\n!  ┌────────────┐\n!  │ FORWARDING │  ✅ Forwarde tout le trafic normalement.\n!  └────────────┘  Le port est pleinement opérationnel.\n!\n!  ┌────────────┐\n!  │  DISABLED  │  Port shutdown (éteint administrativement)\n!  └────────────┘"} />
+            <V2InfoCards cards={[
+              { title: "Pourquoi toutes ces étapes ?", color: "amber", icon: Lightbulb, items: ["STP doit s'assurer qu'il n'y a PAS de boucle avant d'activer le port", "Listening (15s) : le switch vérifie la topologie STP", "Learning (15s) : le switch apprend les MAC sans forwarder → sécurisé", "Au total : 30 secondes avant qu'un port soit pleinement actif", "C'est le délai que tu vois quand tu branches un câble sur un switch"] },
+              { title: "Ce que tu verras dans show spanning-tree", color: "purple", icon: Network, items: ["FWD = Forwarding → port actif, trafic qui passe", "BLK = Blocking → port bloqué par STP (anti-boucle)", "LIS = Listening → en cours de convergence (rare à observer)", "LRN = Learning → en cours de convergence (rare à observer)", "Si tu vois LIS ou LRN → STP est en train de recalculer (attends)"] }
+            ]} />
+          </div>
+        )
+      },
+      // ── SLIDE 14 : PORTFAST ──
+      {
+        type: 'rich_text',
+        title: "PortFast — sauter les 30 secondes",
+        content: (
+          <div>
+            <V2Header module="MODULE 10" section="STP" title="PortFast : connexion immédiate pour les PC" description="Attendre 30 secondes à chaque fois qu'un PC se connecte, c'est trop long. PortFast permet de sauter toutes les étapes STP et de passer directement en Forwarding." />
+            <V2InfoCards cards={[
+              { title: "Le problème sans PortFast", color: "red", icon: AlertTriangle, items: ["Un PC se branche sur SW1 → son port passe par Listening + Learning", "30 secondes avant d'avoir du réseau", "Le PC envoie une requête DHCP → timeout avant que le port soit actif", "→ Le PC n'obtient pas d'adresse IP → pas de réseau !", "C'est frustrant et inutile : un PC ne peut pas créer de boucle"] },
+              { title: "PortFast : la solution", color: "emerald", icon: Zap, items: ["PortFast saute les étapes Listening et Learning", "Le port passe DIRECTEMENT en Forwarding (0 seconde au lieu de 30)", "À utiliser UNIQUEMENT sur les ports d'accès (PC, imprimante, téléphone)", "JAMAIS sur un port relié à un autre switch !", "Si un switch est branché sur un port PortFast → risque de boucle"] }
+            ]} />
+            <V2Terminal title="Configurer PortFast sur un port PC" code={"! Sur un port précis (ex: port vers un PC)\nSW1(config)# interface FastEthernet0/1\nSW1(config-if)# spanning-tree portfast\n!\n! Sur tous les ports access en même temps (config globale)\nSW1(config)# spanning-tree portfast default\n!   → Active PortFast sur TOUS les ports en mode 'access'\n!   → Les ports trunk (vers d'autres switches) ne sont pas affectés\n!\n! Vérifier\nSW1# show spanning-tree interface Fa0/1 detail\n!   → Cherche « The port is in the portfast mode »"} />
+            <V2Tip title="Règle absolue">PortFast = uniquement sur les ports PC. Si tu mets PortFast sur un port relié à un switch, tu risques une boucle temporaire pendant que STP recalcule. C'est une erreur classique.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 15 : BPDU GUARD ──
+      {
+        type: 'rich_text',
+        title: "BPDU Guard — la sécurité",
+        content: (
+          <div>
+            <V2Header module="MODULE 10" section="STP" title="BPDU Guard : protéger les ports PortFast" description="PortFast est pratique, mais dangereux si quelqu'un branche un switch dessus. BPDU Guard détecte ça automatiquement et désactive le port pour te protéger." />
+            <V2InfoCards cards={[
+              { title: "Le problème que BPDU Guard résout", color: "red", icon: AlertTriangle, items: ["Un port a PortFast activé (censé être pour un PC)", "Un utilisateur branche UN SWITCH dessus à la place d'un PC", "Ce switch envoie des BPDU → risque de boucle ou de perturbation STP", "Sans protection : STP recalcule, trafic perturbé, boucle possible", "BPDU Guard détecte les BPDU et réagit immédiatement"] },
+              { title: "Ce que BPDU Guard fait", color: "emerald", icon: Shield, items: ["Surveille si des BPDU arrivent sur un port PortFast", "Si un BPDU arrive → le port se désactive IMMÉDIATEMENT", "Le port passe en état 'err-disabled' (désactivé par erreur)", "Un message d'erreur apparaît dans les logs du switch", "Pour réactiver : shutdown puis no shutdown sur le port"] }
+            ]} />
+            <V2Terminal title="Configurer BPDU Guard" code={"! Sur un port précis (avec PortFast)\nSW1(config)# interface FastEthernet0/1\nSW1(config-if)# spanning-tree portfast\nSW1(config-if)# spanning-tree bpduguard enable\n!\n! Sur tous les ports PortFast en même temps\nSW1(config)# spanning-tree portfast bpduguard default\n!\n! Si le port est en err-disabled (BPDU Guard déclenché) :\nSW1# show interfaces FastEthernet0/1\n!   → Tu verras « err-disabled »\nSW1(config)# interface FastEthernet0/1\nSW1(config-if)# shutdown\nSW1(config-if)# no shutdown\n!   → Le port est réactivé (retire d'abord le switch mal branché !)"} />
+            <V2Tip title="Toujours les mettre ensemble">PortFast + BPDU Guard = la combinaison parfaite pour les ports PC. PortFast accélère la connexion, BPDU Guard protège si quelqu'un branche un switch par erreur. Ne jamais faire l'un sans l'autre.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 16 : LIRE SHOW SPANNING-TREE ──
+      {
+        type: 'rich_text',
+        title: "Lire show spanning-tree",
+        content: (
+          <div>
+            <V2Header module="MODULE 10" section="Vérification" title="Décortiquer la sortie de show spanning-tree" description="Cette commande est la principale pour vérifier STP. Voici comment lire chaque ligne et savoir immédiatement si tout est correct." />
+            <V2Terminal title="show spanning-tree — sortie annotée" code={"SW2# show spanning-tree\n!\nVLAN0001\n  Spanning tree enabled protocol ieee\n!\n  Root ID    Priority    4096            ← Priorité du Root Bridge\n             Address     aabb.cc00.0100  ← MAC du Root Bridge\n             Cost        19              ← Coût total vers le Root\n             Port        1 (Fa0/1)       ← Mon Root Port (chemin vers Root)\n!\n  Bridge ID  Priority    32769           ← Ma priorité (32768 + sys-id 1)\n             Address     aabb.cc00.0200  ← Mon adresse MAC\n!\n!  ─── SI Root ID = Bridge ID → CE switch est le Root Bridge ───\n!  ─── ICI Root ≠ Bridge → SW2 n'est PAS le Root Bridge ────────\n!\nInterface   Role  Sts  Cost   Prio.Nbr  Type\n----------- ----  ---  -----  --------  ----\nFa0/1       Root  FWD  19     128.1     P2p  ← Root Port (vers SW1)\nFa0/2       Desg  FWD  19     128.2     P2p  ← Designated (responsable)\nFa0/3       Altn  BLK  19     128.3     P2p  ← Bloqué (anti-boucle)"} />
+            <V2InfoCards cards={[
+              { title: "Les abréviations des rôles", color: "purple", icon: Network, items: ["Root → Root Port (chemin vers le Root Bridge)", "Desg → Designated Port (responsable du segment)", "Altn → Alternate Port = port Bloqué (plan B)", "Root  FWD = Root Port actif → normal", "Altn  BLK = port bloqué par STP → normal, pas une panne !"] },
+              { title: "Les abréviations des états", color: "amber", icon: Lightbulb, items: ["FWD = Forwarding → le port forwarde du trafic (actif)", "BLK = Blocking → bloqué par STP (normal)", "LIS = Listening → en cours de convergence (transitoire)", "LRN = Learning → en cours de convergence (transitoire)", "Si tu vois FWD partout sauf 1 BLK → STP fonctionne parfaitement"] }
+            ]} />
+          </div>
+        )
+      },
+      // ── SLIDE 17 : AIDE-MÉMOIRE ──
+      {
+        type: 'rich_text',
+        title: "Aide-mémoire STP",
+        content: (
+          <div>
+            <V2Header module="MODULE 10" section="Résumé" title="Tout ce qu'il faut retenir pour STP" description="Une page, tout l'essentiel. Garde ça en tête pour le lab et pour la vie." />
+            <V2Whiteboard title="Aide-mémoire complet" code={"! ══════ LE PROBLÈME ══════════════════════════════════════════════\n!\n!  Boucle Layer 2 = broadcast storm = réseau mort\n!  Les trames L2 n'ont pas de TTL → elles tournent à l'infini\n!  STP empêche ça en bloquant un port\n!\n! ══════ L'ÉLECTION DU ROOT BRIDGE ════════════════════════════════\n!\n!  Bridge ID = Priorité (32768 défaut) + MAC\n!  Plus petit BID = Root Bridge\n!  Pour forcer : spanning-tree vlan 1 root primary\n!\n! ══════ LES 3 RÔLES DES PORTS ════════════════════════════════════\n!\n!  Root Port (RP)    → port vers le Root Bridge   → FWD ✅\n!  Designated (DP)   → responsable du segment     → FWD ✅\n!  Blocked (BLK)     → port en trop = anti-boucle → BLK ⛔ (normal)\n!\n! ══════ LES ÉTATS ════════════════════════════════════════════════\n!\n!  Blocking → Listening (15s) → Learning (15s) → Forwarding\n!  PortFast = saute les 30 secondes (pour les ports PC uniquement)\n!\n! ══════ COMMANDES CLÉS ═══════════════════════════════════════════\n!\n!  show spanning-tree                → état complet\n!  spanning-tree vlan 1 root primary → forcer Root Bridge\n!  spanning-tree portfast            → connexion PC immédiate\n!  spanning-tree bpduguard enable    → sécurité PortFast"} />
+            <V2InfoCards cards={[
+              { title: "Les 3 erreurs à ne pas faire", color: "red", icon: AlertTriangle, items: ["❶ Voir un port BLK et penser que c'est une panne — c'est normal !", "❷ Mettre PortFast sur un port relié à un switch — risque de boucle", "❸ Ne pas choisir le Root Bridge — laisse STP choisir au hasard", "Si un PC ne se connecte pas → vérifier PortFast sur son port", "Si un port est err-disabled → BPDU Guard a détecté un switch mal branché"] },
+              { title: "Checklist avant le lab", color: "emerald", icon: CheckCircle2, items: ["✅ Je sais ce qu'est une boucle Layer 2 et pourquoi c'est dangereux", "✅ Je sais lire show spanning-tree (Root ID vs Bridge ID)", "✅ Je connais les 3 rôles : Root Port, Designated, Blocked", "✅ Je sais forcer le Root Bridge avec spanning-tree vlan 1 root primary", "✅ Je sais configurer PortFast + BPDU Guard sur les ports PC"] }
+            ]} />
+          </div>
+        )
+      },
+      // ── SLIDE 18 : FLASHCARDS ──
       {
         type: 'flashcards',
         title: "Flashcards : STP",
         mode: 'command_to_definition',
         cards: [
           { q: "show spanning-tree", a: "Afficher l'état complet de STP (Root ID, Bridge ID, rôles et états des ports)" },
-          { q: "spanning-tree vlan 1 priority 4096", a: "Forcer ce switch comme Root Bridge en mettant la priorité la plus basse" },
-          { q: "spanning-tree vlan 1 root primary", a: "Raccourci pour faire de ce switch le Root Bridge (priorité 24576)" },
-          { q: "spanning-tree vlan 1 root secondary", a: "Faire de ce switch le Root Bridge de secours (priorité 28672)" },
-          { q: "spanning-tree portfast", a: "Passer le port directement en Forwarding (skip les 30 secondes d'attente)" },
-          { q: "spanning-tree bpduguard enable", a: "Désactiver le port si un BPDU est reçu (protection contre les boucles)" },
-          { q: "spanning-tree portfast default", a: "Activer PortFast sur tous les ports en mode access (config globale)" },
-          { q: "show spanning-tree root", a: "Afficher un résumé du Root Bridge pour chaque VLAN" },
-          { q: "show spanning-tree blockedports", a: "Afficher les ports actuellement bloqués par STP" },
-          { q: "spanning-tree vlan 1 cost 10", a: "Modifier manuellement le coût STP d'un port (sur l'interface)" }
+          { q: "spanning-tree vlan 1 priority 4096", a: "Forcer ce switch comme Root Bridge en mettant une priorité plus basse que les autres (4096 < 32768)" },
+          { q: "spanning-tree vlan 1 root primary", a: "Raccourci pour faire de ce switch le Root Bridge (met la priorité à 24576 automatiquement)" },
+          { q: "spanning-tree vlan 1 root secondary", a: "Faire de ce switch le Root Bridge de secours — priorité 28672, prend le relais si le primary tombe" },
+          { q: "spanning-tree portfast", a: "Passer le port directement en Forwarding, sans les 30 secondes d'attente — uniquement sur les ports PC" },
+          { q: "spanning-tree bpduguard enable", a: "Désactiver le port (err-disabled) si un BPDU est reçu — protège contre un switch mal branché sur un port PortFast" },
+          { q: "spanning-tree portfast default", a: "Activer PortFast sur tous les ports en mode access d'un coup (configuration globale)" },
+          { q: "show spanning-tree root", a: "Afficher un résumé du Root Bridge : qui il est, quel est mon coût vers lui, quel est mon Root Port" },
+          { q: "show spanning-tree blockedports", a: "Afficher la liste de tous les ports actuellement bloqués par STP" },
+          { q: "Root ID = Bridge ID dans show spanning-tree", a: "Ce switch EST le Root Bridge — les deux identités correspondent" },
+          { q: "Root ID ≠ Bridge ID dans show spanning-tree", a: "Ce switch n'est PAS le Root Bridge — il y a un autre switch élu Root quelque part" },
+          { q: "Port en état BLK dans show spanning-tree", a: "Port bloqué par STP — c'est NORMAL, ce n'est pas une panne. STP protège contre les boucles." }
         ]
       },
-      // ── SLIDE 11 : COMMAND BUILDER ──
+      // ── SLIDE 19 : COMMAND BUILDER ──
       {
         type: 'command_builder',
         title: "Configurer STP étape par étape",
@@ -13030,13 +13147,13 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
         steps: [
           { cmd: "enable", desc: "Passer en mode privilégié" },
           { cmd: "configure terminal", desc: "Entrer en configuration globale" },
-          { cmd: "spanning-tree vlan 1 root primary", desc: "Faire de ce switch le Root Bridge" },
+          { cmd: "spanning-tree vlan 1 root primary", desc: "Forcer ce switch comme Root Bridge (priorité 24576)" },
           { cmd: "interface range FastEthernet0/1 - 10", desc: "Sélectionner les ports d'accès (côté PC)" },
-          { cmd: "spanning-tree portfast", desc: "Activer PortFast (skip les 30 secondes)" },
-          { cmd: "spanning-tree bpduguard enable", desc: "Activer BPDU Guard (protection anti-boucle)" },
+          { cmd: "spanning-tree portfast", desc: "Activer PortFast — connexion PC immédiate (skip les 30s)" },
+          { cmd: "spanning-tree bpduguard enable", desc: "Activer BPDU Guard — désactive le port si un switch est branché" },
           { cmd: "exit", desc: "Sortir de la configuration d'interface" },
           { cmd: "end", desc: "Revenir en mode privilégié" },
-          { cmd: "show spanning-tree", desc: "Vérifier que ce switch est bien Root Bridge" }
+          { cmd: "show spanning-tree", desc: "Vérifier : Root ID = Bridge ID ? Tous les ports en FWD sauf 1 BLK ?" }
         ]
       }
     ],

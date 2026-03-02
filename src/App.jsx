@@ -188,8 +188,11 @@ export default function App() {
   }
 
   if (!user) {
-    if (showLogin) return <LoginPage />;
-    return <LandingPage onLogin={() => setShowLogin(true)} />;
+    // Landing page temporairement désactivée — redirection directe vers le login
+    // Pour la réactiver : supprimer la ligne ci-dessous et décommenter l'original
+    return <LoginPage />;
+    // if (showLogin) return <LoginPage />;
+    // return <LandingPage onLogin={() => setShowLogin(true)} />;
   }
 
   if (needsPasswordSetup) return <SetPasswordPage />;
