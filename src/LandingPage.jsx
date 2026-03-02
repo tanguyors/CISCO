@@ -1,6 +1,9 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useLayoutEffect, useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
+
+gsap.registerPlugin(ScrollToPlugin);
 import { BookOpen, Terminal, Award, Users, Star, CheckCircle, Zap, Shield, Play, Network, Globe, Layers, Cpu } from 'lucide-react';
 import { siGoogle, siAmazonaws, siMicrosoft, siMeta, siIbm, siOracle, siCisco, siNokia, siOvh, siAccenture } from 'simple-icons';
 
@@ -228,9 +231,9 @@ function Vibe2({ onLogin }) {
 
       gsap.timeline({
         scrollTrigger: {
-          trigger: heroRef.current, start: 'top top', end: '+=80%',
-          pin: true, scrub: 0.15, anticipatePin: 1,
-          snap: { snapTo: [0, 0.5, 1], duration: { min: 0.3, max: 0.8 }, delay: 0.05, ease: 'power2.inOut' },
+          trigger: heroRef.current, start: 'top top', end: '+=50%',
+          pin: true, scrub: true, anticipatePin: 1,
+          snap: { snapTo: [0, 0.5, 1], duration: { min: 0.2, max: 0.5 }, delay: 0.02, ease: 'power2.inOut' },
           onLeave: sweep, onEnterBack: sweep,
         },
       })
@@ -260,7 +263,7 @@ function Vibe2({ onLogin }) {
           gsap.set(slides, { opacity: 0, scale: 0.9 });
           gsap.set(slides[0], { opacity: 1, scale: 1 });
           const jsTl = gsap.timeline({
-            scrollTrigger: { trigger: jobStatsRef.current, pin: true, scrub: 0.15, start: 'top top', end: '+=100%', anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+            scrollTrigger: { trigger: jobStatsRef.current, pin: true, scrub: true, start: 'top top', end: '+=60%', anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
           });
           slides.forEach((slide, i) => {
             if (i > 0) {
@@ -280,7 +283,7 @@ function Vibe2({ onLogin }) {
       gsap.set('.v3r-row3', { x: -280, opacity: 0 });
       const v3StatEl = recruitRef.current?.querySelector('.v3r-stat');
       gsap.timeline({
-        scrollTrigger: { trigger: recruitRef.current, start: 'top top', end: '+=70%', pin: true, scrub: 0.15, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        scrollTrigger: { trigger: recruitRef.current, start: 'top top', end: '+=40%', pin: true, scrub: true, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
         onStart: () => {
           if (!v3StatEl) return;
           const o = { val: 0 };
@@ -300,7 +303,7 @@ function Vibe2({ onLogin }) {
           gsap.set(rows, { opacity: 0, x: -80 });
           gsap.set(rows[0], { opacity: 1, x: 0 });
           const stTl = gsap.timeline({
-            scrollTrigger: { trigger: statsRef.current, pin: true, scrub: 0.15, start: 'top top', end: '+=80%', anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+            scrollTrigger: { trigger: statsRef.current, pin: true, scrub: true, start: 'top top', end: '+=50%', anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
           });
           rows.forEach((row, i) => {
             if (i > 0) {
@@ -322,8 +325,8 @@ function Vibe2({ onLogin }) {
           x: () => -(horizTrack.current.scrollWidth - window.innerWidth),
           ease: 'none',
           scrollTrigger: {
-            trigger: horizWrap.current, pin: true, scrub: 0.15,
-            start: 'top top', end: () => `+=${horizTrack.current.scrollWidth}`,
+            trigger: horizWrap.current, pin: true, scrub: true,
+            start: 'top top', end: () => `+=${horizTrack.current.scrollWidth * 0.6}`,
             invalidateOnRefresh: true, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep,
           },
         });
@@ -333,7 +336,7 @@ function Vibe2({ onLogin }) {
       gsap.set('.v2cli-hd',    { y: 60, opacity: 0 });
       gsap.set('.v2cli-panel', { y: 60, opacity: 0 });
       const cliTl = gsap.timeline({
-        scrollTrigger: { trigger: cliRef.current, start: 'top top', end: '+=70%', pin: true, scrub: 0.15, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        scrollTrigger: { trigger: cliRef.current, start: 'top top', end: '+=40%', pin: true, scrub: true, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
       });
       cliTl
         .to('.v2cli-hd',    { y: 0, opacity: 1, stagger: 0.06, duration: 0.2 }, 0)
@@ -353,8 +356,8 @@ function Vibe2({ onLogin }) {
           scrollTrigger: {
             trigger: howRef.current,
             pin: true,
-            scrub: 0.15,
-            end: () => '+=' + (howSlider.current?.offsetWidth || window.innerWidth * 1.5),
+            scrub: true,
+            end: () => '+=' + ((howSlider.current?.offsetWidth || window.innerWidth * 1.5) * 0.6),
             anticipatePin: 1,
             onLeave: sweep,
             onEnterBack: sweep,
@@ -369,7 +372,7 @@ function Vibe2({ onLogin }) {
       const mWords = gsap.utils.toArray(maniRef.current?.querySelectorAll('.v2m-word') ?? []);
       gsap.set(mWords, { color: '#1e1b4b' });
       gsap.timeline({
-        scrollTrigger: { trigger: maniRef.current, start: 'top top', end: '+=60%', pin: true, scrub: 0.15, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        scrollTrigger: { trigger: maniRef.current, start: 'top top', end: '+=35%', pin: true, scrub: true, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
       })
         .to(mWords, { color: '#e2e8f0', stagger: 1 / (mWords.length || 1), duration: 1 }, 0);
 
@@ -380,7 +383,7 @@ function Vibe2({ onLogin }) {
           gsap.to(toolPanels, {
             xPercent: -100 * (toolPanels.length - 1),
             ease: 'none',
-            scrollTrigger: { trigger: toolsRef.current, pin: true, scrub: 0.15, end: () => '+=' + (toolsSlider.current?.offsetWidth || window.innerWidth * 6), anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+            scrollTrigger: { trigger: toolsRef.current, pin: true, scrub: true, end: () => '+=' + ((toolsSlider.current?.offsetWidth || window.innerWidth * 6) * 0.6), anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
           });
         }
       }
@@ -392,7 +395,7 @@ function Vibe2({ onLogin }) {
       gsap.set('.l2-card',  { y: 80, opacity: 0, rotateX: 8 });
       gsap.set('.l2-footer',{ y: 20, opacity: 0 });
       gsap.timeline({
-        scrollTrigger: { trigger: logosRef.current, start: 'top top', end: '+=50%', pin: true, scrub: 0.15, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        scrollTrigger: { trigger: logosRef.current, start: 'top top', end: '+=30%', pin: true, scrub: true, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
       })
         .to('.l2-badge',  { y: 0, opacity: 1, duration: 0.2 }, 0)
         .to('.l2-title',  { y: 0, opacity: 1, letterSpacing: '0.15em', duration: 0.35 }, 0.1)
@@ -407,7 +410,7 @@ function Vibe2({ onLogin }) {
       gsap.set('.v2c-btn',     { y: 30, opacity: 0 });
       gsap.set('.v2c-trust',   { y: 30, opacity: 0 });
       gsap.timeline({
-        scrollTrigger: { trigger: ctaRef.current, start: 'top top', end: '+=60%', pin: true, scrub: 0.15, anticipatePin: 1 },
+        scrollTrigger: { trigger: ctaRef.current, start: 'top top', end: '+=35%', pin: true, scrub: true, anticipatePin: 1 },
       })
         .to('.v2c-line',    { scaleY: 1, duration: 0.2 }, 0)
         .to('.v2c-heading', { y: 0, opacity: 1, duration: 0.35 }, 0.15)
@@ -467,6 +470,20 @@ function Vibe2({ onLogin }) {
 
     }, rootRef);
     return () => ctx.revert();
+  }, []);
+
+  // ── Auto-scroll: reveal hero content on load ──────────────────────────
+  useEffect(() => {
+    // Scroll to snap point 0.5 of hero (end is +=50vh, so snap 0.5 = 25vh)
+    const target = window.innerHeight * 0.25;
+    const timer = setTimeout(() => {
+      gsap.to(window, {
+        scrollTo: { y: target, autoKill: false },
+        duration: 1.8,
+        ease: 'power2.inOut',
+      });
+    }, 600);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
