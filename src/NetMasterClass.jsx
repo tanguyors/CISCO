@@ -13369,6 +13369,38 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               </div>
             </div>
           </section>
+
+          {/* LAB 3 : DÉPANNAGE STP */}
+          <section>
+            <div className="bg-gradient-to-r from-red-900/20 to-orange-900/20 rounded-xl p-6 border border-red-500/30">
+              <h2 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">{"🔧 Lab 3 — Dépannage STP"}</h2>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-amber-300 font-bold text-sm mb-2">{"Contexte :"}</p>
+                <p className="text-slate-300 text-sm italic">{"Tu es appelé en urgence dans une entreprise. Le réseau fonctionne, mais certains PCs sont lents, un port est complètement mort, et le trafic emprunte des chemins sous-optimaux. Tu dois diagnostiquer et corriger 3 problèmes STP sans tout reconfigurer from scratch."}</p>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-red-300 font-bold text-sm mb-2">{"Objectifs :"}</p>
+                <ol className="text-slate-300 text-sm space-y-1 list-decimal list-inside">
+                  <li>{"Identifier quel switch est Root Bridge et pourquoi c'est un problème"}</li>
+                  <li>{"Détecter un port avec PortFast mal configuré (sur un lien inter-switch)"}</li>
+                  <li>{"Diagnostiquer et corriger un port en err-disabled (BPDU Guard déclenché)"}</li>
+                </ol>
+              </div>
+              <div className="bg-orange-900/20 rounded-lg p-4 mb-4 border border-orange-500/20">
+                <p className="text-orange-300 font-bold text-sm mb-2">{"⚠️ Différence avec les Labs 1 et 2"}</p>
+                <p className="text-slate-300 text-sm">{"Tu ne reconfigures PAS le réseau from scratch. La topologie est déjà en place avec des erreurs intentionnelles. Utilise show spanning-tree et show interfaces pour diagnostiquer, puis corrige uniquement ce qui ne va pas."}</p>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4">
+                <p className="text-purple-300 font-bold text-sm mb-2">{"Topologie : même qu'en Labs 1 et 2 (SW1, SW2, SW3 en triangle)"}</p>
+                <p className="text-slate-300 text-sm mb-2">{"État initial du réseau (déjà configuré, avec erreurs) :"}</p>
+                <ul className="text-slate-300 text-sm space-y-1">
+                  <li>{"• SW3 : spanning-tree vlan 1 priority 4096 (configuré par erreur sur SW3)"}</li>
+                  <li>{"• SW2 Fa0/2 : spanning-tree portfast activé sur un lien inter-switch (erreur dangereuse)"}</li>
+                  <li>{"• SW1 Fa0/5 : port en err-disabled (BPDU Guard a détecté un switch mal branché)"}</li>
+                </ul>
+              </div>
+            </div>
+          </section>
         </div>
       ),
       solutionContent: (
@@ -13618,6 +13650,11 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
                 { id: 'lab2-s10-ips', label: 'IPs PCs', icon: '🖥️' },
                 { id: 'lab2-s10-observer', label: 'Observer STP', icon: '🔍' },
                 { id: 'lab2-s10-root', label: 'Root Bridge', icon: '👑' },
+                { id: 'lab2-s10-secondary', label: 'Root Secondaire', icon: '🥈' },
+                { id: 'lab2-s10-portfast', label: 'PortFast', icon: '⚡' },
+                { id: 'lab2-s10-bpdu', label: 'BPDU Guard', icon: '🛡️' },
+                { id: 'lab2-s10-portfast-test', label: 'Test PortFast', icon: '⏱️' },
+                { id: 'lab2-s10-port-bloque', label: 'Port bloqué', icon: '🔎' },
                 { id: 'lab2-s10-tests', label: 'Tests', icon: '✅' },
               ].map(({ id, label, icon }) => (
                 <button
@@ -13798,10 +13835,295 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               </div>
             </section>
 
+            {/* ROOT BRIDGE SECONDAIRE */}
+            <section id="lab2-s10-secondary" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-blue-900/20 to-violet-900/20 rounded-xl p-6 border border-blue-500/30">
+                <h2 className="text-lg font-bold text-blue-300 mb-3 flex items-center gap-2">{"🥈 Étape 5 — Configurer SW2 comme Root Bridge de secours"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Si SW1 tombe, on veut que SW2 prenne le relais automatiquement. C'est le rôle du Root Bridge secondaire."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-blue-300 font-bold text-sm mb-2">{"Sur SW2 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW2> enable"}</p>
+                    <p>{"SW2# configure terminal"}</p>
+                    <p>{"SW2(config)# spanning-tree vlan 1 root secondary"}</p>
+                    <p>{"SW2(config)# end"}</p>
+                    <p>{"SW2# copy running-config startup-config"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-blue-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[20rem]">{"spanning-tree vlan 1 root secondary"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Met la priorité de SW2 à 28672. C'est entre 4096 (SW1) et 32768 (SW3). Si SW1 disparaît, SW2 a la priorité la plus basse et devient automatiquement Root Bridge."}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Vérification — Résumé des priorités :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-slate-300 leading-relaxed">
+                    <p>{"SW1 : priorité 4097  (4096 + sys-id 1)  ← Root Bridge actuel"}</p>
+                    <p>{"SW2 : priorité 28673 (28672 + sys-id 1) ← Root Bridge de secours"}</p>
+                    <p>{"SW3 : priorité 32769 (32768 + sys-id 1) ← priorité par défaut"}</p>
+                    <p className="text-emerald-400 mt-2">{"→ Si SW1 tombe → SW2 devient Root Bridge automatiquement"}</p>
+                    <p className="text-emerald-400">{"→ Si SW1 et SW2 tombent → SW3 devient Root Bridge"}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* PORTFAST */}
+            <section id="lab2-s10-portfast" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-yellow-900/20 to-amber-900/20 rounded-xl p-6 border border-yellow-500/30">
+                <h2 className="text-lg font-bold text-yellow-300 mb-3 flex items-center gap-2">{"⚡ Étape 6 — Configurer PortFast sur les ports PC"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Sans PortFast, chaque PC attend 30 secondes à chaque connexion (STP traverse Listening + Learning). PortFast supprime cette attente sur les ports qui ne peuvent pas créer de boucle."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-yellow-300 font-bold text-sm mb-2">{"Sur SW1, SW2 et SW3 — port Fa0/1 (port PC) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1> enable"}</p>
+                    <p>{"SW1# configure terminal"}</p>
+                    <p>{"SW1(config)# interface FastEthernet0/1"}</p>
+                    <p>{"SW1(config-if)# spanning-tree portfast"}</p>
+                    <p>{"SW1(config-if)# end"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Répète exactement les mêmes commandes sur SW2 et SW3 (même port Fa0/1)."}</p>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-yellow-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[16rem]">{"spanning-tree portfast"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Le port passe directement en Forwarding dès qu'un PC se connecte. Skip les 30 secondes d'attente (Listening + Learning). À utiliser UNIQUEMENT sur les ports PC — jamais sur les ports inter-switch !"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Vérification :"}</p>
+                  <div className="space-y-2">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-yellow-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[24rem]">{"SW1# show spanning-tree interface Fa0/1 detail"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Cherche la ligne : « The port is in the portfast mode » → PortFast est actif."}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-red-900/20 rounded-lg p-4 border border-red-500/20">
+                  <p className="text-red-300 font-bold text-sm mb-1">{"⚠️ Règle absolue"}</p>
+                  <p className="text-slate-300 text-sm">{"PortFast uniquement sur Fa0/1 (port PC). Jamais sur Fa0/23 ou Fa0/24 (liens inter-switch). Un switch branché sur un port PortFast peut créer une boucle temporaire."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* BPDU GUARD */}
+            <section id="lab2-s10-bpdu" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-red-900/20 to-pink-900/20 rounded-xl p-6 border border-red-500/30">
+                <h2 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">{"🛡️ Étape 7 — Configurer BPDU Guard et tester"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"PortFast est rapide mais dangereux si quelqu'un branche un switch dessus. BPDU Guard détecte ça automatiquement et tue le port pour protéger le réseau."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-red-300 font-bold text-sm mb-2">{"7.1 — Activer BPDU Guard sur les mêmes ports PC :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1(config)# interface FastEthernet0/1"}</p>
+                    <p>{"SW1(config-if)# spanning-tree bpduguard enable"}</p>
+                    <p>{"SW1(config-if)# end"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Répète sur SW2 et SW3 Fa0/1. BPDU Guard doit toujours être configuré avec PortFast."}</p>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-red-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[20rem]">{"spanning-tree bpduguard enable"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Si un BPDU est reçu sur ce port (= un switch est branché dessus), le port se désactive immédiatement et passe en état err-disabled."}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-red-300 font-bold text-sm mb-3">{"7.2 — Tester BPDU Guard (simulation) :"}</p>
+                  <ol className="text-slate-300 text-sm space-y-2 list-decimal list-inside">
+                    <li>{"Débranche PC1 du port Fa0/1 de SW1"}</li>
+                    <li>{"Branche un deuxième switch sur ce port Fa0/1"}</li>
+                    <li>{"Observe : le port passe en err-disabled (orange fixe dans Packet Tracer)"}</li>
+                  </ol>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-slate-300 leading-relaxed mt-3">
+                    <p>{"SW1# show interfaces FastEthernet0/1"}</p>
+                    <p className="text-red-400">{"FastEthernet0/1 is down, line protocol is down (err-disabled)"}</p>
+                    <p className="text-slate-400 mt-1">{"← BPDU Guard a détecté un switch et tué le port"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-3">{"7.3 — Récupérer le port err-disabled :"}</p>
+                  <ol className="text-slate-300 text-sm space-y-1 list-decimal list-inside mb-3">
+                    <li>{"Débranche d'abord le switch mal branché → rebranche PC1"}</li>
+                    <li>{"Puis réactive le port :"}</li>
+                  </ol>
+                  <div className="space-y-2">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-emerald-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[16rem]">{"SW1(config-if)# shutdown"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Éteint manuellement le port pour effacer l'état err-disabled."}</p>
+                    </div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-emerald-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[16rem]">{"SW1(config-if)# no shutdown"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Rallume le port. PC1 se reconnecte immédiatement grâce à PortFast."}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* TEST PORTFAST CONCRET */}
+            <section id="lab2-s10-portfast-test" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-orange-900/20 to-yellow-900/20 rounded-xl p-6 border border-orange-500/30">
+                <h2 className="text-lg font-bold text-orange-300 mb-3 flex items-center gap-2">{"⏱️ Étape 8 — Tester PortFast : voir la différence concrète"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"PortFast c'est une commande, mais est-ce qu'on voit vraiment la différence ? Oui. Voici comment le prouver dans Packet Tracer."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-orange-300 font-bold text-sm mb-3">{"8.1 — Test AVEC PortFast (situation actuelle) :"}</p>
+                  <ol className="text-slate-300 text-sm space-y-2 list-decimal list-inside mb-3">
+                    <li>{"Débranche le câble de PC1 (sur SW1 Fa0/1)"}</li>
+                    <li>{"Attends 2-3 secondes"}</li>
+                    <li>{"Rebranche le câble"}</li>
+                    <li>{"Observe le port dans Packet Tracer : il passe directement au vert"}</li>
+                    <li>{"Depuis PC1, lance immédiatement un ping vers PC2"}</li>
+                  </ol>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-slate-400">{"Depuis PC1 (immédiatement après reconnexion) :"}</p>
+                    <p>{"C:\\> ping 192.168.1.20"}</p>
+                    <p className="text-emerald-400">{"Reply from 192.168.1.20: bytes=32 time<1ms TTL=128  ✅"}</p>
+                    <p className="text-emerald-400">{"Reply from 192.168.1.20: bytes=32 time<1ms TTL=128  ✅"}</p>
+                    <p className="text-emerald-400 mt-1">{"→ Connexion immédiate. 0 seconde d'attente."}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-orange-300 font-bold text-sm mb-3">{"8.2 — Test SANS PortFast (pour voir la différence) :"}</p>
+                  <ol className="text-slate-300 text-sm space-y-2 list-decimal list-inside mb-3">
+                    <li>{"Désactive PortFast sur Fa0/1 de SW1 :"}</li>
+                  </ol>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1 mb-3">
+                    <p>{"SW1(config)# interface FastEthernet0/1"}</p>
+                    <p>{"SW1(config-if)# no spanning-tree portfast"}</p>
+                  </div>
+                  <ol className="text-slate-300 text-sm space-y-2 list-decimal list-inside mb-3" start={2}>
+                    <li>{"Débranche PC1, attends 3 secondes, rebranche"}</li>
+                    <li>{"Essaie de pinger PC2 immédiatement"}</li>
+                  </ol>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-slate-300 space-y-1">
+                    <p className="text-slate-400">{"Depuis PC1 (immédiatement après reconnexion) :"}</p>
+                    <p>{"C:\\> ping 192.168.1.20"}</p>
+                    <p className="text-red-400">{"Request timeout for icmp_seq 0  ❌"}</p>
+                    <p className="text-red-400">{"Request timeout for icmp_seq 1  ❌"}</p>
+                    <p className="text-slate-400">{"...attends 30 secondes..."}</p>
+                    <p className="text-emerald-400">{"Reply from 192.168.1.20: bytes=32 time<1ms TTL=128  ✅"}</p>
+                    <p className="text-red-400 mt-1">{"→ 30 secondes d'attente. STP traverse Listening (15s) + Learning (15s)."}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-orange-300 font-bold text-sm mb-2">{"Explication de ces 30 secondes :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-slate-300 leading-relaxed">
+                    <p>{"Port rebranché → STP démarre la vérification"}</p>
+                    <p>{""}</p>
+                    <p className="text-amber-300">{"Blocking    → 0s  (état de départ)"}</p>
+                    <p className="text-amber-300">{"Listening   → 15s (STP vérifie qu'il n'y a pas de boucle)"}</p>
+                    <p className="text-amber-300">{"Learning    → 15s (STP apprend les MACs, ne forwarde pas encore)"}</p>
+                    <p className="text-emerald-400">{"Forwarding  → ✅  (le port est enfin actif)"}</p>
+                    <p>{""}</p>
+                    <p className="text-slate-400">{"Total : 30 secondes. Pendant ce temps, PC1 ne peut pas communiquer."}</p>
+                    <p className="text-slate-400">{"PortFast saute Listening et Learning → connexion immédiate."}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"8.3 — Réactiver PortFast (revenir à la bonne config) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1(config)# interface FastEthernet0/1"}</p>
+                    <p>{"SW1(config-if)# spanning-tree portfast"}</p>
+                    <p>{"SW1(config-if)# end"}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* PORT BLOQUÉ — COMPRENDRE POURQUOI */}
+            <section id="lab2-s10-port-bloque" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-violet-900/20 to-indigo-900/20 rounded-xl p-6 border border-violet-500/30">
+                <h2 className="text-lg font-bold text-violet-300 mb-3 flex items-center gap-2">{"🔎 Étape 9 — Identifier le port bloqué et comprendre pourquoi"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Un port est bloqué quelque part dans le réseau. Mais lequel exactement ? Et pourquoi C'EST LUI et pas un autre ? Voici comment répondre précisément à ces deux questions."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-violet-300 font-bold text-sm mb-3">{"9.1 — Trouver le port bloqué :"}</p>
+                  <p className="text-slate-300 text-sm mb-3">{"Lance show spanning-tree sur SW2 et SW3 et cherche la ligne avec BLK :"}</p>
+                  <div className="space-y-2">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-violet-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[18rem]">{"SW2# show spanning-tree"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Regarde la colonne Role et Sts. Un port avec Role=Altn et Sts=BLK = port bloqué."}</p>
+                    </div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-violet-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[18rem]">{"SW2# show spanning-tree blockedports"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Raccourci : affiche directement la liste de tous les ports bloqués sur ce switch."}</p>
+                    </div>
+                  </div>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-slate-300 leading-relaxed mt-3">
+                    <p className="text-slate-400">{"SW2# show spanning-tree"}</p>
+                    <p>{"Interface  Role   Sts  Cost  Prio.Nbr"}</p>
+                    <p>{"Fa0/1      Desg   FWD  19    128.1    ← port PC2 : actif"}</p>
+                    <p className="text-cyan-300">{"Fa0/24     Root   FWD  19    128.24   ← vers SW1 : Root Port"}</p>
+                    <p className="text-red-400">{"Fa0/23     Altn   BLK  19    128.23   ← PORT BLOQUÉ !"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Le port bloqué est sur SW2 Fa0/23 (lien SW2 ↔ SW3). C'est STP qui l'a choisi."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-violet-300 font-bold text-sm mb-3">{"9.2 — Comprendre POURQUOI c'est ce port et pas un autre :"}</p>
+                  <p className="text-slate-300 text-sm mb-3">{"Sur le lien SW2 ↔ SW3, STP doit choisir : quel port reste actif (Designated) et lequel est bloqué ? Pour décider, il compare les Bridge ID de SW2 et SW3."}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-slate-300 leading-relaxed mb-3">
+                    <p className="text-slate-400">{"SW2# show spanning-tree"}</p>
+                    <p>{"  Bridge ID  Priority  28673"}</p>
+                    <p>{"             Address   aabb.cc00.0200  ← Bridge ID de SW2"}</p>
+                    <p>{""}</p>
+                    <p className="text-slate-400">{"SW3# show spanning-tree"}</p>
+                    <p>{"  Bridge ID  Priority  32769"}</p>
+                    <p>{"             Address   aabb.cc00.0300  ← Bridge ID de SW3"}</p>
+                  </div>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-slate-300 leading-relaxed">
+                    <p>{"Comparaison sur le lien SW2 ↔ SW3 :"}</p>
+                    <p>{""}</p>
+                    <p>{"SW2 : coût total vers Root = 19 (1 saut direct vers SW1)"}</p>
+                    <p>{"SW3 : coût total vers Root = 19 (1 saut direct vers SW1)"}</p>
+                    <p className="text-amber-300 mt-1">{"Coûts égaux → on compare les Bridge ID"}</p>
+                    <p>{""}</p>
+                    <p>{"SW2 : BID = 28673 (priorité 28672 + sys-id 1)"}</p>
+                    <p>{"SW3 : BID = 32769 (priorité 32768 + sys-id 1)"}</p>
+                    <p className="text-emerald-400 mt-1">{"28673 < 32769 → SW2 gagne"}</p>
+                    <p className="text-emerald-400">{"→ Port de SW2 = Designated (FWD) ✅"}</p>
+                    <p className="text-red-400">{"→ Port de SW3 = Blocked (BLK) ⛔"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-violet-300 font-bold text-sm mb-2">{"En résumé — la logique STP :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-slate-300 leading-relaxed">
+                    <p>{"Sur chaque lien entre 2 switches, STP pose 3 questions :"}</p>
+                    <p>{""}</p>
+                    <p className="text-cyan-300">{"1. Qui a le coût le plus bas vers le Root ?"}</p>
+                    <p>{"   → Ce switch-là a le port Designated"}</p>
+                    <p>{""}</p>
+                    <p className="text-cyan-300">{"2. Si coût égal → qui a le plus petit Bridge ID ?"}</p>
+                    <p>{"   → Ce switch-là a le port Designated"}</p>
+                    <p>{""}</p>
+                    <p className="text-cyan-300">{"3. Le perdant → son port est Blocked"}</p>
+                    <p>{""}</p>
+                    <p className="text-emerald-400">{"Dans notre topologie :"}</p>
+                    <p>{"SW1 (Root, priorité 4097) → tous Designated"}</p>
+                    <p>{"SW2 (priorité 28673) → gagne contre SW3 (32769)"}</p>
+                    <p>{"SW3 → son port vers SW2 est bloqué"}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
             {/* TESTS FINAUX */}
             <section id="lab2-s10-tests" className="scroll-mt-4">
               <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-6">
-                <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Étape 5 — Tests finaux"}</p>
+                <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Étape 10 — Tests finaux"}</p>
 
                 <div className="bg-black/30 rounded-lg p-4 mb-4">
                   <p className="text-purple-300 font-bold text-sm mb-2">{"Test 1 — Vérifier les rôles de ports :"}</p>
@@ -13813,31 +14135,326 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
                     <p className="text-cyan-300">{"Fa0/24     Root   FWD  19    128.24    P2p  ← vers SW1 (Root)"}</p>
                     <p className="text-red-300">{"Fa0/23     Altn   BLK  19    128.23    P2p  ← bloqué !"}</p>
                   </div>
-                  <p className="text-slate-400 text-xs mt-2">{"Le port Alternate BLK sur SW2 ou SW3 empêche la boucle. Exactement un port bloqué dans toute la topologie."}</p>
                 </div>
 
                 <div className="bg-black/30 rounded-lg p-4 mb-4">
                   <p className="text-purple-300 font-bold text-sm mb-2">{"Test 2 — Connectivité entre les PCs :"}</p>
                   <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
                     <p className="text-slate-400">{"Depuis PC1 :"}</p>
-                    <p>{"C:\\> ping 192.168.1.20"}<span className="text-emerald-400">{" ✅ (PC2, sur SW2)"}</span></p>
-                    <p>{"C:\\> ping 192.168.1.30"}<span className="text-emerald-400">{" ✅ (PC3, sur SW3)"}</span></p>
-                    <p className="text-slate-400 mt-2">{"Depuis PC2 :"}</p>
-                    <p>{"C:\\> ping 192.168.1.30"}<span className="text-emerald-400">{" ✅ (PC3, sur SW3)"}</span></p>
+                    <p>{"C:\\> ping 192.168.1.20"}<span className="text-emerald-400">{" ✅ (PC2)"}</span></p>
+                    <p>{"C:\\> ping 192.168.1.30"}<span className="text-emerald-400">{" ✅ (PC3)"}</span></p>
                   </div>
                 </div>
 
                 <div className="bg-black/30 rounded-lg p-4">
                   <p className="text-emerald-300 font-bold text-sm mb-2">{"Résumé Lab 2 :"}</p>
                   <ul className="text-slate-300 text-sm space-y-1">
-                    <li>{"✅ Topologie triangle 3 switches + 3 PCs câblée"}</li>
-                    <li>{"✅ IPs configurées sur les 3 PCs (192.168.1.10/20/30)"}</li>
-                    <li>{"✅ STP initial observé (Root Bridge automatique par MAC)"}</li>
-                    <li>{"✅ SW1 forcé Root Bridge avec spanning-tree vlan 1 priority 4096"}</li>
-                    <li>{"✅ Élection vérifiée : Root ID = Bridge ID sur SW1"}</li>
-                    <li>{"✅ Port Alternate BLK identifié sur SW2 ou SW3"}</li>
+                    <li>{"✅ SW1 forcé Root Bridge (priority 4096)"}</li>
+                    <li>{"✅ SW2 configuré Root Bridge de secours (root secondary → 28672)"}</li>
+                    <li>{"✅ PortFast actif sur Fa0/1 de SW1, SW2, SW3"}</li>
+                    <li>{"✅ BPDU Guard actif sur les mêmes ports"}</li>
+                    <li>{"✅ Test err-disabled réussi + port récupéré"}</li>
                     <li>{"✅ Connectivité complète PC1 ↔ PC2 ↔ PC3 confirmée"}</li>
                   </ul>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      ),
+      solutionContentLab3: (
+        <div className="max-w-5xl mx-auto space-y-8 pb-16">
+          <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
+              {[
+                { id: 'lab3-s10-intro', label: 'Contexte', icon: '🔧' },
+                { id: 'lab3-s10-pb1', label: 'Prob. 1 — Root Bridge', icon: '👑' },
+                { id: 'lab3-s10-pb2', label: 'Prob. 2 — PortFast', icon: '⚡' },
+                { id: 'lab3-s10-pb3', label: 'Prob. 3 — err-disabled', icon: '🚫' },
+                { id: 'lab3-s10-resume', label: 'Résumé', icon: '✅' },
+              ].map(({ id, label, icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-red-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
+                >
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <div className="space-y-8">
+
+            {/* INTRO / CONTEXTE */}
+            <section id="lab3-s10-intro" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-red-900/20 to-orange-900/20 rounded-xl p-6 border border-red-500/30">
+                <h2 className="text-lg font-bold text-red-300 mb-4 flex items-center gap-2">{"🔧 Dépannage STP — Contexte"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Situation :"}</p>
+                  <p className="text-slate-300 text-sm">{"Tu arrives dans une entreprise. La topologie est déjà câblée (SW1, SW2, SW3 en triangle, PCs branchés). Mais le réseau a 3 problèmes STP. Ton rôle : les identifier avec les bonnes commandes de diagnostic, comprendre ce qui ne va pas, et corriger uniquement ce qui doit l'être."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-3">{"Topologie de départ (avec erreurs) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-4 text-slate-300 leading-relaxed">
+                    <p className="text-emerald-300">{"        [PC1]                  [PC2]"}</p>
+                    <p className="text-emerald-300">{"          │                      │"}</p>
+                    <p className="text-emerald-300">{"        Fa0/1                  Fa0/1"}</p>
+                    <p className="text-emerald-300">{"       [SW1] ─── Fa0/24─Fa0/24 ─── [SW2]"}</p>
+                    <p className="text-emerald-300">{"        │  Fa0/23              Fa0/2 ← PortFast ❌"}</p>
+                    <p className="text-emerald-300">{"        │  Fa0/5 ← err-disabled ❌         │"}</p>
+                    <p className="text-emerald-300">{"        │                              Fa0/23│"}</p>
+                    <p className="text-emerald-300">{"        └──────── Fa0/24─Fa0/24 ──── [SW3] ─┘"}</p>
+                    <p className="text-emerald-300">{"                                    Fa0/1"}</p>
+                    <p className="text-emerald-300">{"                                      │"}</p>
+                    <p className="text-emerald-300">{"                                    [PC3]"}</p>
+                    <p className="text-red-400 mt-2">{"  ❌ SW3 a priorité 4096 → il est Root Bridge par erreur"}</p>
+                    <p className="text-red-400">{"  ❌ SW2 Fa0/2 a PortFast activé (lien inter-switch !)"}</p>
+                    <p className="text-red-400">{"  ❌ SW1 Fa0/5 est en err-disabled (BPDU Guard déclenché)"}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* PROBLÈME 1 : MAUVAIS ROOT BRIDGE */}
+            <section id="lab3-s10-pb1" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-violet-900/20 to-purple-900/20 rounded-xl p-6 border border-violet-500/30">
+                <h2 className="text-lg font-bold text-violet-300 mb-4 flex items-center gap-2">{"👑 Problème 1 — Le mauvais switch est Root Bridge"}</h2>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Symptôme observé :"}</p>
+                  <p className="text-slate-300 text-sm">{"Le trafic entre SW1 et SW2 passe par SW3 au lieu d'aller en direct. Le réseau est lent. SW3 (un switch en bord de réseau) est Root Bridge alors que SW1 (le switch central) devrait l'être."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-3">{"🔍 Étape 1 — Diagnostic : lancer show spanning-tree sur SW1"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-slate-300 leading-relaxed mb-3">
+                    <p className="text-slate-500">{"SW1# show spanning-tree"}</p>
+                    <p>{""}</p>
+                    <p>{"VLAN0001"}</p>
+                    <p>{"  Root ID    Priority    4097"}</p>
+                    <p className="text-red-400">{"             Address     aabb.cc00.0300  ← MAC de SW3 !"}</p>
+                    <p>{"             Cost        19"}</p>
+                    <p>{"             Port        23 (Fa0/23)"}</p>
+                    <p>{""}</p>
+                    <p>{"  Bridge ID  Priority    32769"}</p>
+                    <p>{"             Address     aabb.cc00.0100  ← MAC de SW1"}</p>
+                    <p className="text-red-400 mt-2">{"  ⚠️ Root ID ≠ Bridge ID → SW1 n'est PAS Root Bridge"}</p>
+                    <p className="text-red-400">{"  ⚠️ Root ID pointe vers aabb.cc00.0300 → c'est SW3 !"}</p>
+                  </div>
+                  <p className="text-slate-300 text-sm">{"Confirme en lançant aussi show spanning-tree sur SW3 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-slate-300 leading-relaxed mt-2">
+                    <p className="text-slate-500">{"SW3# show spanning-tree"}</p>
+                    <p>{""}</p>
+                    <p>{"  Root ID    Priority    4097"}</p>
+                    <p className="text-emerald-400">{"             Address     aabb.cc00.0300  ← même MAC que Bridge ID"}</p>
+                    <p>{""}</p>
+                    <p>{"  Bridge ID  Priority    4097  (priority 4096 sys-id-ext 1)"}</p>
+                    <p className="text-emerald-400">{"             Address     aabb.cc00.0300"}</p>
+                    <p className="text-emerald-400 mt-2">{"  ✅ Root ID = Bridge ID → SW3 est bien Root Bridge"}</p>
+                    <p className="text-red-400">{"  ❌ Mais ce n'est pas lui qui devrait l'être !"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-3">{"🔧 Étape 2 — Correction : forcer SW1 comme Root Bridge"}</p>
+                  <div className="space-y-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[18rem]">{"SW1(config)# spanning-tree vlan 1 root primary"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Met la priorité de SW1 à 24576 (inférieure à 32768 et 4096 non... attends : 24576 > 4096). Utilise plutôt la méthode manuelle ici !"}</p>
+                    </div>
+                  </div>
+                  <p className="text-amber-300 text-xs mt-2 mb-3">{"⚠️ Si SW3 a priorité 4096, 'root primary' met SW1 à 4096 - 1 = pas valide. Il faut mettre SW1 à 4096 et enlever la priorité sur SW3 :"}</p>
+                  <div className="space-y-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[18rem]">{"SW1(config)# spanning-tree vlan 1 priority 4096"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Donne à SW1 la même priorité que SW3. À priorité égale, la plus petite MAC gagne — SW1 a une plus petite MAC, donc SW1 devient Root Bridge."}</p>
+                    </div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[18rem]">{"SW3(config)# no spanning-tree vlan 1 priority 4096"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Supprime la priorité personnalisée de SW3. Sa priorité revient à 32768 (défaut). Maintenant SW1 (4096) gagne clairement."}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-3">{"✅ Étape 3 — Vérification"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-slate-300 leading-relaxed">
+                    <p className="text-slate-500">{"SW1# show spanning-tree"}</p>
+                    <p>{""}</p>
+                    <p>{"  Root ID    Priority    4097"}</p>
+                    <p className="text-emerald-400">{"             Address     aabb.cc00.0100  ← maintenant c'est la MAC de SW1"}</p>
+                    <p>{""}</p>
+                    <p>{"  Bridge ID  Priority    4097"}</p>
+                    <p className="text-emerald-400">{"             Address     aabb.cc00.0100"}</p>
+                    <p className="text-emerald-400 mt-2">{"  ✅ Root ID = Bridge ID → SW1 est maintenant Root Bridge !"}</p>
+                    <p className="text-emerald-400">{"  ✅ Tous les ports de SW1 passent en Designated (DP)"}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* PROBLÈME 2 : PORTFAST SUR LIEN INTER-SWITCH */}
+            <section id="lab3-s10-pb2" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-amber-900/20 to-yellow-900/20 rounded-xl p-6 border border-amber-500/30">
+                <h2 className="text-lg font-bold text-amber-300 mb-4 flex items-center gap-2">{"⚡ Problème 2 — PortFast sur un lien inter-switch"}</h2>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Symptôme observé :"}</p>
+                  <p className="text-slate-300 text-sm">{"Le port Fa0/2 de SW2 (lien vers SW3) a PortFast activé. Ce n'est pas encore une catastrophe, mais si STP recalcule (suite à une panne), ce port passera en Forwarding instantanément sans vérification — risque de boucle temporaire."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-3">{"🔍 Étape 1 — Diagnostic : vérifier le détail du port Fa0/2"}</p>
+                  <div className="space-y-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[24rem]">{"SW2# show spanning-tree interface Fa0/2 detail"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Affiche les détails STP de l'interface, notamment si PortFast est activé."}</p>
+                    </div>
+                  </div>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-slate-300 leading-relaxed mt-3">
+                    <p>{"Port 2 (FastEthernet0/2) of VLAN0001 is designated forwarding"}</p>
+                    <p>{"  Port path cost 19, Port priority 128, Port Identifier 128.2."}</p>
+                    <p className="text-red-400">{"  The port is in the portfast mode"}</p>
+                    <p className="text-red-400">{"  ❌ PortFast activé sur un port qui mène vers SW3 !"}</p>
+                    <p className="text-slate-400">{"  PortFast ne doit être activé que sur les ports PC"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-3">{"🔧 Étape 2 — Correction : désactiver PortFast sur Fa0/2"}</p>
+                  <div className="space-y-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[16rem]">{"SW2(config)# interface FastEthernet0/2"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Entrer sur le port concerné."}</p>
+                    </div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[16rem]">{"SW2(config-if)# no spanning-tree portfast"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Supprime PortFast sur ce port. Il retourne au comportement STP normal (Blocking → Listening → Learning → Forwarding)."}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-3">{"✅ Étape 3 — Vérification"}</p>
+                  <div className="space-y-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[24rem]">{"SW2# show spanning-tree interface Fa0/2 detail"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"La mention 'The port is in the portfast mode' ne doit plus apparaître."}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* PROBLÈME 3 : ERR-DISABLED */}
+            <section id="lab3-s10-pb3" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-red-900/20 to-pink-900/20 rounded-xl p-6 border border-red-500/30">
+                <h2 className="text-lg font-bold text-red-300 mb-4 flex items-center gap-2">{"🚫 Problème 3 — Port en err-disabled (BPDU Guard)"}</h2>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Symptôme observé :"}</p>
+                  <p className="text-slate-300 text-sm">{"Le port Fa0/5 de SW1 est complètement mort. Aucun équipement branché dessus ne peut communiquer. Dans Packet Tracer, le port apparaît en orange fixe (pas clignotant)."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-3">{"🔍 Étape 1 — Diagnostic : identifier l'état du port"}</p>
+                  <div className="space-y-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[18rem]">{"SW1# show interfaces FastEthernet0/5"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Affiche l'état physique et logique du port."}</p>
+                    </div>
+                  </div>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-slate-300 leading-relaxed mt-3">
+                    <p className="text-red-400">{"FastEthernet0/5 is down, line protocol is down (err-disabled)"}</p>
+                    <p>{"  Hardware is Lance, address is aabb.cc00.0105"}</p>
+                    <p className="text-red-400 mt-2">{"  ❌ err-disabled = port désactivé par une protection automatique"}</p>
+                  </div>
+                  <div className="space-y-3 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[18rem]">{"SW1# show spanning-tree interface Fa0/5 detail"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Confirme que c'est BPDU Guard qui a déclenché l'err-disabled : 'BPDU error: portfast bpduguard'."}</p>
+                    </div>
+                  </div>
+                  <div className="bg-amber-900/20 rounded-lg p-3 border border-amber-500/20 mt-3">
+                    <p className="text-amber-300 text-xs font-bold mb-1">{"Explication :"}</p>
+                    <p className="text-slate-300 text-xs">{"Ce port Fa0/5 avait PortFast + BPDU Guard activé (configuration correcte pour un port PC). Mais quelqu'un a branché un switch dessus. Ce switch a envoyé des BPDU → BPDU Guard a immédiatement désactivé le port pour protéger le réseau."}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-3">{"🔧 Étape 2 — Correction"}</p>
+                  <div className="bg-red-900/20 rounded-lg p-3 border border-red-500/20 mb-3">
+                    <p className="text-red-300 text-xs font-bold mb-1">{"⚠️ Avant tout : identifier et débrancher le switch mal connecté sur Fa0/5 !"}</p>
+                    <p className="text-slate-300 text-xs">{"Si tu réactives le port sans enlever le switch, BPDU Guard se redéclenche immédiatement et le port se désactive encore."}</p>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[16rem]">{"SW1(config)# interface FastEthernet0/5"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Entrer sur le port en err-disabled."}</p>
+                    </div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[16rem]">{"SW1(config-if)# shutdown"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Éteindre manuellement le port — nécessaire pour effacer l'état err-disabled."}</p>
+                    </div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[16rem]">{"SW1(config-if)# no shutdown"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Rallumer le port. Il repasse en Forwarding. Si un PC (et non un switch) est maintenant branché, tout fonctionnera normalement."}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-3">{"✅ Étape 3 — Vérification"}</p>
+                  <div className="space-y-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                      <code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[18rem]">{"SW1# show interfaces FastEthernet0/5"}</code>
+                      <p className="text-slate-400 text-xs leading-relaxed">{"Doit afficher : 'FastEthernet0/5 is up, line protocol is up' — plus de err-disabled."}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* RÉSUMÉ */}
+            <section id="lab3-s10-resume" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/20 to-teal-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-4 flex items-center gap-2">{"✅ Résumé — Les 3 corrections"}</h2>
+                <div className="space-y-4">
+                  <div className="bg-black/30 rounded-lg p-4">
+                    <p className="text-violet-300 font-bold text-sm mb-3">{"Récapitulatif des commandes utilisées"}</p>
+                    <div className="space-y-3">
+                      <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                        <code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[22rem]">{"SW1(config)# spanning-tree vlan 1 priority 4096"}</code>
+                        <p className="text-slate-400 text-xs leading-relaxed">{"Problème 1 : force SW1 comme Root Bridge (priorité inférieure à SW3)"}</p>
+                      </div>
+                      <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                        <code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[22rem]">{"SW3(config)# no spanning-tree vlan 1 priority 4096"}</code>
+                        <p className="text-slate-400 text-xs leading-relaxed">{"Problème 1 : remet SW3 à la priorité par défaut (32768)"}</p>
+                      </div>
+                      <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                        <code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[22rem]">{"SW2(config-if)# no spanning-tree portfast"}</code>
+                        <p className="text-slate-400 text-xs leading-relaxed">{"Problème 2 : supprime PortFast du port Fa0/2 (lien inter-switch)"}</p>
+                      </div>
+                      <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start">
+                        <code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[22rem]">{"SW1(config-if)# shutdown / no shutdown"}</code>
+                        <p className="text-slate-400 text-xs leading-relaxed">{"Problème 3 : réactive le port Fa0/5 après avoir débranché le switch mal connecté"}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-6">
+                    <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Résultats attendus après correction"}</p>
+                    <ul className="text-slate-300 text-sm space-y-1">
+                      <li>{"✅ SW1 est Root Bridge : Root ID = Bridge ID sur SW1"}</li>
+                      <li>{"✅ SW3 priorité = 32768 (défaut) — show spanning-tree sur SW3"}</li>
+                      <li>{"✅ SW2 Fa0/2 : plus de mention PortFast dans show spanning-tree interface Fa0/2 detail"}</li>
+                      <li>{"✅ SW1 Fa0/5 : 'FastEthernet0/5 is up, line protocol is up'"}</li>
+                      <li>{"✅ Tous les PCs peuvent se pinger"}</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </section>
@@ -16540,12 +17157,12 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
               <CheckCircle className="w-4 h-4" /> {isSession10 ? 'Élection Root Bridge' : isSession9 ? 'Dépannage OSPF' : isSession8 ? 'Dépannage 1' : isSession6 ? 'Correction Lab 2 (Synthèse)' : isSession5 ? 'Correction Lab 2 (HTTP/FTP/ARP)' : isSession4 ? 'Correction Lab 2 (Étendu)' : isSession3 ? 'Correction Lab 2 (Dépannage)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
             </button>
           )}
-          {!hideCorrection && (isSession5 || isSession8 || isSession9) && lab.solutionContentLab3 && (
+          {!hideCorrection && (isSession5 || isSession8 || isSession9 || isSession10) && lab.solutionContentLab3 && (
             <button
               onClick={() => setLabTab('correction_lab3')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab3' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession9 ? 'Dépannage 2' : isSession8 ? 'Dépannage 2' : 'Correction Lab 3 (Synthèse)'}
+              <CheckCircle className="w-4 h-4" /> {isSession10 ? 'Dépannage STP' : isSession9 ? 'Dépannage 2' : isSession8 ? 'Dépannage 2' : 'Correction Lab 3 (Synthèse)'}
             </button>
           )}
           {!hideCorrection && (isSession5 || isSession9) && lab.solutionContentLab4 && (
@@ -16608,7 +17225,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
           </div>
         </div>
       )}
-      {labTab === 'correction_lab3' && (isSession5 || isSession8 || isSession9) && lab.solutionContentLab3 && (
+      {labTab === 'correction_lab3' && (isSession5 || isSession8 || isSession9 || isSession10) && lab.solutionContentLab3 && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl overflow-y-auto">
           <div className="p-6">
             {lab.solutionContentLab3}
