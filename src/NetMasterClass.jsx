@@ -14193,9 +14193,10 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               <div className="bg-gradient-to-r from-violet-900/20 to-purple-900/20 rounded-xl p-6 border border-violet-500/30">
                 <h2 className="text-lg font-bold text-violet-300 mb-3 flex items-center gap-2">{"👑 Dépannage 1 — SW1 n'est plus Root Bridge"}</h2>
                 <div className="bg-black/30 rounded-lg p-4 mb-2">
-                  <p className="text-amber-300 font-bold text-sm mb-1">{"État de départ (fin Lab 2) :"}</p>
-                  <p className="text-slate-300 text-sm">{"SW1 = Root Bridge (priority 4096), SW2 = secondary (28672), SW3 = 32768. Quelqu'un a supprimé la config de priorité sur SW1."}</p>
-                  <p className="text-slate-400 text-xs mt-2 font-mono">{"SW1(config)# no spanning-tree vlan 1 root primary"}</p>
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"🎬 Contexte :"}</p>
+                  <p className="text-slate-300 text-sm leading-relaxed">{"Tu es technicien réseau chez NovaTech. Ce matin, ton collègue Thomas — stagiaire de 2e année — a voulu « nettoyer » les configs des switches avant la réunion de direction. Il a tapé des "}<code className="text-red-400 font-mono text-xs">{"no spanning-tree"}</code>{" un peu partout pour « simplifier ». Résultat : SW1 a perdu sa priorité Root Bridge."}</p>
+                  <p className="text-slate-400 text-sm mt-2 leading-relaxed">{"Le réseau fonctionne encore — les PCs se pinguent — mais le trafic ne passe plus par le bon chemin. Le responsable réseau t'appelle : \"Je sais pas ce que Thomas a fait, mais quelque chose cloche.\""}</p>
+                  <p className="text-slate-500 text-xs mt-3 italic">{"Ton rôle : identifier quel switch est devenu Root Bridge et remettre SW1 à sa place."}</p>
                 </div>
               </div>
             </section>
@@ -14291,9 +14292,10 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               <div className="bg-gradient-to-r from-red-900/20 to-pink-900/20 rounded-xl p-6 border border-red-500/30">
                 <h2 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">{"🚫 Dépannage 2 — Port err-disabled sur SW3"}</h2>
                 <div className="bg-black/30 rounded-lg p-4 mb-2">
-                  <p className="text-amber-300 font-bold text-sm mb-1">{"État de départ (fin Lab 2) :"}</p>
-                  <p className="text-slate-300 text-sm">{"SW3 Fa0/1 a PortFast + BPDU Guard activé (port PC3). Quelqu'un a branché un switch sur ce port à la place du PC."}</p>
-                  <p className="text-slate-400 text-xs mt-2">{"→ Le switch envoie des BPDU → BPDU Guard déclenche err-disabled sur SW3 Fa0/1"}</p>
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"🎬 Contexte :"}</p>
+                  <p className="text-slate-300 text-sm leading-relaxed">{"Sophie, comptable au bureau 3, a appelé le support : \"Mon PC ne marche plus depuis ce matin, j'ai aucun accès réseau.\" En arrivant sur place, tu remarques qu'elle a branché une multiprise réseau sous son bureau — une vieille box Wi-Fi reconvertie en switch — pour connecter son PC, son téléphone IP et son imprimante. \"C'était plus pratique\", dit-elle."}</p>
+                  <p className="text-slate-400 text-sm mt-2 leading-relaxed">{"Le port de SW3 qui alimentait son PC est maintenant en orange fixe dans Packet Tracer. Plus rien ne passe."}</p>
+                  <p className="text-slate-500 text-xs mt-3 italic">{"Ton rôle : comprendre pourquoi le port s'est désactivé tout seul et le remettre en service correctement."}</p>
                 </div>
               </div>
             </section>
@@ -14391,9 +14393,10 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               <div className="bg-gradient-to-r from-yellow-900/20 to-amber-900/20 rounded-xl p-6 border border-yellow-500/30">
                 <h2 className="text-lg font-bold text-yellow-300 mb-3 flex items-center gap-2">{"⚡ Dépannage 3 — PortFast sur un lien inter-switch"}</h2>
                 <div className="bg-black/30 rounded-lg p-4 mb-2">
-                  <p className="text-amber-300 font-bold text-sm mb-1">{"État de départ (fin Lab 2) :"}</p>
-                  <p className="text-slate-300 text-sm">{"PortFast est activé sur les ports PC (Fa0/1) des 3 switches — c'est correct. Quelqu'un a aussi activé PortFast sur SW2 Fa0/23 (lien inter-switch vers SW3)."}</p>
-                  <p className="text-slate-400 text-xs mt-2 font-mono">{"SW2(config-if)# spanning-tree portfast  ← sur Fa0/23"}</p>
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"🎬 Contexte :"}</p>
+                  <p className="text-slate-300 text-sm leading-relaxed">{"Karim, un technicien junior, a reçu une plainte : les PCs mettaient 30 secondes à se reconnecter après un redémarrage. Il a trouvé la solution sur un forum : \"Active PortFast partout, ça règle le délai\". Il a donc appliqué PortFast sur tous les ports des switches — y compris les liens inter-switch."}</p>
+                  <p className="text-slate-400 text-sm mt-2 leading-relaxed">{"Aujourd'hui le réseau fonctionne. Mais lors de ton audit mensuel, tu dois vérifier la config STP de chaque port. Quelque chose d'anormal apparaît sur SW2."}</p>
+                  <p className="text-slate-500 text-xs mt-3 italic">{"Ton rôle : identifier le port mal configuré et expliquer pourquoi c'est dangereux."}</p>
                 </div>
               </div>
             </section>
@@ -14475,9 +14478,10 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
               <div className="bg-gradient-to-r from-indigo-900/20 to-purple-900/20 rounded-xl p-6 border border-indigo-500/30">
                 <h2 className="text-lg font-bold text-indigo-300 mb-3 flex items-center gap-2">{"🔄 Dépannage 4 — Root Bridge secondaire supprimé"}</h2>
                 <div className="bg-black/30 rounded-lg p-4 mb-2">
-                  <p className="text-amber-300 font-bold text-sm mb-1">{"État de départ (fin Lab 2) :"}</p>
-                  <p className="text-slate-300 text-sm">{"SW2 était configuré Root Bridge secondaire (priority 28672). Quelqu'un a supprimé cette configuration — SW2 revient à 32768."}</p>
-                  <p className="text-slate-400 text-xs mt-2 font-mono">{"SW2(config)# no spanning-tree vlan 1 root secondary"}</p>
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"🎬 Contexte :"}</p>
+                  <p className="text-slate-300 text-sm leading-relaxed">{"La semaine dernière, SW1 a subi une mise à jour firmware. Pour éviter les problèmes, le prestataire a fait un backup/restore des configs. Tout s'est bien passé — en apparence. Ce matin, SW1 tombe en panne matérielle à 9h. Le réseau bascule... mais ça prend bien plus de temps que prévu, et c'est SW3 qui prend le relais au lieu de SW2."}</p>
+                  <p className="text-slate-400 text-sm mt-2 leading-relaxed">{"En regardant de près, tu réalises que lors du restore, la commande "}<code className="text-red-400 font-mono text-xs">{"spanning-tree vlan 1 root secondary"}</code>{" a été perdue sur SW2. La redondance était silencieusement cassée depuis une semaine."}</p>
+                  <p className="text-slate-500 text-xs mt-3 italic">{"Ton rôle : confirmer que SW2 a perdu sa priorité secondaire et remettre la config de redondance en place."}</p>
                 </div>
               </div>
             </section>
