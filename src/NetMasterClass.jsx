@@ -13499,6 +13499,187 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
           </div>
         </div>
       ),
+      solutionContentLab2: (
+        <div className="max-w-4xl mx-auto space-y-8 pb-16">
+          <div className="bg-gradient-to-r from-violet-900/40 to-blue-900/40 border border-violet-500/30 rounded-xl p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-3xl">🌳</span>
+              <div>
+                <h2 className="text-xl font-bold text-white">LAB 2 – Élection du Root Bridge et États de Ports</h2>
+                <p className="text-violet-300 text-sm">Séance 10 : Spanning Tree Protocol – Topologie Triangle 3 Switches</p>
+              </div>
+            </div>
+            <p className="text-slate-300 text-sm">Objectif : Comprendre comment STP élit le Root Bridge et influencer ce choix pour maîtriser votre topologie réseau.</p>
+          </div>
+
+          <section id="lab2-s10-topo" className="scroll-mt-4">
+            <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+              <span className="bg-violet-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shrink-0">1</span>
+              Construire la topologie
+            </h3>
+            <div className="bg-[#1a1035]/60 border border-white/10 rounded-xl p-5 space-y-4">
+              <div>
+                <p className="text-amber-300 font-semibold text-sm mb-2">Matériel dans Packet Tracer :</p>
+                <ul className="text-slate-300 text-sm space-y-1 ml-4">
+                  <li>• 3 switches 2960 : <span className="text-cyan-300 font-mono">SW1</span>, <span className="text-cyan-300 font-mono">SW2</span>, <span className="text-cyan-300 font-mono">SW3</span></li>
+                  <li>• 3 PCs : <span className="text-green-300 font-mono">PC1</span>, <span className="text-green-300 font-mono">PC2</span>, <span className="text-green-300 font-mono">PC3</span></li>
+                </ul>
+              </div>
+              <div>
+                <p className="text-amber-300 font-semibold text-sm mb-2">Câblage (câbles croisés entre switches) :</p>
+                <div className="bg-black/40 rounded-lg p-4 font-mono text-sm text-emerald-300 leading-relaxed">
+                  <p>{"    [PC1]          [PC2]          [PC3]"}</p>
+                  <p>{"      │               │               │"}</p>
+                  <p>{"    Fa0/1           Fa0/1           Fa0/1"}</p>
+                  <p>{"  ┌─[SW1]─────────[SW2]─────────[SW3]─┐"}</p>
+                  <p>{"  │  Fa0/2         Fa0/2  Fa0/3        │"}</p>
+                  <p>{"  │                       Fa0/4  Fa0/4 │"}</p>
+                  <p>{"  └──────────── SW1 Fa0/4 ─────────────┘"}</p>
+                </div>
+                <ul className="text-slate-300 text-sm space-y-1 ml-4 mt-3">
+                  <li>• <span className="font-mono text-cyan-300">PC1</span> → SW1 <span className="font-mono">Fa0/1</span></li>
+                  <li>• <span className="font-mono text-cyan-300">PC2</span> → SW2 <span className="font-mono">Fa0/1</span></li>
+                  <li>• <span className="font-mono text-cyan-300">PC3</span> → SW3 <span className="font-mono">Fa0/1</span></li>
+                  <li>• SW1 <span className="font-mono">Fa0/2</span> ↔ SW2 <span className="font-mono">Fa0/2</span></li>
+                  <li>• SW2 <span className="font-mono">Fa0/3</span> ↔ SW3 <span className="font-mono">Fa0/3</span></li>
+                  <li>• SW1 <span className="font-mono">Fa0/4</span> ↔ SW3 <span className="font-mono">Fa0/4</span></li>
+                </ul>
+              </div>
+              <div>
+                <p className="text-amber-300 font-semibold text-sm mb-2">Adressage IP des PCs :</p>
+                <div className="bg-black/50 rounded-lg p-3 font-mono text-xs space-y-1">
+                  <div className="text-green-400">PC1 : 192.168.1.10 / 255.255.255.0</div>
+                  <div className="text-green-400">PC2 : 192.168.1.20 / 255.255.255.0</div>
+                  <div className="text-green-400">PC3 : 192.168.1.30 / 255.255.255.0</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab2-s10-observer" className="scroll-mt-4">
+            <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+              <span className="bg-violet-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shrink-0">2</span>
+              Observer l'état STP initial
+            </h3>
+            <div className="bg-[#1a1035]/60 border border-white/10 rounded-xl p-5 space-y-4">
+              <p className="text-slate-300 text-sm">Sur chaque switch, exécuter la commande :</p>
+              <div className="bg-black/50 rounded-lg p-4 font-mono text-sm">
+                <div><span className="text-yellow-400">SW1# </span><span className="text-white">show spanning-tree</span></div>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 text-sm space-y-2">
+                <p className="text-emerald-300 font-semibold">Ce que vous verrez :</p>
+                <ul className="text-slate-300 space-y-1 ml-4">
+                  <li>• Le switch avec la <strong className="text-white">plus petite adresse MAC</strong> sera élu Root Bridge (priorité 32768 identique sur tous par défaut)</li>
+                  <li>• Les deux autres switches affichent un <span className="text-cyan-300 font-semibold">Root Port (RP)</span> pointant vers le Root</li>
+                  <li>• Un port est en état <span className="text-red-400 font-semibold">BLK (Blocking)</span> pour briser la boucle</li>
+                  <li>• Les ports vers les PCs (Fa0/1) sont en <span className="text-green-400 font-semibold">FWD (Forwarding)</span></li>
+                </ul>
+              </div>
+              <div className="bg-amber-900/20 border border-amber-500/30 rounded-lg p-3 text-sm">
+                <p className="text-amber-300 font-semibold mb-1">📝 À noter :</p>
+                <p className="text-slate-300">Cherchez la ligne <code className="bg-black/50 px-1 rounded text-xs font-mono">This bridge is the root</code> pour identifier quel switch est Root Bridge. Notez son adresse MAC et sa priorité.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab2-s10-root" className="scroll-mt-4">
+            <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+              <span className="bg-violet-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shrink-0">3</span>
+              Forcer SW1 comme Root Bridge
+            </h3>
+            <div className="bg-[#1a1035]/60 border border-white/10 rounded-xl p-5 space-y-4">
+              <p className="text-slate-300 text-sm">Sur SW1, abaisser la priorité à <strong className="text-white">4096</strong> (plus petit que 32768 = toujours prioritaire) :</p>
+              <div className="bg-black/50 rounded-lg p-4 font-mono text-sm space-y-1">
+                <div><span className="text-yellow-400">SW1&gt; </span><span className="text-cyan-300">enable</span></div>
+                <div><span className="text-yellow-400">SW1# </span><span className="text-cyan-300">configure terminal</span></div>
+                <div><span className="text-yellow-400">SW1(config)# </span><span className="text-white">spanning-tree vlan 1 priority 4096</span></div>
+                <div><span className="text-yellow-400">SW1(config)# </span><span className="text-cyan-300">end</span></div>
+                <div><span className="text-yellow-400">SW1# </span><span className="text-cyan-300">copy running-config startup-config</span></div>
+              </div>
+              <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 text-sm">
+                <p className="text-blue-300 font-semibold mb-1">💡 Pourquoi 4096 ?</p>
+                <p className="text-slate-300">Les priorités STP doivent être des <strong className="text-white">multiples de 4096</strong> (0, 4096, 8192, 16384, 20480, 24576, 28672, 32768…). Plus la valeur est basse, plus le switch est prioritaire. Avec 4096, SW1 bat toujours SW2 et SW3 qui restent à 32768.</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab2-s10-verify" className="scroll-mt-4">
+            <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+              <span className="bg-violet-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shrink-0">4</span>
+              Vérifier l'élection du Root Bridge
+            </h3>
+            <div className="bg-[#1a1035]/60 border border-white/10 rounded-xl p-5 space-y-4">
+              <p className="text-slate-300 text-sm">Relancer <code className="bg-black/50 px-1 rounded text-xs font-mono">show spanning-tree</code> sur tous les switches :</p>
+              <div className="bg-black/50 rounded-lg p-4 font-mono text-xs space-y-3">
+                <div>
+                  <div className="text-yellow-400 mb-1">SW1# show spanning-tree</div>
+                  <div className="text-slate-400">VLAN0001</div>
+                  <div className="text-slate-400">&nbsp;&nbsp;Spanning tree enabled protocol ieee</div>
+                  <div className="text-emerald-400">&nbsp;&nbsp;Root ID&nbsp;&nbsp;&nbsp;&nbsp;Priority&nbsp;&nbsp;&nbsp;&nbsp;<strong>4097</strong></div>
+                  <div className="text-emerald-400">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Address&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0001.xxxx.xxxx</div>
+                  <div className="text-emerald-400 font-bold">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<strong>This bridge is the root</strong></div>
+                </div>
+                <div>
+                  <div className="text-yellow-400 mb-1">SW2# show spanning-tree</div>
+                  <div className="text-slate-400">VLAN0001</div>
+                  <div className="text-slate-400">&nbsp;&nbsp;Root ID&nbsp;&nbsp;&nbsp;&nbsp;Priority&nbsp;&nbsp;&nbsp;&nbsp;4097 <span className="text-violet-400">(= SW1)</span></div>
+                  <div className="text-slate-400">...</div>
+                  <div className="text-slate-400">Interface&nbsp;&nbsp;Role&nbsp;&nbsp;&nbsp;Sts&nbsp;&nbsp;Cost&nbsp;&nbsp;Type</div>
+                  <div className="text-cyan-400">Fa0/2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Root&nbsp;&nbsp;&nbsp;FWD&nbsp;&nbsp;19&nbsp;&nbsp;&nbsp;&nbsp;P2p</div>
+                  <div className="text-red-400">Fa0/3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Altn&nbsp;&nbsp;&nbsp;BLK&nbsp;&nbsp;19&nbsp;&nbsp;&nbsp;&nbsp;P2p</div>
+                </div>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 text-sm space-y-1">
+                <p className="text-emerald-300 font-semibold mb-2">Résultat attendu :</p>
+                <ul className="text-slate-300 space-y-1 ml-4">
+                  <li>• SW1 affiche <span className="text-emerald-400 font-semibold">"This bridge is the root"</span> avec priorité <span className="font-mono">4097</span> (4096 + VLAN 1)</li>
+                  <li>• SW2 et SW3 ont chacun un <span className="text-cyan-300">Root Port (FWD)</span> vers SW1</li>
+                  <li>• Un port entre SW2 et SW3 est en <span className="text-red-400">Alternate / Blocking (BLK)</span></li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section id="lab2-s10-ping" className="scroll-mt-4">
+            <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+              <span className="bg-violet-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm font-bold shrink-0">5</span>
+              Tester la connectivité
+            </h3>
+            <div className="bg-[#1a1035]/60 border border-white/10 rounded-xl p-5 space-y-4">
+              <p className="text-slate-300 text-sm">Depuis chaque PC, tester le ping vers les deux autres :</p>
+              <div className="bg-black/50 rounded-lg p-4 font-mono text-xs space-y-3">
+                <div>
+                  <div className="text-yellow-400">PC1&gt; ping 192.168.1.20</div>
+                  <div className="text-green-400">Reply from 192.168.1.20: bytes=32 time&lt;1ms TTL=128</div>
+                </div>
+                <div>
+                  <div className="text-yellow-400">PC1&gt; ping 192.168.1.30</div>
+                  <div className="text-green-400">Reply from 192.168.1.30: bytes=32 time&lt;1ms TTL=128</div>
+                </div>
+                <div>
+                  <div className="text-yellow-400">PC2&gt; ping 192.168.1.30</div>
+                  <div className="text-green-400">Reply from 192.168.1.30: bytes=32 time&lt;1ms TTL=128</div>
+                </div>
+              </div>
+              <div className="bg-emerald-900/20 border border-emerald-500/30 rounded-lg p-3 text-sm">
+                <p className="text-emerald-300 font-semibold mb-1">✅ Résultat :</p>
+                <p className="text-slate-300">Même avec un port bloqué, les 3 PCs communiquent parfaitement. STP a créé un chemin sans boucle tout en conservant la redondance physique.</p>
+              </div>
+            </div>
+          </section>
+
+          <div className="bg-black/30 rounded-lg p-4">
+            <p className="text-emerald-300 font-bold text-sm mb-2">{"Résumé Lab 2 :"}</p>
+            <ul className="text-slate-300 text-sm space-y-1">
+              <li>{"✅ Topologie triangle 3 switches + 3 PCs construite"}</li>
+              <li>{"✅ STP initial observé (Root Bridge automatique par MAC)"}</li>
+              <li>{"✅ SW1 forcé Root Bridge avec priorité 4096"}</li>
+              <li>{"✅ Élection vérifiée : \"This bridge is the root\" sur SW1"}</li>
+              <li>{"✅ Connectivité complète PC1 ↔ PC2 ↔ PC3 confirmée"}</li>
+            </ul>
+          </div>
+        </div>
+      ),
     },
     quiz: [
       { q: "Quel problème STP résout-il ?", options: ["Les conflits d'adresses IP", "Les boucles de commutation (Layer 2)", "Les erreurs de routage"], a: 1, explanation: "STP (Spanning Tree Protocol) empêche les boucles de commutation au Layer 2 en bloquant intelligemment des ports redondants." },
@@ -16186,12 +16367,12 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
               <CheckCircle className="w-4 h-4" /> {isSession10 ? 'Correction Lab STP' : isSession9 ? 'Correction Lab OSPF' : isSession8 ? 'Correction Lab Routage' : isSession7 ? 'Correction Lab Adressage' : isSession6 ? 'Correction Lab Syslog' : isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
             </button>
           )}
-          {!hideCorrection && (isSession2 || isSession3 || isSession4 || isSession5 || isSession6 || isSession8 || isSession9) && lab.solutionContentLab2 && (
+          {!hideCorrection && (isSession2 || isSession3 || isSession4 || isSession5 || isSession6 || isSession8 || isSession9 || isSession10) && lab.solutionContentLab2 && (
             <button
               onClick={() => setLabTab('correction_lab2')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab2' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession9 ? 'Dépannage OSPF' : isSession8 ? 'Dépannage 1' : isSession6 ? 'Correction Lab 2 (Synthèse)' : isSession5 ? 'Correction Lab 2 (HTTP/FTP/ARP)' : isSession4 ? 'Correction Lab 2 (Étendu)' : isSession3 ? 'Correction Lab 2 (Dépannage)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
+              <CheckCircle className="w-4 h-4" /> {isSession10 ? 'Élection Root Bridge' : isSession9 ? 'Dépannage OSPF' : isSession8 ? 'Dépannage 1' : isSession6 ? 'Correction Lab 2 (Synthèse)' : isSession5 ? 'Correction Lab 2 (HTTP/FTP/ARP)' : isSession4 ? 'Correction Lab 2 (Étendu)' : isSession3 ? 'Correction Lab 2 (Dépannage)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
             </button>
           )}
           {!hideCorrection && (isSession5 || isSession8 || isSession9) && lab.solutionContentLab3 && (
@@ -16253,7 +16434,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
       {labTab === 'correction_lab2' && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {(isSession4 || isSession5 || isSession6 || isSession8 || isSession9) ? (lab.solutionContentLab2) : isSession3 ? <LabTroubleshootingSection3 /> : isSession2 ? (lab.solutionContentLab2 || (
+            {(isSession4 || isSession5 || isSession6 || isSession8 || isSession9 || isSession10) ? (lab.solutionContentLab2) : isSession3 ? <LabTroubleshootingSection3 /> : isSession2 ? (lab.solutionContentLab2 || (
               <div className="max-w-2xl mx-auto bg-[#1a1035]/50 border border-white/20 rounded-xl p-8 text-center">
                 <h3 className="text-xl font-bold text-purple-400 mb-3">Correction Lab 2 – VLAN avancés et sécurisation</h3>
                 <p className="text-slate-400">Trunk, VLAN autorisés, VLAN natif. Pour les consignes et la correction détaillée, suivre le PDF « 3 - Introduction Vlan avancés et sécurisation - LAB.pdf ».</p>
