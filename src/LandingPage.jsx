@@ -2,25 +2,32 @@ import React, { useLayoutEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { BookOpen, Terminal, Award, Users, Star, CheckCircle, Zap, Shield, Play, Network, Globe, Layers, Cpu } from 'lucide-react';
+import { siGoogle, siAmazonaws, siMicrosoft, siMeta, siIbm, siOracle, siCisco, siNokia, siOvh, siAccenture } from 'simple-icons';
 
 gsap.registerPlugin(ScrollTrigger);
 
 // ─── VIBE 2 — PURPLE LUXURY (full scrollytelling) ────────────────────────────
-const MANIFESTO_WORDS = 'Le réseau est partout. Dans chaque paquet transmis. Dans chaque route calculée. Dans chaque connexion établie entre deux machines. Maîtriser le réseau, c\'est comprendre l\'infrastructure invisible qui fait tourner le monde entier.'.split(' ');
 
-// Real sessions extracted from NetMasterClass.jsx
-const REAL_SESSIONS = [
-  { id: 1,  title: 'Sécurisation & SSH',        slides: 73, quiz: 38, color: '#a855f7', week: 1, tag: 'S1',  keys: ['CLI 3 modes', 'SSH', 'Enable secret', 'TFTP'] },
-  { id: 2,  title: 'VLANs',                      slides: 45, quiz: 15, color: '#a855f7', week: 1, tag: 'S2',  keys: ['Segmentation', 'VLAN 1', 'Plages', 'Config'] },
-  { id: 3,  title: 'Trunk & Inter-VLAN',         slides: 39, quiz: 23, color: '#a855f7', week: 1, tag: 'S3',  keys: ['802.1Q', 'Dot1Q', 'Router-on-stick', 'SVI'] },
-  { id: 4,  title: 'DHCP & DNS',                 slides: 88, quiz: 26, color: '#3b82f6', week: 2, tag: 'S4',  keys: ['DORA', 'Pool DHCP', 'Relais', 'Résolution'] },
-  { id: 5,  title: 'HTTP, FTP & ARP',            slides: 43, quiz: 25, color: '#3b82f6', week: 2, tag: 'S5',  keys: ['GET/POST', 'Codes HTTP', 'TFTP', 'Gratuitous ARP'] },
-  { id: 6,  title: 'Syslog & SNMP',              slides: 39, quiz:  3, color: '#3b82f6', week: 2, tag: 'S6',  keys: ['8 niveaux', 'Trap SNMP', 'MIB', 'Logging'] },
-  { id: 7,  title: 'Adressage IP & Masques',     slides: 67, quiz: 23, color: '#10b981', week: 3, tag: 'S7',  keys: ['CIDR', 'VLSM', 'Binaire', 'Découpage'] },
-  { id: 8,  title: 'Routage Statique',           slides: 29, quiz: 10, color: '#10b981', week: 3, tag: 'S8',  keys: ['ip route', 'Table routage', 'Default route', 'AD'] },
-  { id: 9,  title: 'OSPF',                       slides: 23, quiz: 20, color: '#10b981', week: 3, tag: 'S9',  keys: ['Areas', 'Wildcard', 'Hello/Dead', 'DR/BDR'] },
-  { id: 10, title: 'STP — Spanning Tree',              slides: 28, quiz: 10, color: '#f59e0b', week: 4, tag: 'S10', keys: ['Root Bridge', 'BPDU', 'PortFast', 'BPDU Guard'] },
+const HOW_STEPS = [
+  { num: '01', title: 'Cours enregistrés', icon: BookOpen, color: '#a855f7',
+    body: 'Slides interactives, schémas réseau détaillés et exemples CLI Cisco commentés. Disponible à tout moment, à votre rythme.',
+    items: ['10 sessions structurées', '474+ diapositives', 'Exemples CLI annotés'],
+    gradient: 'from-purple-500/20 to-transparent' },
+  { num: '02', title: 'Sessions live', icon: Users, color: '#3b82f6',
+    body: '3 sessions live par semaine avec votre formateur : correction de labs en direct, Q&A et mise en situation réseau réelle.',
+    items: ['12 lives au total', 'Q&A formateur en direct', 'Correction de labs live'],
+    gradient: 'from-blue-500/20 to-transparent' },
+  { num: '03', title: 'Labs Packet Tracer', icon: Terminal, color: '#10b981',
+    body: 'Mettez en pratique sur Cisco Packet Tracer. Topologies NovaTech guidées, correction détaillée et astuces de dépannage.',
+    items: ['10 labs guidés', 'Topologies réalistes', 'Corrections incluses'],
+    gradient: 'from-emerald-500/20 to-transparent' },
+  { num: '04', title: 'Obtenez votre CCST', icon: Award, color: '#f59e0b',
+    body: 'Quiz randomisés, flashcards de révision et générateur de commandes pour arriver à l\'examen avec confiance totale.',
+    items: ['193+ questions CCST', 'Flashcards dynamiques', 'Générateur CLI interactif'],
+    gradient: 'from-amber-500/20 to-transparent' },
 ];
+
+const MANIFESTO_WORDS = 'Le réseau est partout. Dans chaque paquet transmis. Dans chaque route calculée. Dans chaque connexion établie entre deux machines. Maîtriser le réseau, c\'est comprendre l\'infrastructure invisible qui fait tourner le monde entier.'.split(' ');
 
 // Real weeks data
 const REAL_WEEKS_DATA = [
@@ -55,22 +62,17 @@ const REAL_WEEKS_DATA = [
 ];
 
 // Real platform tools
-const PLATFORM_TOOLS = [
-  { Icon: Terminal, color: '#a855f7', title: 'Simulateur CLI',       desc: 'Syntaxe Cisco IOS colorisée. Naviguez entre les modes User, Privileged, Config en live.' },
-  { Icon: Zap,      color: '#3b82f6', title: 'Générateur de cmds',   desc: 'Construisez pas-à-pas vos configs VLAN, OSPF, NAT avec le bon ordre de commandes garanti.' },
-  { Icon: BookOpen, color: '#10b981', title: 'Flashcards actives',   desc: '100+ commandes clés. Mode retournement, mode examen, répétition des commandes ratées.' },
-  { Icon: Globe,    color: '#f59e0b', title: 'Calculateur réseau',   desc: 'Calculs CIDR/VLSM, conversions binaire/décimal, masques. Widget flottant disponible en cours.' },
-  { Icon: Layers,   color: '#ec4899', title: 'Tableau interactif',   desc: 'Dessinez vos topologies réseau directement dans l\'interface. Outils crayon, formes, texte.' },
-  { Icon: Shield,   color: '#6366f1', title: 'Quiz 193 questions',   desc: 'Questions CCST avec explications détaillées. Mode session ciblée ou révision générale.' },
+const TOOLS_DATA = [
+  { id: '01', icon: Terminal, color: '#a855f7', title: 'Simulateur CLI',       desc: 'Syntaxe Cisco IOS colorisée. Naviguez entre les modes User, Privileged, Config en live.', img: '/validationtp.png' },
+  { id: '02', icon: Zap,      color: '#3b82f6', title: 'Générateur de cmds',   desc: 'Construisez pas-à-pas vos configs VLAN, OSPF, NAT avec le bon ordre de commandes garanti.', img: '/validationtp.png' },
+  { id: '03', icon: BookOpen, color: '#10b981', title: 'Flashcards actives',   desc: '100+ commandes clés. Mode retournement, mode examen, répétition des commandes ratées.', img: '/flash.png' },
+  { id: '04', icon: Globe,    color: '#f59e0b', title: 'Calculateur réseau',   desc: 'Calculs CIDR/VLSM, conversions binaire/décimal, masques. Widget flottant.', img: '/Calculateur.png' },
+  { id: '05', icon: Layers,   color: '#ec4899', title: 'Tableau interactif',   desc: 'Dessinez vos topologies réseau directement dans l\'interface. Outils crayon, formes, texte.', img: '/Tableau interactif.png' },
+  { id: '06', icon: Shield,   color: '#6366f1', title: 'Quiz 193 questions',   desc: 'Questions CCST avec explications détaillées. Mode session ciblée ou révision générale.', img: '/Quiz.png' },
 ];
 
 // Partner logos (Simple Icons CDN — standard web dev resource)
 
-const TESTIMONIALS = [
-  { name: 'Thomas M.', role: 'Administrateur réseau', quote: 'J\'ai obtenu ma certification CCST en 3 mois. Les labs Packet Tracer sont vraiment proches des vrais examens Cisco.', rating: 5, initials: 'TM', color: '#a855f7' },
-  { name: 'Sophie L.', role: 'Étudiante BTS SIO',     quote: 'Les cours sont clairs et progressifs. Les flashcards m\'ont aidée à retenir les 100+ commandes Cisco en quelques jours.', rating: 5, initials: 'SL', color: '#3b82f6' },
-  { name: 'Romain D.', role: 'Ingénieur réseau',      quote: 'La meilleure formation CCST que j\'ai trouvée. La progression est logique et les explications OSPF sont enfin compréhensibles.', rating: 5, initials: 'RD', color: '#10b981' },
-];
 
 const REAL_STATS2 = [
   { val: 10,  suffix: '',  label: 'Sessions enregistrées', desc: 'Du CLI de base à STP avancé',           icon: BookOpen },
@@ -90,19 +92,23 @@ const JOB_STATS = [
 ];
 
 // ── Recruiters ────────────────────────────────────────────────────────────────
+// Orange & Capgemini absents de simple-icons v9 — SVG paths inline
+const siOrangePath = 'M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 4.5c4.142 0 7.5 3.358 7.5 7.5s-3.358 7.5-7.5 7.5S4.5 16.142 4.5 12 7.858 4.5 12 4.5z';
+const siCapgeminiPath = 'M11.93 0C5.34 0 0 5.34 0 11.93c0 6.59 5.34 11.93 11.93 11.93 3.78 0 7.16-1.76 9.37-4.52l-3.27-2.37a7.52 7.52 0 0 1-6.1 3.12c-4.16 0-7.52-3.36-7.52-7.52 0-4.15 3.36-7.52 7.52-7.52 2.87 0 5.37 1.61 6.68 3.98H24C22.38 4.04 17.58 0 11.93 0z';
+
 const RECRUITERS = [
-  { type: 'img',   src: 'https://cdn.simpleicons.org/google/ffffff',    label: 'Google',      sector: 'Cloud & IA',     color: '#4285f4' },
-  { type: 'badge', abbr: 'AWS',  bg: '#232f3e',                         label: 'Amazon AWS',  sector: 'Cloud',          color: '#ff9900' },
-  { type: 'badge', abbr: 'MS',   bg: '#0078d4',                         label: 'Microsoft',   sector: 'Azure & IA',     color: '#50e6ff' },
-  { type: 'img',   src: 'https://cdn.simpleicons.org/meta/ffffff',      label: 'Meta',        sector: 'Data Center',    color: '#0866ff' },
-  { type: 'img',   src: 'https://cdn.simpleicons.org/ibm/ffffff',       label: 'IBM',         sector: 'Infrastructure', color: '#1f70c1' },
-  { type: 'badge', abbr: 'ORA',  bg: '#c74634',                         label: 'Oracle',      sector: 'Cloud & DB',     color: '#f80000' },
-  { type: 'img',   src: 'https://cdn.simpleicons.org/cisco/ffffff',     label: 'Cisco',       sector: 'Networking',     color: '#1ba0d7' },
-  { type: 'img',   src: 'https://cdn.simpleicons.org/nokia/ffffff',     label: 'Nokia',       sector: 'Télécoms',       color: '#124191' },
-  { type: 'badge', abbr: 'ORG',  bg: '#ff6600',                         label: 'Orange',      sector: 'Télécoms FR',    color: '#ff8533' },
-  { type: 'img',   src: 'https://cdn.simpleicons.org/ovhcloud/ffffff',  label: 'OVHcloud',    sector: 'Cloud FR',       color: '#123f6d' },
-  { type: 'img',   src: 'https://cdn.simpleicons.org/accenture/ffffff', label: 'Accenture',   sector: 'Conseil IT',     color: '#a100ff' },
-  { type: 'img',   src: 'https://cdn.simpleicons.org/capgemini/ffffff', label: 'Capgemini',   sector: 'Conseil IT',     color: '#0070ad' },
+  { icon: siGoogle,    color: '#4285F4', label: 'Google',      sector: 'Cloud & IA'     },
+  { icon: siAmazonaws, color: '#FF9900', label: 'Amazon AWS',  sector: 'Cloud'          },
+  { icon: siMicrosoft, color: '#0078D4', label: 'Microsoft',   sector: 'Azure & IA'     },
+  { icon: siMeta,      color: '#0467DF', label: 'Meta',        sector: 'Data Center'    },
+  { icon: siIbm,       color: '#3D70D4', label: 'IBM',         sector: 'Infrastructure' },
+  { icon: siOracle,    color: '#F80000', label: 'Oracle',      sector: 'Cloud & DB'     },
+  { icon: siCisco,     color: '#1BA0D7', label: 'Cisco',       sector: 'Networking'     },
+  { icon: siNokia,     color: '#005AFF', label: 'Nokia',       sector: 'Télécoms'       },
+  { path: siOrangePath,    color: '#FF7900', label: 'Orange',   sector: 'Télécoms FR'   },
+  { icon: siOvh,       color: '#4C9BD6', label: 'OVHcloud',    sector: 'Cloud FR'       },
+  { icon: siAccenture, color: '#A100FF', label: 'Accenture',   sector: 'Conseil IT'     },
+  { path: siCapgeminiPath, color: '#0070AD', label: 'Capgemini', sector: 'Conseil IT'   },
 ];
 
 // ── CLI terminal panels (one per week, real NovaTech commands) ─────────────────
@@ -171,10 +177,6 @@ const PARTNER_DETAILS = [
     label: 'Cisco',                 tag: 'Partenaire réseau',      desc: 'Certification CCST & CCNA officielle', accent: '#049fd9' },
   { type: 'badge', abbr: 'Q',       bg: '#1a56db',
     label: 'Qualiopi',              tag: 'Certification qualité',  desc: 'Label qualité formation professionnelle', accent: '#1a56db' },
-  { type: 'badge', abbr: '⚜',      bg: '#c41e3a',
-    label: 'Région Normandie',      tag: 'Partenaire territorial', desc: 'Soutien & financement régional', accent: '#c41e3a' },
-  { type: 'badge', abbr: 'MT',      bg: '#003189',
-    label: 'Ministère du Travail',  tag: 'Accréditation nationale',desc: 'CPF & France Compétences', accent: '#003189' },
   { type: 'badge', abbr: 'NA',      bg: '#7c3aed',
     label: 'NET Academy',           tag: 'Centre de formation',    desc: 'Centre agréé Cisco Networking', accent: '#a855f7' },
 ];
@@ -185,15 +187,15 @@ function Vibe2({ onLogin }) {
   const jobStatsRef = useRef(null);
   const recruitRef  = useRef(null);
   const statsRef    = useRef(null);
-  const sessionsRef = useRef(null);
   const cliRef      = useRef(null);
   const howRef      = useRef(null);
+  const howSlider   = useRef(null);
+  const howProgress = useRef(null);
   const horizWrap   = useRef(null);
   const horizTrack  = useRef(null);
-  const prevRef     = useRef(null);
   const maniRef     = useRef(null);
   const toolsRef    = useRef(null);
-  const testRef     = useRef(null);
+  const toolsSlider = useRef(null);
   const logosRef    = useRef(null);
   const ctaRef      = useRef(null);
 
@@ -226,8 +228,8 @@ function Vibe2({ onLogin }) {
 
       gsap.timeline({
         scrollTrigger: {
-          trigger: heroRef.current, start: 'top top', end: '+=180%',
-          pin: true, scrub: 0.5, anticipatePin: 1,
+          trigger: heroRef.current, start: 'top top', end: '+=80%',
+          pin: true, scrub: 0.15, anticipatePin: 1,
           snap: { snapTo: [0, 0.5, 1], duration: { min: 0.3, max: 0.8 }, delay: 0.05, ease: 'power2.inOut' },
           onLeave: sweep, onEnterBack: sweep,
         },
@@ -251,72 +253,87 @@ function Vibe2({ onLogin }) {
         .to('.v2h-tag',                { y: -40, opacity: 0, duration: 0.25 }, 1.7)
         .set({}, {}, 2.0);
 
-      // ── 2. JOB MARKET STATS — pin 280% ───────────────────────────────────
-      gsap.set('.v2j-hd',   { y: 60, opacity: 0 });
-      gsap.set('.v2j-card', { y: 60, opacity: 0 });
-      gsap.timeline({
-        scrollTrigger: { trigger: jobStatsRef.current, start: 'top top', end: '+=160%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
-        onStart: () => {
-          JOB_STATS.forEach((s, i) => {
-            const el = jobStatsRef.current?.querySelector(`.v2j-num-${i}`);
-            if (!el) return;
-            const o = { v: 0 };
-            gsap.to(o, {
-              v: s.val, ease: 'power2.out', duration: 2,
-              onUpdate: () => { el.textContent = o.v % 1 !== 0 ? o.v.toFixed(1) + s.suffix : Math.round(o.v) + s.suffix; },
-            });
+      // ── 2. JOB MARKET STATS — Scrollytelling pin ────────────────────────
+      {
+        const slides = gsap.utils.toArray('.jv3-slide');
+        if (slides.length) {
+          gsap.set(slides, { opacity: 0, scale: 0.9 });
+          gsap.set(slides[0], { opacity: 1, scale: 1 });
+          const jsTl = gsap.timeline({
+            scrollTrigger: { trigger: jobStatsRef.current, pin: true, scrub: 0.15, start: 'top top', end: '+=100%', anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
           });
+          slides.forEach((slide, i) => {
+            if (i > 0) {
+              jsTl.to(slides[i - 1], { opacity: 0, scale: 0.85, y: -40, duration: 0.3 });
+              jsTl.fromTo(slide, { opacity: 0, scale: 1.08, y: 60 }, { opacity: 1, scale: 1, y: 0, duration: 0.3 });
+            }
+            jsTl.to({}, { duration: 0.5 });
+          });
+        }
+      }
+
+      // ── 3. RECRUITERS — Cinematic Split ──────────────────────────────────
+      gsap.set('.v3r-hd',   { y: 30, opacity: 0 });
+      gsap.set('.v3r-stat', { opacity: 0 });
+      gsap.set('.v3r-row1', { x: -280, opacity: 0 });
+      gsap.set('.v3r-row2', { x:  280, opacity: 0 });
+      gsap.set('.v3r-row3', { x: -280, opacity: 0 });
+      const v3StatEl = recruitRef.current?.querySelector('.v3r-stat');
+      gsap.timeline({
+        scrollTrigger: { trigger: recruitRef.current, start: 'top top', end: '+=70%', pin: true, scrub: 0.15, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        onStart: () => {
+          if (!v3StatEl) return;
+          const o = { val: 0 };
+          gsap.to(o, { val: 2400, duration: 2, ease: 'power2.out', onUpdate: () => { v3StatEl.textContent = `+${Math.floor(o.val).toLocaleString('fr-FR')} offres réseau/mois`; } });
         },
       })
-        .to('.v2j-hd',   { y: 0, opacity: 1, stagger: 0.06, duration: 0.25 }, 0)
-        .to('.v2j-card', { y: 0, opacity: 1, stagger: 0.08, duration: 0.4 },  0.2);
+        .to('.v3r-hd',   { y: 0, opacity: 1, stagger: 0.05, duration: 0.2 }, 0)
+        .to('.v3r-stat', { opacity: 1, duration: 0.25 }, 0.05)
+        .to('.v3r-row1', { x: 0, opacity: 1, duration: 0.45, ease: 'power3.out' }, 0.1)
+        .to('.v3r-row2', { x: 0, opacity: 1, duration: 0.45, ease: 'power3.out' }, 0.18)
+        .to('.v3r-row3', { x: 0, opacity: 1, duration: 0.45, ease: 'power3.out' }, 0.26);
 
-      // ── 3. RECRUITERS — pin 250% ──────────────────────────────────────────
-      const recCards = gsap.utils.toArray(recruitRef.current?.querySelectorAll('.v2r-card') ?? []);
-      gsap.set('.v2r-hd',  { y: 30, opacity: 0 });
-      gsap.set(recCards,   { y: 60, opacity: 0, scale: 0.9 });
-      gsap.timeline({
-        scrollTrigger: { trigger: recruitRef.current, start: 'top top', end: '+=150%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
-      })
-        .to('.v2r-hd', { y: 0, opacity: 1, stagger: 0.06, duration: 0.2 }, 0)
-        .to(recCards,  { y: 0, opacity: 1, scale: 1, stagger: 0.05, duration: 0.4 }, 0.15);
-
-      // ── 4. STATS (En chiffres) — pin 220% ────────────────────────────────
-      gsap.set('.v2s-hd',    { y: 50, opacity: 0 });
-      gsap.set('.v2s-card',  { y: 50, opacity: 0 });
-      gsap.set('.v2s-extra', { y: 50, opacity: 0 });
-      gsap.timeline({
-        scrollTrigger: { trigger: statsRef.current, start: 'top top', end: '+=130%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
-        onStart: () => {
-          REAL_STATS2.forEach((s, i) => {
-            const el = statsRef.current?.querySelector(`.v2s-num-${i}`);
-            if (!el) return;
-            const o = { v: 0 };
-            gsap.to(o, {
-              v: s.val, ease: 'power2.out', duration: 2,
-              onUpdate: () => { el.textContent = Math.round(o.v) + s.suffix; },
-            });
+      // ── 4. STATS (En chiffres) — Magazine Spread scroll ──────────────────
+      {
+        const rows = gsap.utils.toArray('.sv5-row');
+        if (rows.length) {
+          gsap.set(rows, { opacity: 0, x: -80 });
+          gsap.set(rows[0], { opacity: 1, x: 0 });
+          const stTl = gsap.timeline({
+            scrollTrigger: { trigger: statsRef.current, pin: true, scrub: 0.15, start: 'top top', end: '+=80%', anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
           });
-        },
-      })
-        .to('.v2s-hd',    { y: 0, opacity: 1, duration: 0.2 }, 0)
-        .to('.v2s-card',  { y: 0, opacity: 1, stagger: 0.1,  duration: 0.35 }, 0.15)
-        .to('.v2s-extra', { y: 0, opacity: 1, stagger: 0.08, duration: 0.25 }, 0.5);
+          rows.forEach((row, i) => {
+            if (i > 0) {
+              stTl.to(rows[i - 1], { opacity: 0.15, duration: 0.2 });
+              stTl.fromTo(row, { opacity: 0, x: -80 }, { opacity: 1, x: 0, duration: 0.3, ease: 'power3.out' });
+            }
+            stTl.to({}, { duration: 0.4 });
+          });
+          stTl.to(rows, { opacity: 1, duration: 0.2 });
+          stTl.fromTo('.sv5-extra', { opacity: 0, y: 15 }, { opacity: 1, y: 0, stagger: 0.04, duration: 0.15 });
+          stTl.to({}, { duration: 0.2 });
+        }
+      }
 
-      // ── 5. SESSIONS GRID — pin 280% ───────────────────────────────────────
-      gsap.set('.v2ss-hd',   { y: 60, opacity: 0 });
-      gsap.set('.v2ss-card', { y: 60, opacity: 0 });
-      gsap.timeline({
-        scrollTrigger: { trigger: sessionsRef.current, start: 'top top', end: '+=160%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
-      })
-        .to('.v2ss-hd',   { y: 0, opacity: 1, duration: 0.2 }, 0)
-        .to('.v2ss-card', { y: 0, opacity: 1, stagger: 0.05, duration: 0.4 }, 0.15);
+
+      // ── 5. HORIZONTAL CURRICULUM (C2) ───────────────────────────────────
+      if (horizWrap.current) {
+        gsap.fromTo(horizTrack.current, { x: 0 }, {
+          x: () => -(horizTrack.current.scrollWidth - window.innerWidth),
+          ease: 'none',
+          scrollTrigger: {
+            trigger: horizWrap.current, pin: true, scrub: 0.15,
+            start: 'top top', end: () => `+=${horizTrack.current.scrollWidth}`,
+            invalidateOnRefresh: true, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep,
+          },
+        });
+      }
 
       // ── 6. CLI TERMINALS — pin 350% ───────────────────────────────────────
       gsap.set('.v2cli-hd',    { y: 60, opacity: 0 });
       gsap.set('.v2cli-panel', { y: 60, opacity: 0 });
       const cliTl = gsap.timeline({
-        scrollTrigger: { trigger: cliRef.current, start: 'top top', end: '+=200%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        scrollTrigger: { trigger: cliRef.current, start: 'top top', end: '+=70%', pin: true, scrub: 0.15, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
       });
       cliTl
         .to('.v2cli-hd',    { y: 0, opacity: 1, stagger: 0.06, duration: 0.2 }, 0)
@@ -327,76 +344,61 @@ function Vibe2({ onLogin }) {
         cliTl.to(lineEls, { opacity: 1, x: 0, stagger: 0.05, duration: 0.06 }, 0.4);
       });
 
-      // ── 7. HOW IT WORKS — pin 300% ────────────────────────────────────────
-      gsap.set('.v2w-hd',   { y: 40, opacity: 0 });
-      gsap.set('.v2w-step', { x: -60, opacity: 0 });
-      gsap.timeline({
-        scrollTrigger: { trigger: howRef.current, start: 'top top', end: '+=180%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
-      })
-        .to('.v2w-hd',   { y: 0, opacity: 1, duration: 0.25 }, 0)
-        .to('.v2w-step', { x: 0, opacity: 1, stagger: 0.2, duration: 0.5 }, 0.2);
-
-      // ── 8. HORIZONTAL CURRICULUM (scrub:1 intentional) ───────────────────
-      const track = horizTrack.current;
-      if (track) {
-        gsap.to(track, {
-          x: () => -(track.scrollWidth - window.innerWidth),
+      // ── 7. HOW IT WORKS — horizontal carousel ───────────────────────────
+      const howPanels = gsap.utils.toArray(howRef.current?.querySelectorAll('.hw-panel') ?? []);
+      if (howPanels.length) {
+        gsap.to(howPanels, {
+          xPercent: -100 * (howPanels.length - 1),
           ease: 'none',
           scrollTrigger: {
-            trigger: horizWrap.current, start: 'top top',
-            end: () => `+=${track.scrollWidth - window.innerWidth}`,
-            pin: true, scrub: 0.5, invalidateOnRefresh: true, anticipatePin: 1,
+            trigger: howRef.current,
+            pin: true,
+            scrub: 0.15,
+            end: () => '+=' + (howSlider.current?.offsetWidth || window.innerWidth * 1.5),
+            anticipatePin: 1,
+            onLeave: sweep,
+            onEnterBack: sweep,
+            onUpdate: (self) => {
+              if (howProgress.current) gsap.to(howProgress.current, { scaleX: self.progress, duration: 0.1, ease: 'none' });
+            },
           },
         });
       }
 
-      // ── 9. PLATFORM PREVIEW — pin 220% ────────────────────────────────────
-      gsap.set('.v2p-txt',  { x: -50, opacity: 0 });
-      gsap.set('.v2p-img',  { x:  50, opacity: 0 });
-      gsap.set('.v2p-feat', { y:  20, opacity: 0 });
-      gsap.timeline({
-        scrollTrigger: { trigger: prevRef.current, start: 'top top', end: '+=130%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
-      })
-        .to('.v2p-txt',  { x: 0, opacity: 1, duration: 0.5 }, 0)
-        .to('.v2p-img',  { x: 0, opacity: 1, duration: 0.5 }, 0.1)
-        .to('.v2p-feat', { y: 0, opacity: 1, stagger: 0.1, duration: 0.3 }, 0.5);
-
-      // ── 10. MANIFESTO — pin 320% ──────────────────────────────────────────
+      // ── 9. MANIFESTO — pin 320% ──────────────────────────────────────────
       const mWords = gsap.utils.toArray(maniRef.current?.querySelectorAll('.v2m-word') ?? []);
       gsap.set(mWords, { color: '#1e1b4b' });
       gsap.timeline({
-        scrollTrigger: { trigger: maniRef.current, start: 'top top', end: '+=180%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        scrollTrigger: { trigger: maniRef.current, start: 'top top', end: '+=60%', pin: true, scrub: 0.15, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
       })
         .to(mWords, { color: '#e2e8f0', stagger: 1 / (mWords.length || 1), duration: 1 }, 0);
 
-      // ── 11. PLATFORM TOOLS — pin 250% ────────────────────────────────────
-      gsap.set('.v2tl-hd',   { y: 50, opacity: 0 });
-      gsap.set('.v2tl-card', { y: 50, opacity: 0 });
-      gsap.timeline({
-        scrollTrigger: { trigger: toolsRef.current, start: 'top top', end: '+=150%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
-      })
-        .to('.v2tl-hd',   { y: 0, opacity: 1, duration: 0.25 }, 0)
-        .to('.v2tl-card', { y: 0, opacity: 1, stagger: 0.1, duration: 0.4 }, 0.2);
+      // ── 11. PLATFORM TOOLS — horizontal gallery (T1) ────────────────────
+      {
+        const toolPanels = gsap.utils.toArray(toolsRef.current?.querySelectorAll('.t1-panel') ?? []);
+        if (toolPanels.length) {
+          gsap.to(toolPanels, {
+            xPercent: -100 * (toolPanels.length - 1),
+            ease: 'none',
+            scrollTrigger: { trigger: toolsRef.current, pin: true, scrub: 0.15, end: () => '+=' + (toolsSlider.current?.offsetWidth || window.innerWidth * 6), anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+          });
+        }
+      }
 
-      // ── 12. TESTIMONIALS — pin 220% ───────────────────────────────────────
-      gsap.set('.v2t-hd',   { y: 60, opacity: 0 });
-      gsap.set('.v2t-card', { y: 60, opacity: 0 });
+      // ── 13. NOS PARTENAIRES (L2) — pin 50% ───────────────────────────────
+      gsap.set('.l2-badge', { y: 20, opacity: 0 });
+      gsap.set('.l2-title', { y: 40, opacity: 0, letterSpacing: '0.5em' });
+      gsap.set('.l2-line',  { scaleX: 0 });
+      gsap.set('.l2-card',  { y: 80, opacity: 0, rotateX: 8 });
+      gsap.set('.l2-footer',{ y: 20, opacity: 0 });
       gsap.timeline({
-        scrollTrigger: { trigger: testRef.current, start: 'top top', end: '+=130%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
+        scrollTrigger: { trigger: logosRef.current, start: 'top top', end: '+=50%', pin: true, scrub: 0.15, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
       })
-        .to('.v2t-hd',   { y: 0, opacity: 1, duration: 0.25 }, 0)
-        .to('.v2t-card', { y: 0, opacity: 1, stagger: 0.15, duration: 0.4 }, 0.2);
-
-      // ── 13. NOS PARTENAIRES — pin 200% ────────────────────────────────────
-      const lgCards = gsap.utils.toArray(logosRef.current?.querySelectorAll('.v2lg-card') ?? []);
-      const lgHd    = logosRef.current?.querySelector('.v2lg-hd');
-      gsap.set(lgCards, { y: 60, opacity: 0, scale: 0.9 });
-      if (lgHd) gsap.set(lgHd, { y: 30, opacity: 0 });
-      gsap.timeline({
-        scrollTrigger: { trigger: logosRef.current, start: 'top top', end: '+=120%', pin: true, scrub: 0.3, anticipatePin: 1, onLeave: sweep, onEnterBack: sweep },
-      })
-        .to(lgHd,    { y: 0, opacity: 1, duration: 0.2 }, 0)
-        .to(lgCards, { y: 0, opacity: 1, scale: 1, stagger: 0.08, duration: 0.4 }, 0.1);
+        .to('.l2-badge',  { y: 0, opacity: 1, duration: 0.2 }, 0)
+        .to('.l2-title',  { y: 0, opacity: 1, letterSpacing: '0.15em', duration: 0.35 }, 0.1)
+        .to('.l2-line',   { scaleX: 1, duration: 0.2 }, 0.2)
+        .to('.l2-card',   { y: 0, opacity: 1, rotateX: 0, stagger: 0.12, duration: 0.5, ease: 'power3.out' }, 0.25)
+        .to('.l2-footer', { y: 0, opacity: 1, duration: 0.2 }, 0.6);
 
       // ── 14. CTA — pin 150% ────────────────────────────────────────────────
       gsap.set('.v2c-line',    { scaleY: 0 });
@@ -405,7 +407,7 @@ function Vibe2({ onLogin }) {
       gsap.set('.v2c-btn',     { y: 30, opacity: 0 });
       gsap.set('.v2c-trust',   { y: 30, opacity: 0 });
       gsap.timeline({
-        scrollTrigger: { trigger: ctaRef.current, start: 'top top', end: '+=150%', pin: true, scrub: true, anticipatePin: 1 },
+        scrollTrigger: { trigger: ctaRef.current, start: 'top top', end: '+=60%', pin: true, scrub: 0.15, anticipatePin: 1 },
       })
         .to('.v2c-line',    { scaleY: 1, duration: 0.2 }, 0)
         .to('.v2c-heading', { y: 0, opacity: 1, duration: 0.35 }, 0.15)
@@ -449,14 +451,11 @@ function Vibe2({ onLogin }) {
         { ref: jobStatsRef, step: 1 },
         { ref: recruitRef,  step: 2 },
         { ref: statsRef,    step: 3 },
-        { ref: sessionsRef, step: 3 },
         { ref: cliRef,      step: 4 },
         { ref: howRef,      step: 4 },
         { ref: horizWrap,   step: 4 },
-        { ref: prevRef,     step: 5 },
         { ref: maniRef,     step: 5 },
         { ref: toolsRef,    step: 6 },
-        { ref: testRef,     step: 6 },
         { ref: logosRef,    step: 6 },
         { ref: ctaRef,      step: 6 },
       ].forEach(({ ref, step }) =>
@@ -628,123 +627,128 @@ function Vibe2({ onLogin }) {
         </div>
       </section>
 
-      {/* ── JOB MARKET STATS ─────────────────────────────────────────────── */}
-      <section ref={jobStatsRef} className="relative h-screen flex flex-col justify-center px-8 md:px-20 overflow-hidden bg-[#030108]">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_50%,rgba(99,102,241,0.07),transparent)]" />
-        <div className="relative z-10 max-w-6xl mx-auto w-full">
-          <p className="v2j-hd text-purple-400 text-xs tracking-[0.5em] uppercase mb-2">Pourquoi se former maintenant</p>
-          <h2 className="v2j-hd text-4xl font-black mb-3">L'IA et les data centers <span style={{ background: 'linear-gradient(90deg,#a855f7,#3b82f6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>explosent la demande.</span></h2>
-          <p className="v2j-hd text-slate-500 text-base mb-10 max-w-2xl">ChatGPT, Copilot, Gemini… chaque modèle d'IA nécessite des milliers de serveurs interconnectés. Les ingénieurs réseau n'ont jamais été aussi recherchés.</p>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
-            {JOB_STATS.map((s, i) => {
-              const StatIcon = s.icon;
-              return (
-                <div key={i} className="v2j-card p-6 rounded-2xl border bg-white/[0.02]" style={{ borderColor: `${s.color}20` }}>
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`v2j-num-${i} text-4xl font-black tabular-nums`}
-                      style={{ background: `linear-gradient(135deg,${s.color},${s.color}99)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                      0{s.suffix}
-                    </div>
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ background: `${s.color}15`, border: `1px solid ${s.color}30` }}>
-                      <StatIcon size={16} style={{ color: s.color }} />
-                    </div>
-                  </div>
-                  <div className="text-white text-sm font-semibold mb-1">{s.label}</div>
-                  <div className="text-slate-600 text-xs leading-relaxed">{s.desc}</div>
-                </div>
-              );
-            })}
-          </div>
+      {/* ── JOB MARKET STATS — Scrollytelling ────────────────────────────── */}
+      <section ref={jobStatsRef} className="relative h-screen flex items-center justify-center overflow-hidden bg-[#0a051a]">
+        {/* Dot nav */}
+        <div className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
+          {JOB_STATS.map((s, i) => (
+            <div key={i} className="w-1.5 h-1.5 rounded-full opacity-40" style={{ background: s.color }} />
+          ))}
         </div>
-      </section>
 
-      {/* ── RECRUITERS ───────────────────────────────────────────────────── */}
-      <section ref={recruitRef} className="relative h-screen flex flex-col items-center justify-center overflow-hidden bg-[#05030f]">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_50%,rgba(88,28,135,0.08),transparent)]" />
-        <div className="relative z-10 w-full max-w-5xl px-8 text-center">
-          <p className="v2r-hd text-purple-400 text-xs tracking-[0.5em] uppercase mb-2">Débouchés</p>
-          <h2 className="v2r-hd text-4xl font-black mb-3">Ils recrutent.</h2>
-          <p className="v2r-hd text-slate-500 text-base mb-8">Les plus grandes entreprises tech du monde cherchent des profils réseau certifiés Cisco.</p>
-          <div className="grid grid-cols-4 md:grid-cols-6 gap-3 mb-8">
-            {RECRUITERS.map((r, i) => (
-              <div key={i} className="v2r-card flex flex-col items-center gap-2.5 p-4 rounded-2xl border border-white/[0.07] bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                  style={r.type === 'badge'
-                    ? { background: r.bg, border: `1px solid ${r.color}50` }
-                    : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                  {r.type === 'img'
-                    ? <img src={r.src} alt={r.label} style={{ width: 30, height: 30, objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.85 }} />
-                    : <span className="text-white font-black text-xs select-none tracking-tight">{r.abbr}</span>
-                  }
-                </div>
-                <div className="text-white text-[10px] font-bold text-center leading-tight">{r.label}</div>
-                <div className="text-[9px] text-center" style={{ color: `${r.color}70` }}>{r.sector}</div>
+        {JOB_STATS.map((s, i) => (
+          <div key={i} className="jv3-slide absolute inset-0 flex flex-col items-center justify-center px-8">
+            {/* Background glow */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-[600px] h-[600px] rounded-full blur-[180px]" style={{ background: `${s.color}12` }} />
+            </div>
+            <div className="relative z-10 text-center max-w-3xl">
+              <p className="text-xs tracking-[0.6em] uppercase font-mono mb-6 opacity-60" style={{ color: s.color }}>
+                {i + 1} / {JOB_STATS.length}
+              </p>
+              <div className="flex items-baseline justify-center gap-2 mb-6">
+                <span className="text-[8rem] md:text-[11rem] font-black leading-none tabular-nums"
+                  style={{ color: s.color, textShadow: `0 0 80px ${s.color}50` }}>
+                  {s.val}
+                </span>
+                <span className="text-4xl md:text-5xl font-black text-white/40">{s.suffix}</span>
               </div>
-            ))}
+              <p className="text-2xl md:text-3xl font-bold text-white mb-3">{s.label}</p>
+              <p className="text-slate-400 text-base">{s.desc}</p>
+            </div>
           </div>
-          {/* Job profiles strip */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { title: 'Ingénieur Réseau',    range: '35–65K€', growth: '+18%/an', color: '#a855f7', icon: Network },
-              { title: 'Admin Sys & Réseau',  range: '32–55K€', growth: '+14%/an', color: '#3b82f6', icon: Shield  },
-              { title: 'Consultant Infra IT', range: '45–80K€', growth: '+22%/an', color: '#10b981', icon: Globe   },
-              { title: 'Technicien Télécom',  range: '28–45K€', growth: '+11%/an', color: '#f59e0b', icon: Zap     },
-            ].map((j, i) => {
-              const JIcon = j.icon;
-              return (
-                <div key={i} className="v2r-card flex items-center gap-3 p-4 rounded-xl border bg-white/[0.02] text-left"
-                  style={{ borderColor: `${j.color}25` }}>
-                  <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
-                    style={{ background: `${j.color}15`, border: `1px solid ${j.color}30` }}>
-                    <JIcon size={16} style={{ color: j.color }} />
-                  </div>
-                  <div>
-                    <div className="text-white text-[11px] font-bold leading-tight">{j.title}</div>
-                    <div className="text-[10px] mt-0.5" style={{ color: j.color }}>{j.range}</div>
-                    <div className="text-slate-600 text-[9px]">{j.growth}</div>
-                  </div>
+        ))}
+      </section>
+
+      {/* ── RECRUITERS — Cinematic Split ─────────────────────────────────── */}
+      <section ref={recruitRef} className="relative h-screen flex flex-col items-center justify-center overflow-hidden bg-[#0a051a]">
+        {/* Watermark */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
+          <span className="text-[10vw] font-black text-white/[0.025] tracking-tighter whitespace-nowrap">ILS RECRUTENT</span>
+        </div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-600/8 blur-[140px] rounded-full pointer-events-none" />
+
+        <div className="relative z-10 w-full max-w-7xl px-8">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row justify-between items-end gap-3 mb-8">
+            <div>
+              <p className="v3r-hd text-purple-400 text-xs tracking-[0.5em] uppercase mb-1.5">Écosystème Partenaire</p>
+              <h2 className="v3r-hd text-4xl md:text-5xl font-black text-white tracking-tight">Propulsez votre carrière.</h2>
+            </div>
+            <p className="v3r-stat text-xl font-bold text-purple-300 tabular-nums italic pb-1">+0 offres réseau/mois</p>
+          </div>
+
+          {/* 3 cinematic rows */}
+          <div className="space-y-3 mb-8 overflow-hidden">
+            <div className="v3r-row1 flex gap-3 justify-center">
+              {RECRUITERS.slice(0, 4).map((r, i) => (
+                <div key={i} className="h-[60px] w-52 flex-shrink-0 bg-white/[0.03] border border-white/10 rounded-xl flex items-center gap-3 px-5 hover:border-purple-500/40 hover:bg-white/[0.06] transition-all group">
+                  <svg role="img" viewBox="0 0 24 24" style={{ width: 24, height: 24, fill: r.color, flexShrink: 0 }}>
+                    <path d={r.icon ? r.icon.path : r.path} />
+                  </svg>
+                  <span className="text-base font-black text-slate-100 tracking-tight group-hover:text-purple-300 transition-colors truncate">{r.label}</span>
                 </div>
-              );
-            })}
+              ))}
+            </div>
+            <div className="v3r-row2 flex gap-3 justify-center">
+              {RECRUITERS.slice(4, 8).map((r, i) => (
+                <div key={i} className="h-[60px] w-52 flex-shrink-0 bg-white/[0.03] border border-white/10 rounded-xl flex items-center gap-3 px-5 hover:border-purple-500/40 hover:bg-white/[0.06] transition-all group">
+                  <svg role="img" viewBox="0 0 24 24" style={{ width: 24, height: 24, fill: r.color, flexShrink: 0 }}>
+                    <path d={r.icon ? r.icon.path : r.path} />
+                  </svg>
+                  <span className="text-base font-black text-slate-100 tracking-tight group-hover:text-purple-300 transition-colors truncate">{r.label}</span>
+                </div>
+              ))}
+            </div>
+            <div className="v3r-row3 flex gap-3 justify-center">
+              {RECRUITERS.slice(8, 12).map((r, i) => (
+                <div key={i} className="h-[60px] w-52 flex-shrink-0 bg-white/[0.03] border border-white/10 rounded-xl flex items-center gap-3 px-5 hover:border-purple-500/40 hover:bg-white/[0.06] transition-all group">
+                  <svg role="img" viewBox="0 0 24 24" style={{ width: 24, height: 24, fill: r.color, flexShrink: 0 }}>
+                    <path d={r.icon ? r.icon.path : r.path} />
+                  </svg>
+                  <span className="text-base font-black text-slate-100 tracking-tight group-hover:text-purple-300 transition-colors truncate">{r.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── 2. STATS ─────────────────────────────────────────────────────── */}
-      <section ref={statsRef} className="relative h-screen flex flex-col justify-center px-8 md:px-20 overflow-hidden bg-[#0a051a]">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(120,40,200,0.12),transparent)]" />
-        <div className="relative z-10 max-w-5xl mx-auto w-full">
-          <p className="v2s-hd text-purple-400 text-xs tracking-[0.5em] uppercase mb-2">En chiffres</p>
-          <h2 className="v2s-hd text-4xl font-black mb-10">Une formation complète, mesurable.</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8">
+      {/* ── 2. STATS — Magazine Spread ──────────────────────────────────── */}
+      <section ref={statsRef} className="relative h-screen flex items-center justify-center overflow-hidden bg-[#0a051a]">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_50%,rgba(120,40,200,0.08),transparent)]" />
+
+        <div className="relative z-10 w-full max-w-5xl px-10">
+          <p className="text-purple-400 text-[10px] font-mono uppercase tracking-[0.6em] mb-1">En chiffres</p>
+          <h2 className="text-2xl font-black text-white mb-6 tracking-tight">Une formation complète, mesurable.</h2>
+
+          <div className="space-y-0">
             {REAL_STATS2.map((s, i) => {
-              const StatIcon = s.icon;
               const colors = ['#a855f7','#3b82f6','#10b981','#f59e0b'];
               return (
-                <div key={i} className="v2s-card p-6 rounded-2xl bg-white/[0.03] border border-white/10 backdrop-blur-xl">
-                  <StatIcon size={18} className="mb-3" style={{ color: colors[i] }} />
-                  <div className={`v2s-num-${i} text-5xl font-black tabular-nums`}
-                    style={{ background: `linear-gradient(135deg,${colors[i]},${colors[(i+1)%4]})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                    0{s.suffix}
+                <div key={i} className="sv5-row flex items-baseline gap-5 py-2">
+                  <span className="text-[4rem] md:text-[5rem] font-black leading-none tabular-nums tracking-tighter shrink-0" style={{ color: colors[i], opacity: 0.9 }}>
+                    {s.val}{s.suffix}
+                  </span>
+                  <div>
+                    <p className="text-white text-lg font-bold">{s.label}</p>
+                    <p className="text-slate-500 text-sm mt-0.5">{s.desc}</p>
                   </div>
-                  <div className="text-white text-sm font-semibold mt-2">{s.label}</div>
-                  <div className="text-slate-500 text-xs mt-1">{s.desc}</div>
                 </div>
               );
             })}
           </div>
-          {/* extra rows */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
             {[
-              { icon: CheckCircle, label: '3 sessions live par semaine avec le formateur' },
-              { icon: Shield,      label: 'Contenu maintenu à jour avec IOS 15.x' },
-              { icon: Zap,         label: 'Accès immédiat à tout le contenu dès l\'inscription' },
-              { icon: Users,       label: '474+ diapositives interactives et schémas réseau' },
+              { label: '3 sessions live par semaine avec le formateur',       color: '#a855f7' },
+              { label: 'Contenu maintenu à jour avec IOS 15.x',              color: '#3b82f6' },
+              { label: 'Accès immédiat à tout le contenu dès l\'inscription', color: '#10b981' },
+              { label: '474+ diapositives interactives et schémas réseau',    color: '#f59e0b' },
             ].map((e, i) => (
-              <div key={i} className="v2s-extra flex items-center gap-3 p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                <e.icon size={16} className="text-purple-400 shrink-0" />
-                <span className="text-slate-400 text-sm">{e.label}</span>
+              <div key={i} className="sv5-extra flex items-center gap-2 p-3 rounded-xl border border-white/5 bg-white/[0.02]">
+                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: e.color }} />
+                <span className="text-slate-400 text-xs">{e.label}</span>
               </div>
             ))}
           </div>
@@ -752,48 +756,86 @@ function Vibe2({ onLogin }) {
       </section>
 
 
-      {/* ── 3. SESSIONS GRID ─────────────────────────────────────────────── */}
-      <section ref={sessionsRef} className="relative h-screen flex flex-col justify-center px-8 md:px-20 overflow-hidden bg-[#05030f]">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_40%_at_50%_0%,rgba(88,28,135,0.12),transparent)]" />
-        <div className="relative z-10 max-w-6xl mx-auto w-full">
-          <p className="v2ss-hd text-purple-400 text-xs tracking-[0.5em] uppercase mb-2">Programme complet</p>
-          <h2 className="v2ss-hd text-4xl font-black mb-8">10 sessions, 0 lacune.</h2>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {REAL_SESSIONS.map((s) => (
-              <div key={s.id} className="v2ss-card p-4 rounded-xl border bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
-                style={{ borderColor: `${s.color}25` }}>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[10px] font-black tracking-widest px-2 py-0.5 rounded-full"
-                    style={{ background: `${s.color}20`, color: s.color }}>{s.tag}</span>
-                  <span className="text-[10px] text-slate-600">S{s.id < 10 ? '0'+s.id : s.id}</span>
-                </div>
-                <h4 className="text-white text-xs font-bold leading-snug mb-2">{s.title}</h4>
-                <div className="flex gap-3 mb-3 text-[10px] text-slate-500">
-                  <span>{s.slides} slides</span>
-                  <span>{s.quiz} quiz</span>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {s.keys.map((k, ki) => (
-                    <span key={ki} className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.04] text-slate-500">{k}</span>
-                  ))}
+
+
+      {/* ── 3. HORIZONTAL CURRICULUM (C2) ──────────────────────────────────── */}
+      <section ref={horizWrap} className="relative h-screen w-full overflow-hidden bg-[#0a051a] text-slate-200">
+        <div ref={horizTrack} className="flex h-full w-fit flex-row flex-nowrap items-center">
+          {/* Intro Slide */}
+          <div className="relative flex h-full w-screen shrink-0 items-center justify-center p-12">
+            <div className="max-w-4xl text-center">
+              <span className="mb-4 inline-block text-sm font-bold uppercase tracking-[0.3em] text-purple-500">Le Parcours Expert</span>
+              <h2 className="text-6xl font-black tracking-tight md:text-8xl">4 semaines. <br /><span className="bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 bg-clip-text text-transparent">1 objectif.</span></h2>
+              <p className="mx-auto mt-8 max-w-xl text-lg text-slate-400 leading-relaxed">Un programme intensif conçu pour passer de débutant à certifié Cisco CCST, mêlant théorie rigoureuse et pratique intensive.</p>
+              <div className="mt-12 flex items-center justify-center gap-4 text-slate-500">
+                <span className="flex items-center gap-2 text-sm">Scrollez pour explorer →</span>
+              </div>
+            </div>
+          </div>
+          {/* Week Cards */}
+          {REAL_WEEKS_DATA.map((w, i) => {
+            const WeekIcon = w.icon;
+            return (
+              <div key={i} className="relative flex h-full w-screen shrink-0 items-center justify-center p-6 md:p-12 lg:p-20">
+                <div className="grid h-full max-h-[800px] w-full max-w-7xl grid-cols-1 gap-12 lg:grid-cols-2 lg:items-center">
+                  {/* Left Side: Info */}
+                  <div className="relative flex flex-col justify-center">
+                    <div className="absolute -top-12 -left-8 select-none text-[15rem] font-black leading-none opacity-5 blur-[2px]" style={{ color: w.color }}>0{w.num}</div>
+                    <div className="relative z-10">
+                      <div className="mb-6 flex items-center gap-4">
+                        <span className="flex h-12 w-12 items-center justify-center rounded-xl text-xl font-bold" style={{ backgroundColor: `${w.color}20`, color: w.color, border: `1px solid ${w.color}40` }}>
+                          <WeekIcon size={24} />
+                        </span>
+                        <div className="h-px w-12 bg-slate-800" />
+                        <span className="text-sm font-semibold tracking-widest text-slate-500 uppercase">Semaine {w.num}</span>
+                      </div>
+                      <h3 className="text-4xl font-bold tracking-tight text-white md:text-6xl">{w.title}</h3>
+                      <p className="mt-4 text-lg text-purple-300/60 italic">"{w.highlight}"</p>
+                      <div className="mt-8 flex flex-wrap gap-4">
+                        <div className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/50 px-4 py-2 text-sm font-medium">
+                          <Cpu className="h-4 w-4 text-blue-400" />{w.sessions} Session{w.sessions > 1 ? 's' : ''} Live
+                        </div>
+                        <div className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/50 px-4 py-2 text-sm font-medium">
+                          <Zap className="h-4 w-4 text-amber-400" />{w.labs} Lab{w.labs > 1 ? 's' : ''} Pratiques
+                        </div>
+                      </div>
+                      <div className="mt-8 flex flex-wrap gap-2">
+                        {w.sessionNames.map((sn, j) => (
+                          <span key={j} className="rounded-md border border-slate-800 px-3 py-1 text-xs font-mono uppercase tracking-wider text-slate-400">{sn}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  {/* Right Side: Topics + Terminal */}
+                  <div className="flex flex-col gap-6">
+                    <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-6">
+                      <h4 className="mb-6 flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-slate-400"><Layers className="h-4 w-4" /> Ce que vous maîtriserez</h4>
+                      <ul className="space-y-4">
+                        {w.topics.map((topic, j) => (
+                          <li key={j} className="flex items-start gap-3"><CheckCircle className="mt-1 h-5 w-5 shrink-0" style={{ color: w.color }} /><span className="text-slate-300 leading-snug">{topic}</span></li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="overflow-hidden rounded-xl border border-slate-800 bg-[#050510] shadow-2xl">
+                      <div className="flex items-center justify-between border-b border-slate-800 bg-slate-900/50 px-4 py-2">
+                        <div className="flex gap-1.5"><div className="h-3 w-3 rounded-full bg-red-500/50" /><div className="h-3 w-3 rounded-full bg-amber-500/50" /><div className="h-3 w-3 rounded-full bg-emerald-500/50" /></div>
+                        <div className="flex items-center gap-2 text-[10px] font-mono text-slate-500 uppercase"><Terminal className="h-3 w-3" /> Cisco_IOS</div>
+                      </div>
+                      <div className="p-5 font-mono text-sm leading-relaxed whitespace-pre-wrap">
+                        <div className="text-slate-600 mb-1">Commande clé :</div>
+                        <div style={{ color: w.color }}>{w.cmd}</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-          <div className="mt-6 flex items-center gap-6">
-            {[{ color:'#a855f7', label:'S1 — Administration Cisco & VLAN' }, { color:'#3b82f6', label:'S2 — Protocoles & Services' }, { color:'#10b981', label:'S3 — Adressage IP & Routage' }, { color:'#f59e0b', label:'S4 — Commutation (STP)' }].map((leg, i) => (
-              <div key={i} className="v2ss-hd flex items-center gap-2 text-xs text-slate-500">
-                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: leg.color }} />
-                {leg.label}
-              </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </section>
-
 
       {/* ── 3b. CLI TERMINALS ────────────────────────────────────────────── */}
-      <section ref={cliRef} className="relative h-screen flex flex-col justify-center px-8 md:px-20 overflow-hidden bg-[#030108]">
+      <section ref={cliRef} className="relative h-screen flex flex-col justify-center px-8 md:px-20 overflow-hidden bg-[#0a051a]">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_30%,rgba(88,28,135,0.09),transparent)]" />
         <div className="relative z-10 max-w-6xl mx-auto w-full">
           <p className="v2cli-hd text-purple-400 text-xs tracking-[0.5em] uppercase mb-2">En pratique</p>
@@ -837,158 +879,88 @@ function Vibe2({ onLogin }) {
       </section>
 
 
-      {/* ── 4. HOW IT WORKS ──────────────────────────────────────────────── */}
-      <section ref={howRef} className="relative h-screen flex flex-col justify-center px-8 md:px-20 overflow-hidden bg-[#05030f]">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_20%_50%,rgba(88,28,135,0.1),transparent)]" />
-        <div className="relative z-10 max-w-5xl mx-auto w-full">
-          <p className="v2w-hd text-purple-400 text-xs tracking-[0.5em] uppercase mb-2">Comment ça marche</p>
-          <h2 className="v2w-hd text-4xl font-black mb-10">De zéro à certifié en 4 étapes</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { num: '01', icon: BookOpen, color: '#a855f7', title: 'Cours enregistrés', body: 'Slides interactives, schémas réseau détaillés et exemples CLI Cisco commentés. Disponible à tout moment, à votre rythme.', items: ['10 sessions structurées', '474+ diapositives', 'Exemples CLI annotés'] },
-              { num: '02', icon: Users,    color: '#3b82f6', title: 'Sessions live',     body: '3 sessions live par semaine avec votre formateur : correction de labs en direct, Q&A et mise en situation réseau réelle.', items: ['12 lives au total', 'Q&A formateur en direct', 'Correction de labs live'] },
-              { num: '03', icon: Terminal, color: '#10b981', title: 'Labs Packet Tracer', body: 'Mettez en pratique sur Cisco Packet Tracer. Topologies NovaTech guidées, correction détaillée et astuces de dépannage.', items: ['10 labs guidés', 'Topologies réalistes', 'Corrections incluses'] },
-              { num: '04', icon: Award,    color: '#f59e0b', title: 'Obtenez votre CCST', body: 'Quiz randomisés, flashcards de révision et générateur de commandes pour arriver à l\'examen avec confiance totale.', items: ['193+ questions CCST', 'Flashcards dynamiques', 'Générateur CLI interactif'] },
-            ].map((step, i) => (
-              <div key={i} className="v2w-step relative">
-                <div className="flex items-start gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
-                    style={{ background: `${step.color}20`, border: `1px solid ${step.color}40` }}>
-                    <step.icon size={20} style={{ color: step.color }} />
-                  </div>
-                  <div>
-                    <span className="text-xs font-black tracking-widest" style={{ color: step.color }}>{step.num}</span>
-                    <h3 className="text-xl font-bold text-white">{step.title}</h3>
+      {/* ── 4. HOW IT WORKS — Horizontal Carousel ──────────────────────── */}
+      <section ref={howRef} className="relative overflow-hidden bg-[#0a051a]">
+        {/* Progress bar */}
+        <div className="absolute top-0 left-0 w-full h-1 z-40 bg-white/5">
+          <div ref={howProgress} className="h-full bg-gradient-to-r from-purple-500 via-blue-500 to-emerald-500 origin-left scale-x-0" />
+        </div>
+        {/* Atmosphere */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/20 blur-[120px] rounded-full" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-900/20 blur-[120px] rounded-full" />
+        </div>
+        {/* Horizontal slider */}
+        <div ref={howSlider} className="flex w-[400vw] h-screen relative z-10">
+          {HOW_STEPS.map((step, idx) => (
+            <div key={idx} className="hw-panel w-screen h-screen flex items-center justify-center px-6 md:px-20 lg:px-32 relative overflow-hidden flex-shrink-0">
+              <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-center">
+                {/* Visual side */}
+                <div className="relative order-2 lg:order-1">
+                  <div className={`absolute -inset-10 bg-gradient-to-br ${step.gradient} blur-[80px] rounded-full opacity-50`} />
+                  <div className="relative group">
+                    <div className="absolute -inset-0.5 bg-gradient-to-br from-white/20 to-transparent rounded-3xl blur-sm group-hover:blur-md transition-all duration-500" />
+                    <div className="relative bg-[#0d0725]/80 border border-white/10 rounded-3xl p-8 lg:p-12 backdrop-blur-xl overflow-hidden shadow-2xl">
+                      <div className="flex items-center gap-6 mb-8">
+                        <div className="p-4 rounded-2xl" style={{ backgroundColor: `${step.color}15`, border: `1px solid ${step.color}40` }}>
+                          <step.icon size={32} style={{ color: step.color }} />
+                        </div>
+                        <div className="h-[1px] flex-grow bg-gradient-to-r from-white/20 to-transparent" />
+                      </div>
+                      <h3 className="text-2xl font-bold text-white mb-6">L'expérience NovaTech</h3>
+                      <ul className="space-y-4">
+                        {step.items.map((item, i) => (
+                          <li key={i} className="flex items-center gap-4 text-slate-300">
+                            <CheckCircle size={18} style={{ color: step.color }} className="flex-shrink-0" />
+                            <span className="text-sm md:text-base font-medium">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="mt-10 p-4 rounded-xl bg-black/40 border border-white/5 font-mono text-[10px] md:text-xs text-emerald-400/70">
+                        <div className="flex gap-1.5 mb-2">
+                          <div className="w-2 h-2 rounded-full bg-red-500/50" />
+                          <div className="w-2 h-2 rounded-full bg-yellow-500/50" />
+                          <div className="w-2 h-2 rounded-full bg-green-500/50" />
+                        </div>
+                        <div className="opacity-80">
+                          Cisco_CCST# show interface status<br />
+                          Port      Name               Status       Vlan<br />
+                          Gi0/1     UPLINK_TO_CORE     connected    10
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <p className="text-slate-500 text-sm leading-relaxed mb-4">{step.body}</p>
-                <ul className="space-y-2">
-                  {step.items.map((item, j) => (
-                    <li key={j} className="flex items-center gap-2 text-sm text-slate-400">
-                      <CheckCircle size={14} style={{ color: step.color }} className="shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+                {/* Text side */}
+                <div className="order-1 lg:order-2 space-y-6">
+                  <div className="flex items-center gap-4">
+                    <span className="text-8xl md:text-[140px] font-black tracking-tighter opacity-10 select-none leading-none"
+                      style={{ WebkitTextStroke: `1px ${step.color}`, color: 'transparent' }}>{step.num}</span>
+                    <div className="h-0.5 w-12 bg-white/20" />
+                    <span className="text-sm font-bold tracking-widest uppercase text-white/40">Étape {step.num}</span>
+                  </div>
+                  <h2 className="text-4xl md:text-6xl font-bold text-white leading-[1.1] tracking-tight">{step.title}</h2>
+                  <p className="text-lg md:text-xl text-slate-400 leading-relaxed max-w-xl">{step.body}</p>
+                </div>
               </div>
-            ))}
-          </div>
+              {/* Bottom indicators */}
+              <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-8 opacity-20 pointer-events-none hidden md:flex">
+                {HOW_STEPS.map((s, idx2) => (
+                  <div key={idx2} className="flex items-center gap-2">
+                    <span className={`text-xs font-bold ${idx === idx2 ? 'text-white' : 'text-slate-500'}`}>{s.num}</span>
+                    <div className={`w-1 h-1 rounded-full ${idx === idx2 ? 'bg-white' : 'bg-slate-800'}`} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
 
-      {/* ── 5. HORIZONTAL CURRICULUM ─────────────────────────────────────── */}
-      <div ref={horizWrap} className="h-screen overflow-hidden">
-        <div ref={horizTrack} className="h-full flex" style={{ width: `${(REAL_WEEKS_DATA.length + 1) * 100}vw` }}>
-          {/* Intro slide */}
-          <div className="w-screen h-full flex flex-col justify-center px-16 md:px-24 shrink-0 relative overflow-hidden bg-[#0a051a]">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_0%_50%,rgba(88,28,135,0.15),transparent)]" />
-            <div className="max-w-xl relative z-10">
-              <p className="text-purple-400 text-xs tracking-[0.5em] uppercase mb-4">Curriculum détaillé</p>
-              <h2 className="text-5xl md:text-7xl font-black leading-tight mb-6">
-                4 semaines.<br /><span className="text-purple-500">1 objectif.</span>
-              </h2>
-              <p className="text-slate-400 text-lg mb-8">Chaque semaine : cours enregistrés, 3 sessions live avec le formateur, labs Packet Tracer et quiz de validation.</p>
-              <div className="flex items-center gap-3">
-                <div className="flex gap-2">{REAL_WEEKS_DATA.map((w, i) => <div key={i} className="w-3 h-3 rounded-full" style={{ background: w.color }} />)}</div>
-                <span className="text-xs text-slate-600 tracking-widest uppercase">Faites défiler →</span>
-              </div>
-            </div>
-          </div>
-          {/* Week slides */}
-          {REAL_WEEKS_DATA.map((w, i) => {
-            const WeekIcon = w.icon;
-            return (
-              <div key={i} className="w-screen h-full flex items-center px-12 md:px-20 shrink-0 relative overflow-hidden"
-                style={{ background: `linear-gradient(135deg, #0a051a 50%, ${w.color}08)` }}>
-                <div className="absolute right-8 top-1/2 -translate-y-1/2 select-none pointer-events-none text-[18vw] font-black leading-none"
-                  style={{ color: `${w.color}07` }}>{w.num}</div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full max-w-5xl relative z-10">
-                  {/* Left */}
-                  <div>
-                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
-                      style={{ background: `${w.color}20`, border: `1px solid ${w.color}40` }}>
-                      <WeekIcon size={24} style={{ color: w.color }} />
-                    </div>
-                    <p className="text-xs tracking-[0.4em] uppercase mb-2" style={{ color: w.color }}>Semaine {w.num}</p>
-                    <h3 className="text-4xl font-black text-white mb-2">{w.title}</h3>
-                    <p className="text-purple-300/70 text-sm italic mb-5">"{w.highlight}"</p>
-                    <div className="flex items-center gap-4 text-sm mb-5">
-                      <span className="font-bold" style={{ color: w.color }}>{w.sessions} session{w.sessions > 1 ? 's' : ''}</span>
-                      <span className="text-slate-600">·</span>
-                      <span className="text-slate-400">{w.labs} lab{w.labs > 1 ? 's' : ''} Packet Tracer</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {w.sessionNames.map((sn, j) => (
-                        <span key={j} className="text-xs px-3 py-1 rounded-full border"
-                          style={{ borderColor: `${w.color}30`, color: w.color, background: `${w.color}10` }}>{sn}</span>
-                      ))}
-                    </div>
-                  </div>
-                  {/* Right */}
-                  <div>
-                    <p className="text-xs text-slate-600 uppercase tracking-widest mb-4">Ce que vous maîtriserez</p>
-                    <ul className="space-y-3 mb-6">
-                      {w.topics.map((topic, j) => (
-                        <li key={j} className="flex items-center gap-3 text-slate-300 text-sm">
-                          <CheckCircle size={14} style={{ color: w.color }} className="shrink-0" />
-                          {topic}
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="p-4 rounded-xl font-mono text-xs whitespace-pre-wrap" style={{ background: '#000000', border: `1px solid ${w.color}30` }}>
-                      <div className="text-slate-600 mb-1">Commande clé :</div>
-                      <div style={{ color: w.color }}>{w.cmd}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ── 5. PLATFORM PREVIEW ──────────────────────────────────────────── */}
-      <section ref={prevRef} className="relative h-screen flex items-center px-8 md:px-16 overflow-hidden bg-[#05030f]">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_100%_50%,rgba(88,28,135,0.1),transparent)]" />
-        <div className="relative z-10 max-w-6xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          {/* Text */}
-          <div className="v2p-txt">
-            <p className="text-purple-400 text-xs tracking-[0.5em] uppercase mb-3">La plateforme</p>
-            <h2 className="text-4xl font-black mb-5">Tout ce qu'il vous faut,<br />au même endroit.</h2>
-            <p className="text-slate-400 leading-relaxed mb-8">
-              Une interface conçue pour l'apprentissage des réseaux — cours structurés, labs guidés et outils de révision intégrés.
-            </p>
-            <ul className="space-y-3">
-              {[
-                { icon: Layers,   text: 'Slides interactives avec schémas réseau' },
-                { icon: Terminal, text: 'Labs Packet Tracer avec correction intégrée' },
-                { icon: Zap,      text: 'Quiz adaptatifs et flashcards dynamiques' },
-                { icon: Shield,   text: 'Suivi de progression session par session' },
-              ].map((f, i) => (
-                <li key={i} className="v2p-feat flex items-center gap-3 text-slate-300 text-sm">
-                  <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0">
-                    <f.icon size={14} className="text-purple-400" />
-                  </div>
-                  {f.text}
-                </li>
-              ))}
-            </ul>
-          </div>
-          {/* Screenshot */}
-          <div className="v2p-img relative">
-            <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-purple-900/30">
-              <img src="/Capture d'écran 2026-03-02 121843.png" alt="Aperçu de la plateforme NetMasterClass" className="w-full" />
-            </div>
-            <div className="absolute -bottom-4 -right-4 px-4 py-3 rounded-2xl bg-purple-600 text-white text-sm font-bold shadow-lg shadow-purple-500/40">
-              ✓ Accès immédiat
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ── 6. MANIFESTO ─────────────────────────────────────────────────── */}
-      <section ref={maniRef} className="relative h-screen flex items-center justify-center px-8 overflow-hidden bg-[#030108]">
+      <section ref={maniRef} className="relative h-screen flex items-center justify-center px-8 overflow-hidden bg-[#0a051a]">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_50%,rgba(88,28,135,0.08),transparent)]" />
         <div className="relative z-10 max-w-4xl text-center">
           <div className="text-6xl text-purple-900 mb-6 leading-none select-none">"</div>
@@ -1000,93 +972,132 @@ function Vibe2({ onLogin }) {
         </div>
       </section>
 
-      {/* ── 10. PLATFORM TOOLS ───────────────────────────────────────────── */}
-      <section ref={toolsRef} className="relative h-screen flex flex-col justify-center px-8 md:px-20 overflow-hidden bg-[#0a051a]">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_80%_50%,rgba(88,28,135,0.1),transparent)]" />
-        <div className="relative z-10 max-w-5xl mx-auto w-full">
-          <p className="v2tl-hd text-purple-400 text-xs tracking-[0.5em] uppercase mb-2">Outils intégrés</p>
-          <h2 className="v2tl-hd text-4xl font-black mb-10">La plateforme qui vous fait avancer.</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {PLATFORM_TOOLS.map((t, i) => (
-              <div key={i} className="v2tl-card p-6 rounded-2xl border bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
-                style={{ borderColor: `${t.color}20` }}>
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
-                  style={{ background: `${t.color}15`, border: `1px solid ${t.color}30` }}>
-                  <t.Icon size={20} style={{ color: t.color }} />
+      {/* ── 10. PLATFORM TOOLS — T1 Horizontal Gallery ─────────────────── */}
+      <section ref={toolsRef} className="relative bg-[#0a051a] overflow-hidden">
+        <div className="pt-24 pb-12 px-8 text-center">
+          <h2 className="text-4xl md:text-6xl font-black text-white mb-4 tracking-tighter">OUTILS <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-blue-500">INTÉGRÉS</span></h2>
+          <p className="text-gray-400 max-w-2xl mx-auto text-lg">Une suite logicielle complète pour la réussite de votre certification Cisco CCST.</p>
+        </div>
+        <div className="h-screen flex items-center">
+          <div ref={toolsSlider} className="flex h-[80vh]" style={{ width: `${TOOLS_DATA.length * 100}vw` }}>
+            {TOOLS_DATA.map((tool) => (
+              <section key={tool.id} className="t1-panel w-screen h-full flex items-center justify-center relative px-4 md:px-20 flex-shrink-0">
+                <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[35vw] font-black text-white/[0.03] leading-none select-none pointer-events-none">{tool.id}</span>
+                <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
+                  <div className="order-2 lg:order-1 space-y-8">
+                    <div className="flex items-center gap-4">
+                      <div className="p-4 rounded-2xl backdrop-blur-sm border border-white/10" style={{ backgroundColor: `${tool.color}15`, borderColor: `${tool.color}30` }}>
+                        <tool.icon size={40} color={tool.color} strokeWidth={1.5} />
+                      </div>
+                      <span className="text-sm font-mono tracking-widest text-gray-500 uppercase">Module {tool.id}</span>
+                    </div>
+                    <h3 className="text-4xl md:text-5xl font-bold text-white tracking-tight">{tool.title}</h3>
+                    <p className="text-gray-400 text-lg leading-relaxed max-w-xl">{tool.desc}</p>
+                  </div>
+                  <div className="order-1 lg:order-2 relative group">
+                    <div className="absolute -inset-4 rounded-[2rem] blur-3xl opacity-20" style={{ backgroundColor: tool.color }} />
+                    <div className="relative bg-[#161129] rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
+                      <div className="h-8 bg-white/5 border-b border-white/10 flex items-center px-4 gap-2">
+                        <div className="w-2 h-2 rounded-full bg-red-500/50" /><div className="w-2 h-2 rounded-full bg-yellow-500/50" /><div className="w-2 h-2 rounded-full bg-green-500/50" />
+                      </div>
+                      <div className="aspect-video relative overflow-hidden bg-[#0a051a]">
+                        <img src={tool.img} alt={tool.title} className="w-full h-full object-cover object-top opacity-90" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-white font-bold text-base mb-2">{t.title}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed">{t.desc}</p>
-              </div>
+              </section>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── 8. TESTIMONIALS ──────────────────────────────────────────────── */}
-      <section ref={testRef} className="relative h-screen flex flex-col justify-center px-8 md:px-20 overflow-hidden bg-[#05030f]">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_100%,rgba(88,28,135,0.1),transparent)]" />
-        <div className="relative z-10 max-w-5xl mx-auto w-full">
-          <p className="v2t-hd text-purple-400 text-xs tracking-[0.5em] uppercase mb-2">Ils témoignent</p>
-          <h2 className="v2t-hd text-4xl font-black mb-10">Ce qu'en disent les étudiants</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {TESTIMONIALS.map((t, i) => (
-              <div key={i} className="v2t-card p-6 rounded-2xl border border-white/10 bg-white/[0.02]">
-                <div className="flex mb-3">
-                  {[...Array(t.rating)].map((_, j) => <Star key={j} size={14} className="text-yellow-400 fill-yellow-400" />)}
-                </div>
-                <p className="text-slate-300 text-sm leading-relaxed mb-6 italic">"{t.quote}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-sm shrink-0"
-                    style={{ background: `linear-gradient(135deg, ${t.color}, ${t.color}80)` }}>
-                    {t.initials}
-                  </div>
-                  <div>
-                    <div className="text-white font-bold text-sm">{t.name}</div>
-                    <div className="text-slate-500 text-xs">{t.role}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
+
+      {/* ── NOS PARTENAIRES (L2) ──────────────────────────────────────────── */}
+      <section ref={logosRef} className="relative h-screen flex flex-col items-center justify-center overflow-hidden bg-[#0a051a]">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_50%,rgba(88,28,135,0.08),transparent)]" />
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="relative z-10 max-w-7xl mx-auto px-8">
+          <div className="mb-20 text-center space-y-4">
+            <div className="l2-badge inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 mb-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+              <span className="text-[10px] uppercase tracking-[0.3em] font-semibold text-blue-400">Collaborations</span>
+            </div>
+            <h2 className="l2-title text-4xl md:text-5xl font-light text-white tracking-widest uppercase">
+              Nos <span className="font-semibold">partenaires</span>
+            </h2>
+            <div className="l2-line w-24 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent mx-auto mt-6 origin-center" />
           </div>
-          {/* Students photo */}
-          <div className="mt-8 rounded-2xl overflow-hidden border border-white/10 h-40 relative">
-            <img src="/students.png" alt="Étudiants en formation réseau" className="w-full h-full object-cover opacity-50" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#05030f] via-transparent to-[#05030f]" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <p className="text-white font-black text-xl">Rejoignez 247 étudiants déjà certifiés</p>
+
+          <div className="grid grid-cols-1 lg:grid-cols-10 gap-6 items-start">
+            {/* Qualiopi */}
+            <div className="l2-card relative group lg:col-span-3 lg:mt-4">
+              <div className="absolute -top-[1px] left-1/2 -translate-x-1/2 w-3/4 h-[2px] blur-[2px] z-20" style={{ background: 'linear-gradient(90deg, transparent, #1a56db, transparent)' }} />
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-1/2 h-8 blur-2xl opacity-20 z-10 bg-[#1a56db]" />
+              <div className="relative overflow-hidden h-full bg-[#110c26]/60 backdrop-blur-xl border border-white/5 rounded-3xl p-8 transition-all duration-500 ease-out hover:border-white/10 hover:bg-[#150f30]/80 hover:-translate-y-2 flex flex-col gap-6">
+                <div className="flex justify-between items-start">
+                  <div className="p-3 rounded-2xl flex items-center justify-center w-16 h-16 bg-white/5">
+                    <div className="w-full h-full flex items-center justify-center bg-[#1a56db] rounded-xl text-white font-black text-2xl group-hover:shadow-[0_0_20px_rgba(26,86,219,0.4)] transition-all">Q</div>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase border bg-white/5 border-white/10 text-white/60 group-hover:text-white group-hover:border-white/20">Certification qualité</span>
+                </div>
+                <div className="mt-auto space-y-3">
+                  <h3 className="text-xl font-medium text-white tracking-tight">Qualiopi</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed max-w-[280px]">Atteste de la qualité du processus mis en œuvre par les prestataires d'actions concourant au développement des compétences.</p>
+                </div>
+                <div className="absolute -bottom-12 -right-12 w-24 h-24 blur-3xl opacity-10 transition-opacity group-hover:opacity-20 bg-[#1a56db]" />
+              </div>
+            </div>
+
+            {/* Cisco (Hero) */}
+            <div className="l2-card relative group lg:col-span-4 lg:-mt-4">
+              <div className="absolute -top-[1px] left-1/2 -translate-x-1/2 w-3/4 h-[2px] blur-[2px] z-20" style={{ background: 'linear-gradient(90deg, transparent, #049fd9, transparent)' }} />
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-1/2 h-8 blur-2xl opacity-20 z-10 bg-[#049fd9]" />
+              <div className="relative overflow-hidden h-full bg-[#110c26]/60 backdrop-blur-xl border border-white/5 rounded-3xl p-8 transition-all duration-500 ease-out hover:border-white/10 hover:bg-[#150f30]/80 hover:-translate-y-2 flex flex-col gap-6">
+                <div className="flex justify-between items-start">
+                  <div className="p-3 rounded-2xl flex items-center justify-center w-20 h-20 bg-white/5">
+                    <img src="https://cdn.simpleicons.org/cisco/ffffff" alt="Cisco" className="w-10 h-10 object-contain opacity-80 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase border bg-white/5 border-white/10 text-white/60 group-hover:text-white group-hover:border-white/20">Partenaire réseau</span>
+                </div>
+                <div className="mt-auto space-y-3">
+                  <h3 className="text-2xl font-medium text-white tracking-tight">Cisco</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed max-w-[280px]">Leader mondial des technologies réseau, fournissant le cadre officiel et les certifications CCST.</p>
+                </div>
+                <div className="absolute -bottom-12 -right-12 w-24 h-24 blur-3xl opacity-10 transition-opacity group-hover:opacity-20 bg-[#049fd9]" />
+              </div>
+            </div>
+
+            {/* NET Academy */}
+            <div className="l2-card relative group lg:col-span-3 lg:mt-4">
+              <div className="absolute -top-[1px] left-1/2 -translate-x-1/2 w-3/4 h-[2px] blur-[2px] z-20" style={{ background: 'linear-gradient(90deg, transparent, #a855f7, transparent)' }} />
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-1/2 h-8 blur-2xl opacity-20 z-10 bg-[#a855f7]" />
+              <div className="relative overflow-hidden h-full bg-[#110c26]/60 backdrop-blur-xl border border-white/5 rounded-3xl p-8 transition-all duration-500 ease-out hover:border-white/10 hover:bg-[#150f30]/80 hover:-translate-y-2 flex flex-col gap-6">
+                <div className="flex justify-between items-start">
+                  <div className="p-3 rounded-2xl flex items-center justify-center w-16 h-16 bg-white/5">
+                    <div className="w-full h-full flex items-center justify-center bg-[#a855f7] rounded-xl text-white font-bold text-xl group-hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all">NA</div>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase border bg-white/5 border-white/10 text-white/60 group-hover:text-white group-hover:border-white/20">Centre de formation</span>
+                </div>
+                <div className="mt-auto space-y-3">
+                  <h3 className="text-xl font-medium text-white tracking-tight">NET Academy</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed max-w-[280px]">Centre d'excellence académique spécialisé dans le déploiement des infrastructures Cisco de nouvelle génération.</p>
+                </div>
+                <div className="absolute -bottom-12 -right-12 w-24 h-24 blur-3xl opacity-10 transition-opacity group-hover:opacity-20 bg-[#a855f7]" />
+              </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* ── NOS PARTENAIRES ───────────────────────────────────────────────── */}
-      <section ref={logosRef} className="relative h-screen flex flex-col items-center justify-center overflow-hidden bg-[#05030f]">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_50%,rgba(88,28,135,0.08),transparent)]" />
-        <div className="relative z-10 w-full max-w-5xl px-8 text-center">
-          <p className="v2lg-hd text-purple-400 text-xs tracking-[0.5em] uppercase mb-12">Nos partenaires</p>
-          <div className="grid grid-cols-3 md:grid-cols-5 gap-5 justify-items-center">
-            {PARTNER_DETAILS.map((p, i) => (
-              <div key={i} className="v2lg-card flex flex-col items-center gap-4 p-7 rounded-2xl border bg-white/[0.03] w-full"
-                style={{ borderColor: `${p.accent}30` }}>
-                <div className="w-20 h-20 rounded-2xl flex items-center justify-center"
-                  style={{ background: p.type === 'badge' ? p.bg : 'rgba(255,255,255,0.04)', border: `1px solid ${p.accent}40` }}>
-                  {p.type === 'img'
-                    ? <img src={p.src} alt={p.label} style={{ width: 52, height: 52, objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
-                    : <span className="text-white font-black text-2xl select-none">{p.abbr}</span>
-                  }
-                </div>
-                <div className="text-white text-sm font-bold text-center leading-tight">{p.label}</div>
-                <div className="text-[10px] px-2.5 py-1 rounded-full border text-center"
-                  style={{ borderColor: `${p.accent}40`, color: p.accent }}>{p.tag}</div>
-                <div className="text-slate-600 text-[10px] text-center leading-relaxed">{p.desc}</div>
-              </div>
-            ))}
+          <div className="l2-footer mt-20 flex justify-center">
+            <p className="text-slate-500 text-[11px] tracking-[0.4em] uppercase font-medium">Formations certifiantes reconnues par l'état</p>
           </div>
         </div>
       </section>
 
       {/* ── 9. CTA ───────────────────────────────────────────────────────── */}
-      <section ref={ctaRef} className="relative h-screen flex items-center justify-center overflow-hidden bg-[#030108]">
+      <section ref={ctaRef} className="relative h-screen flex items-center justify-center overflow-hidden bg-[#0a051a]">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_100%,rgba(88,28,135,0.25),transparent)]" />
         <div className="relative z-10 text-center max-w-2xl px-8">
           <div className="v2c-line w-px h-16 bg-gradient-to-b from-transparent to-purple-500 mx-auto mb-8 origin-top" />

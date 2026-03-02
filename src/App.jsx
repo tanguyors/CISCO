@@ -8,6 +8,7 @@ import AdminDashboard from './AdminDashboard';
 import StudentStats from './StudentStats';
 import LivesPage from './LivesPage';
 import LandingPage from './LandingPage';
+import VibesPreview from './VibesPreview';
 import { Terminal, Loader2, Lock, ChevronRight } from 'lucide-react';
 
 function getPromoToken() {
@@ -188,10 +189,10 @@ export default function App() {
   }
 
   if (!user) {
-    // Landing page désactivée en prod — accessible en dev via ?preview
-    const isPreview = window.location.search.includes('preview');
-    if (isPreview || showLogin) return showLogin ? <LoginPage /> : <LandingPage onLogin={() => setShowLogin(true)} />;
-    return <LoginPage />;
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('vibes')) return <VibesPreview />;
+    if (showLogin) return <LoginPage />;
+    return <LandingPage onLogin={() => setShowLogin(true)} />;
   }
 
   if (needsPasswordSetup) return <SetPasswordPage />;
