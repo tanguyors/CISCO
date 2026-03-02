@@ -13614,7 +13614,10 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
                     <p>{"SW1> enable"}</p>
                     <p>{"SW1# show spanning-tree"}</p>
                   </div>
-                  <p className="text-slate-400 text-xs mt-2">{"Note le Root ID et le Bridge ID. Si ils sont identiques → ce switch EST le Root Bridge."}</p>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-emerald-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"enable"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Passe du mode utilisateur (>) au mode privilégié (#). Obligatoire pour utiliser les commandes show."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-emerald-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"show spanning-tree"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Affiche l'état complet de STP : le Root ID (quel switch est Root Bridge), le Bridge ID (identité de ce switch), et pour chaque port son rôle (Root/Desg/Altn) et son état (FWD/BLK). Si Root ID = Bridge ID → ce switch est le Root Bridge."}</p></div>
+                  </div>
                 </div>
                 <div className="bg-black/30 rounded-lg p-4 mb-4">
                   <p className="text-purple-300 font-bold text-sm mb-2">{"Ce qu'il faut repérer :"}</p>
@@ -13646,7 +13649,13 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
                     <p>{"SW1(config)# end"}</p>
                     <p>{"SW1# copy running-config startup-config"}</p>
                   </div>
-                  <p className="text-slate-400 text-xs mt-2">{"→ Met la priorité de SW1 à 4097 (4096 + VLAN 1). SW2 et SW3 restent à 32769 → SW1 gagne toujours."}</p>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"enable"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Passe en mode privilégié (#). Obligatoire avant configure terminal."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"configure terminal"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Entre en mode configuration globale (config)#. Les commandes qui suivent modifient la configuration du switch."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"spanning-tree vlan 1 priority 4096"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Fixe la priorité STP de SW1 pour le VLAN 1 à 4096. Cisco ajoute automatiquement le numéro de VLAN → priorité réelle = 4097. Comme SW2/SW3 restent à 32769 (32768+1), SW1 a la plus petite valeur et sera TOUJOURS élu Root Bridge."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"end"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Sort du mode config et retourne directement en mode privilégié (#). Équivalent à Ctrl+Z. Génère un message « Building configuration... »."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"copy running-config startup-config"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Sauvegarde la config active (RAM/running) dans la mémoire flash (NVRAM/startup). Sans cette commande, tout est perdu si le switch redémarre. Réponds « Enter » à la question du nom de fichier."}</p></div>
+                  </div>
                 </div>
 
                 <div className="bg-black/30 rounded-lg p-4 mb-4">
@@ -13672,6 +13681,9 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
                     <p className="text-emerald-400">{"!"}</p>
                     <p className="text-emerald-400">{"→ Root ID = Bridge ID → SW1 est le Root Bridge ✅"}</p>
                     <p className="text-emerald-400">{"→ Tous les ports inter-switch de SW1 sont Designated (Desg FWD)"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-emerald-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"show spanning-tree"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Reconfirme l'élection. Si Root ID Priority = 4097 ET Root ID Address = Bridge ID Address → SW1 est bien le Root Bridge. Ses ports Fa0/23 et Fa0/24 doivent tous être Designated (Desg) FWD. Les autres switches auront un seul Root Port (FWD) et potentiellement un port Alternate (BLK)."}</p></div>
                   </div>
                 </div>
               </div>
