@@ -14565,6 +14565,1659 @@ On va aller étape par étape, avec des exemples concrets et des analogies simpl
       { q: "Quelle commande affiche l'état STP complet ?", options: ["show stp status", "show spanning-tree", "show bridge"], a: 1, explanation: "La commande show spanning-tree affiche le Root ID, le Bridge ID, et l'état de chaque port (rôle et état)." },
       { q: "Sur quels ports NE FAUT-IL PAS mettre PortFast ?", options: ["Les ports connectés aux PCs", "Les ports trunk / liens vers d'autres switches", "Les ports en mode access"], a: 1, explanation: "PortFast ne doit JAMAIS être mis sur des ports reliés à d'autres switches (trunk), car cela pourrait créer des boucles temporaires avant que STP ne réagisse." }
     ]
+  },
+  // ==================== SESSION 11 : ETHERCHANNEL — AGRÉGATION DE LIENS ====================
+  {
+    id: 11,
+    title: "EtherChannel — Agrégation de liens",
+    duration: "2h",
+    icon: "⚡",
+    slides: [
+      // ── SLIDE 1 : LE PROBLÈME — RACONTÉ HUMAINEMENT ──
+      {
+        type: 'rich_text',
+        title: "T'as payé 4 câbles… mais t'en utilises qu'un",
+        content: (
+          <div>
+            <V2Header module="MODULE 11" section="Le problème" title="Tu es admin réseau. Tu as un problème." description="Imagine : tu viens de terminer le câblage entre deux switches. Tu as mis 4 câbles entre eux, parce que tu veux de la redondance et de la vitesse. Tu te dis : 4 câbles = 4 fois plus rapide. Sauf que… non." />
+            <V2InfoCards cards={[
+              { title: "Ce que tu as fait", color: "blue", icon: Link, items: ["Tu as branché 4 câbles entre SW1 et SW2", "Tu te dis : si 1 câble tombe, les 3 autres prennent le relais", "Et en plus, 4 câbles = 4x la vitesse, non ?", "C'est logique. C'est ce que tout le monde pense.", "Sauf que le réseau ne fonctionne pas comme ça."] },
+              { title: "Ce qui se passe en réalité", color: "red", icon: AlertTriangle, items: ["STP regarde tes 4 câbles et dit : « danger, boucle ! »", "Il en garde UN seul actif. Les 3 autres ? Bloqués.", "Tes 4 câbles = 1 seul câble utile.", "Les 3 autres sont là, branchés, allumés… mais inactifs.", "C'est comme avoir 4 voies d'autoroute mais 3 sont fermées."] }
+            ]} />
+            <V2Whiteboard title="Ce que STP fait de tes câbles" code={"!  Tu as branché 4 câbles entre SW1 et SW2 :\n!\n!  SW1 ════════ SW2    ← Câble 1 : ACTIF (le seul !)\n!  SW1 ──╳───── SW2    ← Câble 2 : BLOQUÉ par STP\n!  SW1 ──╳───── SW2    ← Câble 3 : BLOQUÉ par STP\n!  SW1 ──╳───── SW2    ← Câble 4 : BLOQUÉ par STP\n!\n!  Tu as acheté 4 câbles.\n!  Tu as payé 4 câbles.\n!  Tu utilises... 1 câble.\n!\n!  Le reste dort. Bande passante gaspillée.\n!  C'est le prix de la sécurité anti-boucle de STP."} />
+            <V2Tip title="Pourquoi STP fait ça ?">STP n'est pas stupide — il a raison de bloquer. Sans lui, les trames tourneraient en boucle à l'infini et le réseau crasherait en secondes. Mais le résultat, c'est qu'on gaspille des câbles. Et ça, on va le corriger.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 2 : ETHERCHANNEL — L'IDÉE EN SIMPLE ──
+      {
+        type: 'rich_text',
+        title: "Et si on regroupait tous les câbles ?",
+        content: (
+          <div>
+            <V2Header module="MODULE 11" section="L'idée" title="EtherChannel : faire croire à STP qu'il n'y a qu'un seul câble" description="L'idée est simple : au lieu de laisser STP voir 4 câbles séparés (et en bloquer 3), on lui fait croire qu'il n'y a qu'un seul gros câble. Et ce gros câble, il utilise les 4 vrais câbles en dessous." />
+            <V2InfoCards cards={[
+              { title: "L'analogie de l'autoroute", color: "blue", icon: Link, items: ["Imagine que tu as 4 voies d'autoroute entre deux villes", "Un régulateur (STP) dit : « trop de voies, on ferme 3 »", "Résultat : tout le monde est coincé sur 1 seule voie", "EtherChannel dit : « c'est pas 4 voies, c'est 1 autoroute »", "Le régulateur dit « OK, 1 autoroute, rien à fermer »", "Et les 4 voies restent ouvertes — le trafic passe partout"] },
+              { title: "Ce que ça donne concrètement", color: "emerald", icon: Zap, items: ["Tes 4 câbles deviennent 1 seul gros tuyau", "STP voit 1 tuyau → il n'a rien à bloquer", "Toute la bande passante est utilisée (4x plus !)", "Si 1 câble casse → les 3 autres prennent le relais", "La bascule est instantanée (pas 30 secondes d'attente)", "Et tu peux regrouper jusqu'à 8 câbles ensemble"] }
+            ]} />
+            <V2Whiteboard title="Le concept en un schéma" code={"!  Le problème :\n!  STP voit 4 câbles → il en bloque 3 → gaspillage\n!\n!  La solution EtherChannel :\n!  On dit à STP : « c'est pas 4 câbles, c'est 1 seul »\n!\n!        Câble 1 ─┐\n!        Câble 2 ─┼─── = 1 gros lien virtuel\n!        Câble 3 ─┤\n!        Câble 4 ─┘\n!\n!  STP voit 1 lien → rien à bloquer → tout passe ✅\n!  En dessous, les 4 câbles travaillent ensemble.\n!\n!  C'est comme fusionner 4 pailles en 1 gros tuyau.\n!  L'eau coule 4x plus vite."} />
+            <V2Tip title="Le mot clé">Ce « gros lien virtuel » s'appelle un port-channel. On verra le détail technique plus tard — pour l'instant, retiens juste que c'est un regroupement de câbles en un seul lien logique.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 3 : CE QUE ÇA CHANGE CONCRÈTEMENT ──
+      {
+        type: 'rich_text',
+        title: "Ce que ça change concrètement",
+        content: (
+          <div>
+            <V2Header module="MODULE 11" section="Avant / Après" title="Le même réseau, avec et sans EtherChannel" description="On a vu l'idée. Maintenant, regardons les chiffres concrets. Voici ce que donne le même réseau avec STP seul vs avec EtherChannel activé." />
+            <V2Whiteboard title="Avant EtherChannel — STP seul" code={"!  SW1 ════════ SW2    ← 1 câble actif (1 Gbps)\n!  SW1 ──╳───── SW2    ← bloqué\n!  SW1 ──╳───── SW2    ← bloqué\n!  SW1 ──╳───── SW2    ← bloqué\n!\n!  Bande passante utilisable :  1 Gbps  (sur 4 dispo)\n!  Câbles actifs :              1 sur 4\n!  Si ce câble casse :          30s de coupure (STP reconverge)\n!  Gaspillage :                 75% de la capacité installée"} />
+            <V2Whiteboard title="Après EtherChannel" code={"!  SW1 ═══╗          ╔═══ SW2\n!  SW1 ═══╬══ Po1 ══╬═══ SW2\n!  SW1 ═══╬══      ══╬═══ SW2\n!  SW1 ═══╝          ╚═══ SW2\n!\n!  Bande passante utilisable :  4 Gbps  (4 câbles actifs)\n!  Câbles actifs :              4 sur 4\n!  Si 1 câble casse :           0 seconde de coupure\n!                               Les 3 autres prennent le relais\n!  Gaspillage :                 0%"} />
+            <V2InfoCards cards={[
+              { title: "En résumé — les gains", color: "emerald", icon: Zap, items: ["4x plus de bande passante (tous les câbles travaillent)", "0 seconde de coupure si un câble casse (vs 30s avec STP seul)", "0% de gaspillage (chaque câble que tu paies est utilisé)", "STP est toujours là en filet de sécurité, mais il ne bloque plus rien", "Le réseau est à la fois plus rapide ET plus résilient"] },
+              { title: "Le coût", color: "blue", icon: CheckCircle, items: ["Aucun matériel supplémentaire à acheter", "Juste de la configuration sur les switches", "Compatible avec les switches que tu as déjà (2960, 3560…)", "Tu utilises les câbles que tu as déjà branchés", "→ C'est gratuit en matériel, il faut juste savoir le configurer"] }
+            ]} />
+            <V2Tip title="Le point clé">EtherChannel ne remplace pas STP — il travaille AVEC STP. STP continue de protéger contre les boucles, mais comme il ne voit qu'un seul lien logique, il n'a plus besoin de bloquer quoi que ce soit.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 4 : POURQUOI LES SWITCHES DOIVENT SE PARLER ──
+      {
+        type: 'rich_text',
+        title: "Mais les switches doivent se mettre d'accord",
+        content: (
+          <div>
+            <V2Header module="MODULE 11" section="Négociation" title="On peut pas juste « brancher des câbles » et espérer que ça marche" description="Tu pourrais te dire : il suffit de brancher 4 câbles et de dire au switch de les regrouper. Mais il y a un détail important : les DEUX switches doivent être d'accord pour former le groupe." />
+            <V2InfoCards cards={[
+              { title: "Pourquoi il faut négocier ?", color: "amber", icon: AlertTriangle, items: ["Si SW1 pense que c'est un EtherChannel mais SW2 non…", "… les câbles sont actifs individuellement → boucle !", "Les deux switches doivent se dire : « OK, on regroupe »", "Il faut un protocole pour se mettre d'accord", "C'est comme deux personnes qui doivent décider ensemble"] },
+              { title: "L'analogie des déménageurs", color: "blue", icon: Globe, items: ["Tu veux déménager un canapé avec un ami", "Si tu portes à gauche et lui aussi → ça marche", "Si tu portes mais lui regarde son téléphone → ça tombe", "Il faut se coordonner AVANT de porter", "Les switches font pareil : ils négocient avant de regrouper", "Il existe 3 façons de se coordonner (on les voit juste après)"] }
+            ]} />
+            <V2Whiteboard title="Les 3 façons de se mettre d'accord" code={"!  ┌─────────────────────────────────────────────────────┐\n!  │  Méthode 1 : LACP                                  │\n!  │  → Le standard universel (toutes les marques)      │\n!  │  → Recommandé en entreprise                        │\n!  │  → Les switches se parlent et vérifient tout       │\n!  ├─────────────────────────────────────────────────────┤\n!  │  Méthode 2 : PAgP                                  │\n!  │  → Inventé par Cisco (fonctionne QUE entre Cisco)  │\n!  │  → Même principe que LACP, mais en version Cisco   │\n!  ├─────────────────────────────────────────────────────┤\n!  │  Méthode 3 : Mode « on »                           │\n!  │  → Pas de négociation du tout                      │\n!  │  → On force l'EtherChannel sans vérification       │\n!  │  → Dangereux — éviter en production                │\n!  └─────────────────────────────────────────────────────┘\n!\n!  💡 Dans 99% des cas, tu utiliseras LACP."} />
+            <V2Tip title="Ce qu'il faut retenir">Avant de configurer, il faut choisir comment les switches vont se mettre d'accord. LACP = le standard qu'on utilise partout. PAgP = la version Cisco (de moins en moins utilisé). Mode on = dangereux, on l'évite. On va maintenant voir chacun en détail.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 5 : PAGP VS LACP VS ON ──
+      {
+        type: 'rich_text',
+        title: "PAgP vs LACP vs mode On",
+        content: (
+          <div>
+            <V2Header module="MODULE 11" section="Protocoles" title="Les 3 façons de négocier un EtherChannel" description="Pour former un EtherChannel, les deux switches doivent se mettre d'accord. Il existe 3 méthodes de négociation : PAgP (Cisco), LACP (standard) et le mode 'on' (pas de négociation)." />
+            <V2InfoCards cards={[
+              { title: "PAgP — Cisco uniquement", color: "blue", icon: Server, items: ["Port Aggregation Protocol — inventé par Cisco", "Fonctionne UNIQUEMENT entre switches Cisco", "2 modes : desirable (actif) et auto (passif)", "desirable + desirable = ✅ EtherChannel OK", "desirable + auto = ✅ EtherChannel OK", "auto + auto = ❌ Personne ne démarre → ça ne marche pas"] },
+              { title: "LACP — Standard universel", color: "emerald", icon: Globe, items: ["Link Aggregation Control Protocol — norme IEEE 802.3ad", "Fonctionne entre TOUTES les marques (Cisco, HP, Juniper…)", "2 modes : active (actif) et passive (passif)", "active + active = ✅ EtherChannel OK", "active + passive = ✅ EtherChannel OK", "passive + passive = ❌ Même problème que auto + auto"] }
+            ]} />
+            <V2Whiteboard title="Tableau récapitulatif des protocoles" code={"!  ┌──────────┬─────────────┬──────────────┬──────────────────┐\n!  │Protocole │ Standard ?  │ Modes        │ Multi-marques ?  │\n!  ├──────────┼─────────────┼──────────────┼──────────────────┤\n!  │ PAgP     │ ❌ Non      │ auto /       │ ❌ Non           │\n!  │          │ (Cisco)     │ desirable    │ (Cisco only)     │\n!  ├──────────┼─────────────┼──────────────┼──────────────────┤\n!  │ LACP     │ ✅ Oui      │ passive /    │ ✅ Oui           │\n!  │          │ (IEEE)      │ active       │                  │\n!  ├──────────┼─────────────┼──────────────┼──────────────────┤\n!  │ Mode on  │ ❌ Non      │ on / on      │ ⚠️ Oui mais     │\n!  │          │ (aucun)     │              │ pas recommandé   │\n!  └──────────┴─────────────┴──────────────┴──────────────────┘\n!\n!  💡 En pratique : utilise TOUJOURS LACP (active)\n!  → Compatible avec toutes les marques\n!  → Négocie automatiquement\n!  → Détecte les erreurs de config"} />
+            <V2Tip title="La règle simple">En entreprise, on utilise quasi toujours LACP en mode active. C'est le standard, ça marche avec tout le monde, et ça détecte les problèmes automatiquement. PAgP c'est du legacy Cisco. Le mode "on" c'est dangereux (aucune vérification).</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 6 : LA LOGIQUE DE NÉGOCIATION ──
+      {
+        type: 'rich_text',
+        title: "Qui démarre la négociation ?",
+        content: (
+          <div>
+            <V2Header module="MODULE 11" section="Protocoles" title="Actif + Passif = OK. Passif + Passif = échec." description="Le piège classique : si les deux côtés attendent que l'autre commence, personne ne bouge et l'EtherChannel ne se forme jamais." />
+            <V2InfoCards cards={[
+              { title: "LACP : active vs passive", color: "emerald", icon: Globe, items: ["active = 'Je démarre la négociation'", "passive = 'J'attends que l'autre commence'", "active + active = ✅ Les deux démarrent → OK", "active + passive = ✅ Un démarre, l'autre suit → OK", "passive + passive = ❌ Les deux attendent → rien ne se passe !"] },
+              { title: "PAgP : desirable vs auto", color: "blue", icon: Server, items: ["desirable = 'Je veux former un EtherChannel'", "auto = 'OK si l'autre le veut'", "desirable + desirable = ✅ OK", "desirable + auto = ✅ OK", "auto + auto = ❌ Personne ne bouge → échec !"] }
+            ]} />
+            <V2Whiteboard title="Le piège passive + passive" code={"!  ─── passive + passive (LACP) ─────────────────────\n!\n!  SW1: « J'attends que SW2 commence... »\n!  SW2: « J'attends que SW1 commence... »\n!  ...\n!  ... 💤\n!  ...\n!  → Personne ne commence. EtherChannel = jamais formé.\n!\n!  ─── active + passive (LACP) ─────────────────────\n!\n!  SW1 (active) : « Salut ! On forme un EtherChannel ? »\n!  SW2 (passive) : « OK, je suis d'accord ! »\n!  → EtherChannel formé ✅\n!\n!  💡 Bonne pratique : mets active des DEUX côtés.\n!  Comme ça, pas de doute."} />
+            <V2Tip title="Retiens cette règle">Il faut au moins UN côté en mode actif (active pour LACP, desirable pour PAgP). Si les deux côtés sont passifs, rien ne se passe. La bonne pratique : active + active partout.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 7 : LE MODE "ON" — ATTENTION DANGER ──
+      {
+        type: 'rich_text',
+        title: "Le mode 'on' : pas de négociation",
+        content: (
+          <div>
+            <V2Header module="MODULE 11" section="Protocoles" title="Le mode on : c'est comme conduire sans ceinture" description="Le mode 'on' force l'EtherChannel sans aucune négociation. C'est rapide, mais dangereux. Voyons pourquoi." />
+            <V2InfoCards cards={[
+              { title: "Comment ça marche", color: "amber", icon: AlertTriangle, items: ["on = 'Force l'EtherChannel, pas de question'", "Aucun protocole de négociation (ni LACP, ni PAgP)", "Les deux côtés DOIVENT être en mode 'on'", "on + on = ✅ L'EtherChannel se forme", "on + active = ❌ Incompatible → échec", "on + desirable = ❌ Incompatible → échec"] },
+              { title: "Pourquoi c'est dangereux", color: "red", icon: AlertTriangle, items: ["Aucune détection d'erreur de configuration", "Si un côté est mal configuré → boucle réseau possible", "Pas de vérification de cohérence des paramètres", "Si un câble est branché au mauvais endroit → catastrophe", "→ LACP détecte ces erreurs, le mode 'on' non"] }
+            ]} />
+            <V2Tip title="En résumé">Le mode 'on', c'est le bypass total de la sécurité. Ça marche, mais si tu fais une erreur, personne ne te prévient. En production, utilise LACP. Le mode 'on' n'est utilisé que dans des cas très spécifiques (et c'est rare).</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 8 : STP + ETHERCHANNEL — COMMENT ILS COEXISTENT ──
+      {
+        type: 'rich_text',
+        title: "STP + EtherChannel ensemble",
+        content: (
+          <div>
+            <V2Header module="MODULE 11" section="Coexistence" title="Comment STP voit un EtherChannel" description="STP et EtherChannel ne s'opposent pas — ils travaillent ensemble. Voici comment ils coopèrent." />
+            <V2InfoCards cards={[
+              { title: "STP sans EtherChannel", color: "red", icon: AlertTriangle, items: ["STP voit 4 liens séparés entre SW1 et SW2", "Il garde 1 lien actif et bloque les 3 autres", "Bande passante disponible : 1 Gbps", "Redondance : oui, mais lente (30s de reconvergence)", "Gaspillage : 75% des câbles inutilisés"] },
+              { title: "STP avec EtherChannel", color: "emerald", icon: Shield, items: ["STP voit UN SEUL lien logique (Port-channel)", "Il n'a rien à bloquer → le lien est actif", "Bande passante disponible : 4 Gbps (4 × 1 Gbps)", "Redondance : si 1 câble tombe, les 3 autres restent", "Bascule instantanée (pas de reconvergence STP)"] }
+            ]} />
+            <V2Whiteboard title="Ce que STP voit" code={"!  ──── SANS EtherChannel ─────────────────────────\n!  STP voit :\n!    SW1 ──── SW2  (lien 1) → Forwarding\n!    SW1 ──── SW2  (lien 2) → Blocking\n!    SW1 ──── SW2  (lien 3) → Blocking\n!    SW1 ──── SW2  (lien 4) → Blocking\n!\n!  ──── AVEC EtherChannel ──────────────────────────\n!  STP voit :\n!    SW1 ════ SW2  (Port-channel1) → Forwarding\n!\n!  Un seul lien logique = rien à bloquer\n!  Mais en dessous, 4 câbles transportent du trafic"} />
+          </div>
+        )
+      },
+      // ── SLIDE 9 : LES CONDITIONS — TOUT DOIT MATCHER ──
+      {
+        type: 'rich_text',
+        title: "Les règles du jeu : tout doit être identique",
+        content: (
+          <div>
+            <V2Header module="MODULE 11" section="Conditions" title="Les ports doivent être 100% identiques" description="EtherChannel est très strict : si un seul paramètre diffère entre les ports, l'agrégation refuse de se former. C'est la source d'erreur n°1." />
+            <V2InfoCards cards={[
+              { title: "Tous les ports doivent avoir…", color: "blue", icon: CheckCircle, items: ["La même vitesse (tous en 100 Mbps OU tous en 1 Gbps)", "Le même duplex (tous en full-duplex)", "Le même mode (tous en trunk OU tous en access)", "Le même VLAN (si en mode access)", "Le même protocole de négociation des deux côtés"] },
+              { title: "Si un paramètre ne matche pas…", color: "red", icon: AlertTriangle, items: ["L'EtherChannel ne se forme PAS du tout", "Les ports restent individuels (et STP va en bloquer)", "C'est la cause n°1 des problèmes EtherChannel", "Vérifie TOUJOURS avec show etherchannel summary", "Le flag (I) = suspended signifie qu'un port a un souci"] }
+            ]} />
+            <V2Whiteboard title="Exemple d'erreur classique" code={"!  ❌ Fa0/1 : trunk, VLAN allowed 10,20\n!  ❌ Fa0/2 : trunk, VLAN allowed 10,20,30   ← pas pareil !\n!\n!  → EtherChannel refuse de se former.\n!  → Les deux ports restent séparés.\n!  → STP en bloque un → retour à la case départ.\n!\n!  ✅ Solution : même config sur TOUS les ports :\n!  SW1(config)# interface range Fa0/1-2\n!  SW1(config-if-range)# switchport mode trunk\n!  SW1(config-if-range)# switchport trunk allowed vlan 10,20\n!  SW1(config-if-range)# channel-group 1 mode active\n!\n!  ⚠️ Vérifie toujours : show etherchannel summary\n!  Le flag (P) = port actif dans le channel = tout va bien\n!  Le flag (I) = suspended = il y a un problème"} />
+          </div>
+        )
+      },
+      // ── SLIDE 10 : PORT-CHANNEL — PHYSIQUE VS LOGIQUE ──
+      {
+        type: 'rich_text',
+        title: "Port-channel : physique vs logique",
+        content: (
+          <div>
+            <V2Header module="MODULE 11" section="Architecture" title="Comprendre la différence entre channel-group et port-channel" description="Maintenant qu'on comprend le concept, voyons comment c'est organisé techniquement. EtherChannel a deux faces : le côté physique et le côté logique." />
+            <V2InfoCards cards={[
+              { title: "channel-group (côté physique)", color: "purple", icon: Server, items: ["C'est la commande qu'on tape sur les interfaces physiques", "Elle dit au switch : 'ces ports font partie du même groupe'", "Exemple : channel-group 1 mode active", "Tu l'appliques sur chaque port que tu veux regrouper", "C'est le côté 'câbles physiques' de l'histoire"] },
+              { title: "port-channel (côté logique)", color: "blue", icon: Link, items: ["C'est l'interface virtuelle qui apparaît automatiquement", "Elle s'appelle Port-channel1 (ou Po1)", "C'est là que tu configures le trunk, les VLANs, etc.", "Toute la config réseau se fait sur le port-channel, PAS sur les ports physiques", "C'est le côté 'lien virtuel unique' de l'histoire"] }
+            ]} />
+            <V2Whiteboard title="Comment ça s'organise" code={"!  Interfaces physiques          Interface logique\n!  ┌─────────────────┐          ┌────────────────┐\n!  │  Fa0/1           │──┐       │                │\n!  │  channel-group 1 │  │       │  Port-channel1 │\n!  ├─────────────────┤  ├──────▶│  (Po1)         │\n!  │  Fa0/2           │  │       │                │\n!  │  channel-group 1 │──┘       │  ← Config ici  │\n!  └─────────────────┘          │  (trunk, vlan) │\n!                                └────────────────┘\n!\n!  channel-group = on regroupe les ports physiques\n!  port-channel  = l'interface logique résultante\n!\n!  ⚠️ Règle d'or : configure le port-channel, pas les ports"} />
+            <V2Tip title="Retiens ça">channel-group = le regroupement. port-channel = le résultat. Tu configures toujours sur le port-channel (trunk, VLANs, etc.), jamais directement sur les ports physiques du group.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 11 : CONFIGURER UN ETHERCHANNEL LACP ──
+      {
+        type: 'rich_text',
+        title: "Configurer EtherChannel (LACP)",
+        content: (
+          <div>
+            <V2Header module="MODULE 11" section="Configuration" title="Étape par étape : créer un EtherChannel LACP" description="On va configurer un EtherChannel entre deux switches avec LACP. C'est la méthode recommandée en production." />
+            <V2Whiteboard title="Configuration sur SW1" code={"!  ── Étape 1 : Sélectionner les ports physiques ──\n!\n!  SW1(config)# interface range FastEthernet0/1-2\n!\n!  ── Étape 2 : Mettre les ports en trunk ──\n!\n!  SW1(config-if-range)# switchport mode trunk\n!\n!  ── Étape 3 : Créer l'EtherChannel avec LACP ──\n!\n!  SW1(config-if-range)# channel-group 1 mode active\n!\n!  → Le port-channel 1 (Po1) est créé automatiquement\n!  → Les ports Fa0/1 et Fa0/2 sont maintenant regroupés"} />
+            <V2Whiteboard title="Même config sur SW2 (les 2 côtés doivent matcher)" code={"!  SW2(config)# interface range FastEthernet0/1-2\n!  SW2(config-if-range)# switchport mode trunk\n!  SW2(config-if-range)# channel-group 1 mode active\n!\n!  ── Vérification ──\n!\n!  SW1# show etherchannel summary\n!\n!  Group  Port-channel  Protocol  Ports\n!  ─────  ────────────  ────────  ──────────────────\n!  1      Po1(SU)       LACP      Fa0/1(P)  Fa0/2(P)\n!\n!  (SU) = Layer2, en service (Up)\n!  (P)  = Port actif dans le channel → tout va bien ✅\n!  (I)  = Suspended → problème de config ❌"} />
+            <V2Tip title="Les flags à retenir">Dans show etherchannel summary : (P) = le port est actif, tout fonctionne. (I) = suspended, il y a un problème de cohérence. (D) = down, le port est éteint. Si tu vois (I), vérifie que la config est identique sur tous les ports.</V2Tip>
+          </div>
+        )
+      },
+      // ── SLIDE 10 : VÉRIFICATION ET DIAGNOSTIC ──
+      {
+        type: 'rich_text',
+        title: "Vérifier que ça marche",
+        content: (
+          <div>
+            <V2Header module="MODULE 11" section="Vérification" title="Les commandes de vérification EtherChannel" description="Après avoir configuré l'EtherChannel, il faut toujours vérifier. Voici les commandes essentielles." />
+            <V2Whiteboard title="Commande n°1 : show etherchannel summary" code={"!  SW1# show etherchannel summary\n!\n!  Number of channel-groups in use: 1\n!\n!  Group  Port-channel  Protocol  Ports\n!  ─────  ────────────  ────────  ──────────────────\n!  1      Po1(SU)       LACP      Fa0/1(P)  Fa0/2(P)\n!\n!  → C'est LA commande à retenir\n!  → (SU) = Up, (SD) = Down\n!  → (P) = Port OK, (I) = Problème"} />
+            <V2Whiteboard title="Commande n°2 : show etherchannel port-channel" code={"!  SW1# show etherchannel port-channel\n!\n!  Channel-group listing:\n!  ──────────────────────\n!  Group: 1\n!  Port-channel: Po1    (Primary Aggregator)\n!  Age of the Port-channel   = 0d:02h:15m\n!  Logical slot/port   = 2/1\n!  Number of ports = 2\n!  Protocol = LACP\n!\n!  → Donne les détails du port-channel\n!  → Nombre de ports, protocole utilisé, âge"} />
+            <V2Whiteboard title="Commande n°3 : show interfaces port-channel 1" code={"!  SW1# show interfaces port-channel 1\n!\n!  Port-channel1 is up, line protocol is up (connected)\n!    Hardware is EtherChannel\n!    MTU 1500 bytes, BW 200000 Kbit/sec\n!                        ↑\n!    Bande passante = 200 Mbps (2 × 100 Mbps Fast)\n!    Ou 2000000 Kbit/sec si GigabitEthernet (2 × 1 Gbps)"} />
+          </div>
+        )
+      },
+      // ── SLIDE 11 : QUE SE PASSE-T-IL SI UN LIEN TOMBE ? ──
+      {
+        type: 'rich_text',
+        title: "Quand un lien tombe",
+        content: (
+          <div>
+            <V2Header module="MODULE 11" section="Redondance" title="La résilience d'EtherChannel : si un câble casse" description="Un des gros avantages d'EtherChannel, c'est ce qui se passe quand un câble est coupé ou un port tombe en panne." />
+            <V2InfoCards cards={[
+              { title: "Avec STP seul (sans EtherChannel)", color: "red", icon: AlertTriangle, items: ["Le lien actif tombe → STP le détecte", "STP démarre la reconvergence (calcul du nouveau chemin)", "30 secondes d'attente (Listening → Learning → Forwarding)", "Pendant ce temps : AUCUN trafic ne passe sur ce segment", "Les utilisateurs sont coupés pendant 30 secondes"] },
+              { title: "Avec EtherChannel", color: "emerald", icon: Zap, items: ["Un câble du bundle tombe → EtherChannel le détecte", "Le trafic est redistribué sur les câbles restants instantanément", "Aucune reconvergence STP nécessaire (c'est toujours 1 lien logique)", "Les utilisateurs ne remarquent rien (ou presque)", "La bande passante diminue un peu, mais le service continue"] }
+            ]} />
+            <V2Whiteboard title="La différence en pratique" code={"!  ─── EtherChannel : 4 liens, 1 tombe ─────────────\n!\n!  AVANT :  Fa0/1 ✅  Fa0/2 ✅  Fa0/3 ✅  Fa0/4 ✅\n!  Bande passante : 4 Gbps\n!\n!  Fa0/3 est coupé !\n!\n!  APRÈS :  Fa0/1 ✅  Fa0/2 ✅  Fa0/3 ❌  Fa0/4 ✅\n!  Bande passante : 3 Gbps (au lieu de 4)\n!  Temps de coupure : ~0 seconde\n!\n!  → Le Port-channel reste UP\n!  → Le trafic continue sur les 3 liens restants\n!  → Aucune intervention nécessaire"} />
+          </div>
+        )
+      },
+      // ── SLIDE 12 : RÉSUMÉ STP VS ETHERCHANNEL ──
+      {
+        type: 'rich_text',
+        title: "STP vs EtherChannel : le comparatif",
+        content: (
+          <div>
+            <V2Header module="MODULE 11" section="Synthèse" title="Tableau comparatif : STP seul vs EtherChannel" description="Récapitulatif de tout ce qu'on a vu. STP et EtherChannel ne s'opposent pas — ils se complètent." />
+            <V2Whiteboard title="Comparatif complet" code={"!  ┌───────────────────────┬───────────────────┬──────────────────────┐\n!  │ Caractéristique       │ STP seul          │ EtherChannel         │\n!  ├───────────────────────┼───────────────────┼──────────────────────┤\n!  │ Utilité principale    │ Éviter les        │ Agréger les liens    │\n!  │                       │ boucles Layer 2   │ pour + de bande      │\n!  │                       │                   │ passante             │\n!  ├───────────────────────┼───────────────────┼──────────────────────┤\n!  │ Gère les boucles ?    │ ✅ Oui            │ Indirectement (STP   │\n!  │                       │                   │ voit 1 seul lien)    │\n!  ├───────────────────────┼───────────────────┼──────────────────────┤\n!  │ Active tous les       │ ❌ Non (bloque    │ ✅ Oui (tous les     │\n!  │ liens ?               │ les redondants)   │ câbles sont actifs)  │\n!  ├───────────────────────┼───────────────────┼──────────────────────┤\n!  │ Améliore la bande     │ ❌ Non            │ ✅ Oui (× nombre     │\n!  │ passante ?            │                   │ de liens)            │\n!  ├───────────────────────┼───────────────────┼──────────────────────┤\n!  │ Réaction en cas       │ Lent (30s de      │ Rapide (les autres   │\n!  │ de panne              │ reconvergence)    │ liens prennent le    │\n!  │                       │                   │ relais immédiatement)│\n!  └───────────────────────┴───────────────────┴──────────────────────┘\n!\n!  💡 En résumé :\n!  → STP = le filet de sécurité (empêche les boucles)\n!  → EtherChannel = le booster (utilise tous les liens)\n!  → Les deux travaillent ensemble"} />
+          </div>
+        )
+      },
+      // ── SLIDE 13 : AIDE-MÉMOIRE COMMANDES ──
+      {
+        type: 'rich_text',
+        title: "Aide-mémoire EtherChannel",
+        content: (
+          <div>
+            <V2Header module="MODULE 11" section="Référence" title="Les commandes à connaître" description="Toutes les commandes EtherChannel en un seul endroit. Imprime cette slide ou screenshot-la !" />
+            <V2Whiteboard title="Configuration" code={"!  ── Créer un EtherChannel (LACP) ──\n!  SW(config)# interface range Fa0/1-2\n!  SW(config-if-range)# channel-group 1 mode active\n!\n!  ── Créer un EtherChannel (PAgP) ──\n!  SW(config)# interface range Fa0/1-2\n!  SW(config-if-range)# channel-group 1 mode desirable\n!\n!  ── Créer un EtherChannel (mode on) ──\n!  SW(config)# interface range Fa0/1-2\n!  SW(config-if-range)# channel-group 1 mode on\n!\n!  ── Configurer le trunk sur le port-channel ──\n!  SW(config)# interface port-channel 1\n!  SW(config-if)# switchport mode trunk"} />
+            <V2Whiteboard title="Vérification" code={"!  ── Voir l'état de tous les EtherChannels ──\n!  SW# show etherchannel summary\n!\n!  ── Voir les détails d'un port-channel ──\n!  SW# show etherchannel port-channel\n!\n!  ── Voir l'interface logique ──\n!  SW# show interfaces port-channel 1\n!\n!  ── Voir quel protocole est utilisé ──\n!  SW# show etherchannel detail\n!\n!  ── Dépannage ──\n!  SW# show running-config | section interface\n!  → Vérifie que TOUS les ports ont la même config"} />
+          </div>
+        )
+      },
+      // ── SLIDE 14 : FLASHCARDS ──
+      {
+        type: 'flashcards',
+        title: "Flashcards : EtherChannel",
+        mode: 'command_to_definition',
+        cards: [
+          { q: "EtherChannel", a: "Technologie qui agrège plusieurs liens physiques en un seul lien logique (port-channel) pour augmenter la bande passante et la redondance." },
+          { q: "port-channel", a: "L'interface logique créée par EtherChannel. C'est là qu'on configure le trunk, les VLANs, etc. Exemple : interface Port-channel1." },
+          { q: "channel-group 1 mode active", a: "Commande appliquée sur les interfaces physiques pour les regrouper en EtherChannel avec le protocole LACP en mode actif." },
+          { q: "PAgP", a: "Port Aggregation Protocol — protocole Cisco propriétaire pour négocier les EtherChannels. Modes : desirable (actif) et auto (passif)." },
+          { q: "LACP", a: "Link Aggregation Control Protocol — standard IEEE 802.3ad, compatible avec toutes les marques. Modes : active (actif) et passive (passif)." },
+          { q: "show etherchannel summary", a: "Affiche l'état de tous les EtherChannels : groupe, protocole, ports membres et leurs flags (P=actif, I=suspended, D=down)." },
+          { q: "Flag (P) dans etherchannel summary", a: "Le port est actif et fonctionne correctement dans le bundle EtherChannel." },
+          { q: "Flag (I) dans etherchannel summary", a: "Le port est suspended — il y a un problème de cohérence de configuration (vitesse, duplex, VLAN, mode…)." },
+          { q: "passive + passive (LACP)", a: "L'EtherChannel ne se forme PAS. Les deux côtés attendent que l'autre commence la négociation → personne ne bouge." },
+          { q: "Conditions pour un EtherChannel", a: "Même vitesse, même duplex, même mode (trunk/access), même VLAN, même protocole de négociation des deux côtés." },
+          { q: "Mode on", a: "Force l'EtherChannel sans négociation. Dangereux car aucune détection d'erreur. Les deux côtés doivent être en mode 'on'." },
+          { q: "Avantage EtherChannel vs STP seul", a: "EtherChannel utilise TOUS les liens en parallèle (pas de blocage). Bascule instantanée si un lien tombe. Bande passante multipliée." }
+        ]
+      },
+      // ── SLIDE 15 : CONFIGURER ETHERCHANNEL ÉTAPE PAR ÉTAPE ──
+      {
+        type: 'command_builder',
+        title: "Configurer EtherChannel pas à pas",
+        commandBuilderTitle: "Configuration EtherChannel LACP complète",
+        steps: [
+          { cmd: "enable", desc: "Passer en mode privilégié" },
+          { cmd: "configure terminal", desc: "Passer en mode configuration globale" },
+          { cmd: "interface range FastEthernet0/1-2", desc: "Sélectionner les 2 ports physiques à regrouper" },
+          { cmd: "switchport mode trunk", desc: "Mettre les ports en mode trunk (obligatoire si lien inter-switch)" },
+          { cmd: "channel-group 1 mode active", desc: "Créer le channel-group 1 avec LACP en mode actif" },
+          { cmd: "exit", desc: "Sortir de la config des interfaces" },
+          { cmd: "interface port-channel 1", desc: "Entrer sur l'interface logique port-channel" },
+          { cmd: "switchport mode trunk", desc: "Confirmer le trunk sur le port-channel" },
+          { cmd: "exit", desc: "Sortir" },
+          { cmd: "end", desc: "Revenir au mode privilégié" },
+          { cmd: "show etherchannel summary", desc: "Vérifier : tous les ports doivent être (P) et le channel (SU)" },
+          { cmd: "show interfaces port-channel 1", desc: "Vérifier la bande passante agrégée" },
+          { cmd: "copy running-config startup-config", desc: "Sauvegarder la configuration" }
+        ]
+      }
+    ],
+    lab: {
+      consignes: (
+        <div className="space-y-8 text-slate-300 leading-relaxed">
+
+          {/* INTRO LAB 1 */}
+          <section>
+            <div className="bg-gradient-to-r from-emerald-900/20 to-purple-900/20 rounded-xl p-6 border border-emerald-500/30 mb-6">
+              <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"🔄 Lab 1 — STP & Introduction à EtherChannel"}</h2>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-amber-300 font-bold text-sm mb-2">{"Thématique :"}</p>
+                <p className="text-slate-300 text-sm italic">{"Visualiser comment STP bloque des liens redondants et comprendre pourquoi EtherChannel est la solution pour exploiter toute la bande passante sans boucle."}</p>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-emerald-300 font-bold text-sm mb-2">{"Contexte :"}</p>
+                <p className="text-slate-300 text-sm">{"Tu es dans une entreprise où deux switches sont connectés par plusieurs câbles Ethernet pour garantir la redondance. Tu veux comprendre pourquoi STP désactive certains de ces liens, et pourquoi EtherChannel pourrait les rendre tous utilisables sans créer de boucle."}</p>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-emerald-300 font-bold text-sm mb-2">{"Objectifs :"}</p>
+                <ol className="text-slate-300 text-sm space-y-1 list-decimal list-inside">
+                  <li>{"Câbler une topologie redondante entre 2 switches (2 à 3 liens)"}</li>
+                  <li>{"Observer STP en action : identifier les ports bloqués (Blocking)"}</li>
+                  <li>{"Constater que seul 1 lien est utilisé malgré les câbles multiples"}</li>
+                  <li>{"Comprendre pourquoi EtherChannel va corriger ce « gaspillage »"}</li>
+                </ol>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-purple-300 font-bold text-sm mb-2">{"Topologie logique :"}</p>
+                <div className="font-mono text-sm text-emerald-300 bg-black/30 rounded p-3">
+                  <p>{"    [PC1]                          [PC2]"}</p>
+                  <p>{"      │                              │"}</p>
+                  <p>{"    Fa0/1                          Fa0/1"}</p>
+                  <p>{"   [SW1] ═══ Fa0/2─Fa0/2 ═══ [SW2]"}</p>
+                  <p>{"         ═══ Fa0/3─Fa0/3 ═══"}</p>
+                  <p>{"         ═══ Fa0/4─Fa0/4 ═══"}</p>
+                  <p>{""}</p>
+                  <p className="text-slate-500">{"• 3 liens redondants entre SW1 et SW2"}</p>
+                  <p className="text-slate-500">{"• STP va en bloquer 2 pour éviter les boucles"}</p>
+                  <p className="text-amber-300 mt-2 font-bold">{"• Réseau : 192.168.1.0/24"}</p>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <p className="text-emerald-300 font-bold text-sm mb-2">{"Plan d'adressage IP :"}</p>
+                <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                  <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"Appareil"}</th><th className="p-2 text-left">{"Interface"}</th><th className="p-2 text-left">{"Adresse IP"}</th><th className="p-2 text-left">{"Masque"}</th></tr></thead>
+                  <tbody>
+                    <tr className="border-t border-white/20"><td className="p-2">{"PC1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.10"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2">{"PC2"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.20"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          {/* MATÉRIEL LAB 1 */}
+          <section>
+            <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 rounded-xl p-6 border border-amber-500/30">
+              <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"🖥️ Matériel dans Packet Tracer"}</h2>
+              <ul className="text-slate-300 text-sm space-y-1 mb-4">
+                <li>{"• 2 switches (2960) — SW1, SW2"}</li>
+                <li>{"• 2 PCs — PC1 (côté SW1), PC2 (côté SW2)"}</li>
+                <li>{"• Câbles : Copper Straight-Through (PC↔Switch) et Copper Cross-Over (Switch↔Switch)"}</li>
+              </ul>
+              <div className="bg-black/30 rounded-lg p-4">
+                <p className="text-purple-300 font-bold text-sm mb-2">{"Câblage :"}</p>
+                <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                  <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"De"}</th><th className="p-2 text-left">{"Port"}</th><th className="p-2 text-center">{"Câble"}</th><th className="p-2 text-left">{"Vers"}</th><th className="p-2 text-left">{"Port"}</th></tr></thead>
+                  <tbody>
+                    <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                    <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC2"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW2"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                    <tr className="border-t border-white/20 bg-amber-500/10"><td className="p-2 font-bold text-amber-300">{"SW1"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/2"}</td><td className="p-2 text-center text-amber-300 font-bold">{"Cross-Over"}</td><td className="p-2 font-bold text-amber-300">{"SW2"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/2"}</td></tr>
+                    <tr className="border-t border-white/20 bg-amber-500/10"><td className="p-2 font-bold text-amber-300">{"SW1"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/3"}</td><td className="p-2 text-center text-amber-300 font-bold">{"Cross-Over"}</td><td className="p-2 font-bold text-amber-300">{"SW2"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/3"}</td></tr>
+                    <tr className="border-t border-white/20 bg-amber-500/10"><td className="p-2 font-bold text-amber-300">{"SW1"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/4"}</td><td className="p-2 text-center text-amber-300 font-bold">{"Cross-Over"}</td><td className="p-2 font-bold text-amber-300">{"SW2"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/4"}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-amber-300/80 text-xs mt-3">{"⚠️ Les 3 liens SW1↔SW2 créent de la redondance. STP va automatiquement bloquer 2 de ces 3 liens pour empêcher les boucles."}</p>
+            </div>
+          </section>
+
+          {/* ÉTAPE 1 LAB 1 */}
+          <section>
+            <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-xl p-6 border border-purple-500/30">
+              <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"⚙️ Étape 1 — Câblage et configuration de base"}</h2>
+              <ul className="text-slate-300 text-sm space-y-2">
+                <li>{"• Place 2 switches (2960) et 2 PCs dans Packet Tracer"}</li>
+                <li>{"• Câble tout selon le tableau ci-dessus (3 liens cross-over entre switches)"}</li>
+                <li>{"• Configure les adresses IP de chaque PC (Desktop → IP Configuration)"}</li>
+                <li>{"• Nomme les switches : hostname SW1, hostname SW2"}</li>
+                <li>{"• Active les interfaces si besoin : interface range fa0/1-4 puis no shutdown"}</li>
+              </ul>
+              <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20 mt-4">
+                <p className="text-amber-300 font-bold text-sm mb-1">{"💡 Astuce :"}</p>
+                <p className="text-slate-300 text-sm">{"Attends 30-60 secondes que STP converge après avoir tout câblé. Tu verras certains indicateurs rester orange sur les liens entre switches = ports bloqués par STP."}</p>
+              </div>
+            </div>
+          </section>
+
+          {/* ÉTAPE 2 LAB 1 : OBSERVER STP */}
+          <section>
+            <div className="bg-gradient-to-r from-emerald-900/20 to-blue-900/20 rounded-xl p-6 border border-emerald-500/30">
+              <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"🔍 Étape 2 — Observer le comportement STP"}</h2>
+              <p className="text-slate-300 text-sm mb-4">{"Sur chaque switch, exécute show spanning-tree et observe attentivement :"}</p>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-purple-300 font-bold text-sm mb-2">{"Questions à répondre :"}</p>
+                <ol className="text-slate-300 text-sm space-y-2 list-decimal list-inside">
+                  <li>{"Quel port est en état Blocking (bloqué) ?"}</li>
+                  <li>{"Quel port est Root ou Designated ?"}</li>
+                  <li>{"Combien de liens sont réellement utilisés sur les 3 câblés ?"}</li>
+                </ol>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-emerald-300 font-bold text-sm mb-2">{"Tests depuis PC1 :"}</p>
+                <ul className="text-slate-300 text-sm space-y-1">
+                  <li>{"• Ping vers PC2 (192.168.1.20) → le trafic passe"}</li>
+                  <li>{"• Même si 3 liens existent, STP en bloque 2 pour éviter la boucle"}</li>
+                </ul>
+              </div>
+              <div className="bg-red-900/20 rounded-lg p-4 border border-red-500/20">
+                <p className="text-red-300 font-bold text-sm mb-2">{"🧠 Analyse pédagogique :"}</p>
+                <ul className="text-slate-300 text-sm space-y-1">
+                  <li>{"• Tu constateras que seul 1 des liens physiques est utilisé"}</li>
+                  <li>{"• Les autres sont bloqués (état Blocking dans STP)"}</li>
+                  <li>{"• Ce gaspillage de bande passante est exactement ce qu'EtherChannel va corriger dans le Lab 2"}</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          {/* ═══════════ LAB 2 : PAgP ═══════════ */}
+          <section>
+            <div className="bg-gradient-to-r from-cyan-900/20 to-purple-900/20 rounded-xl p-6 border border-cyan-500/30">
+              <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center gap-2">{"🔵 Lab 2 — EtherChannel en mode PAgP"}</h2>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-amber-300 font-bold text-sm mb-2">{"Thématique :"}</p>
+                <p className="text-slate-300 text-sm italic">{"Configurer un EtherChannel avec PAgP (Port Aggregation Protocol), le protocole propriétaire Cisco."}</p>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-cyan-300 font-bold text-sm mb-2">{"Contexte :"}</p>
+                <p className="text-slate-300 text-sm">{"Tu as vu dans le Lab 1 que STP bloque les liens redondants. Ici, tu vas utiliser PAgP pour regrouper 4 câbles en un seul lien logique (Port-channel). PAgP est exclusif Cisco — les switches négocient automatiquement l'agrégation."}</p>
+              </div>
+              <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20 mb-4">
+                <p className="text-amber-300 font-bold text-sm mb-1">{"📁 Nouveau fichier Packet Tracer"}</p>
+                <p className="text-slate-300 text-sm">{"Ouvre un NOUVEAU fichier Packet Tracer pour ce lab (ne reprends pas celui du Lab 1)."}</p>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-purple-300 font-bold text-sm mb-2">{"Topologie :"}</p>
+                <div className="font-mono text-sm text-emerald-300 bg-black/30 rounded p-3">
+                  <p>{"   [PC1]                              [PC2]"}</p>
+                  <p>{"     │                                  │"}</p>
+                  <p>{"   Fa0/10                            Fa0/10"}</p>
+                  <p>{"   [SW1] ════ Fa0/1─Fa0/1 ════ [SW2]"}</p>
+                  <p>{"         ════ Fa0/2─Fa0/2 ════"}</p>
+                  <p>{"         ════ Fa0/3─Fa0/3 ════"}</p>
+                  <p>{"         ════ Fa0/4─Fa0/4 ════"}</p>
+                </div>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-cyan-300 font-bold text-sm mb-2">{"Ce que tu dois faire :"}</p>
+                <ol className="text-slate-300 text-sm space-y-2 list-decimal list-inside">
+                  <li>{"Câble la topologie (4 cross-over entre switches, PCs sur Fa0/10)"}</li>
+                  <li>{"Configure hostname + IPs des PCs (192.168.1.10 et .20)"}</li>
+                  <li>{"Sur SW1 : interface range fa0/1-4 → channel-group 1 mode desirable"}</li>
+                  <li>{"Sur SW2 : interface range fa0/1-4 → channel-group 1 mode auto"}</li>
+                  <li>{"Configure le trunk sur les ports physiques ET le port-channel"}</li>
+                  <li>{"Vérifie avec show etherchannel summary → flags SU et P"}</li>
+                  <li>{"Test ping + shutdown d'un port → Po1 reste UP"}</li>
+                </ol>
+              </div>
+              <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
+                <p className="text-blue-300 font-bold text-sm mb-1">{"💡 Combinaisons PAgP :"}</p>
+                <p className="text-slate-300 text-sm">{"desirable + desirable = ✅  |  desirable + auto = ✅  |  auto + auto = ❌ (personne n'initie)"}</p>
+              </div>
+            </div>
+          </section>
+
+          {/* ═══════════ LAB 3 : LACP ═══════════ */}
+          <section>
+            <div className="bg-gradient-to-r from-emerald-900/20 to-blue-900/20 rounded-xl p-6 border border-emerald-500/30">
+              <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"🟢 Lab 3 — EtherChannel en mode LACP"}</h2>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-amber-300 font-bold text-sm mb-2">{"Thématique :"}</p>
+                <p className="text-slate-300 text-sm italic">{"Configurer un EtherChannel avec LACP (IEEE 802.3ad), le standard universel compatible avec tous les constructeurs."}</p>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-emerald-300 font-bold text-sm mb-2">{"Différence avec le Lab 2 (PAgP) :"}</p>
+                <p className="text-slate-300 text-sm">{"LACP est un standard IEEE, pas propriétaire Cisco. Les modes changent : desirable → active, auto → passive. Même logique de négociation, mais compatible multi-marques. C'est le protocole recommandé en production."}</p>
+              </div>
+              <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20 mb-4">
+                <p className="text-amber-300 font-bold text-sm mb-1">{"📁 Nouveau fichier Packet Tracer"}</p>
+                <p className="text-slate-300 text-sm">{"Ouvre un NOUVEAU fichier Packet Tracer (ne reprends pas celui du Lab 2). Même topologie : 2 switches, 2 PCs, 4 liens cross-over."}</p>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-emerald-300 font-bold text-sm mb-2">{"Ce que tu dois faire :"}</p>
+                <ol className="text-slate-300 text-sm space-y-2 list-decimal list-inside">
+                  <li>{"Câble la même topologie que le Lab 2"}</li>
+                  <li>{"Configure hostname + IPs des PCs"}</li>
+                  <li>{"Sur SW1 : interface range fa0/1-4 → channel-group 1 mode active"}</li>
+                  <li>{"Sur SW2 : interface range fa0/1-4 → channel-group 1 mode passive"}</li>
+                  <li>{"Configure le trunk sur les ports physiques ET le port-channel"}</li>
+                  <li>{"Vérifie avec show etherchannel summary → Protocol: LACP"}</li>
+                  <li>{"Compare le résultat avec PAgP : qu'est-ce qui change ?"}</li>
+                </ol>
+              </div>
+              <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
+                <p className="text-blue-300 font-bold text-sm mb-1">{"💡 Combinaisons LACP :"}</p>
+                <p className="text-slate-300 text-sm">{"active + active = ✅  |  active + passive = ✅  |  passive + passive = ❌ (personne n'initie)"}</p>
+              </div>
+            </div>
+          </section>
+
+          {/* ═══════════ LAB 4 : MODE ON ═══════════ */}
+          <section>
+            <div className="bg-gradient-to-r from-orange-900/20 to-red-900/20 rounded-xl p-6 border border-orange-500/30">
+              <h2 className="text-lg font-bold text-orange-300 mb-3 flex items-center gap-2">{"🟠 Lab 4 — EtherChannel en mode « on »"}</h2>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-amber-300 font-bold text-sm mb-2">{"Thématique :"}</p>
+                <p className="text-slate-300 text-sm italic">{"Forcer un EtherChannel sans aucune négociation. Comprendre pourquoi c'est dangereux."}</p>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-orange-300 font-bold text-sm mb-2">{"Différence avec les Labs 2 et 3 :"}</p>
+                <p className="text-slate-300 text-sm">{"Pas de négociation du tout ! Les deux switches forcent l'agrégation. Si un côté est mal configuré → boucle réseau garantie. C'est pourquoi on utilise on uniquement en dépannage ou en environnement contrôlé."}</p>
+              </div>
+              <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20 mb-4">
+                <p className="text-amber-300 font-bold text-sm mb-1">{"📁 Nouveau fichier Packet Tracer"}</p>
+                <p className="text-slate-300 text-sm">{"Ouvre un NOUVEAU fichier Packet Tracer. Même topologie."}</p>
+              </div>
+              <div className="bg-black/30 rounded-lg p-4 mb-4">
+                <p className="text-orange-300 font-bold text-sm mb-2">{"Ce que tu dois faire :"}</p>
+                <ol className="text-slate-300 text-sm space-y-2 list-decimal list-inside">
+                  <li>{"Câble la même topologie que les Labs 2 et 3"}</li>
+                  <li>{"Configure hostname + IPs des PCs"}</li>
+                  <li>{"Sur SW1 ET SW2 : interface range fa0/1-4 → channel-group 1 mode on"}</li>
+                  <li>{"Configure le trunk sur les ports physiques ET le port-channel"}</li>
+                  <li>{"Vérifie avec show etherchannel summary → Protocol: « - » (aucun)"}</li>
+                  <li>{"Compare avec PAgP et LACP : qu'est-ce qui manque ?"}</li>
+                </ol>
+              </div>
+              <div className="bg-red-900/20 rounded-lg p-4 border border-red-500/20">
+                <p className="text-red-300 font-bold text-sm mb-2">{"⚠️ Danger du mode « on » :"}</p>
+                <p className="text-slate-300 text-sm">{"Aucune vérification automatique. Si la config est incohérente → boucle réseau ! Non recommandé en production. Préfère toujours LACP."}</p>
+              </div>
+            </div>
+          </section>
+
+          {/* RÉSULTATS ATTENDUS */}
+          <section>
+            <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-6">
+              <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Résultats attendus sur les 4 labs"}</p>
+              <ul className="text-slate-300 text-sm space-y-1">
+                <li>{"✅ Lab 1 : STP bloque 2 liens sur 3 → 1 seul lien utilisé (gaspillage)"}</li>
+                <li>{"✅ Lab 2 : PAgP forme un Port-channel avec desirable + auto"}</li>
+                <li>{"✅ Lab 3 : LACP forme un Port-channel avec active + passive"}</li>
+                <li>{"✅ Lab 4 : Mode « on » force l'agrégation sans négociation"}</li>
+                <li>{"✅ Dans chaque lab : 4 liens actifs → bande passante ×4"}</li>
+                <li>{"✅ Tolérance aux pannes : shutdown d'un port → Po1 reste UP"}</li>
+              </ul>
+            </div>
+          </section>
+        </div>
+      ),
+      solutionContent: (
+        <div className="max-w-5xl mx-auto space-y-8 pb-16">
+          <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
+              {[
+                { id: 'lab1-s11-cablage', label: 'Câblage', icon: '🔌' },
+                { id: 'lab1-s11-hostname', label: 'Config base', icon: '🏷️' },
+                { id: 'lab1-s11-stp', label: 'Observer STP', icon: '🔍' },
+              ].map(({ id, label, icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
+                >
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <div className="space-y-8">
+
+            {/* ═══════════════ LAB 1 : STP & INTRO ETHERCHANNEL ═══════════════ */}
+
+            <section className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/30 to-purple-900/30 rounded-xl p-5 border border-emerald-500/40 mb-6">
+                <h2 className="text-xl font-bold text-emerald-300 flex items-center gap-2">{"🔄 Lab 1 — STP & Introduction à EtherChannel"}</h2>
+                <p className="text-slate-400 text-sm mt-1">{"Observer STP bloquer des liens, comprendre le problème, préparer le terrain pour EtherChannel."}</p>
+              </div>
+            </section>
+
+            {/* CÂBLAGE LAB 1 */}
+            <section id="lab1-s11-cablage" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 rounded-xl p-6 border border-amber-500/30">
+                <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"🔌 Étape 1 — Câblage dans Packet Tracer"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"1.1 — Placer les équipements :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• 2 switches : cherche « 2960 » dans Network Devices → Switches"}</li>
+                    <li>{"• 2 PCs : dans End Devices → PC"}</li>
+                    <li>{"• Renomme : SW1, SW2, PC1, PC2"}</li>
+                    <li>{"• Place les switches côte à côte avec les PCs de chaque côté"}</li>
+                  </ul>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-3">{"1.2 — Schéma de la topologie :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-4 text-emerald-300 leading-relaxed">
+                    <p>{"   [PC1]                                [PC2]"}</p>
+                    <p>{"     │                                    │"}</p>
+                    <p>{"   Fa0/1                                Fa0/1"}</p>
+                    <p>{"   [SW1] ═══ Fa0/2 ──── Fa0/2 ═══ [SW2]"}</p>
+                    <p>{"         ═══ Fa0/3 ──── Fa0/3 ═══"}</p>
+                    <p>{"         ═══ Fa0/4 ──── Fa0/4 ═══"}</p>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"1.3 — Brancher les câbles :"}</p>
+                  <p className="text-slate-400 text-xs mb-3">{"PC↔Switch = Copper Straight-Through. Switch↔Switch = Copper Cross-Over."}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                      <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"De"}</th><th className="p-2 text-left">{"Port"}</th><th className="p-2 text-center">{"Câble"}</th><th className="p-2 text-left">{"Vers"}</th><th className="p-2 text-left">{"Port"}</th></tr></thead>
+                      <tbody>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC2"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW2"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                        <tr className="border-t border-white/20 bg-amber-500/5"><td className="p-2 text-amber-300 font-bold">{"SW1"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/2"}</td><td className="p-2 text-center text-amber-300">{"Cross-Over"}</td><td className="p-2 text-amber-300 font-bold">{"SW2"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/2"}</td></tr>
+                        <tr className="border-t border-white/20 bg-amber-500/5"><td className="p-2 text-amber-300 font-bold">{"SW1"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/3"}</td><td className="p-2 text-center text-amber-300">{"Cross-Over"}</td><td className="p-2 text-amber-300 font-bold">{"SW2"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/3"}</td></tr>
+                        <tr className="border-t border-white/20 bg-amber-500/5"><td className="p-2 text-amber-300 font-bold">{"SW1"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/4"}</td><td className="p-2 text-center text-amber-300">{"Cross-Over"}</td><td className="p-2 text-amber-300 font-bold">{"SW2"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/4"}</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <p className="text-amber-300/80 text-xs mt-3">{"⚠️ Après câblage, attends 30-60s que STP converge. Tu verras 2 des 3 liens inter-switch rester orange = ports bloqués par STP. C'est normal !"}</p>
+              </div>
+            </section>
+
+            {/* HOSTNAME LAB 1 */}
+            <section id="lab1-s11-hostname" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-xl p-6 border border-purple-500/30">
+                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"🏷️ Étape 2 — Configuration de base"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Nomme les switches et active les interfaces."}</p>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW1 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Switch> enable"}</p>
+                    <p>{"Switch# configure terminal"}</p>
+                    <p>{"Switch(config)# hostname SW1"}</p>
+                    <p>{"SW1(config)# interface range fa0/1 - 4"}</p>
+                    <p>{"SW1(config-if-range)# no shutdown"}</p>
+                    <p>{"SW1(config-if-range)# end"}</p>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW2 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Switch> enable"}</p>
+                    <p>{"Switch# configure terminal"}</p>
+                    <p>{"Switch(config)# hostname SW2"}</p>
+                    <p>{"SW2(config)# interface range fa0/1 - 4"}</p>
+                    <p>{"SW2(config-if-range)# no shutdown"}</p>
+                    <p>{"SW2(config-if-range)# end"}</p>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Explications :"}</p>
+                  <div className="space-y-2">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"enable"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Passe en mode privilégié (#)."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"configure terminal"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Entre en mode configuration globale."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"hostname SW1 / SW2"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Donne un nom au switch pour le repérer facilement."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"interface range fa0/1 - 4"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Sélectionne les interfaces Fa0/1 à Fa0/4 en même temps. Tout ce qu'on tape ensuite s'applique aux 4 ports."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"no shutdown"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Active les interfaces. Par défaut elles sont souvent déjà up sur un 2960, mais c'est une bonne habitude."}</p></div>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Configuration IP des PCs :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• PC1 : Desktop → IP Configuration → 192.168.1.10, masque 255.255.255.0"}</li>
+                    <li>{"• PC2 : Desktop → IP Configuration → 192.168.1.20, masque 255.255.255.0"}</li>
+                    <li>{"• Pas de passerelle nécessaire (même réseau)"}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* OBSERVER STP LAB 1 */}
+            <section id="lab1-s11-stp" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/20 to-blue-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"🔍 Étape 3 — Observer STP en action"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Maintenant, observe comment STP gère les 3 liens redondants entre SW1 et SW2."}</p>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Sur chaque switch :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# show spanning-tree"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-emerald-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"show spanning-tree"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Affiche l'état STP complet. Montre le Root Bridge, et le rôle/état de chaque port (Forwarding, Blocking, etc.)."}</p></div>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Ce que tu devrais voir :"}</p>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1">
+                    <p className="text-slate-400">{"Interface  Role   Sts  Cost"}</p>
+                    <p className="text-slate-400">{"---------- ------ ---- -----"}</p>
+                    <p className="text-emerald-400">{"Fa0/1      Desg   FWD  19   ← port PC → actif"}</p>
+                    <p className="text-emerald-400">{"Fa0/2      Desg   FWD  19   ← 1 seul lien inter-switch actif"}</p>
+                    <p className="text-red-400">{"Fa0/3      Altn   BLK  19   ← BLOQUÉ par STP"}</p>
+                    <p className="text-red-400">{"Fa0/4      Altn   BLK  19   ← BLOQUÉ par STP"}</p>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Test de connectivité :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"C:\\> ping 192.168.1.20"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Depuis PC1, ping vers PC2. Le trafic passe via le seul lien actif (Fa0/2). Les 2 autres liens sont bloqués = bande passante gaspillée."}</p>
+                </div>
+                <div className="bg-red-900/20 rounded-lg p-4 border border-red-500/20">
+                  <p className="text-red-300 font-bold text-sm mb-2">{"🧠 Conclusion du Lab 1 :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• Sur 3 câbles physiques, seul 1 transmet du trafic"}</li>
+                    <li>{"• Les 2 autres sont en Blocking → bande passante perdue"}</li>
+                    <li>{"• STP fait son job (pas de boucle), mais c'est du gaspillage"}</li>
+                    <li>{"• Solution → EtherChannel : regrouper les 3+ liens en 1 seul lien logique !"}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      ),
+      solutionContentLab2: (
+        <div className="max-w-5xl mx-auto space-y-8 pb-16">
+          <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
+              {[
+                { id: 'lab2-s11-cablage', label: 'Câblage', icon: '🔌' },
+                { id: 'lab2-s11-base', label: 'Config base', icon: '🏷️' },
+                { id: 'lab2-s11-pagp', label: 'PAgP', icon: '🔵' },
+                { id: 'lab2-s11-verif', label: 'Vérification', icon: '🔍' },
+                { id: 'lab2-s11-compare', label: 'Comparaison', icon: '⚖️' },
+                { id: 'lab2-s11-tests', label: 'Tests', icon: '📡' },
+              ].map(({ id, label, icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
+                >
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <div className="space-y-8">
+
+            <section className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 rounded-xl p-5 border border-indigo-500/40 mb-6">
+                <h2 className="text-xl font-bold text-indigo-300 flex items-center gap-2">{"⚡ Lab 2 — EtherChannel (PAgP, LACP, mode « on »)"}</h2>
+                <p className="text-slate-400 text-sm mt-1">{"Configurer EtherChannel avec 3 protocoles différents sur 4 liens physiques. Inclut câblage, config de base, et switchport mode trunk."}</p>
+              </div>
+            </section>
+
+            {/* CÂBLAGE LAB 2 */}
+            <section id="lab2-s11-cablage" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 rounded-xl p-6 border border-amber-500/30">
+                <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"🔌 Étape 1 — Câblage dans Packet Tracer"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Même topologie que le Lab 1, mais cette fois on utilise Fa0/10 pour les PCs (pour libérer Fa0/1-4 pour l'EtherChannel)."}</p>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Équipements :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• 2 switches 2960 (SW1 et SW2)"}</li>
+                    <li>{"• 2 PCs (PC1 et PC2)"}</li>
+                    <li>{"• 4 câbles Cross-Over entre les switches (Fa0/1 à Fa0/4)"}</li>
+                    <li>{"• 2 câbles Straight-Through pour les PCs (Fa0/10)"}</li>
+                  </ul>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-3">{"Schéma de la topologie :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-4 text-emerald-300 leading-relaxed">
+                    <p>{"   [PC1]                                       [PC2]"}</p>
+                    <p>{"     │                                           │"}</p>
+                    <p>{"  Fa0/10                                     Fa0/10"}</p>
+                    <p>{"   [SW1] ═══ Fa0/1 ──────── Fa0/1 ═══ [SW2]"}</p>
+                    <p>{"         ═══ Fa0/2 ──────── Fa0/2 ═══"}</p>
+                    <p>{"         ═══ Fa0/3 ──────── Fa0/3 ═══"}</p>
+                    <p>{"         ═══ Fa0/4 ──────── Fa0/4 ═══"}</p>
+                    <p>{"              └── Port-channel 1 ──┘"}</p>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Tableau de câblage :"}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                      <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"De"}</th><th className="p-2 text-left">{"Port"}</th><th className="p-2 text-center">{"Câble"}</th><th className="p-2 text-left">{"Vers"}</th><th className="p-2 text-left">{"Port"}</th></tr></thead>
+                      <tbody>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW1"}</td><td className="p-2 font-mono">{"Fa0/10"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2">{"PC2"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2">{"SW2"}</td><td className="p-2 font-mono">{"Fa0/10"}</td></tr>
+                        <tr className="border-t border-white/20 bg-amber-500/5"><td className="p-2 text-amber-300 font-bold">{"SW1"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/1"}</td><td className="p-2 text-center text-amber-300">{"Cross-Over"}</td><td className="p-2 text-amber-300 font-bold">{"SW2"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/1"}</td></tr>
+                        <tr className="border-t border-white/20 bg-amber-500/5"><td className="p-2 text-amber-300 font-bold">{"SW1"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/2"}</td><td className="p-2 text-center text-amber-300">{"Cross-Over"}</td><td className="p-2 text-amber-300 font-bold">{"SW2"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/2"}</td></tr>
+                        <tr className="border-t border-white/20 bg-amber-500/5"><td className="p-2 text-amber-300 font-bold">{"SW1"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/3"}</td><td className="p-2 text-center text-amber-300">{"Cross-Over"}</td><td className="p-2 text-amber-300 font-bold">{"SW2"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/3"}</td></tr>
+                        <tr className="border-t border-white/20 bg-amber-500/5"><td className="p-2 text-amber-300 font-bold">{"SW1"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/4"}</td><td className="p-2 text-center text-amber-300">{"Cross-Over"}</td><td className="p-2 text-amber-300 font-bold">{"SW2"}</td><td className="p-2 font-mono text-amber-300">{"Fa0/4"}</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* CONFIG DE BASE LAB 2 */}
+            <section id="lab2-s11-base" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-xl p-6 border border-purple-500/30">
+                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"🏷️ Étape 2 — Configuration de base"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Hostname, activation des interfaces, et adresses IP des PCs."}</p>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW1 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Switch> enable"}</p>
+                    <p>{"Switch# configure terminal"}</p>
+                    <p>{"Switch(config)# hostname SW1"}</p>
+                    <p>{"SW1(config)# interface range fa0/1 - 4"}</p>
+                    <p>{"SW1(config-if-range)# no shutdown"}</p>
+                    <p>{"SW1(config-if-range)# exit"}</p>
+                    <p>{"SW1(config)# interface fa0/10"}</p>
+                    <p>{"SW1(config-if)# no shutdown"}</p>
+                    <p>{"SW1(config-if)# end"}</p>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW2 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Switch> enable"}</p>
+                    <p>{"Switch# configure terminal"}</p>
+                    <p>{"Switch(config)# hostname SW2"}</p>
+                    <p>{"SW2(config)# interface range fa0/1 - 4"}</p>
+                    <p>{"SW2(config-if-range)# no shutdown"}</p>
+                    <p>{"SW2(config-if-range)# exit"}</p>
+                    <p>{"SW2(config)# interface fa0/10"}</p>
+                    <p>{"SW2(config-if)# no shutdown"}</p>
+                    <p>{"SW2(config-if)# end"}</p>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Explications :"}</p>
+                  <div className="space-y-2">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"hostname SW1 / SW2"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Donne un nom au switch pour le repérer facilement."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"interface range fa0/1 - 4"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Sélectionne les 4 ports inter-switch qui formeront l'EtherChannel."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"no shutdown"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Active les interfaces. Indispensable pour qu'elles participent au channel."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"interface fa0/10"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Sélectionne le port connecté au PC. On utilise Fa0/10 pour ne pas interférer avec les ports Fa0/1-4 de l'EtherChannel."}</p></div>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Configuration IP des PCs :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• PC1 : Desktop → IP Configuration → 192.168.1.10, masque 255.255.255.0"}</li>
+                    <li>{"• PC2 : Desktop → IP Configuration → 192.168.1.20, masque 255.255.255.0"}</li>
+                  </ul>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Étape 3 — Observer STP AVANT EtherChannel :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# show spanning-tree"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1 mt-2">
+                    <p className="text-slate-400">{"Interface  Role   Sts  Cost"}</p>
+                    <p className="text-slate-400">{"---------- ------ ---- -----"}</p>
+                    <p className="text-emerald-400">{"Fa0/1      Desg   FWD  19   ← 1 seul lien actif"}</p>
+                    <p className="text-red-400">{"Fa0/2      Altn   BLK  19   ← BLOQUÉ par STP"}</p>
+                    <p className="text-red-400">{"Fa0/3      Altn   BLK  19   ← BLOQUÉ par STP"}</p>
+                    <p className="text-red-400">{"Fa0/4      Altn   BLK  19   ← BLOQUÉ par STP"}</p>
+                    <p className="text-emerald-400">{"Fa0/10     Desg   FWD  19   ← port PC"}</p>
+                  </div>
+                  <p className="text-amber-300/80 text-xs mt-3">{"⚠️ STP bloque 3 liens sur 4 ! Seul Fa0/1 transporte le trafic. On va corriger ça avec EtherChannel."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* PAgP */}
+            <section id="lab2-s11-pagp" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-cyan-900/20 to-purple-900/20 rounded-xl p-6 border border-cyan-500/30">
+                <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center gap-2">{"🔵 Étape 4 — EtherChannel mode PAgP"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"PAgP = Port Aggregation Protocol (propriétaire Cisco). Modes : desirable (initie la négo) et auto (attend la négo). On configure les ports physiques EN PREMIER, puis le port-channel."}</p>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"Sur SW1 (desirable = initie la négociation) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1> enable"}</p>
+                    <p>{"SW1# configure terminal"}</p>
+                    <p>{"SW1(config)# interface range fa0/1 - 4"}</p>
+                    <p>{"SW1(config-if-range)# channel-group 1 mode desirable"}</p>
+                    <p>{"SW1(config-if-range)# switchport mode trunk"}</p>
+                    <p>{"SW1(config-if-range)# exit"}</p>
+                    <p>{"SW1(config)# interface port-channel 1"}</p>
+                    <p>{"SW1(config-if)# switchport mode trunk"}</p>
+                    <p>{"SW1(config-if)# end"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"interface range fa0/1 - 4"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Sélectionne les 4 ports physiques qui vont former l'EtherChannel."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"channel-group 1 mode desirable"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Crée le Port-channel 1 et active PAgP en mode desirable. Desirable = ce switch démarre activement la négociation PAgP."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"switchport mode trunk"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Configure les ports physiques en mode trunk. Indispensable pour que le trafic de tous les VLANs passe par l'EtherChannel."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"interface port-channel 1"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Entre dans l'interface logique Port-channel 1 (créée automatiquement par le channel-group)."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"switchport mode trunk (Po1)"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Met aussi le port-channel en trunk. La config du port-channel doit correspondre à celle des ports physiques."}</p></div>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"Sur SW2 (auto = attend la négociation) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW2> enable"}</p>
+                    <p>{"SW2# configure terminal"}</p>
+                    <p>{"SW2(config)# interface range fa0/1 - 4"}</p>
+                    <p>{"SW2(config-if-range)# channel-group 1 mode auto"}</p>
+                    <p>{"SW2(config-if-range)# switchport mode trunk"}</p>
+                    <p>{"SW2(config-if-range)# exit"}</p>
+                    <p>{"SW2(config)# interface port-channel 1"}</p>
+                    <p>{"SW2(config-if)# switchport mode trunk"}</p>
+                    <p>{"SW2(config-if)# end"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"channel-group 1 mode auto"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Mode auto = attend que l'autre côté initie PAgP. Comme SW1 est en desirable → la négo démarre → EtherChannel se forme."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-cyan-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"switchport mode trunk"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Même trunk que SW1. Les deux côtés doivent avoir la même config sinon le channel ne se forme pas."}</p></div>
+                  </div>
+                </div>
+                <div className="bg-cyan-900/20 rounded-lg p-4 mb-4 border border-cyan-500/20">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"📋 Tableau des combinaisons PAgP :"}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                      <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"SW1"}</th><th className="p-2 text-left">{"SW2"}</th><th className="p-2 text-center">{"Résultat"}</th></tr></thead>
+                      <tbody>
+                        <tr className="border-t border-white/20"><td className="p-2 font-mono text-cyan-300">{"desirable"}</td><td className="p-2 font-mono text-cyan-300">{"desirable"}</td><td className="p-2 text-center text-emerald-400 font-bold">{"✅ EtherChannel"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-mono text-cyan-300">{"desirable"}</td><td className="p-2 font-mono text-cyan-300">{"auto"}</td><td className="p-2 text-center text-emerald-400 font-bold">{"✅ EtherChannel"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-mono text-cyan-300">{"auto"}</td><td className="p-2 font-mono text-cyan-300">{"desirable"}</td><td className="p-2 text-center text-emerald-400 font-bold">{"✅ EtherChannel"}</td></tr>
+                        <tr className="border-t border-white/20 bg-red-500/5"><td className="p-2 font-mono text-red-300">{"auto"}</td><td className="p-2 font-mono text-red-300">{"auto"}</td><td className="p-2 text-center text-red-400 font-bold">{"❌ Pas de channel"}</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"auto + auto = ❌ car personne n'initie la négociation. Il faut au moins un côté en desirable."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Vérification :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# show etherchannel summary"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1 mt-2">
+                    <p className="text-slate-400">{"Group  Port-channel  Protocol    Ports"}</p>
+                    <p className="text-slate-400">{"------+-------------+-----------+-------"}</p>
+                    <p className="text-emerald-400">{"1      Po1(SU)        PAgP      Fa0/1(P) Fa0/2(P) Fa0/3(P) Fa0/4(P)"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"SU = Layer2, in Use. P = port bundled (actif). Si (I) = suspended → problème de config (vitesse, duplex, VLAN différent)."}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1 mt-3">
+                    <p>{"SW1# show interfaces trunk"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1 mt-2">
+                    <p className="text-slate-400">{"Port        Mode         Encapsulation  Status        Native vlan"}</p>
+                    <p className="text-emerald-400">{"Po1         on           802.1q         trunking      1"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Le Port-channel est bien en trunk. Les VLANs transitent par l'agrégation."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* COMPARAISON */}
+            <section id="lab2-s11-compare" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-amber-900/20 to-blue-900/20 rounded-xl p-6 border border-amber-500/30">
+                <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"⚖️ PAgP vs LACP vs Mode On — Les différences"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Tu viens de configurer PAgP. Voici comment il se compare aux deux autres méthodes que tu verras dans les Labs 3 et 4."}</p>
+                <div className="overflow-x-auto mb-4">
+                  <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                    <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{""}</th><th className="p-2 text-center text-cyan-300">{"PAgP (ce lab)"}</th><th className="p-2 text-center text-emerald-300">{"LACP (Lab 3)"}</th><th className="p-2 text-center text-orange-300">{"Mode on (Lab 4)"}</th></tr></thead>
+                    <tbody>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Standard ?"}</td><td className="p-2 text-center text-cyan-300">{"Cisco uniquement"}</td><td className="p-2 text-center text-emerald-300">{"IEEE 802.3ad"}</td><td className="p-2 text-center text-orange-300">{"Aucun"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Négociation ?"}</td><td className="p-2 text-center text-cyan-300">{"Oui (PAgP)"}</td><td className="p-2 text-center text-emerald-300">{"Oui (LACP)"}</td><td className="p-2 text-center text-orange-300">{"Non"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Modes"}</td><td className="p-2 text-center font-mono text-cyan-300">{"desirable / auto"}</td><td className="p-2 text-center font-mono text-emerald-300">{"active / passive"}</td><td className="p-2 text-center font-mono text-orange-300">{"on / on"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Multi-marque ?"}</td><td className="p-2 text-center text-red-400">{"❌ Non"}</td><td className="p-2 text-center text-emerald-400">{"✅ Oui"}</td><td className="p-2 text-center text-amber-400">{"⚠️ Oui mais risqué"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Détecte les erreurs ?"}</td><td className="p-2 text-center text-cyan-300">{"Oui"}</td><td className="p-2 text-center text-emerald-300">{"Oui"}</td><td className="p-2 text-center text-red-400">{"❌ Non"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Commande"}</td><td className="p-2 text-center font-mono text-xs text-cyan-300">{"mode desirable"}</td><td className="p-2 text-center font-mono text-xs text-emerald-300">{"mode active"}</td><td className="p-2 text-center font-mono text-xs text-orange-300">{"mode on"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"show summary"}</td><td className="p-2 text-center font-mono text-xs text-cyan-300">{"Protocol: PAgP"}</td><td className="p-2 text-center font-mono text-xs text-emerald-300">{"Protocol: LACP"}</td><td className="p-2 text-center font-mono text-xs text-orange-300">{"Protocol: -"}</td></tr>
+                      <tr className="border-t border-white/20 bg-emerald-500/5"><td className="p-2 font-bold">{"En entreprise"}</td><td className="p-2 text-center text-amber-300">{"Legacy Cisco"}</td><td className="p-2 text-center text-emerald-400 font-bold">{"Recommandé"}</td><td className="p-2 text-center text-red-400">{"À éviter"}</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div className="bg-cyan-900/20 rounded-lg p-4 border border-cyan-500/20">
+                  <p className="text-cyan-300 font-bold text-sm mb-2">{"Ce qu'il faut retenir sur PAgP :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• PAgP fonctionne exactement comme LACP, mais uniquement entre switches Cisco"}</li>
+                    <li>{"• desirable = active (initie la négo) | auto = passive (attend)"}</li>
+                    <li>{"• Si ton réseau est 100% Cisco, PAgP marche très bien"}</li>
+                    <li>{"• Mais en pratique, on préfère LACP car c'est le standard universel"}</li>
+                    <li>{"• La seule différence visible : show etherchannel summary affiche « PAgP » au lieu de « LACP »"}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* VÉRIFICATION */}
+            <section id="lab2-s11-verif" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-purple-900/20 to-emerald-900/20 rounded-xl p-6 border border-purple-500/30">
+                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"🔍 Étape 8 — Vérifications détaillées"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Commandes de vérification à connaître pour valider que l'EtherChannel fonctionne correctement."}</p>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"1. show etherchannel summary (commande principale) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# show etherchannel summary"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1 mt-2">
+                    <p className="text-slate-400">{"Flags:  D - down        P - bundled in port-channel"}</p>
+                    <p className="text-slate-400">{"        I - stand-alone  s - suspended"}</p>
+                    <p className="text-slate-400">{"        S - Layer2       U - in use"}</p>
+                    <p className="text-slate-400">{""}</p>
+                    <p className="text-slate-400">{"Group  Port-channel  Protocol    Ports"}</p>
+                    <p className="text-slate-400">{"------+-------------+-----------+-------"}</p>
+                    <p className="text-emerald-400">{"1      Po1(SU)        PAgP      Fa0/1(P) Fa0/2(P) Fa0/3(P) Fa0/4(P)"}</p>
+                  </div>
+                  <ul className="text-slate-300 text-sm space-y-1 mt-3">
+                    <li>{"• "}<span className="text-emerald-400 font-bold">{"(P)"}</span>{" = port bundled, actif dans le channel → ✅ tout va bien"}</li>
+                    <li>{"• "}<span className="text-red-400 font-bold">{"(D)"}</span>{" = down → le port ou le channel est administrativement ou physiquement down"}</li>
+                    <li>{"• "}<span className="text-red-400 font-bold">{"(I)"}</span>{" = stand-alone, incompatible → ❌ le port ne peut pas rejoindre le channel (config différente : vitesse, duplex, VLAN, trunk)"}</li>
+                    <li>{"• "}<span className="text-amber-400 font-bold">{"(s)"}</span>{" = suspended → le port est suspendu en attendant que la config corresponde"}</li>
+                    <li>{"• "}<span className="text-emerald-400 font-bold">{"(SU)"}</span>{" = Layer2, in Use → le Port-channel est actif et fonctionne"}</li>
+                    <li>{"• "}<span className="text-red-400 font-bold">{"(SD)"}</span>{" = Layer2, down → le Port-channel est inactif"}</li>
+                  </ul>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"2. show interfaces port-channel 1 (bande passante) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# show interfaces port-channel 1"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1 mt-2">
+                    <p className="text-emerald-400">{"Port-channel1 is up, line protocol is up"}</p>
+                    <p className="text-slate-400">{"  Hardware is EtherChannel, address is ..."}</p>
+                    <p className="text-amber-300">{"  BW 400000 Kbit/sec"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"BW 400000 Kbit/sec"}</code><p className="text-slate-400 text-xs leading-relaxed">{"4 liens × 100 Mbps = 400 Mbps de bande passante agrégée ! Sans EtherChannel, STP bloquerait 3 liens et on n'aurait que 100 Mbps."}</p></div>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"3. show etherchannel port-channel (détail du channel) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# show etherchannel port-channel"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"show etherchannel port-channel"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Affiche le détail de chaque Port-channel : protocole utilisé, nombre de ports membres, mode de chaque port (active/passive/desirable/auto/on)."}</p></div>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"4. show spanning-tree — Comparaison AVANT / APRÈS EtherChannel :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# show spanning-tree"}</p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                    <div className="bg-red-900/10 rounded-lg p-3 border border-red-500/20">
+                      <p className="text-red-300 font-bold text-xs mb-2">{"AVANT EtherChannel :"}</p>
+                      <div className="font-mono text-xs space-y-0.5">
+                        <p className="text-emerald-400">{"Fa0/1   Desg FWD  19"}</p>
+                        <p className="text-red-400">{"Fa0/2   Altn BLK  19"}</p>
+                        <p className="text-red-400">{"Fa0/3   Altn BLK  19"}</p>
+                        <p className="text-red-400">{"Fa0/4   Altn BLK  19"}</p>
+                      </div>
+                      <p className="text-red-300 text-xs mt-1">{"3 liens bloqués sur 4 !"}</p>
+                    </div>
+                    <div className="bg-emerald-900/10 rounded-lg p-3 border border-emerald-500/20">
+                      <p className="text-emerald-300 font-bold text-xs mb-2">{"APRÈS EtherChannel :"}</p>
+                      <div className="font-mono text-xs space-y-0.5">
+                        <p className="text-emerald-400">{"Po1     Desg FWD  3"}</p>
+                        <p className="text-emerald-400">{"Fa0/10  Desg FWD  19"}</p>
+                      </div>
+                      <p className="text-emerald-300 text-xs mt-1">{"1 seul lien logique, tous les ports actifs !"}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"Cost = 3 (Po1)"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Le coût STP du Port-channel est calculé sur la bande passante agrégée (400 Mbps), pas sur un seul lien. Plus le coût est bas, plus le lien est rapide."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"Po1 = Desg FWD"}</code><p className="text-slate-400 text-xs leading-relaxed">{"STP voit Po1 comme un seul lien logique → pas de port bloqué → toute la bande passante est utilisée. C'est tout l'intérêt d'EtherChannel !"}</p></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* TESTS FINAUX */}
+            <section id="lab2-s11-tests" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/20 to-blue-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"📡 Étape 9 — Tests de connectivité et tolérance aux pannes"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"On teste la connectivité, la tolérance aux pannes (shutdown d'un lien), la récupération, et l'ajout d'un nouveau câble."}</p>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Test 1 — Connectivité de base :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"C:\\> ping 192.168.1.20"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1 mt-2">
+                    <p className="text-slate-400">{"Pinging 192.168.1.20 with 32 bytes of data:"}</p>
+                    <p className="text-emerald-400">{"Reply from 192.168.1.20: bytes=32 time<1ms TTL=128"}</p>
+                    <p className="text-emerald-400">{"Reply from 192.168.1.20: bytes=32 time<1ms TTL=128"}</p>
+                    <p className="text-emerald-400">{"Reply from 192.168.1.20: bytes=32 time<1ms TTL=128"}</p>
+                    <p className="text-emerald-400">{"Reply from 192.168.1.20: bytes=32 time<1ms TTL=128"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Depuis PC1 vers PC2. Le trafic passe par le Port-channel — tous les 4 liens sont utilisés grâce au load balancing."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Test 2 — Simuler la panne d'un câble (shutdown) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# configure terminal"}</p>
+                    <p>{"SW1(config)# interface fa0/1"}</p>
+                    <p>{"SW1(config-if)# shutdown"}</p>
+                    <p>{"SW1(config-if)# end"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-amber-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"shutdown"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Désactive Fa0/1, simulant une panne de câble. Le Port-channel doit rester UP avec les 3 liens restants."}</p></div>
+                  </div>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1 mt-3">
+                    <p>{"SW1# show etherchannel summary"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1 mt-2">
+                    <p className="text-slate-400">{"Group  Port-channel  Protocol    Ports"}</p>
+                    <p className="text-slate-400">{"------+-------------+-----------+-------"}</p>
+                    <p className="text-emerald-400">{"1      Po1(SU)        PAgP      "}<span className="text-red-400">{"Fa0/1(D)"}</span>{" Fa0/2(P) Fa0/3(P) Fa0/4(P)"}</p>
+                  </div>
+                  <ul className="text-slate-300 text-xs space-y-1 mt-2">
+                    <li>{"• Fa0/1 passe en "}<span className="text-red-400 font-bold">{"(D)"}</span>{" = down"}</li>
+                    <li>{"• Po1 reste "}<span className="text-emerald-400 font-bold">{"(SU)"}</span>{" = toujours actif avec 3 liens"}</li>
+                    <li>{"• Le trafic est automatiquement redistribué sur Fa0/2, Fa0/3, Fa0/4"}</li>
+                    <li>{"• BW passe de 400 Mbps à 300 Mbps (3 × 100 Mbps)"}</li>
+                  </ul>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Test 3 — Remettre le lien (no shutdown) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# configure terminal"}</p>
+                    <p>{"SW1(config)# interface fa0/1"}</p>
+                    <p>{"SW1(config-if)# no shutdown"}</p>
+                    <p>{"SW1(config-if)# end"}</p>
+                  </div>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1 mt-3">
+                    <p>{"SW1# show etherchannel summary"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1 mt-2">
+                    <p className="text-emerald-400">{"1      Po1(SU)        PAgP      Fa0/1(P) Fa0/2(P) Fa0/3(P) Fa0/4(P)"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Fa0/1 repasse en (P) → il réintègre automatiquement le Port-channel. BW revient à 400 Mbps. Aucune interruption pour l'utilisateur."}</p>
+                </div>
+                <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-6">
+                  <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Résultats attendus du Lab 2 (PAgP)"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"✅ PAgP (desirable + auto) : EtherChannel formé, 4 ports en (P)"}</li>
+                    <li>{"✅ Trunk configuré sur ports physiques ET port-channel"}</li>
+                    <li>{"✅ show etherchannel summary → Protocol: PAgP, tous les ports (P)"}</li>
+                    <li>{"✅ Bande passante : 4 × 100 Mbps = 400 Mbps"}</li>
+                    <li>{"✅ STP : Po1 = 1 lien logique, 0 port bloqué"}</li>
+                    <li>{"✅ Shutdown Fa0/1 → Po1 reste UP, flag (D), 3 liens actifs"}</li>
+                    <li>{"✅ No shutdown → Fa0/1 réintègre le channel, flag (P)"}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      ),
+      solutionContentLab3: (
+        <div className="max-w-5xl mx-auto space-y-8 pb-16">
+          <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
+              {[
+                { id: 'lab3-s11-cablage', label: 'Câblage', icon: '🔌' },
+                { id: 'lab3-s11-base', label: 'Config base', icon: '🏷️' },
+                { id: 'lab3-s11-lacp', label: 'LACP', icon: '🟢' },
+                { id: 'lab3-s11-verif', label: 'Vérification', icon: '🔍' },
+                { id: 'lab3-s11-compare', label: 'vs PAgP', icon: '⚖️' },
+                { id: 'lab3-s11-tests', label: 'Tests', icon: '📡' },
+              ].map(({ id, label, icon }) => (
+                <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+          <div className="space-y-8">
+            <section className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/30 to-blue-900/30 rounded-xl p-5 border border-emerald-500/40 mb-6">
+                <h2 className="text-xl font-bold text-emerald-300 flex items-center gap-2">{"🟢 Lab 3 — EtherChannel LACP (standard IEEE)"}</h2>
+                <p className="text-slate-400 text-sm mt-1">{"LACP = le standard universel. Même principe que PAgP, mais compatible avec TOUTES les marques. C'est la méthode recommandée en entreprise."}</p>
+              </div>
+            </section>
+
+            {/* CÂBLAGE */}
+            <section id="lab3-s11-cablage" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 rounded-xl p-6 border border-amber-500/30">
+                <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"🔌 Étape 1 — Câblage (nouveau fichier Packet Tracer)"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Ouvre un NOUVEAU fichier Packet Tracer. Même topologie que le Lab 2 — on repart de zéro."}</p>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-3">{"Topologie :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-4 text-emerald-300 leading-relaxed">
+                    <p>{"   [PC1]                                       [PC2]"}</p>
+                    <p>{"     │                                           │"}</p>
+                    <p>{"  Fa0/10                                     Fa0/10"}</p>
+                    <p>{"   [SW1] ═══ Fa0/1 ──────── Fa0/1 ═══ [SW2]"}</p>
+                    <p>{"         ═══ Fa0/2 ──────── Fa0/2 ═══"}</p>
+                    <p>{"         ═══ Fa0/3 ──────── Fa0/3 ═══"}</p>
+                    <p>{"         ═══ Fa0/4 ──────── Fa0/4 ═══"}</p>
+                    <p>{"              └── Port-channel 1 ──┘"}</p>
+                  </div>
+                </div>
+                <p className="text-slate-400 text-xs">{"Même câblage que Lab 2 : PCs sur Fa0/10 (Straight), switches reliés par Fa0/1-4 (Cross-Over). IPs : PC1=192.168.1.10, PC2=192.168.1.20."}</p>
+              </div>
+            </section>
+
+            {/* CONFIG BASE */}
+            <section id="lab3-s11-base" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-xl p-6 border border-purple-500/30">
+                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"🏷️ Étape 2 — Configuration de base"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Même config de base que Lab 2 : hostname, no shutdown, IPs des PCs."}</p>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW1 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Switch> enable"}</p>
+                    <p>{"Switch# configure terminal"}</p>
+                    <p>{"Switch(config)# hostname SW1"}</p>
+                    <p>{"SW1(config)# interface range fa0/1 - 4"}</p>
+                    <p>{"SW1(config-if-range)# no shutdown"}</p>
+                    <p>{"SW1(config-if-range)# exit"}</p>
+                    <p>{"SW1(config)# interface fa0/10"}</p>
+                    <p>{"SW1(config-if)# no shutdown"}</p>
+                    <p>{"SW1(config-if)# end"}</p>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW2 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Switch> enable"}</p>
+                    <p>{"Switch# configure terminal"}</p>
+                    <p>{"Switch(config)# hostname SW2"}</p>
+                    <p>{"SW2(config)# interface range fa0/1 - 4"}</p>
+                    <p>{"SW2(config-if-range)# no shutdown"}</p>
+                    <p>{"SW2(config-if-range)# exit"}</p>
+                    <p>{"SW2(config)# interface fa0/10"}</p>
+                    <p>{"SW2(config-if)# no shutdown"}</p>
+                    <p>{"SW2(config-if)# end"}</p>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Configuration IP des PCs :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• PC1 : Desktop → IP Configuration → 192.168.1.10, masque 255.255.255.0"}</li>
+                    <li>{"• PC2 : Desktop → IP Configuration → 192.168.1.20, masque 255.255.255.0"}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* LACP */}
+            <section id="lab3-s11-lacp" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/20 to-blue-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"🟢 Étape 3 — EtherChannel LACP"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"LACP = Link Aggregation Control Protocol (IEEE 802.3ad). Modes : active (initie la négo) et passive (attend). La seule différence avec PAgP : les noms des modes changent et c'est un standard universel."}</p>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Sur SW1 (active = initie la négociation) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# configure terminal"}</p>
+                    <p>{"SW1(config)# interface range fa0/1 - 4"}</p>
+                    <p>{"SW1(config-if-range)# channel-group 1 mode active"}</p>
+                    <p>{"SW1(config-if-range)# switchport mode trunk"}</p>
+                    <p>{"SW1(config-if-range)# exit"}</p>
+                    <p>{"SW1(config)# interface port-channel 1"}</p>
+                    <p>{"SW1(config-if)# switchport mode trunk"}</p>
+                    <p>{"SW1(config-if)# end"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-emerald-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"channel-group 1 mode active"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Active = envoie activement des paquets LACP pour négocier. C'est l'équivalent de « desirable » en PAgP."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-emerald-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"switchport mode trunk"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Trunk sur les ports physiques ET le port-channel. Même logique que dans le Lab 2 (PAgP)."}</p></div>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Sur SW2 (passive = attend la négociation) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW2# configure terminal"}</p>
+                    <p>{"SW2(config)# interface range fa0/1 - 4"}</p>
+                    <p>{"SW2(config-if-range)# channel-group 1 mode passive"}</p>
+                    <p>{"SW2(config-if-range)# switchport mode trunk"}</p>
+                    <p>{"SW2(config-if-range)# exit"}</p>
+                    <p>{"SW2(config)# interface port-channel 1"}</p>
+                    <p>{"SW2(config-if)# switchport mode trunk"}</p>
+                    <p>{"SW2(config-if)# end"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-emerald-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"channel-group 1 mode passive"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Passive = attend que l'autre initie. SW1 est en active → la négo démarre → EtherChannel se forme. Équivalent de « auto » en PAgP."}</p></div>
+                  </div>
+                </div>
+                <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/20">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"📋 Tableau des combinaisons LACP :"}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                      <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"SW1"}</th><th className="p-2 text-left">{"SW2"}</th><th className="p-2 text-center">{"Résultat"}</th></tr></thead>
+                      <tbody>
+                        <tr className="border-t border-white/20"><td className="p-2 font-mono text-emerald-300">{"active"}</td><td className="p-2 font-mono text-emerald-300">{"active"}</td><td className="p-2 text-center text-emerald-400 font-bold">{"✅ EtherChannel"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-mono text-emerald-300">{"active"}</td><td className="p-2 font-mono text-emerald-300">{"passive"}</td><td className="p-2 text-center text-emerald-400 font-bold">{"✅ EtherChannel"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-mono text-emerald-300">{"passive"}</td><td className="p-2 font-mono text-emerald-300">{"active"}</td><td className="p-2 text-center text-emerald-400 font-bold">{"✅ EtherChannel"}</td></tr>
+                        <tr className="border-t border-white/20 bg-red-500/5"><td className="p-2 font-mono text-red-300">{"passive"}</td><td className="p-2 font-mono text-red-300">{"passive"}</td><td className="p-2 text-center text-red-400 font-bold">{"❌ Pas de channel"}</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"passive + passive = ❌ personne n'initie. Même piège que auto + auto en PAgP."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* VÉRIFICATION */}
+            <section id="lab3-s11-verif" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-purple-900/20 to-emerald-900/20 rounded-xl p-6 border border-purple-500/30">
+                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"🔍 Étape 4 — Vérification"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# show etherchannel summary"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1 mt-2">
+                    <p className="text-slate-400">{"Group  Port-channel  Protocol    Ports"}</p>
+                    <p className="text-slate-400">{"------+-------------+-----------+-------"}</p>
+                    <p className="text-emerald-400">{"1      Po1(SU)        LACP      Fa0/1(P) Fa0/2(P) Fa0/3(P) Fa0/4(P)"}</p>
+                  </div>
+                  <p className="text-emerald-300 text-xs mt-2 font-bold">{"Protocol = LACP (et non PAgP comme dans le Lab 2). C'est la seule différence visible dans le show."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# show interfaces port-channel 1"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1 mt-2">
+                    <p className="text-emerald-400">{"Port-channel1 is up, line protocol is up"}</p>
+                    <p className="text-amber-300">{"  BW 400000 Kbit/sec"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"4 × 100 Mbps = 400 Mbps. Même bande passante que PAgP — le protocole de négo ne change pas la performance."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# show interfaces trunk"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1 mt-2">
+                    <p className="text-slate-400">{"Port        Mode         Encapsulation  Status        Native vlan"}</p>
+                    <p className="text-emerald-400">{"Po1         on           802.1q         trunking      1"}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* COMPARAISON */}
+            <section id="lab3-s11-compare" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-amber-900/20 to-emerald-900/20 rounded-xl p-6 border border-amber-500/30">
+                <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"⚖️ LACP vs PAgP — Ce qui change concrètement"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Tu viens de faire exactement la même chose que dans le Lab 2 (PAgP). Voici les différences concrètes :"}</p>
+                <div className="overflow-x-auto mb-4">
+                  <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                    <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{""}</th><th className="p-2 text-center text-cyan-300">{"PAgP (Lab 2)"}</th><th className="p-2 text-center text-emerald-300">{"LACP (ce lab)"}</th></tr></thead>
+                    <tbody>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Commande initier"}</td><td className="p-2 text-center font-mono text-cyan-300">{"mode desirable"}</td><td className="p-2 text-center font-mono text-emerald-300">{"mode active"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Commande attendre"}</td><td className="p-2 text-center font-mono text-cyan-300">{"mode auto"}</td><td className="p-2 text-center font-mono text-emerald-300">{"mode passive"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"show summary"}</td><td className="p-2 text-center font-mono text-cyan-300">{"Protocol: PAgP"}</td><td className="p-2 text-center font-mono text-emerald-300">{"Protocol: LACP"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Compatible"}</td><td className="p-2 text-center text-red-400">{"Cisco only"}</td><td className="p-2 text-center text-emerald-400 font-bold">{"Toutes les marques"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Standard"}</td><td className="p-2 text-center text-cyan-300">{"Propriétaire"}</td><td className="p-2 text-center text-emerald-400 font-bold">{"IEEE 802.3ad"}</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div className="bg-emerald-900/20 rounded-lg p-4 border border-emerald-500/20">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Pourquoi LACP est recommandé :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• Fonctionne entre un Cisco et un HP, Juniper, Aruba, etc."}</li>
+                    <li>{"• Standard international → pas de vendor lock-in"}</li>
+                    <li>{"• Même performance et fiabilité que PAgP"}</li>
+                    <li>{"• La config est quasiment identique — juste les noms des modes changent"}</li>
+                    <li>{"• En entreprise, c'est LACP par défaut. PAgP = legacy Cisco."}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* TESTS */}
+            <section id="lab3-s11-tests" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/20 to-blue-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"📡 Étape 5 — Tests"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Ping PC1 → PC2 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"C:\\> ping 192.168.1.20"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Le ping fonctionne — le trafic passe par le Port-channel LACP."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Shutdown Fa0/1 → Po1 reste UP :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1(config)# interface fa0/1"}</p>
+                    <p>{"SW1(config-if)# shutdown"}</p>
+                    <p>{"SW1(config-if)# end"}</p>
+                    <p>{"SW1# show etherchannel summary"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1 mt-2">
+                    <p className="text-emerald-400">{"1      Po1(SU)        LACP      "}<span className="text-red-400">{"Fa0/1(D)"}</span>{" Fa0/2(P) Fa0/3(P) Fa0/4(P)"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Même comportement que PAgP : Fa0/1 passe en (D), Po1 reste (SU), le trafic continue sur les 3 liens restants."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"No shutdown → récupération :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1(config)# interface fa0/1"}</p>
+                    <p>{"SW1(config-if)# no shutdown"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Fa0/1 réintègre le channel → repasse en (P). Identique à PAgP."}</p>
+                </div>
+                <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-6">
+                  <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Résultats attendus du Lab 3 (LACP)"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"✅ LACP (active + passive) : EtherChannel formé, 4 ports en (P)"}</li>
+                    <li>{"✅ show etherchannel summary → Protocol: LACP (seule différence avec PAgP)"}</li>
+                    <li>{"✅ Même bande passante : 400 Mbps"}</li>
+                    <li>{"✅ Même tolérance aux pannes : shutdown → (D), no shutdown → (P)"}</li>
+                    <li>{"✅ Avantage LACP : compatible toutes les marques (pas juste Cisco)"}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      ),
+      solutionContentLab4: (
+        <div className="max-w-5xl mx-auto space-y-8 pb-16">
+          <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
+              {[
+                { id: 'lab4-s11-cablage', label: 'Câblage', icon: '🔌' },
+                { id: 'lab4-s11-base', label: 'Config base', icon: '🏷️' },
+                { id: 'lab4-s11-on', label: 'Mode on', icon: '🟠' },
+                { id: 'lab4-s11-verif', label: 'Vérification', icon: '🔍' },
+                { id: 'lab4-s11-compare', label: 'vs LACP/PAgP', icon: '⚖️' },
+                { id: 'lab4-s11-tests', label: 'Tests', icon: '📡' },
+              ].map(({ id, label, icon }) => (
+                <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+          <div className="space-y-8">
+            <section className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-orange-900/30 to-red-900/30 rounded-xl p-5 border border-orange-500/40 mb-6">
+                <h2 className="text-xl font-bold text-orange-300 flex items-center gap-2">{"🟠 Lab 4 — EtherChannel Mode « on » (sans négociation)"}</h2>
+                <p className="text-slate-400 text-sm mt-1">{"Le mode on force l'EtherChannel sans aucun protocole de négociation. Dangereux en production, mais important à comprendre pour l'examen."}</p>
+              </div>
+            </section>
+
+            {/* CÂBLAGE */}
+            <section id="lab4-s11-cablage" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 rounded-xl p-6 border border-amber-500/30">
+                <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"🔌 Étape 1 — Câblage (nouveau fichier Packet Tracer)"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Encore un NOUVEAU fichier Packet Tracer. Même topologie que les Labs 2 et 3."}</p>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-4 text-emerald-300 leading-relaxed">
+                    <p>{"   [PC1]                                       [PC2]"}</p>
+                    <p>{"     │                                           │"}</p>
+                    <p>{"  Fa0/10                                     Fa0/10"}</p>
+                    <p>{"   [SW1] ═══ Fa0/1 ──────── Fa0/1 ═══ [SW2]"}</p>
+                    <p>{"         ═══ Fa0/2 ──────── Fa0/2 ═══"}</p>
+                    <p>{"         ═══ Fa0/3 ──────── Fa0/3 ═══"}</p>
+                    <p>{"         ═══ Fa0/4 ──────── Fa0/4 ═══"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-3">{"Même câblage : PCs sur Fa0/10, switches reliés par Fa0/1-4. IPs : 192.168.1.10 et .20."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* CONFIG BASE */}
+            <section id="lab4-s11-base" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-xl p-6 border border-purple-500/30">
+                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"🏷️ Étape 2 — Configuration de base"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW1 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Switch> enable"}</p>
+                    <p>{"Switch# configure terminal"}</p>
+                    <p>{"Switch(config)# hostname SW1"}</p>
+                    <p>{"SW1(config)# interface range fa0/1 - 4"}</p>
+                    <p>{"SW1(config-if-range)# no shutdown"}</p>
+                    <p>{"SW1(config-if-range)# exit"}</p>
+                    <p>{"SW1(config)# interface fa0/10"}</p>
+                    <p>{"SW1(config-if)# no shutdown"}</p>
+                    <p>{"SW1(config-if)# end"}</p>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW2 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Switch> enable"}</p>
+                    <p>{"Switch# configure terminal"}</p>
+                    <p>{"Switch(config)# hostname SW2"}</p>
+                    <p>{"SW2(config)# interface range fa0/1 - 4"}</p>
+                    <p>{"SW2(config-if-range)# no shutdown"}</p>
+                    <p>{"SW2(config-if-range)# exit"}</p>
+                    <p>{"SW2(config)# interface fa0/10"}</p>
+                    <p>{"SW2(config-if)# no shutdown"}</p>
+                    <p>{"SW2(config-if)# end"}</p>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Configuration IP des PCs :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• PC1 : Desktop → IP Configuration → 192.168.1.10, masque 255.255.255.0"}</li>
+                    <li>{"• PC2 : Desktop → IP Configuration → 192.168.1.20, masque 255.255.255.0"}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* MODE ON */}
+            <section id="lab4-s11-on" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-orange-900/20 to-red-900/20 rounded-xl p-6 border border-orange-500/30">
+                <h2 className="text-lg font-bold text-orange-300 mb-3 flex items-center gap-2">{"🟠 Étape 3 — EtherChannel mode « on »"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Mode on = force l'EtherChannel sans négociation. Aucun paquet PAgP ou LACP n'est échangé. Les DEUX côtés doivent être en « on » — sinon boucle !"}</p>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-orange-300 font-bold text-sm mb-2">{"Sur SW1 (même config que SW2 — les deux en « on ») :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# configure terminal"}</p>
+                    <p>{"SW1(config)# interface range fa0/1 - 4"}</p>
+                    <p>{"SW1(config-if-range)# channel-group 1 mode on"}</p>
+                    <p>{"SW1(config-if-range)# switchport mode trunk"}</p>
+                    <p>{"SW1(config-if-range)# exit"}</p>
+                    <p>{"SW1(config)# interface port-channel 1"}</p>
+                    <p>{"SW1(config-if)# switchport mode trunk"}</p>
+                    <p>{"SW1(config-if)# end"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-orange-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"channel-group 1 mode on"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Force l'EtherChannel sans négociation. Pas de paquets PAgP ni LACP échangés. Le switch suppose que l'autre côté est aussi en « on »."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-orange-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"switchport mode trunk"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Toujours nécessaire : trunk sur les ports physiques et le port-channel."}</p></div>
+                  </div>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-orange-300 font-bold text-sm mb-2">{"Sur SW2 (exactement la même config) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW2# configure terminal"}</p>
+                    <p>{"SW2(config)# interface range fa0/1 - 4"}</p>
+                    <p>{"SW2(config-if-range)# channel-group 1 mode on"}</p>
+                    <p>{"SW2(config-if-range)# switchport mode trunk"}</p>
+                    <p>{"SW2(config-if-range)# exit"}</p>
+                    <p>{"SW2(config)# interface port-channel 1"}</p>
+                    <p>{"SW2(config-if)# switchport mode trunk"}</p>
+                    <p>{"SW2(config-if)# end"}</p>
+                  </div>
+                  <p className="text-red-300 text-xs mt-3 font-bold">{"⚠️ Les deux côtés DOIVENT être en mode on. Si un côté est on et l'autre en active/desirable → pas de channel → boucle !"}</p>
+                </div>
+                <div className="bg-red-900/20 rounded-lg p-4 border border-red-500/20">
+                  <p className="text-red-300 font-bold text-sm mb-2">{"⚠️ Pourquoi « on » est dangereux :"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"• Aucune vérification de compatibilité (vitesse, duplex, VLAN, trunk)"}</li>
+                    <li>{"• Si un côté est en « on » et l'autre en « active » → PAS de channel → 4 ports actifs individuels → boucle STP"}</li>
+                    <li>{"• on + on = ✅ | on + active = ❌ | on + desirable = ❌ | on + auto = ❌ | on + passive = ❌"}</li>
+                    <li>{"• En production → TOUJOURS utiliser LACP (active/passive)"}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            {/* VÉRIFICATION */}
+            <section id="lab4-s11-verif" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-purple-900/20 to-emerald-900/20 rounded-xl p-6 border border-purple-500/30">
+                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"🔍 Étape 4 — Vérification"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# show etherchannel summary"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1 mt-2">
+                    <p className="text-slate-400">{"Group  Port-channel  Protocol    Ports"}</p>
+                    <p className="text-slate-400">{"------+-------------+-----------+-------"}</p>
+                    <p className="text-emerald-400">{"1      Po1(SU)        "}<span className="text-orange-300 font-bold">{"-"}</span>{"         Fa0/1(P) Fa0/2(P) Fa0/3(P) Fa0/4(P)"}</p>
+                  </div>
+                  <p className="text-orange-300 text-xs mt-2 font-bold">{"Protocol = « - » (tiret) → aucun protocole de négociation. C'est la signature du mode on."}</p>
+                  <p className="text-slate-400 text-xs mt-1">{"Compare : PAgP affiche « PAgP », LACP affiche « LACP », mode on affiche « - »."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1# show interfaces port-channel 1"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1 mt-2">
+                    <p className="text-emerald-400">{"Port-channel1 is up, line protocol is up"}</p>
+                    <p className="text-amber-300">{"  BW 400000 Kbit/sec"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Même bande passante que PAgP et LACP. Le protocole de négo ne change pas la performance."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* COMPARAISON */}
+            <section id="lab4-s11-compare" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-orange-900/20 to-amber-900/20 rounded-xl p-6 border border-orange-500/30">
+                <h2 className="text-lg font-bold text-orange-300 mb-3 flex items-center gap-2">{"⚖️ Mode On vs PAgP vs LACP — Le récap final"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Tu as maintenant testé les 3 méthodes. Voici le récapitulatif complet :"}</p>
+                <div className="overflow-x-auto mb-4">
+                  <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                    <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{""}</th><th className="p-2 text-center text-cyan-300">{"PAgP (Lab 2)"}</th><th className="p-2 text-center text-emerald-300">{"LACP (Lab 3)"}</th><th className="p-2 text-center text-orange-300">{"Mode on (ce lab)"}</th></tr></thead>
+                    <tbody>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Négocie ?"}</td><td className="p-2 text-center text-cyan-300">{"Oui (PAgP)"}</td><td className="p-2 text-center text-emerald-300">{"Oui (LACP)"}</td><td className="p-2 text-center text-red-400 font-bold">{"NON"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Détecte erreurs ?"}</td><td className="p-2 text-center text-cyan-300">{"Oui"}</td><td className="p-2 text-center text-emerald-300">{"Oui"}</td><td className="p-2 text-center text-red-400 font-bold">{"NON"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"show summary"}</td><td className="p-2 text-center font-mono text-cyan-300">{"PAgP"}</td><td className="p-2 text-center font-mono text-emerald-300">{"LACP"}</td><td className="p-2 text-center font-mono text-orange-300">{"-"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Compatibilité"}</td><td className="p-2 text-center text-red-400">{"Cisco only"}</td><td className="p-2 text-center text-emerald-400">{"Universel"}</td><td className="p-2 text-center text-orange-300">{"Universel (mais risqué)"}</td></tr>
+                      <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Combinaison OK"}</td><td className="p-2 text-center text-xs text-cyan-300">{"desirable+auto"}</td><td className="p-2 text-center text-xs text-emerald-300">{"active+passive"}</td><td className="p-2 text-center text-xs text-orange-300">{"on+on UNIQUEMENT"}</td></tr>
+                      <tr className="border-t border-white/20 bg-emerald-500/5"><td className="p-2 font-bold">{"En entreprise"}</td><td className="p-2 text-center text-amber-300">{"Legacy"}</td><td className="p-2 text-center text-emerald-400 font-bold">{"RECOMMANDÉ"}</td><td className="p-2 text-center text-red-400 font-bold">{"INTERDIT"}</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div className="bg-red-900/20 rounded-lg p-4 border border-red-500/20">
+                  <p className="text-red-300 font-bold text-sm mb-2">{"Le danger du mode on en une phrase :"}</p>
+                  <p className="text-slate-300 text-sm">{"Avec LACP/PAgP, si tu fais une erreur de config, le protocole détecte le problème et refuse de former le channel → pas de boucle. Avec mode on, le switch forme le channel quoi qu'il arrive → si l'autre côté n'est pas configuré pareil, tu as une boucle réseau."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* TESTS */}
+            <section id="lab4-s11-tests" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/20 to-blue-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"📡 Étape 5 — Tests"}</h2>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-emerald-300 font-bold text-sm mb-2">{"Ping PC1 → PC2 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"C:\\> ping 192.168.1.20"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Le ping fonctionne — le Port-channel est actif même sans protocole de négociation."}</p>
+                </div>
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-amber-300 font-bold text-sm mb-2">{"Shutdown Fa0/1 :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW1(config)# interface fa0/1"}</p>
+                    <p>{"SW1(config-if)# shutdown"}</p>
+                    <p>{"SW1(config-if)# end"}</p>
+                    <p>{"SW1# show etherchannel summary"}</p>
+                  </div>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1 mt-2">
+                    <p className="text-emerald-400">{"1      Po1(SU)        -         "}<span className="text-red-400">{"Fa0/1(D)"}</span>{" Fa0/2(P) Fa0/3(P) Fa0/4(P)"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Même comportement que PAgP et LACP : Fa0/1 passe en (D), le channel reste UP."}</p>
+                </div>
+                <div className="bg-emerald-900/20 rounded-xl border border-emerald-500/30 p-6">
+                  <p className="text-emerald-400 font-bold flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5" /> {"Résultats attendus du Lab 4 (Mode On)"}</p>
+                  <ul className="text-slate-300 text-sm space-y-1">
+                    <li>{"✅ Mode on : EtherChannel formé, 4 ports en (P)"}</li>
+                    <li>{"✅ show etherchannel summary → Protocol: « - » (aucun protocole)"}</li>
+                    <li>{"✅ Même bande passante et tolérance aux pannes que PAgP/LACP"}</li>
+                    <li>{"✅ Danger compris : on + active = ❌ boucle | on + on = ✅ seule combinaison OK"}</li>
+                    <li>{"✅ Conclusion : en entreprise, TOUJOURS utiliser LACP"}</li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      ),
+      initialPrompt: "Switch>",
+      tasks: [
+        { cmd: "enable", desc: "Mode privilégié" },
+        { cmd: "configure terminal", desc: "Mode config globale" },
+        { cmd: "hostname SW1", desc: "Nommer le switch" },
+        { cmd: "interface range FastEthernet0/1-4", desc: "Sélectionner les 4 ports inter-switch" },
+        { cmd: "no shutdown", desc: "Activer les interfaces" },
+        { cmd: "channel-group 1 mode active", desc: "LACP active → crée Po1" },
+        { cmd: "exit", desc: "Sortir du range d'interfaces" },
+        { cmd: "interface port-channel 1", desc: "Entrer dans le port-channel logique" },
+        { cmd: "switchport mode trunk", desc: "Trunk sur le port-channel" },
+        { cmd: "end", desc: "Retour mode privilégié" },
+        { cmd: "show etherchannel summary", desc: "Vérifier l'état du channel — flags (SU) et (P)" },
+        { cmd: "show interfaces port-channel 1", desc: "Voir la bande passante agrégée" },
+        { cmd: "show spanning-tree", desc: "Vérifier que STP voit Po1 comme un seul lien" }
+      ]
+    },
+    quiz: [
+      { q: "Quel est le rôle principal d'EtherChannel ?", options: ["Éviter les boucles réseau", "Agréger plusieurs liens physiques en un seul lien logique", "Configurer les VLANs"], a: 1, explanation: "EtherChannel regroupe plusieurs liens physiques en un seul lien logique (port-channel) pour augmenter la bande passante et la redondance." },
+      { q: "Comment s'appelle l'interface logique créée par EtherChannel ?", options: ["channel-group", "port-channel", "trunk-link"], a: 1, explanation: "L'interface logique s'appelle port-channel (ex: Port-channel1 ou Po1). C'est là qu'on applique la configuration réseau." },
+      { q: "Quel protocole EtherChannel est un standard IEEE ?", options: ["PAgP", "LACP", "Mode on"], a: 1, explanation: "LACP (Link Aggregation Control Protocol) est le standard IEEE 802.3ad, compatible avec toutes les marques d'équipements réseau." },
+      { q: "Que se passe-t-il avec LACP passive + passive ?", options: ["L'EtherChannel se forme normalement", "L'EtherChannel ne se forme pas", "Un seul lien est actif"], a: 1, explanation: "Avec passive + passive, les deux côtés attendent que l'autre commence la négociation. Personne ne démarre → l'EtherChannel ne se forme jamais." },
+      { q: "Quelle condition n'est PAS nécessaire pour former un EtherChannel ?", options: ["Même vitesse sur tous les ports", "Même adresse MAC sur tous les ports", "Même mode (trunk/access) sur tous les ports"], a: 1, explanation: "Les ports doivent avoir la même vitesse, duplex, mode et VLAN. L'adresse MAC n'a pas besoin d'être identique (elle est différente sur chaque port)." },
+      { q: "Que signifie le flag (I) dans show etherchannel summary ?", options: ["Le port est actif (In-use)", "Le port est suspended (problème)", "Le port est en cours d'initialisation"], a: 1, explanation: "Le flag (I) signifie 'suspended' : le port a un problème de cohérence de configuration avec les autres ports du groupe." },
+      { q: "Que se passe-t-il si un lien physique d'un EtherChannel tombe ?", options: ["Tout l'EtherChannel tombe", "Le trafic est redistribué sur les liens restants", "STP doit reconverger pendant 30 secondes"], a: 1, explanation: "Si un lien tombe, le trafic est automatiquement redistribué sur les liens restants. Le port-channel reste UP. La bascule est quasi-instantanée." },
+      { q: "Quelle commande vérifie l'état d'un EtherChannel ?", options: ["show spanning-tree", "show etherchannel summary", "show vlan brief"], a: 1, explanation: "show etherchannel summary affiche tous les EtherChannels, leur protocole, et l'état de chaque port membre." },
+      { q: "PAgP est compatible avec quelles marques ?", options: ["Toutes les marques", "Cisco uniquement", "Cisco et Juniper"], a: 1, explanation: "PAgP est un protocole propriétaire Cisco. Il ne fonctionne qu'entre équipements Cisco. Pour du multi-marques, utilisez LACP." },
+      { q: "Pourquoi le mode 'on' est-il déconseillé ?", options: ["Il est trop lent", "Il ne détecte pas les erreurs de configuration", "Il ne supporte que 2 liens"], a: 1, explanation: "Le mode 'on' force l'EtherChannel sans aucune négociation ni vérification. Si la config est incohérente, il n'y a aucune alerte → risque de boucle." }
+    ]
   }
 ];
 
@@ -17213,6 +18866,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
   const isSession8 = sessionId === 8;
   const isSession9 = sessionId === 9;
   const isSession10 = sessionId === 10;
+  const isSession11 = sessionId === 11;
   return (
     <div className="h-full flex flex-col">
       <div className="bg-[#1a1035] p-6 rounded-t-xl border border-white/[0.15] border-b-0">
@@ -17236,31 +18890,31 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
               onClick={() => setLabTab('correction')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession10 ? 'Correction Lab 1 (Intro STP)' : isSession9 ? 'Correction Lab OSPF' : isSession8 ? 'Correction Lab Routage' : isSession7 ? 'Correction Lab Adressage' : isSession6 ? 'Correction Lab Syslog' : isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
+              <CheckCircle className="w-4 h-4" /> {isSession11 ? 'Correction Lab 1 (STP & Intro)' : isSession10 ? 'Correction Lab 1 (Intro STP)' : isSession9 ? 'Correction Lab OSPF' : isSession8 ? 'Correction Lab Routage' : isSession7 ? 'Correction Lab Adressage' : isSession6 ? 'Correction Lab Syslog' : isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
             </button>
           )}
-          {!hideCorrection && (isSession2 || isSession3 || isSession4 || isSession5 || isSession6 || isSession8 || isSession9 || isSession10) && lab.solutionContentLab2 && (
+          {!hideCorrection && (isSession2 || isSession3 || isSession4 || isSession5 || isSession6 || isSession8 || isSession9 || isSession10 || isSession11) && lab.solutionContentLab2 && (
             <button
               onClick={() => setLabTab('correction_lab2')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab2' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession10 ? 'Élection Root Bridge' : isSession9 ? 'Dépannage OSPF' : isSession8 ? 'Dépannage 1' : isSession6 ? 'Correction Lab 2 (Synthèse)' : isSession5 ? 'Correction Lab 2 (HTTP/FTP/ARP)' : isSession4 ? 'Correction Lab 2 (Étendu)' : isSession3 ? 'Correction Lab 2 (Dépannage)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
+              <CheckCircle className="w-4 h-4" /> {isSession11 ? 'Correction Lab 2 (PAgP)' : isSession10 ? 'Élection Root Bridge' : isSession9 ? 'Dépannage OSPF' : isSession8 ? 'Dépannage 1' : isSession6 ? 'Correction Lab 2 (Synthèse)' : isSession5 ? 'Correction Lab 2 (HTTP/FTP/ARP)' : isSession4 ? 'Correction Lab 2 (Étendu)' : isSession3 ? 'Correction Lab 2 (Dépannage)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
             </button>
           )}
-          {!hideCorrection && (isSession5 || isSession8 || isSession9 || isSession10) && lab.solutionContentLab3 && (
+          {!hideCorrection && (isSession5 || isSession8 || isSession9 || isSession10 || isSession11) && lab.solutionContentLab3 && (
             <button
               onClick={() => setLabTab('correction_lab3')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab3' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession10 ? 'Dépannage 1 — Root Bridge' : isSession9 ? 'Dépannage 2' : isSession8 ? 'Dépannage 2' : 'Correction Lab 3 (Synthèse)'}
+              <CheckCircle className="w-4 h-4" /> {isSession11 ? 'Correction Lab 3 (LACP)' : isSession10 ? 'Dépannage 1 — Root Bridge' : isSession9 ? 'Dépannage 2' : isSession8 ? 'Dépannage 2' : 'Correction Lab 3 (Synthèse)'}
             </button>
           )}
-          {!hideCorrection && (isSession5 || isSession9 || isSession10) && lab.solutionContentLab4 && (
+          {!hideCorrection && (isSession5 || isSession9 || isSession10 || isSession11) && lab.solutionContentLab4 && (
             <button
               onClick={() => setLabTab('correction_lab4')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab4' ? 'bg-red-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession10 ? 'Dépannage 2 — err-disabled' : isSession9 ? 'Dépannage 3' : 'Correction Lab 4 (Dépannage)'}
+              <CheckCircle className="w-4 h-4" /> {isSession11 ? 'Correction Lab 4 (Mode On)' : isSession10 ? 'Dépannage 2 — err-disabled' : isSession9 ? 'Dépannage 3' : 'Correction Lab 4 (Dépannage)'}
             </button>
           )}
           {!hideCorrection && isSession10 && lab.solutionContentLab5 && (
@@ -17305,7 +18959,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
       {labTab === 'consignes' && lab.consignes && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl px-6 py-5 overflow-y-auto">
           <h4 className="text-white font-bold flex items-center gap-2 mb-4 text-base">
-            <BookOpen className="w-5 h-5 text-amber-400" /> {isSession10 ? 'Consignes Lab STP – à réaliser sur Cisco Packet Tracer' : isSession9 ? 'Consignes Lab OSPF – à réaliser sur Cisco Packet Tracer' : isSession8 ? 'Consignes Lab Routage Statique' : isSession7 ? 'Consignes Lab Adressage IP & Masques' : isSession6 ? 'Consignes Labs Syslog & Synthèse – à réaliser sur Cisco Packet Tracer' : isSession4 ? 'Consignes des deux labs DHCP & DNS – à réaliser sur Cisco Packet Tracer' : isSession3 ? 'Consignes du lab – à réaliser sur Cisco Packet Tracer' : isSession2 ? 'Consignes des deux labs Session 2' : 'Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer'}
+            <BookOpen className="w-5 h-5 text-amber-400" /> {isSession11 ? 'Consignes Labs EtherChannel – à réaliser sur Cisco Packet Tracer' : isSession10 ? 'Consignes Lab STP – à réaliser sur Cisco Packet Tracer' : isSession9 ? 'Consignes Lab OSPF – à réaliser sur Cisco Packet Tracer' : isSession8 ? 'Consignes Lab Routage Statique' : isSession7 ? 'Consignes Lab Adressage IP & Masques' : isSession6 ? 'Consignes Labs Syslog & Synthèse – à réaliser sur Cisco Packet Tracer' : isSession4 ? 'Consignes des deux labs DHCP & DNS – à réaliser sur Cisco Packet Tracer' : isSession3 ? 'Consignes du lab – à réaliser sur Cisco Packet Tracer' : isSession2 ? 'Consignes des deux labs Session 2' : 'Consignes des trois labs (S1, S2, S3) – à réaliser sur Cisco Packet Tracer'}
           </h4>
           <div className="pr-4 space-y-1 text-slate-300">
             {lab.consignes}
@@ -17315,14 +18969,14 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
       {labTab === 'correction' && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {(isSession4 || isSession5 || isSession6 || isSession7 || isSession8 || isSession9 || isSession10) && lab.solutionContent ? lab.solutionContent : isSession3 ? <LabCorrectionSection3Verbose /> : isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSectionVerbose />}
+            {(isSession4 || isSession5 || isSession6 || isSession7 || isSession8 || isSession9 || isSession10 || isSession11) && lab.solutionContent ? lab.solutionContent : isSession3 ? <LabCorrectionSection3Verbose /> : isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSectionVerbose />}
           </div>
         </div>
       )}
       {labTab === 'correction_lab2' && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {(isSession4 || isSession5 || isSession6 || isSession8 || isSession9 || isSession10) ? (lab.solutionContentLab2) : isSession3 ? <LabTroubleshootingSection3 /> : isSession2 ? (lab.solutionContentLab2 || (
+            {(isSession4 || isSession5 || isSession6 || isSession8 || isSession9 || isSession10 || isSession11) ? (lab.solutionContentLab2) : isSession3 ? <LabTroubleshootingSection3 /> : isSession2 ? (lab.solutionContentLab2 || (
               <div className="max-w-2xl mx-auto bg-[#1a1035]/50 border border-white/20 rounded-xl p-8 text-center">
                 <h3 className="text-xl font-bold text-purple-400 mb-3">Correction Lab 2 – VLAN avancés et sécurisation</h3>
                 <p className="text-slate-400">Trunk, VLAN autorisés, VLAN natif. Pour les consignes et la correction détaillée, suivre le PDF « 3 - Introduction Vlan avancés et sécurisation - LAB.pdf ».</p>
@@ -17331,14 +18985,14 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
           </div>
         </div>
       )}
-      {labTab === 'correction_lab3' && (isSession5 || isSession8 || isSession9 || isSession10) && lab.solutionContentLab3 && (
+      {labTab === 'correction_lab3' && (isSession5 || isSession8 || isSession9 || isSession10 || isSession11) && lab.solutionContentLab3 && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl overflow-y-auto">
           <div className="p-6">
             {lab.solutionContentLab3}
           </div>
         </div>
       )}
-      {labTab === 'correction_lab4' && (isSession5 || isSession9 || isSession10) && lab.solutionContentLab4 && (
+      {labTab === 'correction_lab4' && (isSession5 || isSession9 || isSession10 || isSession11) && lab.solutionContentLab4 && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl overflow-y-auto">
           <div className="p-6">
             {lab.solutionContentLab4}
@@ -20277,8 +21931,8 @@ const weeks = [
   {
     id: 4,
     title: "Commutation avancée",
-    subtitle: "STP, PortFast, BPDU Guard",
-    sessions: [10],
+    subtitle: "STP, EtherChannel, LACP",
+    sessions: [10, 11],
     available: true
   }
 ];
@@ -21228,6 +22882,7 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
               {expandedLabWeek === 4 && (
                 <div className="mt-2 ml-3 space-y-2 border-l-2 border-white/10 pl-3">
                   <LabButton viewModeKey="labs_s10" labKey="labs_s10" icon={RotateCcw} label="Lab STP" sublabel="3 switches — boucle" />
+                  <LabButton viewModeKey="labs_s11" labKey="labs_s11" icon={Zap} label="Lab EtherChannel" sublabel="LACP — agrégation" />
                 </div>
               )}
             </div>
@@ -21377,6 +23032,8 @@ export default function NetMasterClass({ onShowAdmin, onShowStats }) {
             renderLabContent('labs_s9', <LabsSection lab={sessions[8].lab} sessionLabel="OSPF — Routage Dynamique" sessionDescription="Configurez OSPF sur 3 routeurs en triangle. Découvrez les wildcard masks, les voisinages OSPF et la convergence automatique des routes." sessionId={9} hideCorrection={!isAdmin && !isCorrectionVisible('labs_s9')} />)
           ) : viewMode === 'labs_s10' ? (
             renderLabContent('labs_s10', <LabsSection lab={sessions[9].lab} sessionLabel="STP — Spanning Tree Protocol" sessionDescription="Construisez une topologie redondante avec 3 switches en triangle. Observez STP en action, contrôlez le Root Bridge et configurez PortFast." sessionId={10} hideCorrection={!isAdmin && !isCorrectionVisible('labs_s10')} />)
+          ) : viewMode === 'labs_s11' ? (
+            renderLabContent('labs_s11', <LabsSection lab={sessions[10].lab} sessionLabel="EtherChannel — Agrégation de liens" sessionDescription="Configurez EtherChannel LACP entre 2 switches avec 3 liens physiques. Vérifiez l'agrégation, testez la résilience et observez le comportement STP." sessionId={11} hideCorrection={!isAdmin && !isCorrectionVisible('labs_s11')} />)
           ) : (
           <div className="max-w-6xl mx-auto h-full flex flex-col">
             {activeTab === 'theory' && <TheoryPlayer slides={activeSession.slides} lab={activeSession.lab} sessionId={activeSessionId} />}

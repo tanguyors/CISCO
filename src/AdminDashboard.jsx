@@ -201,6 +201,7 @@ export default function AdminDashboard({ onBack }) {
     { key: 'labs_s8', label: 'Lab Routage Statique' },
     { key: 'labs_s9', label: 'Lab OSPF' },
     { key: 'labs_s10', label: 'Lab STP — Spanning Tree Protocol' },
+    { key: 'labs_s11', label: 'Lab EtherChannel — LACP' },
   ];
 
   function getLabVis(labKey) {
