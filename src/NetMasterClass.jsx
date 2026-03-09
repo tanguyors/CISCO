@@ -3509,7 +3509,1065 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
         "ip ssh version": { msg: "SSH version 2 forcée." },
         "ip ssh time-out": { msg: "Timeout 60 s configuré." },
         "ip ssh authentication-retries": { msg: "3 tentatives max configurées." }
-      }
+      },
+      solutionContent: (
+        <div className="max-w-5xl mx-auto space-y-8 pb-16">
+          <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
+              {[
+                { id: 's1-cablage', label: 'Câblage', icon: '🔌' },
+                { id: 's1-routeur', label: 'Routeur', icon: '🧠' },
+                { id: 's1-securite', label: 'Sécurité', icon: '🔒' },
+                { id: 's1-switches', label: 'Switches', icon: '🟦' },
+                { id: 's1-pc', label: 'PC + Serveur', icon: '🟨' },
+                { id: 's1-tftp', label: 'TFTP', icon: '💾' },
+                { id: 's1-tests', label: 'Tests', icon: '✅' },
+              ].map(({ id, label, icon }) => (
+                <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <div className="space-y-8">
+
+            {/* INTRO */}
+            <section className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/30 to-purple-900/30 rounded-xl p-5 border border-emerald-500/40 mb-6">
+                <h2 className="text-xl font-bold text-emerald-300 flex items-center gap-2">{"🏗️ Correction Lab 1 — Configuration initiale NovaTech"}</h2>
+                <p className="text-slate-400 text-sm mt-1">{"Réseau local complet : câblage, adresses IP, mots de passe, sauvegarde TFTP. Topologie : 1 routeur R-Nova, 2 switches, 1 PC technicien, 1 serveur TFTP."}</p>
+              </div>
+            </section>
+
+            {/* CÂBLAGE */}
+            <section id="s1-cablage" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 rounded-xl p-6 border border-amber-500/30">
+                <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"🔌 Étape 1 — Câblage"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Tous les câbles sont des Copper Straight-Through (câble vert clair dans Packet Tracer). Le câble console (bleu) ne sert pas ici — il sert uniquement à configurer un équipement en local."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-3">{"Topologie :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-4 text-emerald-300 leading-relaxed">
+                    <p>{"  [Srv-TFTP]    [Tech-PC]"}</p>
+                    <p>{"      │             │"}</p>
+                    <p>{"   Fa0/3         Fa0/2"}</p>
+                    <p>{"      └─── [SW-Entrée] ───┐"}</p>
+                    <p>{"            Fa0/1        Fa0/4"}</p>
+                    <p>{"              │            │"}</p>
+                    <p>{"           Gi0/0        Fa0/1"}</p>
+                    <p>{"          [R-Nova]    [SW-Bureau]"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Tableau de câblage :"}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                      <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"De"}</th><th className="p-2 text-left">{"Port"}</th><th className="p-2 text-center">{"Câble"}</th><th className="p-2 text-left">{"Vers"}</th><th className="p-2 text-left">{"Port"}</th><th className="p-2 text-left">{"Rôle"}</th></tr></thead>
+                      <tbody>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"R-Nova"}</td><td className="p-2 font-mono">{"Gi0/0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW-Entrée"}</td><td className="p-2 font-mono">{"Fa0/1"}</td><td className="p-2 text-slate-400">{"Lien routeur ↔ switch"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Tech-PC"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW-Entrée"}</td><td className="p-2 font-mono">{"Fa0/2"}</td><td className="p-2 text-slate-400">{"PC technicien"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Srv-TFTP"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW-Entrée"}</td><td className="p-2 font-mono">{"Fa0/3"}</td><td className="p-2 text-slate-400">{"Serveur de sauvegarde"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"SW-Entrée"}</td><td className="p-2 font-mono">{"Fa0/4"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW-Bureau"}</td><td className="p-2 font-mono">{"Fa0/1"}</td><td className="p-2 text-slate-400">{"Lien inter-switch"}</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Adresses IP du lab :"}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                      <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"Équipement"}</th><th className="p-2 text-left">{"Interface"}</th><th className="p-2 text-left">{"IP"}</th><th className="p-2 text-left">{"Masque"}</th><th className="p-2 text-left">{"Passerelle"}</th></tr></thead>
+                      <tbody>
+                        <tr className="border-t border-white/20 text-emerald-300"><td className="p-2 font-bold">{"R-Nova"}</td><td className="p-2 font-mono">{"Gi0/0"}</td><td className="p-2 font-mono">{"192.168.10.1"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2">{"—"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"SW-Entrée"}</td><td className="p-2 font-mono">{"VLAN 1"}</td><td className="p-2 font-mono">{"192.168.10.2"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono">{"192.168.10.1"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"SW-Bureau"}</td><td className="p-2 font-mono">{"VLAN 1"}</td><td className="p-2 font-mono">{"192.168.10.3"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono">{"192.168.10.1"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Tech-PC"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono">{"192.168.10.20"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono">{"192.168.10.1"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Srv-TFTP"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono">{"192.168.10.10"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono">{"192.168.10.1"}</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20 mt-4">
+                  <p className="text-blue-300 font-bold text-sm mb-1">{"💡 Pourquoi Copper Straight-Through partout ?"}</p>
+                  <p className="text-slate-300 text-sm">{"Le câble droit (Straight-Through) relie des équipements de type différent : PC↔Switch, Switch↔Routeur, Serveur↔Switch. Le câble croisé (Cross-Over) relie des équipements de même type (ex. Switch↔Switch). Ici, même le lien SW-Entrée ↔ SW-Bureau fonctionne en Straight car les switches modernes (auto-MDIX) détectent et s'adaptent automatiquement."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* ROUTEUR R-NOVA */}
+            <section id="s1-routeur" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-purple-900/20 to-indigo-900/20 rounded-xl p-6 border border-purple-500/30">
+                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"🧠 Étape 2 — Configuration du routeur R-Nova"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Clic sur R-Nova → onglet CLI. Si le routeur demande « Would you like to enter the initial configuration dialog? », tape no puis Entrée."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Commandes sur R-Nova :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Router> enable"}</p>
+                    <p>{"Router# configure terminal"}</p>
+                    <p>{"Router(config)# hostname R-Nova"}</p>
+                    <p>{"R-Nova(config)# no ip domain-lookup"}</p>
+                    <p>{"R-Nova(config)# interface gigabitEthernet 0/0"}</p>
+                    <p>{"R-Nova(config-if)# ip address 192.168.10.1 255.255.255.0"}</p>
+                    <p>{"R-Nova(config-if)# no shutdown"}</p>
+                    <p>{"R-Nova(config-if)# exit"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"enable"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Passe du mode utilisateur (>) au mode privilégié (#). Sans ça, impossible de modifier quoi que ce soit. C'est le mode « administrateur » de Cisco."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"configure terminal"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Entre en mode configuration globale (config)#. C'est ici que tu changes le nom, les IP, les mots de passe. Raccourci : conf t."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"hostname R-Nova"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Renomme le routeur. Le prompt passe de Router(config)# à R-Nova(config)#. En entreprise, on nomme toujours les équipements pour savoir sur lequel on est connecté."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"no ip domain-lookup"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Désactive la résolution DNS automatique. Sans ça, chaque faute de frappe déclenche une recherche DNS qui bloque le terminal pendant 5 à 10 secondes. Indispensable en lab."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"interface gigabitEthernet 0/0"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Sélectionne le port physique Gi0/0 du routeur, celui qui est branché au switch SW-Entrée. Le prompt change en (config-if)# pour indiquer qu'on configure une interface."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"ip address 192.168.10.1 255.255.255.0"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Attribue l'adresse IP 192.168.10.1 avec le masque /24 à l'interface. Cette IP sera la passerelle par défaut (gateway) de tous les autres équipements du réseau."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"no shutdown"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Active le port. Sur un routeur Cisco, tous les ports sont éteints (shutdown) par défaut — c'est pour ça que le lien est rouge dans Packet Tracer. no shutdown allume le port et le lien passe au vert."}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Vérification :"}</p>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1">
+                    <p className="text-emerald-400">{"R-Nova# show ip interface brief"}</p>
+                    <p className="text-slate-400">{"Interface          IP-Address      OK?  Method  Status  Protocol"}</p>
+                    <p className="text-emerald-400">{"GigabitEthernet0/0 192.168.10.1    YES  manual  up      up       ← OK"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Si tu vois up / up avec 192.168.10.1, le routeur est opérationnel. Le lien vers SW-Entrée doit être vert."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* SÉCURITÉ ROUTEUR */}
+            <section id="s1-securite" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-red-900/20 to-purple-900/20 rounded-xl p-6 border border-red-500/30">
+                <h2 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">{"🔒 Étape 3 — Sécurisation du routeur"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Par défaut, n'importe qui peut accéder au routeur sans mot de passe. On sécurise l'accès console (câble physique) ET l'accès au mode privilégié (enable)."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Commandes sur R-Nova (suite, toujours en config) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R-Nova(config)# enable secret cisco123"}</p>
+                    <p>{"R-Nova(config)# service password-encryption"}</p>
+                    <p>{"R-Nova(config)# line console 0"}</p>
+                    <p>{"R-Nova(config-line)# password console123"}</p>
+                    <p>{"R-Nova(config-line)# login"}</p>
+                    <p>{"R-Nova(config-line)# exit"}</p>
+                    <p>{"R-Nova(config)# end"}</p>
+                    <p>{"R-Nova# copy running-config startup-config"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"enable secret cisco123"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Définit le mot de passe pour accéder au mode privilégié (#). « secret » signifie que le mot de passe est chiffré en MD5 dans la config — beaucoup plus sécurisé que « enable password » qui stocke en clair."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"service password-encryption"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Masque TOUS les mots de passe en clair dans la config (chiffrement type 7). Sans cette commande, un show running-config affiche les mots de passe console en texte lisible."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"line console 0"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Entre dans la configuration de la ligne console — c'est le port physique RJ-45 à l'arrière du routeur où on branche le câble console (bleu). Le « 0 » indique la première (et seule) ligne console."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"password console123"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Définit le mot de passe qui sera demandé quand quelqu'un se connecte via le câble console. C'est le premier niveau de sécurité physique."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"login"}</code><p className="text-slate-400 text-xs leading-relaxed">{"ACTIVE la demande de mot de passe. C'est le piège classique : sans cette commande, le mot de passe est configuré mais jamais demandé ! login dit « demande le password à la connexion »."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"end"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Sort de tous les niveaux de config d'un coup et revient au mode privilégié (#). Plus rapide que de taper exit plusieurs fois."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"copy running-config startup-config"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Sauvegarde la configuration active (en RAM) dans la NVRAM (mémoire permanente). Sans ça, TOUT est perdu au redémarrage. Raccourci : wr ou write."}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
+                  <p className="text-blue-300 font-bold text-sm mb-1">{"💡 Pourquoi 2 mots de passe différents ?"}</p>
+                  <p className="text-slate-300 text-sm">{"Le mot de passe console protège l'accès physique au routeur (quelqu'un qui branche un câble console). Le enable secret protège le mode privilégié où on peut modifier toute la configuration. Même si quelqu'un passe la console, il ne peut rien changer sans le enable secret. C'est la défense en profondeur."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* PC + SERVEUR TFTP */}
+            <section id="s1-pc" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-amber-900/20 to-yellow-900/20 rounded-xl p-6 border border-amber-500/30">
+                <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"🟨 Étape 4 — PC technicien et serveur TFTP"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"La configuration IP se fait via l'interface graphique de Packet Tracer — pas besoin de CLI pour les postes."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Tech-PC → clic sur le PC → Desktop → IP Configuration :"}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                      <tbody>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold w-40">{"IP Address"}</td><td className="p-2 font-mono">{"192.168.10.20"}</td><td className="p-2 text-slate-500 text-xs">{"Adresse du PC dans le réseau NovaTech"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Subnet Mask"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 text-slate-500 text-xs">{"Masque /24 — même réseau que le routeur"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Default Gateway"}</td><td className="p-2 font-mono">{"192.168.10.1"}</td><td className="p-2 text-slate-500 text-xs">{"IP du routeur — la porte de sortie du réseau"}</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Srv-TFTP → clic sur le serveur → Desktop → IP Configuration :"}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                      <tbody>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold w-40">{"IP Address"}</td><td className="p-2 font-mono">{"192.168.10.10"}</td><td className="p-2 text-slate-500 text-xs">{"Adresse du serveur TFTP"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Subnet Mask"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 text-slate-500 text-xs">{"Même réseau /24"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Default Gateway"}</td><td className="p-2 font-mono">{"192.168.10.1"}</td><td className="p-2 text-slate-500 text-xs">{"Passerelle = le routeur"}</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-amber-300 text-xs mt-3 font-medium">{"⚠️ Ensuite : clic sur le serveur → Services → TFTP → vérifier que le service est ON. Sans ça, aucun équipement ne pourra envoyer sa config."}</p>
+                </div>
+
+                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
+                  <p className="text-blue-300 font-bold text-sm mb-1">{"💡 C'est quoi la passerelle par défaut (Default Gateway) ?"}</p>
+                  <p className="text-slate-300 text-sm">{"La passerelle = l'adresse IP du routeur (192.168.10.1). C'est la porte de sortie du réseau local. Quand le PC veut communiquer avec un appareil en dehors de son réseau (192.168.10.x), il envoie le paquet au routeur qui s'occupe de le transmettre. Sans passerelle, le PC ne communique qu'avec les appareils de son propre réseau."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* SWITCHES */}
+            <section id="s1-switches" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-blue-900/20 to-indigo-900/20 rounded-xl p-6 border border-blue-500/30">
+                <h2 className="text-lg font-bold text-blue-300 mb-3 flex items-center gap-2">{"🟦 Étape 5 — Configuration des switches"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Un switch fonctionne en couche 2 : il transmet les trames Ethernet sans avoir besoin d'IP. Mais pour l'administrer à distance (SSH, ping, sauvegarde TFTP), il lui faut une IP de management sur l'interface virtuelle VLAN 1."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW-Entrée (CLI) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Switch> enable"}</p>
+                    <p>{"Switch# configure terminal"}</p>
+                    <p>{"Switch(config)# hostname SW-Entree"}</p>
+                    <p>{"SW-Entree(config)# no ip domain-lookup"}</p>
+                    <p>{"SW-Entree(config)# interface vlan 1"}</p>
+                    <p>{"SW-Entree(config-if)# ip address 192.168.10.2 255.255.255.0"}</p>
+                    <p>{"SW-Entree(config-if)# no shutdown"}</p>
+                    <p>{"SW-Entree(config-if)# exit"}</p>
+                    <p>{"SW-Entree(config)# ip default-gateway 192.168.10.1"}</p>
+                    <p>{"SW-Entree(config)# enable secret cisco123"}</p>
+                    <p>{"SW-Entree(config)# line console 0"}</p>
+                    <p>{"SW-Entree(config-line)# password console123"}</p>
+                    <p>{"SW-Entree(config-line)# login"}</p>
+                    <p>{"SW-Entree(config-line)# exit"}</p>
+                    <p>{"SW-Entree(config)# end"}</p>
+                    <p>{"SW-Entree# copy running-config startup-config"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"interface vlan 1"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Sur un switch, l'IP ne se configure PAS sur un port physique (Fa0/1, etc.) mais sur une interface virtuelle appelée SVI (Switch Virtual Interface). VLAN 1 est le VLAN par défaut — tous les ports y sont rattachés. Cette IP sert uniquement à l'administration."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"ip address 192.168.10.2 ..."}</code><p className="text-slate-400 text-xs leading-relaxed">{"IP de management du switch. Doit être dans le même réseau que le routeur (192.168.10.0/24) pour que le switch soit joignable en ping, SSH, et puisse envoyer ses configs en TFTP."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"no shutdown"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Active l'interface VLAN 1. Comme sur le routeur, les SVI peuvent être en shutdown par défaut. Sans no shutdown, l'IP est configurée mais pas accessible."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"ip default-gateway 192.168.10.1"}</code><p className="text-slate-400 text-xs leading-relaxed">{"La passerelle par défaut du switch = l'IP du routeur. Nécessaire pour que le switch puisse communiquer avec des appareils hors de son réseau (ex. un serveur TFTP distant). Sur un switch, cette commande est en mode config global (pas sous l'interface)."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"enable secret / line console 0 / login"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Même logique que sur le routeur : on protège l'accès privilégié et la console. Les commandes sont identiques."}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW-Bureau (CLI) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Switch> enable"}</p>
+                    <p>{"Switch# configure terminal"}</p>
+                    <p>{"Switch(config)# hostname SW-Bureau"}</p>
+                    <p>{"SW-Bureau(config)# no ip domain-lookup"}</p>
+                    <p>{"SW-Bureau(config)# interface vlan 1"}</p>
+                    <p>{"SW-Bureau(config-if)# ip address 192.168.10.3 255.255.255.0"}</p>
+                    <p>{"SW-Bureau(config-if)# no shutdown"}</p>
+                    <p>{"SW-Bureau(config-if)# exit"}</p>
+                    <p>{"SW-Bureau(config)# ip default-gateway 192.168.10.1"}</p>
+                    <p>{"SW-Bureau(config)# enable secret cisco123"}</p>
+                    <p>{"SW-Bureau(config)# line console 0"}</p>
+                    <p>{"SW-Bureau(config-line)# password console123"}</p>
+                    <p>{"SW-Bureau(config-line)# login"}</p>
+                    <p>{"SW-Bureau(config-line)# exit"}</p>
+                    <p>{"SW-Bureau(config)# end"}</p>
+                    <p>{"SW-Bureau# copy running-config startup-config"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Même commandes que SW-Entrée, seuls le hostname (SW-Bureau) et l'IP (.3 au lieu de .2) changent."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* SAUVEGARDE TFTP */}
+            <section id="s1-tftp" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-violet-900/20 to-purple-900/20 rounded-xl p-6 border border-violet-500/30">
+                <h2 className="text-lg font-bold text-violet-300 mb-3 flex items-center gap-2">{"💾 Étape 6 — Sauvegarde vers le serveur TFTP"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"On envoie une copie de la configuration de chaque équipement vers le serveur TFTP. Ça permet d'avoir un backup centralisé en cas de panne."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur R-Nova (mode privilégié #) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"R-Nova# copy startup-config tftp:"}</p>
+                    <p className="text-slate-500">{"Address or name of remote host []? 192.168.10.10"}</p>
+                    <p className="text-slate-500">{"Destination filename [R-Nova-confg]? R-Nova.cfg"}</p>
+                    <p className="text-slate-500">{"Writing startup-config...!!! [OK]"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"copy startup-config tftp:"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Copie la config sauvegardée (NVRAM) vers un serveur TFTP. Le routeur demande l'IP du serveur et le nom du fichier de destination. TFTP (Trivial File Transfer Protocol) est un protocole simple utilisé par tous les équipements Cisco pour transférer des fichiers."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"192.168.10.10"}</code><p className="text-slate-400 text-xs leading-relaxed">{"L'adresse IP du serveur TFTP (Srv-TFTP). Le routeur envoie le fichier à cette adresse."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"R-Nova.cfg"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Le nom du fichier sur le serveur. Bonne pratique : nommer le fichier avec le nom de l'équipement pour retrouver facilement la bonne config."}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW-Entrée :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW-Entree# copy startup-config tftp:"}</p>
+                    <p className="text-slate-500">{"Address or name of remote host []? 192.168.10.10"}</p>
+                    <p className="text-slate-500">{"Destination filename [SW-Entree-confg]? SW-Entree.cfg"}</p>
+                    <p className="text-slate-500">{"Writing startup-config...!!! [OK]"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW-Bureau :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"SW-Bureau# copy startup-config tftp:"}</p>
+                    <p className="text-slate-500">{"Address or name of remote host []? 192.168.10.10"}</p>
+                    <p className="text-slate-500">{"Destination filename [SW-Bureau-confg]? SW-Bureau.cfg"}</p>
+                    <p className="text-slate-500">{"Writing startup-config...!!! [OK]"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
+                  <p className="text-blue-300 font-bold text-sm mb-1">{"💡 Pourquoi sauvegarder sur TFTP ?"}</p>
+                  <p className="text-slate-300 text-sm">{"En entreprise, on centralise les backups de config sur un serveur. Si un équipement tombe en panne ou est réinitialisé, on peut restaurer sa config rapidement avec copy tftp: startup-config. Sans backup TFTP, il faut tout reconfigurer à la main."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* TESTS */}
+            <section id="s1-tests" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/20 to-green-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"✅ Étape 7 — Tests et vérification"}</h2>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Test 1 — Ping depuis Tech-PC (Desktop → Command Prompt) :"}</p>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1">
+                    <p className="text-emerald-400">{"C:\\> ping 192.168.10.1"}</p>
+                    <p className="text-slate-400">{"Reply from 192.168.10.1: bytes=32 time<1ms TTL=255   ← routeur OK"}</p>
+                    <p className="text-emerald-400">{"C:\\> ping 192.168.10.2"}</p>
+                    <p className="text-slate-400">{"Reply from 192.168.10.2: bytes=32 time<1ms TTL=255   ← SW-Entrée OK"}</p>
+                    <p className="text-emerald-400">{"C:\\> ping 192.168.10.3"}</p>
+                    <p className="text-slate-400">{"Reply from 192.168.10.3: bytes=32 time<1ms TTL=255   ← SW-Bureau OK"}</p>
+                    <p className="text-emerald-400">{"C:\\> ping 192.168.10.10"}</p>
+                    <p className="text-slate-400">{"Reply from 192.168.10.10: bytes=32 time<1ms TTL=128  ← Srv-TFTP OK"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Si un ping échoue : vérifier l'IP, le masque, la passerelle et que les interfaces sont en no shutdown."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Test 2 — Vérification config routeur :"}</p>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1">
+                    <p className="text-emerald-400">{"R-Nova# show ip interface brief"}</p>
+                    <p className="text-slate-400">{"GigabitEthernet0/0   192.168.10.1   YES manual   up   up"}</p>
+                    <p>{""}</p>
+                    <p className="text-emerald-400">{"R-Nova# show running-config | include secret"}</p>
+                    <p className="text-slate-400">{"enable secret 5 $1$...(hash MD5)   ← chiffré, pas en clair = OK"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Test 3 — Vérification config switches :"}</p>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1">
+                    <p className="text-emerald-400">{"SW-Entree# show ip interface brief"}</p>
+                    <p className="text-slate-400">{"Vlan1   192.168.10.2   YES manual   up   up   ← IP de management OK"}</p>
+                    <p>{""}</p>
+                    <p className="text-emerald-400">{"SW-Bureau# show ip interface brief"}</p>
+                    <p className="text-slate-400">{"Vlan1   192.168.10.3   YES manual   up   up   ← IP de management OK"}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* CHECKLIST */}
+            <section className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/30 to-purple-900/30 rounded-xl p-6 border border-emerald-500/40">
+                <h2 className="text-lg font-bold text-emerald-300 mb-4">{"📋 Checklist finale"}</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-black/20 rounded-lg p-4">
+                    <p className="text-emerald-400 font-bold text-sm mb-2">{"Configuration"}</p>
+                    <ul className="space-y-1.5 text-sm text-slate-300">
+                      <li>{"✅ R-Nova : hostname + IP Gi0/0 .1 + no shutdown"}</li>
+                      <li>{"✅ R-Nova : enable secret + console password + login"}</li>
+                      <li>{"✅ SW-Entrée : hostname + IP VLAN 1 .2 + gateway"}</li>
+                      <li>{"✅ SW-Bureau : hostname + IP VLAN 1 .3 + gateway"}</li>
+                      <li>{"✅ Tech-PC : IP .20 + masque + gateway .1"}</li>
+                      <li>{"✅ Srv-TFTP : IP .10 + service TFTP activé"}</li>
+                    </ul>
+                  </div>
+                  <div className="bg-black/20 rounded-lg p-4">
+                    <p className="text-emerald-400 font-bold text-sm mb-2">{"Tests"}</p>
+                    <ul className="space-y-1.5 text-sm text-slate-300">
+                      <li>{"✅ Ping PC → routeur, switches, serveur"}</li>
+                      <li>{"✅ show ip interface brief : up/up partout"}</li>
+                      <li>{"✅ Sauvegarde TFTP : 3 fichiers .cfg envoyés"}</li>
+                      <li>{"✅ copy run start fait sur chaque équipement"}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      ),
+      solutionContentLab2: (
+        <div className="max-w-5xl mx-auto space-y-8 pb-16">
+          <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
+              {[
+                { id: 's1l2-cablage', label: 'Câblage', icon: '🔌' },
+                { id: 's1l2-routeur', label: 'Routeur IP', icon: '📡' },
+                { id: 's1l2-ssh-routeur', label: 'SSH Routeur', icon: '🔐' },
+                { id: 's1l2-switch', label: 'Switch SSH', icon: '🟦' },
+                { id: 's1l2-pc', label: 'PC Config', icon: '🟨' },
+                { id: 's1l2-tests', label: 'Tests SSH', icon: '✅' },
+              ].map(({ id, label, icon }) => (
+                <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-purple-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <div className="space-y-8">
+
+            {/* INTRO */}
+            <section className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-purple-900/30 to-indigo-900/30 rounded-xl p-5 border border-purple-500/40 mb-6">
+                <h2 className="text-xl font-bold text-purple-300 flex items-center gap-2">{"🔐 Correction Lab 2 — Sécurisation SSH"}</h2>
+                <p className="text-slate-400 text-sm mt-1">{"NovaTech a subi des connexions non autorisées via Telnet. Objectif : remplacer Telnet par SSH, créer deux comptes (admin + restreint), et vérifier les différences de droits."}</p>
+              </div>
+            </section>
+
+            {/* CÂBLAGE */}
+            <section id="s1l2-cablage" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 rounded-xl p-6 border border-amber-500/30">
+                <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"🔌 Étape 1 — Câblage et adresses IP"}</h2>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-3">{"Topologie :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-4 text-emerald-300 leading-relaxed">
+                    <p>{"  [PC-Tech]"}</p>
+                    <p>{"      │"}</p>
+                    <p>{"   Fa0/2"}</p>
+                    <p>{"  [SW-Core] ─── Fa0/1 ─── Gi0/0 ─── [R-Sec]"}</p>
+                    <p>{"  .2 (VLAN 1)                         .1"}</p>
+                    <p>{"                                  192.168.1.0/24"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Tableau de câblage :"}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                      <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"De"}</th><th className="p-2 text-left">{"Port"}</th><th className="p-2 text-center">{"Câble"}</th><th className="p-2 text-left">{"Vers"}</th><th className="p-2 text-left">{"Port"}</th></tr></thead>
+                      <tbody>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"R-Sec"}</td><td className="p-2 font-mono">{"Gi0/0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW-Core"}</td><td className="p-2 font-mono">{"Fa0/1"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC-Tech"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW-Core"}</td><td className="p-2 font-mono">{"Fa0/2"}</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Adresses IP :"}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                      <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"Équipement"}</th><th className="p-2 text-left">{"Interface"}</th><th className="p-2 text-left">{"IP"}</th><th className="p-2 text-left">{"Masque"}</th><th className="p-2 text-left">{"Passerelle"}</th></tr></thead>
+                      <tbody>
+                        <tr className="border-t border-white/20 text-emerald-300"><td className="p-2 font-bold">{"R-Sec"}</td><td className="p-2 font-mono">{"Gi0/0"}</td><td className="p-2 font-mono">{"192.168.1.1"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2">{"—"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"SW-Core"}</td><td className="p-2 font-mono">{"VLAN 1"}</td><td className="p-2 font-mono">{"192.168.1.2"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono">{"192.168.1.1"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC-Tech"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono">{"192.168.1.100"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono">{"192.168.1.1"}</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* ROUTEUR IP */}
+            <section id="s1l2-routeur" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-purple-900/20 to-indigo-900/20 rounded-xl p-6 border border-purple-500/30">
+                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"📡 Étape 2 — Configuration de base du routeur R-Sec"}</h2>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur R-Sec (CLI) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Router> enable"}</p>
+                    <p>{"Router# configure terminal"}</p>
+                    <p>{"Router(config)# hostname R-Sec"}</p>
+                    <p>{"R-Sec(config)# no ip domain-lookup"}</p>
+                    <p>{"R-Sec(config)# enable secret admin123"}</p>
+                    <p>{"R-Sec(config)# service password-encryption"}</p>
+                    <p>{"R-Sec(config)# interface gigabitEthernet 0/0"}</p>
+                    <p>{"R-Sec(config-if)# ip address 192.168.1.1 255.255.255.0"}</p>
+                    <p>{"R-Sec(config-if)# no shutdown"}</p>
+                    <p>{"R-Sec(config-if)# exit"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"hostname R-Sec"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Renomme le routeur. Le nom apparaît dans le prompt et dans les logs — essentiel pour identifier l'équipement quand tu gères un parc."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"enable secret admin123"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Protège le mode privilégié (#). Le mot de passe est stocké en hash MD5 — même si quelqu'un lit la config, il ne voit pas le mot de passe en clair."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"ip address 192.168.1.1 ..."}</code><p className="text-slate-400 text-xs leading-relaxed">{"C'est l'IP à laquelle tu te connecteras en SSH depuis le PC. Sans IP sur l'interface, pas de connexion distante possible."}</p></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* SSH SUR ROUTEUR */}
+            <section id="s1l2-ssh-routeur" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-red-900/20 to-purple-900/20 rounded-xl p-6 border border-red-500/30">
+                <h2 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">{"🔐 Étape 3 — Activer SSH sur le routeur"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"SSH nécessite 4 prérequis : un hostname (déjà fait), un nom de domaine, des clés RSA, et des utilisateurs locaux."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Commandes SSH sur R-Sec :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-slate-500">{"! --- Nom de domaine (obligatoire pour RSA) ---"}</p>
+                    <p>{"R-Sec(config)# ip domain-name novatech.local"}</p>
+                    <p>{""}</p>
+                    <p className="text-slate-500">{"! --- Création des 2 utilisateurs ---"}</p>
+                    <p>{"R-Sec(config)# username admin privilege 15 secret admin123"}</p>
+                    <p>{"R-Sec(config)# username guest privilege 1 secret guest123"}</p>
+                    <p>{""}</p>
+                    <p className="text-slate-500">{"! --- Clés RSA (taper 1024 quand demandé) ---"}</p>
+                    <p>{"R-Sec(config)# crypto key generate rsa"}</p>
+                    <p className="text-slate-500">{"How many bits in the modulus [512]: 1024"}</p>
+                    <p>{""}</p>
+                    <p className="text-slate-500">{"! --- Paramètres SSH ---"}</p>
+                    <p>{"R-Sec(config)# ip ssh version 2"}</p>
+                    <p>{"R-Sec(config)# ip ssh time-out 60"}</p>
+                    <p>{"R-Sec(config)# ip ssh authentication-retries 3"}</p>
+                    <p>{""}</p>
+                    <p className="text-slate-500">{"! --- Lignes VTY (accès distant) ---"}</p>
+                    <p>{"R-Sec(config)# line vty 0 4"}</p>
+                    <p>{"R-Sec(config-line)# login local"}</p>
+                    <p>{"R-Sec(config-line)# transport input ssh"}</p>
+                    <p>{"R-Sec(config-line)# exec-timeout 5 0"}</p>
+                    <p>{"R-Sec(config-line)# exit"}</p>
+                    <p>{""}</p>
+                    <p className="text-slate-500">{"! --- Protection brute-force ---"}</p>
+                    <p>{"R-Sec(config)# login block-for 120 attempts 3 within 60"}</p>
+                    <p>{"R-Sec(config)# end"}</p>
+                    <p>{"R-Sec# copy running-config startup-config"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"ip domain-name novatech.local"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Obligatoire pour SSH. Les clés RSA sont générées à partir du nom complet : hostname + domaine (R-Sec.novatech.local). Sans domaine, la commande crypto key generate rsa échoue."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"username admin privilege 15 secret admin123"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Crée l'utilisateur « admin » avec le niveau de privilège 15 = accès complet (équivalent du mode enable). Il peut tout faire : show running-config, modifier la config, redémarrer. Le mot de passe est chiffré grâce à « secret »."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"username guest privilege 1 secret guest123"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Crée l'utilisateur « guest » avec le niveau de privilège 1 = mode utilisateur uniquement. Il peut faire des show basiques (show version, show interfaces) mais PAS show running-config ni modifier quoi que ce soit. Il ne peut PAS faire enable."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"crypto key generate rsa"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Génère la paire de clés publique/privée RSA utilisée pour chiffrer la connexion SSH. 1024 bits est le minimum (2048 recommandé en production). Sans clés RSA, SSH ne peut pas fonctionner car il n'a rien pour chiffrer."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"ip ssh version 2"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Force SSH version 2 uniquement. SSH v1 a des failles de sécurité connues (vulnérable aux attaques man-in-the-middle). En entreprise, SSH v1 est toujours désactivé."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"ip ssh time-out 60"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Si l'utilisateur ne s'authentifie pas en 60 secondes, la connexion est coupée. Évite que des connexions restent en attente indéfiniment."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"ip ssh authentication-retries 3"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Limite à 3 tentatives de mot de passe. Après 3 échecs, la session SSH est fermée. Premier niveau de protection contre le brute-force."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"line vty 0 4"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Configure les 5 lignes VTY (Virtual TeletYpe, numérotées 0 à 4). Ce sont les « portes d'entrée » pour les connexions distantes. 5 lignes = 5 administrateurs connectés simultanément maximum."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"login local"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Dit au routeur d'utiliser la base d'utilisateurs locaux (username/password) pour authentifier les connexions. Différent de « login » tout court qui utilise le mot de passe de la ligne."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"transport input ssh"}</code><p className="text-slate-400 text-xs leading-relaxed">{"N'autorise QUE SSH sur les lignes VTY. Telnet est complètement bloqué. C'est LE point clé de la sécurisation : Telnet envoie login et mot de passe en clair sur le réseau, SSH chiffre tout."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"exec-timeout 5 0"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Déconnexion automatique après 5 minutes d'inactivité. Évite qu'un admin parte déjeuner en laissant sa session ouverte — un risque de sécurité majeur."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"login block-for 120 attempts 3 within 60"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Protection anti brute-force : si 3 tentatives de login échouent en 60 secondes, TOUTES les connexions sont bloquées pendant 120 secondes. Empêche les scripts automatiques de deviner le mot de passe."}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
+                  <p className="text-blue-300 font-bold text-sm mb-1">{"💡 SSH vs Telnet — Pourquoi c'est critique"}</p>
+                  <p className="text-slate-300 text-sm">{"Telnet envoie TOUT en clair : login, mot de passe, commandes. N'importe qui sur le réseau peut capturer ces informations avec un analyseur de paquets (Wireshark). SSH chiffre l'intégralité du trafic avec RSA/AES — même si quelqu'un intercepte les paquets, il ne voit que des données illisibles. C'est pourquoi on utilise transport input ssh pour bloquer Telnet définitivement."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* SWITCH SSH */}
+            <section id="s1l2-switch" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-blue-900/20 to-indigo-900/20 rounded-xl p-6 border border-blue-500/30">
+                <h2 className="text-lg font-bold text-blue-300 mb-3 flex items-center gap-2">{"🟦 Étape 4 — Configuration SSH sur le switch SW-Core"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Même principe que le routeur : hostname + domaine + utilisateur + clés RSA + VTY SSH. Le switch a besoin d'une IP de management sur VLAN 1 pour être joignable."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW-Core (CLI) :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p>{"Switch> enable"}</p>
+                    <p>{"Switch# configure terminal"}</p>
+                    <p>{"Switch(config)# hostname SW-Core"}</p>
+                    <p>{"SW-Core(config)# no ip domain-lookup"}</p>
+                    <p>{"SW-Core(config)# enable secret admin123"}</p>
+                    <p>{"SW-Core(config)# service password-encryption"}</p>
+                    <p>{""}</p>
+                    <p className="text-slate-500">{"! --- IP de management ---"}</p>
+                    <p>{"SW-Core(config)# interface vlan 1"}</p>
+                    <p>{"SW-Core(config-if)# ip address 192.168.1.2 255.255.255.0"}</p>
+                    <p>{"SW-Core(config-if)# no shutdown"}</p>
+                    <p>{"SW-Core(config-if)# exit"}</p>
+                    <p>{"SW-Core(config)# ip default-gateway 192.168.1.1"}</p>
+                    <p>{""}</p>
+                    <p className="text-slate-500">{"! --- SSH (même logique que le routeur) ---"}</p>
+                    <p>{"SW-Core(config)# ip domain-name novatech.local"}</p>
+                    <p>{"SW-Core(config)# username admin privilege 15 secret admin123"}</p>
+                    <p>{"SW-Core(config)# crypto key generate rsa"}</p>
+                    <p className="text-slate-500">{"How many bits in the modulus [512]: 1024"}</p>
+                    <p>{"SW-Core(config)# ip ssh version 2"}</p>
+                    <p>{"SW-Core(config)# line vty 0 4"}</p>
+                    <p>{"SW-Core(config-line)# login local"}</p>
+                    <p>{"SW-Core(config-line)# transport input ssh"}</p>
+                    <p>{"SW-Core(config-line)# exit"}</p>
+                    <p>{"SW-Core(config)# end"}</p>
+                    <p>{"SW-Core# copy running-config startup-config"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"interface vlan 1"}</code><p className="text-slate-400 text-xs leading-relaxed">{"IP de management du switch. Sur un switch, l'IP ne va pas sur un port physique mais sur une SVI (Switch Virtual Interface). C'est à cette adresse qu'on se connectera en SSH."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"ip default-gateway 192.168.1.1"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Passerelle du switch vers le routeur. Obligatoire si le switch doit communiquer avec des réseaux distants."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"Même commandes SSH que le routeur"}</code><p className="text-slate-400 text-xs leading-relaxed">{"ip domain-name, username, crypto key, ip ssh version 2, line vty avec login local + transport input ssh. La procédure SSH est identique sur un routeur et un switch."}</p></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* PC CONFIG */}
+            <section id="s1l2-pc" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-amber-900/20 to-yellow-900/20 rounded-xl p-6 border border-amber-500/30">
+                <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"🟨 Étape 5 — Configuration du PC"}</h2>
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"PC-Tech → Desktop → IP Configuration :"}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                      <tbody>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold w-40">{"IP Address"}</td><td className="p-2 font-mono">{"192.168.1.100"}</td><td className="p-2 text-slate-500 text-xs">{"Adresse du PC technicien"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Subnet Mask"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 text-slate-500 text-xs">{"Même réseau /24 que le routeur et le switch"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Default Gateway"}</td><td className="p-2 font-mono">{"192.168.1.1"}</td><td className="p-2 text-slate-500 text-xs">{"IP du routeur R-Sec"}</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* TESTS SSH */}
+            <section id="s1l2-tests" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/20 to-green-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"✅ Étape 6 — Tests SSH depuis le PC"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Ouvrir PC-Tech → Desktop → Command Prompt."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Test 1 — Vérifier la connectivité (ping) :"}</p>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1">
+                    <p className="text-emerald-400">{"C:\\> ping 192.168.1.1"}</p>
+                    <p className="text-slate-400">{"Reply from 192.168.1.1: bytes=32 time<1ms TTL=255   ← routeur OK"}</p>
+                    <p className="text-emerald-400">{"C:\\> ping 192.168.1.2"}</p>
+                    <p className="text-slate-400">{"Reply from 192.168.1.2: bytes=32 time<1ms TTL=255   ← switch OK"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Si le ping échoue, SSH ne marchera pas non plus. Vérifier les IP et no shutdown."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Test 2 — SSH avec le compte admin (tous les droits) :"}</p>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1">
+                    <p className="text-emerald-400">{"C:\\> ssh -l admin 192.168.1.1"}</p>
+                    <p className="text-slate-400">{"Password: admin123"}</p>
+                    <p className="text-amber-400">{"R-Sec>                              ← connecté au routeur via SSH !"}</p>
+                    <p>{""}</p>
+                    <p className="text-emerald-400">{"R-Sec> enable"}</p>
+                    <p className="text-slate-400">{"R-Sec#                              ← admin privilege 15 = accès direct"}</p>
+                    <p className="text-emerald-400">{"R-Sec# show running-config"}</p>
+                    <p className="text-slate-400">{"... (la config complète s'affiche)   ← OK, admin voit tout"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"L'admin a privilege 15 : il accède au mode enable et peut lire/modifier toute la configuration."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Test 3 — SSH avec le compte guest (droits limités) :"}</p>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1">
+                    <p className="text-emerald-400">{"C:\\> ssh -l guest 192.168.1.1"}</p>
+                    <p className="text-slate-400">{"Password: guest123"}</p>
+                    <p className="text-amber-400">{"R-Sec>                              ← connecté, mais en mode utilisateur"}</p>
+                    <p>{""}</p>
+                    <p className="text-emerald-400">{"R-Sec> enable"}</p>
+                    <p className="text-slate-400">{"Password: ******"}</p>
+                    <p className="text-red-400">{"% Access denied                     ← BLOQUÉ ! guest ne connaît pas le enable secret"}</p>
+                    <p>{""}</p>
+                    <p className="text-emerald-400">{"R-Sec> show running-config"}</p>
+                    <p className="text-red-400">{"              ^"}</p>
+                    <p className="text-red-400">{"% Invalid input detected            ← REFUSÉ ! privilege 1 n'a pas accès"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Le guest a privilege 1 : il ne peut que consulter (show version, show interfaces) mais pas voir la config ni la modifier. C'est la séparation des droits."}</p>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Test 4 — Vérification SSH sur le routeur :"}</p>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1">
+                    <p className="text-emerald-400">{"R-Sec# show ip ssh"}</p>
+                    <p className="text-slate-400">{"SSH Enabled - version 2.0"}</p>
+                    <p className="text-slate-400">{"Authentication timeout: 60 secs; Authentication retries: 3"}</p>
+                    <p>{""}</p>
+                    <p className="text-emerald-400">{"R-Sec# show ssh"}</p>
+                    <p className="text-slate-400">{"Connection  Version  Encryption  State    Username"}</p>
+                    <p className="text-slate-400">{"0           2.0      AES256-CBC  Session  admin"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"show ip ssh"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Affiche la version SSH, le timeout et le nombre de tentatives configurés. Permet de confirmer que SSH v2 est bien actif."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"show ssh"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Affiche les sessions SSH actives : qui est connecté, depuis combien de temps, quel algorithme de chiffrement. Utile pour voir si quelqu'un est connecté."}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Test 5 — SSH vers le switch :"}</p>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1">
+                    <p className="text-emerald-400">{"C:\\> ssh -l admin 192.168.1.2"}</p>
+                    <p className="text-slate-400">{"Password: admin123"}</p>
+                    <p className="text-amber-400">{"SW-Core>                            ← SSH fonctionne aussi sur le switch"}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* CHECKLIST */}
+            <section className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/30 to-purple-900/30 rounded-xl p-6 border border-emerald-500/40">
+                <h2 className="text-lg font-bold text-emerald-300 mb-4">{"📋 Checklist finale"}</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-black/20 rounded-lg p-4">
+                    <p className="text-emerald-400 font-bold text-sm mb-2">{"Configuration"}</p>
+                    <ul className="space-y-1.5 text-sm text-slate-300">
+                      <li>{"✅ R-Sec : hostname + IP Gi0/0 .1 + no shutdown"}</li>
+                      <li>{"✅ R-Sec : ip domain-name + crypto key generate rsa"}</li>
+                      <li>{"✅ R-Sec : 2 utilisateurs (admin priv 15, guest priv 1)"}</li>
+                      <li>{"✅ R-Sec : line vty + login local + transport input ssh"}</li>
+                      <li>{"✅ R-Sec : ip ssh version 2 + timeout + retries"}</li>
+                      <li>{"✅ SW-Core : hostname + IP VLAN 1 .2 + SSH activé"}</li>
+                      <li>{"✅ PC-Tech : IP .100 + gateway .1"}</li>
+                    </ul>
+                  </div>
+                  <div className="bg-black/20 rounded-lg p-4">
+                    <p className="text-emerald-400 font-bold text-sm mb-2">{"Tests"}</p>
+                    <ul className="space-y-1.5 text-sm text-slate-300">
+                      <li>{"✅ Ping PC → routeur + switch"}</li>
+                      <li>{"✅ SSH admin → routeur : show run OK"}</li>
+                      <li>{"✅ SSH guest → routeur : show run REFUSÉ"}</li>
+                      <li>{"✅ SSH admin → switch : connexion OK"}</li>
+                      <li>{"✅ show ip ssh : version 2.0 + timeout 60s"}</li>
+                      <li>{"✅ show ssh : session active visible"}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      ),
+      solutionContentLab3: (
+        <div className="max-w-5xl mx-auto space-y-8 pb-16">
+          <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
+              {[
+                { id: 's1l3-cablage', label: 'Câblage', icon: '🔌' },
+                { id: 's1l3-switch', label: 'Switch SSH', icon: '🟦' },
+                { id: 's1l3-dns', label: 'Serveur DNS', icon: '🌐' },
+                { id: 's1l3-routeur', label: 'Routeur DNS', icon: '📡' },
+                { id: 's1l3-ssh-nom', label: 'SSH par nom', icon: '🔐' },
+                { id: 's1l3-bonus', label: 'Bonus local', icon: '⭐' },
+              ].map(({ id, label, icon }) => (
+                <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-violet-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
+                  <span className="text-[10px]">{icon}</span> {label}
+                </button>
+              ))}
+            </div>
+          </nav>
+
+          <div className="space-y-8">
+
+            {/* INTRO */}
+            <section className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-violet-900/30 to-indigo-900/30 rounded-xl p-5 border border-violet-500/40 mb-6">
+                <h2 className="text-xl font-bold text-violet-300 flex items-center gap-2">{"🌐 Correction Lab 3 — SSH par nom (DNS)"}</h2>
+                <p className="text-slate-400 text-sm mt-1">{"Le directeur IT veut se connecter aux équipements par nom (ssh -l admin SW-Core) et non par IP. On configure un serveur DNS pour traduire les noms en adresses."}</p>
+              </div>
+            </section>
+
+            {/* CÂBLAGE */}
+            <section id="s1l3-cablage" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 rounded-xl p-6 border border-amber-500/30">
+                <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"🔌 Étape 1 — Câblage et adresses IP"}</h2>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-3">{"Topologie :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-4 text-emerald-300 leading-relaxed">
+                    <p>{"  [Srv-DNS]      [PC-Tech]"}</p>
+                    <p>{"  .254              .100"}</p>
+                    <p>{"      │               │"}</p>
+                    <p>{"   Fa0/3           Fa0/2"}</p>
+                    <p>{"      └──── [SW-Core] ────┐"}</p>
+                    <p>{"          .2 (VLAN 1)   Fa0/1"}</p>
+                    <p>{"                          │"}</p>
+                    <p>{"                       Gi0/0"}</p>
+                    <p>{"                      [R-Admin]"}</p>
+                    <p>{"                        .1"}</p>
+                    <p>{"                   192.168.1.0/24"}</p>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Adresses IP :"}</p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                      <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"Équipement"}</th><th className="p-2 text-left">{"Interface"}</th><th className="p-2 text-left">{"IP"}</th><th className="p-2 text-left">{"Masque"}</th><th className="p-2 text-left">{"Passerelle"}</th></tr></thead>
+                      <tbody>
+                        <tr className="border-t border-white/20 text-emerald-300"><td className="p-2 font-bold">{"R-Admin"}</td><td className="p-2 font-mono">{"Gi0/0"}</td><td className="p-2 font-mono">{"192.168.1.1"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2">{"—"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"SW-Core"}</td><td className="p-2 font-mono">{"VLAN 1"}</td><td className="p-2 font-mono">{"192.168.1.2"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono">{"192.168.1.1"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Srv-DNS"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono">{"192.168.1.254"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono">{"192.168.1.1"}</td></tr>
+                        <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC-Tech"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 font-mono">{"192.168.1.100"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 font-mono">{"192.168.1.1"}</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* SWITCH SSH */}
+            <section id="s1l3-switch" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-blue-900/20 to-indigo-900/20 rounded-xl p-6 border border-blue-500/30">
+                <h2 className="text-lg font-bold text-blue-300 mb-3 flex items-center gap-2">{"🟦 Étape 2 — Configuration du switch SW-Core (IP + SSH)"}</h2>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW-Core (CLI) :"}</p>
+
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-0.5 mb-2">
+                    <p>{"Switch> enable"}</p>
+                    <p>{"Switch# configure terminal"}</p>
+                  </div>
+                  <div className="space-y-2 mb-4">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"enable"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Passe en mode privilégié (#). Nécessaire pour accéder à la configuration."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"configure terminal"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Entre en mode configuration globale (config)# pour modifier les paramètres du switch."}</p></div>
+                  </div>
+
+                  <p className="text-slate-500 text-xs font-mono mb-2">{"! --- Configuration de base ---"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-0.5 mb-2">
+                    <p>{"Switch(config)# hostname SW-Core"}</p>
+                    <p>{"SW-Core(config)# no ip domain-lookup"}</p>
+                  </div>
+                  <div className="space-y-2 mb-4">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"hostname SW-Core"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Donne le nom SW-Core au switch. Le prompt change immédiatement de Switch à SW-Core."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"no ip domain-lookup"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Désactive la résolution DNS automatique. Sans ça, chaque faute de frappe lance une requête DNS et bloque le CLI pendant 30 secondes."}</p></div>
+                  </div>
+
+                  <p className="text-slate-500 text-xs font-mono mb-2">{"! --- IP du switch (VLAN 1) ---"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-0.5 mb-2">
+                    <p>{"SW-Core(config)# interface vlan 1"}</p>
+                    <p>{"SW-Core(config-if)# ip address 192.168.1.2 255.255.255.0"}</p>
+                    <p>{"SW-Core(config-if)# no shutdown"}</p>
+                    <p>{"SW-Core(config-if)# exit"}</p>
+                    <p>{"SW-Core(config)# ip default-gateway 192.168.1.1"}</p>
+                  </div>
+                  <div className="space-y-2 mb-4">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"interface vlan 1"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Entre dans l'interface virtuelle VLAN 1. C'est l'interface de gestion du switch — un switch n'a pas de port IP physique, on utilise le VLAN 1 pour lui donner une adresse."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"ip address 192.168.1.2 255.255.255.0"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Assigne l'IP 192.168.1.2 au switch. C'est cette IP qui sera associée au nom « SW-Core » dans le serveur DNS."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"no shutdown"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Active l'interface VLAN 1. Par défaut les interfaces de gestion sont désactivées (administratively down)."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"ip default-gateway 192.168.1.1"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Définit la passerelle par défaut. Un switch Layer 2 n'a pas de table de routage — il a besoin de cette passerelle pour communiquer avec des réseaux distants."}</p></div>
+                  </div>
+
+                  <p className="text-slate-500 text-xs font-mono mb-2">{"! --- Configuration SSH ---"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-0.5 mb-2">
+                    <p>{"SW-Core(config)# ip domain-name novatech.local"}</p>
+                    <p>{"SW-Core(config)# username admin privilege 15 secret admin123"}</p>
+                    <p>{"SW-Core(config)# crypto key generate rsa"}</p>
+                    <p className="text-slate-500">{"How many bits in the modulus [512]: 1024"}</p>
+                    <p>{"SW-Core(config)# ip ssh version 2"}</p>
+                  </div>
+                  <div className="space-y-2 mb-4">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"ip domain-name novatech.local"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Définit le nom de domaine. Obligatoire pour SSH — Cisco utilise le hostname + domain-name pour générer la paire de clés RSA."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"username admin privilege 15 secret admin123"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Crée l'utilisateur « admin » avec le niveau de privilège maximum (15 = accès complet) et un mot de passe chiffré. C'est ce compte qui servira pour la connexion SSH."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"crypto key generate rsa → 1024"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Génère la paire de clés RSA (publique/privée) pour le chiffrement SSH. 1024 bits est le minimum recommandé — en dessous, SSH v2 refuse de fonctionner."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"ip ssh version 2"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Force l'utilisation de SSH version 2 uniquement. SSHv1 a des failles de sécurité connues et ne doit jamais être utilisé en production."}</p></div>
+                  </div>
+
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-0.5 mb-2">
+                    <p>{"SW-Core(config)# line vty 0 4"}</p>
+                    <p>{"SW-Core(config-line)# login local"}</p>
+                    <p>{"SW-Core(config-line)# transport input ssh"}</p>
+                    <p>{"SW-Core(config-line)# exit"}</p>
+                  </div>
+                  <div className="space-y-2 mb-4">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"line vty 0 4"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Entre dans la configuration des 5 lignes d'accès à distance (VTY 0 à 4). Ce sont les « portes d'entrée » pour les connexions SSH/Telnet."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"login local"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Authentifie les connexions VTY avec la base locale (les username créés plus haut). Sans ça, personne ne peut se connecter."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"transport input ssh"}</code><p className="text-slate-400 text-xs leading-relaxed">{"N'autorise QUE le protocole SSH sur les lignes VTY. Telnet est bloqué — toutes les connexions sont chiffrées."}</p></div>
+                  </div>
+
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-0.5 mb-2">
+                    <p>{"SW-Core(config)# end"}</p>
+                    <p>{"SW-Core# copy running-config startup-config"}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"end"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Quitte tous les modes de configuration et revient au mode privilégié (#)."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"copy running-config startup-config"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Sauvegarde la configuration active (RAM) dans la NVRAM. Sans ça, tout est perdu au prochain redémarrage."}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4 mt-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Vérification — Ping depuis le PC :"}</p>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1">
+                    <p className="text-emerald-400">{"C:\\> ping 192.168.1.2"}</p>
+                    <p className="text-slate-400">{"Reply from 192.168.1.2: bytes=32 time<1ms TTL=255   ← switch joignable"}</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* SERVEUR DNS */}
+            <section id="s1l3-dns" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-cyan-900/20 to-blue-900/20 rounded-xl p-6 border border-cyan-500/30">
+                <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center gap-2">{"🌐 Étape 3 — Configuration du serveur DNS"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Le serveur DNS traduit les noms en adresses IP. Quand on tape « ssh -l admin SW-Core », le PC demande au serveur DNS : « c'est quoi l'IP de SW-Core ? » et reçoit 192.168.1.2."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Configuration du serveur (GUI) :"}</p>
+                  <div className="space-y-2 mt-2">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"IP : 192.168.1.254"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Clic sur Srv-DNS → Desktop → IP Configuration. IP 192.168.1.254, masque 255.255.255.0, gateway 192.168.1.1."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"Services → DNS → ON"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Clic sur Srv-DNS → Services → DNS. Activer le service en le mettant sur ON."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"Ajouter l'entrée DNS"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Dans le champ Name, taper SW-Core. Dans le champ Address, taper 192.168.1.2. Cliquer sur Add. Cette entrée dit : « quand quelqu'un demande SW-Core, répondre 192.168.1.2 »."}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
+                  <p className="text-blue-300 font-bold text-sm mb-1">{"💡 Comment fonctionne le DNS ?"}</p>
+                  <p className="text-slate-300 text-sm">{"DNS (Domain Name System) est comme un annuaire téléphonique : tu donnes un nom, il te retourne l'adresse IP. Quand tu tapes ping SW-Core, le PC envoie d'abord une requête DNS au serveur (192.168.1.254) qui répond « SW-Core = 192.168.1.2 », puis le PC fait le ping vers 192.168.1.2. Sans DNS, il faudrait mémoriser toutes les IP."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* ROUTEUR DNS */}
+            <section id="s1l3-routeur" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-purple-900/20 to-indigo-900/20 rounded-xl p-6 border border-purple-500/30">
+                <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"📡 Étape 4 — Configurer le routeur pour utiliser le DNS"}</h2>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur R-Admin (CLI) :"}</p>
+
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-0.5 mb-2">
+                    <p>{"Router> enable"}</p>
+                    <p>{"Router# configure terminal"}</p>
+                    <p>{"Router(config)# hostname R-Admin"}</p>
+                  </div>
+                  <div className="space-y-2 mb-4">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"enable"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Passe en mode privilégié (#)."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"configure terminal"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Entre en mode configuration globale pour modifier les paramètres du routeur."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"hostname R-Admin"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Renomme le routeur en « R-Admin ». Le prompt change de Router à R-Admin."}</p></div>
+                  </div>
+
+                  <p className="text-slate-500 text-xs font-mono mb-2">{"! --- Interface vers le LAN ---"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-0.5 mb-2">
+                    <p>{"R-Admin(config)# interface gigabitEthernet 0/0"}</p>
+                    <p>{"R-Admin(config-if)# ip address 192.168.1.1 255.255.255.0"}</p>
+                    <p>{"R-Admin(config-if)# no shutdown"}</p>
+                    <p>{"R-Admin(config-if)# exit"}</p>
+                  </div>
+                  <div className="space-y-2 mb-4">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"interface gigabitEthernet 0/0"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Entre dans la configuration de l'interface Gi0/0, qui est connectée au switch SW-Core (et donc au LAN 192.168.1.0/24)."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"ip address 192.168.1.1 255.255.255.0"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Assigne l'IP 192.168.1.1 au routeur. C'est la passerelle par défaut de tout le réseau — tous les équipements pointent vers cette adresse."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"no shutdown"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Active l'interface. Sur un routeur Cisco, toutes les interfaces sont désactivées (shutdown) par défaut."}</p></div>
+                  </div>
+
+                  <p className="text-slate-500 text-xs font-mono mb-2">{"! --- Pointer vers le serveur DNS ---"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-0.5 mb-2">
+                    <p>{"R-Admin(config)# ip name-server 192.168.1.254"}</p>
+                    <p>{"R-Admin(config)# end"}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"ip name-server 192.168.1.254"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Dit au routeur : « quand tu dois résoudre un nom (ex: SW-Core), envoie la requête DNS au serveur 192.168.1.254 ». Sans cette commande, le routeur ne sait pas où demander."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"end"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Quitte le mode configuration et revient au mode privilégié (#)."}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Vérification — depuis le routeur :"}</p>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1">
+                    <p className="text-emerald-400">{"R-Admin# ping SW-Core"}</p>
+                    <p className="text-slate-400">{"Translating \"SW-Core\"...domain server (192.168.1.254)"}</p>
+                    <p className="text-slate-400">{"Type escape sequence to abort."}</p>
+                    <p className="text-emerald-400">{"Reply from 192.168.1.2: bytes=32 time<1ms TTL=255   ← DNS fonctionne !"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Le routeur a demandé au DNS « c'est quoi SW-Core ? », reçu 192.168.1.2, puis fait le ping. La résolution DNS est opérationnelle."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* SSH PAR NOM */}
+            <section id="s1l3-ssh-nom" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/20 to-green-900/20 rounded-xl p-6 border border-emerald-500/30">
+                <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"🔐 Étape 5 — Connexion SSH par nom"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Le PC aussi doit connaître le serveur DNS. Dans PC-Tech → Desktop → IP Configuration, renseigner le DNS Server : 192.168.1.254."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Depuis PC-Tech (Command Prompt) :"}</p>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1">
+                    <p className="text-emerald-400">{"C:\\> ssh -l admin SW-Core"}</p>
+                    <p className="text-slate-400">{"Password: admin123"}</p>
+                    <p className="text-amber-400">{"SW-Core>                            ← connecté par NOM, pas par IP !"}</p>
+                    <p>{""}</p>
+                    <p className="text-emerald-400">{"SW-Core> enable"}</p>
+                    <p className="text-slate-400">{"SW-Core#"}</p>
+                    <p className="text-emerald-400">{"SW-Core# show ip interface brief"}</p>
+                    <p className="text-slate-400">{"Vlan1   192.168.1.2   YES manual   up   up"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"ssh -l admin SW-Core"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Le PC envoie une requête DNS pour « SW-Core », reçoit 192.168.1.2, puis ouvre une connexion SSH vers cette IP. L'utilisateur n'a pas besoin de connaître l'IP — juste le nom. C'est plus professionnel et plus pratique quand tu gères des dizaines d'équipements."}</p></div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* BONUS */}
+            <section id="s1l3-bonus" className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-yellow-900/20 to-amber-900/20 rounded-xl p-6 border border-yellow-500/30">
+                <h2 className="text-lg font-bold text-yellow-300 mb-3 flex items-center gap-2">{"⭐ Étape bonus — Résolution locale (sans serveur DNS)"}</h2>
+                <p className="text-slate-300 text-sm mb-4">{"Et si le serveur DNS tombe en panne ? On peut configurer une résolution locale directement sur le routeur avec ip host."}</p>
+
+                <div className="bg-black/30 rounded-lg p-4 mb-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Sur R-Admin :"}</p>
+                  <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+                    <p className="text-slate-500">{"! --- Supprimer le DNS externe ---"}</p>
+                    <p>{"R-Admin(config)# no ip name-server 192.168.1.254"}</p>
+                    <p>{""}</p>
+                    <p className="text-slate-500">{"! --- Ajouter une résolution locale ---"}</p>
+                    <p>{"R-Admin(config)# ip host SW-Core 192.168.1.2"}</p>
+                    <p>{"R-Admin(config)# end"}</p>
+                  </div>
+                  <div className="space-y-2 mt-3">
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"no ip name-server ..."}</code><p className="text-slate-400 text-xs leading-relaxed">{"Supprime le pointeur vers le serveur DNS externe. Le routeur ne contactera plus le serveur pour résoudre les noms."}</p></div>
+                    <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"ip host SW-Core 192.168.1.2"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Crée une entrée DNS locale sur le routeur : « SW-Core = 192.168.1.2 ». C'est comme un fichier /etc/hosts sur Linux. Pas besoin de serveur DNS — la résolution se fait localement."}</p></div>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-lg p-4">
+                  <p className="text-purple-300 font-bold text-sm mb-2">{"Test — depuis le routeur :"}</p>
+                  <div className="bg-black/20 rounded p-3 font-mono text-xs space-y-1">
+                    <p className="text-emerald-400">{"R-Admin# ssh -l admin SW-Core"}</p>
+                    <p className="text-slate-400">{"Password: admin123"}</p>
+                    <p className="text-amber-400">{"SW-Core>                            ← résolu localement, sans serveur DNS !"}</p>
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">{"Différence : avec ip name-server, la résolution passe par le serveur DNS (réseau). Avec ip host, elle est locale au routeur (pas de requête réseau). Les deux méthodes coexistent : ip host est vérifié en premier."}</p>
+                </div>
+              </div>
+            </section>
+
+            {/* CHECKLIST */}
+            <section className="scroll-mt-4">
+              <div className="bg-gradient-to-r from-emerald-900/30 to-purple-900/30 rounded-xl p-6 border border-emerald-500/40">
+                <h2 className="text-lg font-bold text-emerald-300 mb-4">{"📋 Checklist finale"}</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-black/20 rounded-lg p-4">
+                    <p className="text-emerald-400 font-bold text-sm mb-2">{"Configuration"}</p>
+                    <ul className="space-y-1.5 text-sm text-slate-300">
+                      <li>{"✅ R-Admin : hostname + IP Gi0/0 .1"}</li>
+                      <li>{"✅ R-Admin : ip name-server 192.168.1.254"}</li>
+                      <li>{"✅ SW-Core : hostname + IP VLAN 1 .2 + SSH"}</li>
+                      <li>{"✅ Srv-DNS : IP .254 + service DNS ON"}</li>
+                      <li>{"✅ Srv-DNS : entrée SW-Core → 192.168.1.2"}</li>
+                      <li>{"✅ PC-Tech : IP .100 + DNS server .254"}</li>
+                    </ul>
+                  </div>
+                  <div className="bg-black/20 rounded-lg p-4">
+                    <p className="text-emerald-400 font-bold text-sm mb-2">{"Tests"}</p>
+                    <ul className="space-y-1.5 text-sm text-slate-300">
+                      <li>{"✅ ping SW-Core depuis le routeur → résolu"}</li>
+                      <li>{"✅ ssh -l admin SW-Core depuis le PC → OK"}</li>
+                      <li>{"✅ Vérification privilege 15 après connexion"}</li>
+                      <li>{"✅ Bonus : ip host SW-Core fonctionne"}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      )
     },
     quiz: [
       { 
@@ -20377,6 +21435,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
   const [labTab, setLabTab] = useState(lab.consignes ? 'consignes' : (hideCorrection ? 'consignes' : 'correction')); // 'consignes' | 'correction' | 'correction_lab2' | 'correction_lab3' | 'correction_lab4'
   const isSession2 = sessionId === 2;
   const isSession3 = sessionId === 3;
+  const isSession1 = sessionId === 1;
   const isSession4 = sessionId === 4;
   const isSession5 = sessionId === 5;
   const isSession6 = sessionId === 6;
@@ -20409,23 +21468,23 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
               onClick={() => setLabTab('correction')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession12 ? 'Correction Lab Synthèse' : isSession11 ? 'Correction Lab 1 (STP & Intro)' : isSession10 ? 'Correction Lab 1 (Intro STP)' : isSession9 ? 'Correction Lab OSPF' : isSession8 ? 'Correction Lab Routage' : isSession7 ? 'Correction Lab Adressage' : isSession6 ? 'Correction Lab Syslog' : isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : 'Correction Lab 1'}
+              <CheckCircle className="w-4 h-4" /> {isSession12 ? 'Correction Lab Synthèse' : isSession11 ? 'Correction Lab 1 (STP & Intro)' : isSession10 ? 'Correction Lab 1 (Intro STP)' : isSession9 ? 'Correction Lab OSPF' : isSession8 ? 'Correction Lab Routage' : isSession7 ? 'Correction Lab Adressage' : isSession6 ? 'Correction Lab Syslog' : isSession4 ? 'Correction Lab 1 (Base)' : isSession3 ? 'Correction Lab 1' : isSession2 ? 'Correction Lab 1 (VLAN)' : isSession1 ? 'Correction Lab 1 (Config initiale)' : 'Correction Lab 1'}
             </button>
           )}
-          {!hideCorrection && (isSession2 || isSession3 || isSession4 || isSession5 || isSession6 || isSession8 || isSession9 || isSession10 || isSession11) && lab.solutionContentLab2 && (
+          {!hideCorrection && (isSession1 || isSession2 || isSession3 || isSession4 || isSession5 || isSession6 || isSession8 || isSession9 || isSession10 || isSession11) && lab.solutionContentLab2 && (
             <button
               onClick={() => setLabTab('correction_lab2')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab2' ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession11 ? 'Correction Lab 2 (PAgP)' : isSession10 ? 'Élection Root Bridge' : isSession9 ? 'Dépannage OSPF' : isSession8 ? 'Dépannage 1' : isSession6 ? 'Correction Lab 2 (Synthèse)' : isSession5 ? 'Correction Lab 2 (HTTP/FTP/ARP)' : isSession4 ? 'Correction Lab 2 (Étendu)' : isSession3 ? 'Correction Lab 2 (Dépannage)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : 'Correction Lab 2'}
+              <CheckCircle className="w-4 h-4" /> {isSession11 ? 'Correction Lab 2 (PAgP)' : isSession10 ? 'Élection Root Bridge' : isSession9 ? 'Dépannage OSPF' : isSession8 ? 'Dépannage 1' : isSession6 ? 'Correction Lab 2 (Synthèse)' : isSession5 ? 'Correction Lab 2 (HTTP/FTP/ARP)' : isSession4 ? 'Correction Lab 2 (Étendu)' : isSession3 ? 'Correction Lab 2 (Dépannage)' : isSession2 ? 'Correction Lab 2 (VLAN avancés)' : isSession1 ? 'Correction Lab 2 (SSH)' : 'Correction Lab 2'}
             </button>
           )}
-          {!hideCorrection && (isSession5 || isSession8 || isSession9 || isSession10 || isSession11) && lab.solutionContentLab3 && (
+          {!hideCorrection && (isSession1 || isSession5 || isSession8 || isSession9 || isSession10 || isSession11) && lab.solutionContentLab3 && (
             <button
               onClick={() => setLabTab('correction_lab3')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all flex items-center gap-2 ${labTab === 'correction_lab3' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white hover:bg-[#251845]'}`}
             >
-              <CheckCircle className="w-4 h-4" /> {isSession11 ? 'Correction Lab 3 (LACP)' : isSession10 ? 'Dépannage 1 — Root Bridge' : isSession9 ? 'Dépannage 2' : isSession8 ? 'Dépannage 2' : 'Correction Lab 3 (Synthèse)'}
+              <CheckCircle className="w-4 h-4" /> {isSession11 ? 'Correction Lab 3 (LACP)' : isSession10 ? 'Dépannage 1 — Root Bridge' : isSession9 ? 'Dépannage 2' : isSession8 ? 'Dépannage 2' : isSession1 ? 'Correction Lab 3 (DNS)' : 'Correction Lab 3 (Synthèse)'}
             </button>
           )}
           {!hideCorrection && (isSession5 || isSession9 || isSession10 || isSession11) && lab.solutionContentLab4 && (
@@ -20488,14 +21547,14 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
       {labTab === 'correction' && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {(isSession4 || isSession5 || isSession6 || isSession7 || isSession8 || isSession9 || isSession10 || isSession11 || isSession12) && lab.solutionContent ? lab.solutionContent : isSession3 ? <LabCorrectionSection3Verbose /> : isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSectionVerbose />}
+            {(isSession1 || isSession4 || isSession5 || isSession6 || isSession7 || isSession8 || isSession9 || isSession10 || isSession11 || isSession12) && lab.solutionContent ? lab.solutionContent : isSession3 ? <LabCorrectionSection3Verbose /> : isSession2 && lab.solutionContent ? lab.solutionContent : <LabCorrectionSectionVerbose />}
           </div>
         </div>
       )}
       {labTab === 'correction_lab2' && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl overflow-y-auto">
           <div className="p-6">
-            {(isSession4 || isSession5 || isSession6 || isSession8 || isSession9 || isSession10 || isSession11) ? (lab.solutionContentLab2) : isSession3 ? <LabTroubleshootingSection3 /> : isSession2 ? (lab.solutionContentLab2 || (
+            {(isSession1 || isSession4 || isSession5 || isSession6 || isSession8 || isSession9 || isSession10 || isSession11) ? (lab.solutionContentLab2) : isSession3 ? <LabTroubleshootingSection3 /> : isSession2 ? (lab.solutionContentLab2 || (
               <div className="max-w-2xl mx-auto bg-[#1a1035]/50 border border-white/20 rounded-xl p-8 text-center">
                 <h3 className="text-xl font-bold text-purple-400 mb-3">Correction Lab 2 – VLAN avancés et sécurisation</h3>
                 <p className="text-slate-400">Trunk, VLAN autorisés, VLAN natif. Pour les consignes et la correction détaillée, suivre le PDF « 3 - Introduction Vlan avancés et sécurisation - LAB.pdf ».</p>
@@ -20504,7 +21563,7 @@ const LabsSection = ({ lab, sessionLabel = 'Session 1', sessionDescription, sess
           </div>
         </div>
       )}
-      {labTab === 'correction_lab3' && (isSession5 || isSession8 || isSession9 || isSession10 || isSession11) && lab.solutionContentLab3 && (
+      {labTab === 'correction_lab3' && (isSession1 || isSession5 || isSession8 || isSession9 || isSession10 || isSession11) && lab.solutionContentLab3 && (
         <div className="flex-1 bg-[#0e0920]/90 border border-white/[0.15] rounded-b-xl overflow-y-auto">
           <div className="p-6">
             {lab.solutionContentLab3}
