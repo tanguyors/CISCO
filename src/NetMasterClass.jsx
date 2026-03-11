@@ -2154,122 +2154,220 @@ const CorrectionLab1Session2Verbose = () => (
       <div className="flex items-center gap-3 flex-wrap">
         <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
         {[
-          { id: 'lab1s2-cablage', label: 'Câblage', icon: '🟦' },
+          { id: 'lab1s2-cablage', label: 'Câblage', icon: '🔌' },
           { id: 'lab1s2-ip', label: 'Config PC', icon: '🟨' },
           { id: 'lab1s2-vlan', label: 'Créer VLANs', icon: '🟥' },
           { id: 'lab1s2-ports', label: 'Attribuer ports', icon: '🟩' },
-          { id: 'lab1s2-verif', label: 'Vérif + ping', icon: '🟪' },
+          { id: 'lab1s2-verif', label: 'Vérif + ping', icon: '✅' },
         ].map(({ id, label, icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-            className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
-          >
+          <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
             <span className="text-[10px]">{icon}</span> {label}
           </button>
         ))}
       </div>
     </nav>
 
-    <div className="space-y-6">
-      {/* MATÉRIEL */}
-      <section>
-        <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">🧩 Matériel</h2>
-        <p className="text-slate-300 text-sm">1 switch (2960), 4 PC : PC-Admin1, PC-Admin2, PC-Com1, PC-Com2.</p>
+    <div className="space-y-8">
+
+      {/* INTRO */}
+      <section className="scroll-mt-4">
+        <div className="bg-gradient-to-r from-emerald-900/30 to-purple-900/30 rounded-xl p-5 border border-emerald-500/40 mb-6">
+          <h2 className="text-xl font-bold text-emerald-300 flex items-center gap-2">{"🏷️ Correction Lab 1 — Introduction aux VLANs"}</h2>
+          <p className="text-slate-400 text-sm mt-1">{"1 switch 2960, 4 PC (Admin1, Admin2, Com1, Com2). Objectif : créer 2 VLANs (Administration + Commercial), assigner les ports, vérifier l'isolation."}</p>
+        </div>
       </section>
 
-      {/* ÉTAPE 1 — CÂBLAGE */}
+      {/* CÂBLAGE */}
       <section id="lab1s2-cablage" className="scroll-mt-4">
-        <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-2">🟦 Étape 1 — Câblage</h2>
-        <p className="text-slate-300 text-sm">Branche chaque PC sur un port du switch (câble droit ou auto). Exemple : PC-Admin1 → Fa0/1, PC-Admin2 → Fa0/2, PC-Com1 → Fa0/3, PC-Com2 → Fa0/4. Vérif : liens 🟢 verts.</p>
+        <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 rounded-xl p-6 border border-amber-500/30">
+          <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"🔌 Étape 1 — Câblage"}</h2>
+          <p className="text-slate-300 text-sm mb-4">{"Branche chaque PC sur un port du switch avec un câble Copper Straight-Through. Les liens doivent passer au vert."}</p>
+
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-3">{"Topologie :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-4 text-emerald-300 leading-relaxed">
+              <p>{"  [PC-Admin1]  [PC-Admin2]  [PC-Com1]  [PC-Com2]"}</p>
+              <p>{"      │            │           │          │"}</p>
+              <p>{"   Fa0/1        Fa0/2       Fa0/3      Fa0/4"}</p>
+              <p>{"      └────────────┴─────[Switch 2960]──┘"}</p>
+            </div>
+          </div>
+
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Tableau de câblage :"}</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"De"}</th><th className="p-2 text-left">{"Port"}</th><th className="p-2 text-center">{"Câble"}</th><th className="p-2 text-left">{"Vers"}</th><th className="p-2 text-left">{"Port"}</th><th className="p-2 text-left">{"Rôle"}</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC-Admin1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"Switch"}</td><td className="p-2 font-mono">{"Fa0/1"}</td><td className="p-2 text-slate-400">{"VLAN 10 — Administration"}</td></tr>
+                  <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC-Admin2"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"Switch"}</td><td className="p-2 font-mono">{"Fa0/2"}</td><td className="p-2 text-slate-400">{"VLAN 10 — Administration"}</td></tr>
+                  <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC-Com1"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"Switch"}</td><td className="p-2 font-mono">{"Fa0/3"}</td><td className="p-2 text-slate-400">{"VLAN 20 — Commercial"}</td></tr>
+                  <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC-Com2"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"Switch"}</td><td className="p-2 font-mono">{"Fa0/4"}</td><td className="p-2 text-slate-400">{"VLAN 20 — Commercial"}</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
+            <p className="text-blue-300 font-bold text-sm mb-1">{"💡 Câble droit partout"}</p>
+            <p className="text-slate-300 text-sm">{"PC↔Switch = câble droit (Straight-Through). Le câble croisé ne sert qu'entre équipements de même type (Switch↔Switch), et même là, l'auto-MDIX compense."}</p>
+          </div>
+        </div>
       </section>
 
-      {/* ÉTAPE 2 — IP (PC) */}
+      {/* CONFIG IP PC */}
       <section id="lab1s2-ip" className="scroll-mt-4">
-        <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">🟨 Étape 2 — IP sur les PC</h2>
-        <p className="text-slate-300 text-sm mb-2">Sur chaque PC : Desktop → IP Configuration. Même réseau pour tous (pour bien voir l'effet des VLANs). Sur chaque PC : Desktop → IP Configuration.</p>
-        <div className="overflow-x-auto mb-3">
-          <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
-            <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">PC</th><th className="p-2 text-left">IP</th><th className="p-2 text-left">Masque</th></tr></thead>
-            <tbody>
-              <tr className="border-t border-white/20"><td className="p-2">PC-Admin1</td><td className="p-2 font-mono text-emerald-400">192.168.1.10</td><td className="p-2 font-mono">255.255.255.0</td></tr>
-              <tr className="border-t border-white/20"><td className="p-2">PC-Admin2</td><td className="p-2 font-mono text-emerald-400">192.168.1.11</td><td className="p-2 font-mono">255.255.255.0</td></tr>
-              <tr className="border-t border-white/20"><td className="p-2">PC-Com1</td><td className="p-2 font-mono text-emerald-400">192.168.1.20</td><td className="p-2 font-mono">255.255.255.0</td></tr>
-              <tr className="border-t border-white/20"><td className="p-2">PC-Com2</td><td className="p-2 font-mono text-emerald-400">192.168.1.21</td><td className="p-2 font-mono">255.255.255.0</td></tr>
-            </tbody>
-          </table>
+        <div className="bg-gradient-to-r from-yellow-900/20 to-purple-900/20 rounded-xl p-6 border border-yellow-500/30">
+          <h2 className="text-lg font-bold text-yellow-300 mb-3 flex items-center gap-2">{"🟨 Étape 2 — IP sur les PC"}</h2>
+          <p className="text-slate-300 text-sm mb-4">{"Sur chaque PC : Desktop → IP Configuration. Même réseau pour tous (pour bien voir l'effet des VLANs)."}</p>
+
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Adresses IP :"}</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"PC"}</th><th className="p-2 text-left">{"IP"}</th><th className="p-2 text-left">{"Masque"}</th><th className="p-2 text-left">{"Gateway"}</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC-Admin1"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.10"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                  <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC-Admin2"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.11"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                  <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC-Com1"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.20"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                  <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC-Com2"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.1.21"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2 text-slate-500">{"—"}</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20">
+            <p className="text-amber-300 font-bold text-sm mb-1">{"⚠️ Pas de gateway"}</p>
+            <p className="text-slate-300 text-sm">{"Pas de routeur dans ce lab. Les VLANs agissent au niveau du switch : même réseau IP, mais réseaux VLAN séparés. La gateway reste vide."}</p>
+          </div>
         </div>
-        <p className="text-amber-300/90 text-xs border-l-2 border-amber-500/50 pl-3 py-1">⚠️ PAS de gateway (pas de routeur dans ce lab). Les VLANs agissent au niveau du switch ; même réseau IP, mais réseaux VLAN séparés.</p>
       </section>
 
-      {/* ÉTAPE 3 — CRÉER LES VLANs */}
+      {/* CRÉER LES VLANs */}
       <section id="lab1s2-vlan" className="scroll-mt-4">
-        <h2 className="text-sm font-bold text-red-400 uppercase tracking-wider mb-2">🟥 Étape 3 — Créer les VLANs (switch, CLI)</h2>
-        <p className="text-slate-300 text-sm mb-3">Ouvre le switch → CLI.</p>
-        <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 space-y-0 mb-4">
-          <CmdLine cmd="enable">Passe en mode privilégié (prompt #).</CmdLine>
-          <CmdLine cmd="configure terminal">Entre en mode configuration globale.</CmdLine>
-          <CmdLine cmd="vlan 10">Crée le VLAN 10. Le switch passe en (config-vlan)#.</CmdLine>
-          <CmdLine cmd="name Administration">Donne le nom Administration au VLAN 10.</CmdLine>
-          <CmdLine cmd="exit">Sort du VLAN 10.</CmdLine>
-          <CmdLine cmd="vlan 20">Crée le VLAN 20.</CmdLine>
-          <CmdLine cmd="name Commercial">Donne le nom Commercial au VLAN 20.</CmdLine>
-          <CmdLine cmd="exit">Sort du VLAN 20.</CmdLine>
-          <CmdLine cmd="show vlan brief">Vérif : tu vois VLAN 10 et 20. Aucun port dedans pour l'instant, c'est normal.</CmdLine>
+        <div className="bg-gradient-to-r from-red-900/20 to-purple-900/20 rounded-xl p-6 border border-red-500/30">
+          <h2 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">{"🟥 Étape 3 — Créer les VLANs (switch, CLI)"}</h2>
+          <p className="text-slate-300 text-sm mb-4">{"Ouvre le switch → CLI. On crée deux VLANs : 10 (Administration) et 20 (Commercial)."}</p>
+
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Commandes :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"Switch> enable"}</p>
+              <p>{"Switch# configure terminal"}</p>
+              <p>{"Switch(config)# vlan 10"}</p>
+              <p>{"Switch(config-vlan)# name Administration"}</p>
+              <p>{"Switch(config-vlan)# exit"}</p>
+              <p>{"Switch(config)# vlan 20"}</p>
+              <p>{"Switch(config-vlan)# name Commercial"}</p>
+              <p>{"Switch(config-vlan)# exit"}</p>
+            </div>
+            <div className="space-y-2 mt-3">
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"enable"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Passe du mode utilisateur (>) au mode privilégié (#). Sans ça, impossible de modifier quoi que ce soit."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"configure terminal"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Entre en mode configuration globale (config)#. C'est ici que tu crées les VLANs et configures les ports."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"vlan 10"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Crée le VLAN 10. Le switch passe en (config-vlan)#. Si le VLAN existe déjà, tu entres dedans pour le modifier."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"name Administration"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Donne le nom « Administration » au VLAN 10. Optionnel mais indispensable en entreprise pour s'y retrouver."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"vlan 20"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Crée le VLAN 20 (Commercial). Même logique que le VLAN 10."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"name Commercial"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Nomme le VLAN 20. Avec show vlan brief, tu verras « 10 Administration » et « 20 Commercial »."}</p></div>
+            </div>
+          </div>
+
+          <div className="bg-black/30 rounded-lg p-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Vérification :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"Switch# show vlan brief"}</p>
+            </div>
+            <p className="text-slate-400 text-xs mt-2">{"Tu dois voir VLAN 10 (Administration) et VLAN 20 (Commercial). Aucun port dedans pour l'instant, c'est normal."}</p>
+          </div>
         </div>
-        <p className="text-slate-400 text-xs mb-2 hidden"> <code className="text-emerald-400 font-mono">show vlan brief</code> → tu dois voir 10 Administration et 20 Commercial. Pour l'instant aucun port n'est dedans, c'est normal.</p>
       </section>
 
-      {/* ÉTAPE 4 — ATTRIBUER LES PORTS (commande par commande) */}
+      {/* ATTRIBUER LES PORTS */}
       <section id="lab1s2-ports" className="scroll-mt-4">
-        <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-2">🟩 Étape 4 — Attribuer les ports aux VLANs</h2>
-        <p className="text-slate-300 text-sm mb-2">Ports Admin (1 et 2) → VLAN 10. Ports Commercial (3 et 4) → VLAN 20.</p>
-        <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 space-y-0 mb-3">
-          <CmdLine cmd="interface range fastEthernet0/1 - 2">Sélectionne les ports 1 et 2 (PC Admin).</CmdLine>
-          <CmdLine cmd="switchport mode access">Met les ports en mode accès (un VLAN par port, pour les PC).</CmdLine>
-          <CmdLine cmd="switchport access vlan 10">Assigne ces deux ports au VLAN 10 (Administration).</CmdLine>
-          <CmdLine cmd="exit">Quitte la plage de ports.</CmdLine>
-        </div>
-        <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 space-y-0">
-          <CmdLine cmd="interface range fastEthernet0/3 - 4">Sélectionne les ports 3 et 4 (PC Commercial).</CmdLine>
-          <CmdLine cmd="switchport mode access">Mode accès.</CmdLine>
-          <CmdLine cmd="switchport access vlan 20">Assigne ces ports au VLAN 20 (Commercial).</CmdLine>
-          <CmdLine cmd="exit">Quitte la plage.</CmdLine>
-          <CmdLine cmd="show vlan brief">Vérif : 10 Administration → Fa0/1, Fa0/2 ; 20 Commercial → Fa0/3, Fa0/4.</CmdLine>
+        <div className="bg-gradient-to-r from-emerald-900/20 to-purple-900/20 rounded-xl p-6 border border-emerald-500/30">
+          <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"🟩 Étape 4 — Attribuer les ports aux VLANs"}</h2>
+          <p className="text-slate-300 text-sm mb-4">{"Ports 1–2 (Admin) → VLAN 10. Ports 3–4 (Commercial) → VLAN 20."}</p>
+
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Ports Admin → VLAN 10 :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"Switch(config)# interface range fastEthernet0/1 - 2"}</p>
+              <p>{"Switch(config-if-range)# switchport mode access"}</p>
+              <p>{"Switch(config-if-range)# switchport access vlan 10"}</p>
+              <p>{"Switch(config-if-range)# exit"}</p>
+            </div>
+            <div className="space-y-2 mt-3">
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"interface range fastEthernet0/1 - 2"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Sélectionne les ports 1 et 2 d'un coup. Le range permet de configurer plusieurs ports en une seule commande."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"switchport mode access"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Met les ports en mode accès : un seul VLAN par port, pour les PC. L'alternative est « trunk » qui transporte plusieurs VLANs."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"switchport access vlan 10"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Assigne ces ports au VLAN 10 (Administration). Tout trafic entrant sur ces ports sera dans le VLAN 10."}</p></div>
+            </div>
+          </div>
+
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Ports Commercial → VLAN 20 :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"Switch(config)# interface range fastEthernet0/3 - 4"}</p>
+              <p>{"Switch(config-if-range)# switchport mode access"}</p>
+              <p>{"Switch(config-if-range)# switchport access vlan 20"}</p>
+              <p>{"Switch(config-if-range)# exit"}</p>
+            </div>
+            <div className="space-y-2 mt-3">
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"interface range fastEthernet0/3 - 4"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Sélectionne les ports 3 et 4 (PC Commercial). Même logique que pour les ports Admin."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"switchport access vlan 20"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Assigne au VLAN 20 (Commercial). Ces ports ne pourront plus communiquer avec le VLAN 10."}</p></div>
+            </div>
+          </div>
+
+          <div className="bg-black/30 rounded-lg p-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Vérification :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"Switch# show vlan brief"}</p>
+            </div>
+            <p className="text-slate-400 text-xs mt-2">{"VLAN 10 Administration → Fa0/1, Fa0/2. VLAN 20 Commercial → Fa0/3, Fa0/4."}</p>
+          </div>
         </div>
       </section>
 
-      {/* ÉTAPE 5 & 6 — VÉRIF + PING */}
+      {/* VÉRIFICATION + PING */}
       <section id="lab1s2-verif" className="scroll-mt-4">
-        <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-2">🟪 Étape 5 & 6 — Vérification et tests ping</h2>
-        <div className="space-y-3 text-sm">
-          <div className="flex items-start gap-2">
-            <span className="text-emerald-400 font-bold">1.</span>
-            <div><strong>VLAN Administration :</strong> depuis PC-Admin1, <code className="text-emerald-400 font-mono">ping 192.168.1.11</code> → ✅ Réponse OK.</div>
+        <div className="bg-gradient-to-r from-purple-900/20 to-indigo-900/20 rounded-xl p-6 border border-purple-500/30">
+          <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"✅ Étape 5 — Vérification et tests ping"}</h2>
+          <p className="text-slate-300 text-sm mb-4">{"On teste que les VLANs fonctionnent : même VLAN = ping OK, VLANs différents = ping bloqué."}</p>
+
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-3">{"Tests depuis les PC :"}</p>
+            <div className="space-y-3 text-sm">
+              <div className="bg-emerald-900/20 rounded-lg p-3 border border-emerald-500/20 flex items-start gap-3">
+                <span className="text-emerald-400 font-bold text-lg">{"1."}</span>
+                <div><p className="text-slate-200 font-semibold">{"VLAN Administration"}</p><p className="text-slate-400 text-xs">{"Depuis PC-Admin1 → "}<code className="text-emerald-400 font-mono">{"ping 192.168.1.11"}</code>{" → ✅ Réponse OK (même VLAN 10)."}</p></div>
+              </div>
+              <div className="bg-emerald-900/20 rounded-lg p-3 border border-emerald-500/20 flex items-start gap-3">
+                <span className="text-emerald-400 font-bold text-lg">{"2."}</span>
+                <div><p className="text-slate-200 font-semibold">{"VLAN Commercial"}</p><p className="text-slate-400 text-xs">{"Depuis PC-Com1 → "}<code className="text-emerald-400 font-mono">{"ping 192.168.1.21"}</code>{" → ✅ Réponse OK (même VLAN 20)."}</p></div>
+              </div>
+              <div className="bg-red-900/20 rounded-lg p-3 border border-red-500/20 flex items-start gap-3">
+                <span className="text-red-400 font-bold text-lg">{"3."}</span>
+                <div><p className="text-slate-200 font-semibold">{"Entre VLANs (inter-VLAN)"}</p><p className="text-slate-400 text-xs">{"Depuis PC-Admin1 → "}<code className="text-emerald-400 font-mono">{"ping 192.168.1.20"}</code>{" → ❌ Aucune réponse. C'est normal : les VLANs sont isolés. Sans routeur, impossible de communiquer entre VLANs."}</p></div>
+              </div>
+            </div>
           </div>
-          <div className="flex items-start gap-2">
-            <span className="text-emerald-400 font-bold">2.</span>
-            <div><strong>VLAN Commercial :</strong> depuis PC-Com1, <code className="text-emerald-400 font-mono">ping 192.168.1.21</code> → ✅ Réponse OK.</div>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="text-red-400 font-bold">3.</span>
-            <div><strong>Entre VLANs :</strong> depuis PC-Admin1, <code className="text-emerald-400 font-mono">ping 192.168.1.20</code> → ❌ Aucune réponse. C'est normal : les VLANs sont isolés.</div>
+
+          <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
+            <p className="text-blue-300 font-bold text-sm mb-1">{"💡 Pourquoi le ping échoue entre VLANs ?"}</p>
+            <p className="text-slate-300 text-sm">{"Un switch ne route pas le trafic entre VLANs. Chaque VLAN est un réseau séparé au niveau de la couche 2. Pour qu'Admin et Commercial puissent communiquer, il faudrait un routeur (inter-VLAN routing) — c'est le sujet de la Session 3."}</p>
           </div>
         </div>
       </section>
     </div>
 
-    <div className="bg-emerald-900/20 border-t border-emerald-500/30 p-4">
-      <p className="text-emerald-400 text-sm font-medium flex items-center gap-2"><CheckCircle className="w-5 h-5" /> Lab complété : VLANs créés, ports assignés, isolation vérifiée.</p>
+    <div className="bg-emerald-900/20 border-t border-emerald-500/30 p-4 rounded-b-xl">
+      <p className="text-emerald-400 text-sm font-medium flex items-center gap-2"><CheckCircle className="w-5 h-5" /> Lab complété : VLANs 10 et 20 créés, ports assignés, isolation vérifiée par ping.</p>
     </div>
   </div>
 );
 
 const CorrectionLab2Session2Verbose = () => (
-  <div className="bg-[#0e0920] rounded-xl border border-white/[0.15] shadow-xl relative">
-    <nav className="sticky top-0 z-50 bg-[#1a1035]/98 backdrop-blur-md border-b border-white/[0.15] py-2 shadow-lg">
-      <div className="flex items-center gap-3 flex-wrap px-2">
+  <div className="max-w-5xl mx-auto space-y-8 pb-16">
+    <nav className="sticky top-0 z-10 bg-[#0e0920]/95 backdrop-blur border-b border-white/20 py-2 mb-6">
+      <div className="flex items-center gap-3 flex-wrap">
         <span className="text-xs text-slate-400 font-medium uppercase tracking-wider shrink-0">Raccourcis:</span>
         {[
           { id: 'lab2s2-etape0', label: 'Setup Base', icon: '🔵' },
@@ -2279,324 +2377,351 @@ const CorrectionLab2Session2Verbose = () => (
           { id: 'lab2s2-etape4', label: 'Vérifications', icon: '🔍' },
           { id: 'lab2s2-etape5', label: 'Sauvegarde', icon: '💾' },
         ].map(({ id, label, icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => {
-              const element = document.getElementById(id);
-              if (element) {
-                // Trouver le conteneur scrollable parent
-                const scrollContainer = element.closest('.overflow-y-auto');
-                if (scrollContainer) {
-                  const navHeight = 60;
-                  const containerTop = scrollContainer.getBoundingClientRect().top;
-                  const elementTop = element.getBoundingClientRect().top;
-                  const scrollPosition = scrollContainer.scrollTop + (elementTop - containerTop - navHeight);
-                  scrollContainer.scrollTo({ top: scrollPosition, behavior: 'smooth' });
-                } else {
-                  const navHeight = 60;
-                  const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-                  const offsetPosition = elementPosition - navHeight;
-                  window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-                }
-              }
-            }}
-            className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-purple-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1"
-          >
+          <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="px-2 py-0.5 rounded-md bg-[#251845]/80 hover:bg-emerald-600/80 text-slate-200 hover:text-white text-xs font-medium transition-colors flex items-center gap-1">
             <span className="text-[10px]">{icon}</span> {label}
           </button>
         ))}
       </div>
     </nav>
 
-    <div className="p-5 space-y-6">
-      {/* PLAN DU LAB */}
-      <section>
-        <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2">🧩 Plan du lab</h2>
-        <ul className="text-slate-300 text-sm list-disc pl-5 space-y-1">
-          <li>Setup de base (hostname, mot de passe, console) sur SW-Core et SW-Dist</li>
-          <li>Création du VLAN 99 (Management)</li>
-          <li>Configuration de l'IP de management (SVI) sur SW-Core et SW-Dist</li>
-          <li>Connexion du PC Admin au VLAN 99</li>
-          <li>Configuration du trunk sécurisé (native VLAN 99, VLAN 99 uniquement autorisé)</li>
-          <li>Désactivation des ports inutilisés</li>
-          <li>Vérifications avec les commandes show et ping</li>
-          <li>Sauvegarde</li>
-        </ul>
-      </section>
+    <div className="space-y-8">
 
-      {/* CÂBLAGE */}
-      <section>
-        <h2 className="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-3">🔌 Câblage</h2>
-        <div className="bg-[#1a1035]/60 border border-white/20 rounded-lg p-4 mb-4">
-          <ul className="text-slate-300 text-sm list-disc pl-5 space-y-1">
-            <li><strong>PC Admin</strong> branché sur <strong>SW-Core Fa0/1</strong></li>
-            <li><strong>Trunk inter-switch :</strong> SW-Core Fa0/2 ↔ SW-Dist Fa0/1</li>
-          </ul>
-          <p className="text-slate-400 text-xs mt-2">Port PC (access VLAN 99) = SW-Core Fa0/1 — Port trunk = SW-Core Fa0/2 et SW-Dist Fa0/1</p>
+      {/* INTRO */}
+      <section className="scroll-mt-4">
+        <div className="bg-gradient-to-r from-purple-900/30 to-indigo-900/30 rounded-xl p-5 border border-purple-500/40 mb-6">
+          <h2 className="text-xl font-bold text-purple-300 flex items-center gap-2">{"🔒 Correction Lab 2 — VLAN avancés et sécurisation"}</h2>
+          <p className="text-slate-400 text-sm mt-1">{"2 switches (SW-Core, SW-Dist), 1 PC Admin. Objectif : VLAN 99 management, trunk sécurisé, ports inutilisés désactivés, vérifications complètes."}</p>
         </div>
       </section>
 
-      {/* TABLE D'ADRESSAGE IP */}
-      <section>
-        <h2 className="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-3">📋 Table d'adressage IP</h2>
-        <div className="bg-[#1a1035]/60 border border-white/20 rounded-lg p-4 overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="bg-[#251845]/80 border-b border-white/20">
-                <th className="text-left py-2 px-3 text-slate-200 font-semibold">Équipement</th>
-                <th className="text-left py-2 px-3 text-slate-200 font-semibold">Interface</th>
-                <th className="text-left py-2 px-3 text-slate-200 font-semibold">Adresse IP</th>
-                <th className="text-left py-2 px-3 text-slate-200 font-semibold">Masque</th>
-                <th className="text-left py-2 px-3 text-slate-200 font-semibold">VLAN</th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-200">
-              <tr className="border-b border-white/[0.15]/50">
-                <td className="py-2 px-3">SW-Core</td>
-                <td className="py-2 px-3">VLAN 99 (SVI)</td>
-                <td className="py-2 px-3 font-mono text-emerald-400">192.168.99.2</td>
-                <td className="py-2 px-3 font-mono">255.255.255.0</td>
-                <td className="py-2 px-3">99</td>
-              </tr>
-              <tr className="border-b border-white/[0.15]/50">
-                <td className="py-2 px-3">SW-Dist</td>
-                <td className="py-2 px-3">VLAN 99 (SVI)</td>
-                <td className="py-2 px-3 font-mono text-emerald-400">192.168.99.3</td>
-                <td className="py-2 px-3 font-mono">255.255.255.0</td>
-                <td className="py-2 px-3">99</td>
-              </tr>
-              <tr>
-                <td className="py-2 px-3">PC Admin</td>
-                <td className="py-2 px-3">NIC</td>
-                <td className="py-2 px-3 font-mono text-emerald-400">192.168.99.10</td>
-                <td className="py-2 px-3 font-mono">255.255.255.0</td>
-                <td className="py-2 px-3">99</td>
-              </tr>
-            </tbody>
-          </table>
+      {/* CÂBLAGE + TOPOLOGIE */}
+      <section className="scroll-mt-4">
+        <div className="bg-gradient-to-r from-amber-900/20 to-purple-900/20 rounded-xl p-6 border border-amber-500/30">
+          <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"🔌 Câblage et adressage"}</h2>
+
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-3">{"Topologie :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-4 text-emerald-300 leading-relaxed">
+              <p>{"  [PC Admin]"}</p>
+              <p>{"      │"}</p>
+              <p>{"   Fa0/1 (access VLAN 99)"}</p>
+              <p>{"      │"}</p>
+              <p>{"  [SW-Core] ──── Fa0/2 ←trunk→ Fa0/1 ──── [SW-Dist]"}</p>
+            </div>
+          </div>
+
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Adresses IP :"}</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"Équipement"}</th><th className="p-2 text-left">{"Interface"}</th><th className="p-2 text-left">{"IP"}</th><th className="p-2 text-left">{"Masque"}</th><th className="p-2 text-left">{"VLAN"}</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-white/20 text-emerald-300"><td className="p-2 font-bold">{"SW-Core"}</td><td className="p-2 font-mono">{"VLAN 99 (SVI)"}</td><td className="p-2 font-mono">{"192.168.99.2"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2">{"99"}</td></tr>
+                  <tr className="border-t border-white/20"><td className="p-2 font-bold">{"SW-Dist"}</td><td className="p-2 font-mono">{"VLAN 99 (SVI)"}</td><td className="p-2 font-mono">{"192.168.99.3"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2">{"99"}</td></tr>
+                  <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC Admin"}</td><td className="p-2 font-mono">{"NIC"}</td><td className="p-2 font-mono">{"192.168.99.10"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td><td className="p-2">{"99"}</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Tableau de câblage :"}</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"De"}</th><th className="p-2 text-left">{"Port"}</th><th className="p-2 text-center">{"Câble"}</th><th className="p-2 text-left">{"Vers"}</th><th className="p-2 text-left">{"Port"}</th><th className="p-2 text-left">{"Rôle"}</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-white/20"><td className="p-2 font-bold">{"PC Admin"}</td><td className="p-2 font-mono">{"Fa0"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW-Core"}</td><td className="p-2 font-mono">{"Fa0/1"}</td><td className="p-2 text-slate-400">{"Access VLAN 99"}</td></tr>
+                  <tr className="border-t border-white/20"><td className="p-2 font-bold">{"SW-Core"}</td><td className="p-2 font-mono">{"Fa0/2"}</td><td className="p-2 text-center text-emerald-400">{"Straight"}</td><td className="p-2 font-bold">{"SW-Dist"}</td><td className="p-2 font-mono">{"Fa0/1"}</td><td className="p-2 text-slate-400">{"Trunk inter-switch"}</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-500/20">
+            <p className="text-blue-300 font-bold text-sm mb-1">{"💡 Pourquoi un VLAN 99 ?"}</p>
+            <p className="text-slate-300 text-sm">{"Le VLAN 1 est le VLAN par défaut de tous les switches Cisco. L'utiliser pour le management est un risque de sécurité. On crée un VLAN dédié (99) pour séparer le trafic d'administration du trafic utilisateur."}</p>
+          </div>
         </div>
       </section>
 
       {/* ÉTAPE 0 — SETUP DE BASE */}
       <section id="lab2s2-etape0" className="scroll-mt-4">
-        <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-3">🔵 ÉTAPE 0 — SETUP DE BASE (à faire sur SW-Core et SW-Dist)</h2>
-        
-        <div className="bg-[#1a1035]/60 border border-white/20 rounded-lg p-4 mb-4">
-          <h3 className="text-purple-300 font-bold text-base mb-2">🔹 1️⃣ Passer en mode administrateur</h3>
-          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core puis SW-Dist (ou l'inverse)</p>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 space-y-0">
-            <CmdLine cmd="enable">➡ Permet d'accéder au mode privilégié (#).</CmdLine>
-            <CmdLine cmd="configure terminal">➡ Permet de modifier la configuration du switch.</CmdLine>
-          </div>
-        </div>
+        <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-xl p-6 border border-blue-500/30">
+          <h2 className="text-lg font-bold text-blue-300 mb-3 flex items-center gap-2">{"🔵 Étape 0 — Setup de base (SW-Core et SW-Dist)"}</h2>
+          <p className="text-slate-300 text-sm mb-4">{"Ces commandes sont identiques sur les deux switches (sauf le hostname). À faire sur SW-Core puis sur SW-Dist."}</p>
 
-        <div className="bg-[#1a1035]/60 border border-white/20 rounded-lg p-4 mb-4">
-          <h3 className="text-purple-300 font-bold text-base mb-2">🔹 2️⃣ Nommer le switch</h3>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 mb-3">
-            <p className="text-slate-300 text-sm mb-2 font-semibold">Sur SW-Core</p>
-            <CmdLine cmd="hostname SW-Core">➡ Donne un nom clair au switch.</CmdLine>
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Commandes sur SW-Core :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"Switch> enable"}</p>
+              <p>{"Switch# configure terminal"}</p>
+              <p>{"Switch(config)# hostname SW-Core"}</p>
+              <p>{"SW-Core(config)# no ip domain-lookup"}</p>
+              <p>{"SW-Core(config)# enable secret cisco123"}</p>
+              <p>{"SW-Core(config)# line console 0"}</p>
+              <p>{"SW-Core(config-line)# password console123"}</p>
+              <p>{"SW-Core(config-line)# login"}</p>
+              <p>{"SW-Core(config-line)# exit"}</p>
+            </div>
+            <div className="space-y-2 mt-3">
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"enable"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Passe du mode utilisateur (>) au mode privilégié (#). Nécessaire avant toute modification."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"configure terminal"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Entre en mode configuration globale (config)#. C'est le mode où l'on modifie le hostname, les mots de passe, les VLANs."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"hostname SW-Core"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Renomme le switch. Le prompt change immédiatement. Sur le second switch, ce sera hostname SW-Dist."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"no ip domain-lookup"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Désactive la résolution DNS automatique. Sans ça, chaque faute de frappe déclenche une recherche DNS qui bloque le terminal 5 à 10 secondes."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"enable secret cisco123"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Définit le mot de passe chiffré pour accéder au mode privilégié (#). « secret » est plus sûr que « password » car il est hashé en MD5."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"line console 0"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Ouvre la configuration de la ligne console (accès physique par câble console). Il n'y a qu'une seule ligne console : la 0."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"password console123"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Définit le mot de passe demandé quand quelqu'un se connecte physiquement au switch."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"login"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Active la demande de mot de passe sur la console. Sans cette commande, le password défini juste avant ne serait jamais demandé."}</p></div>
+            </div>
           </div>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20">
-            <p className="text-slate-300 text-sm mb-2 font-semibold">Sur SW-Dist</p>
-            <CmdLine cmd="hostname SW-Dist">➡ Permet de distinguer les équipements.</CmdLine>
-          </div>
-        </div>
 
-        <div className="bg-[#1a1035]/60 border border-white/20 rounded-lg p-4 mb-4">
-          <h3 className="text-purple-300 font-bold text-base mb-2">🔹 3️⃣ Désactiver la résolution DNS</h3>
-          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core et SW-Dist</p>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 space-y-0">
-            <CmdLine cmd="no ip domain-lookup">➡ Empêche le switch de bloquer si une commande est mal tapée.</CmdLine>
-          </div>
-        </div>
-
-        <div className="bg-[#1a1035]/60 border border-white/20 rounded-lg p-4">
-          <h3 className="text-purple-300 font-bold text-base mb-2">🔹 4️⃣ Sécuriser l'accès console</h3>
-          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core et SW-Dist</p>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 space-y-0">
-            <CmdLine cmd="enable secret cisco123">➡ Définit le mot de passe du mode administrateur (#).</CmdLine>
-            <CmdLine cmd="line console 0">➡ Ouvre la configuration de l'accès physique.</CmdLine>
-            <CmdLine cmd="password console123">➡ Définit le mot de passe console.</CmdLine>
-            <CmdLine cmd="login">➡ Active la demande du mot de passe.</CmdLine>
-            <CmdLine cmd="exit">➡ Retour au mode global.</CmdLine>
+          <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20">
+            <p className="text-amber-300 font-bold text-sm mb-1">{"⚠️ Sur SW-Dist"}</p>
+            <p className="text-slate-300 text-sm">{"Mêmes commandes exactement, sauf hostname SW-Dist au lieu de hostname SW-Core."}</p>
           </div>
         </div>
       </section>
 
-      {/* ÉTAPE 1 — CRÉATION DU VLAN 99 */}
+      {/* ÉTAPE 1 — VLAN 99 */}
       <section id="lab2s2-etape1" className="scroll-mt-4">
-        <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-3">🔵 ÉTAPE 1 — CRÉATION DU VLAN 99 (Management)</h2>
-        
-        <div className="bg-[#1a1035]/60 border border-white/20 rounded-lg p-4 mb-4">
-          <p className="text-slate-300 text-sm mb-2">Sur les deux switches</p>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 space-y-0">
-            <CmdLine cmd="vlan 99">➡ Crée un VLAN dédié au management.</CmdLine>
-            <CmdLine cmd="name Management">➡ Donne un nom lisible au VLAN.</CmdLine>
-            <CmdLine cmd="exit">➡ Quitte le mode VLAN.</CmdLine>
-          </div>
-        </div>
+        <div className="bg-gradient-to-r from-purple-900/20 to-indigo-900/20 rounded-xl p-6 border border-purple-500/30">
+          <h2 className="text-lg font-bold text-purple-300 mb-3 flex items-center gap-2">{"🟪 Étape 1 — Création du VLAN 99 (Management)"}</h2>
+          <p className="text-slate-300 text-sm mb-4">{"On crée le VLAN 99 sur les deux switches, on configure l'IP de management (SVI), et on place le port du PC Admin dans le VLAN 99."}</p>
 
-        <div className="bg-[#1a1035]/60 border border-white/20 rounded-lg p-4 mb-4">
-          <h3 className="text-emerald-300 font-bold text-base mb-2">🔹 Configurer l'interface VLAN 99 (SVI)</h3>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 mb-3">
-            <p className="text-slate-300 text-sm mb-2 font-semibold">Sur SW-Core :</p>
-            <CmdLine cmd="interface vlan 99">➡ Ouvre l'interface virtuelle du VLAN 99.</CmdLine>
-            <CmdLine cmd="ip address 192.168.99.2 255.255.255.0">➡ Donne une IP au switch pour l'administration.</CmdLine>
-            <CmdLine cmd="no shutdown">➡ Active l'interface VLAN.</CmdLine>
-            <CmdLine cmd="exit">➡ Quitte la configuration.</CmdLine>
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Créer le VLAN 99 (sur les deux switches) :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"SW-Core(config)# vlan 99"}</p>
+              <p>{"SW-Core(config-vlan)# name Management"}</p>
+              <p>{"SW-Core(config-vlan)# exit"}</p>
+            </div>
+            <div className="space-y-2 mt-3">
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"vlan 99"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Crée le VLAN 99 dédié au management. Le numéro est arbitraire, mais 99 est une convention courante pour le management."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"name Management"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Donne un nom lisible au VLAN. Quand on fait show vlan brief, on voit « 99 Management » au lieu de juste « 99 »."}</p></div>
+            </div>
           </div>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20">
-            <p className="text-slate-300 text-sm mb-2 font-semibold">Sur SW-Dist :</p>
-            <CmdLine cmd="interface vlan 99">➡ Ouvre l'interface virtuelle VLAN 99.</CmdLine>
-            <CmdLine cmd="ip address 192.168.99.3 255.255.255.0">➡ Donne l'IP management au second switch.</CmdLine>
-            <CmdLine cmd="no shutdown">➡ Active l'interface.</CmdLine>
-            <CmdLine cmd="exit">➡ Quitte la configuration.</CmdLine>
-          </div>
-        </div>
 
-        <div className="bg-[#1a1035]/60 border border-white/20 rounded-lg p-4 mb-4">
-          <h3 className="text-emerald-300 font-bold text-base mb-2">🔹 Connecter le PC Admin au VLAN 99</h3>
-          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur le switch où le PC Admin est branché</p>
-          <p className="text-slate-300 text-sm mb-2">Ex. : si le PC Admin est sur Fa0/1 de SW-Core, faire ces commandes sur SW-Core :</p>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 space-y-0">
-            <CmdLine cmd="interface fastEthernet0/1">➡ Sélectionne le port où est branché le PC Admin.</CmdLine>
-            <CmdLine cmd="switchport mode access">➡ Définit le port comme port utilisateur.</CmdLine>
-            <CmdLine cmd="switchport access vlan 99">➡ Place ce port dans le VLAN 99.</CmdLine>
-            <CmdLine cmd="no shutdown">➡ Active le port.</CmdLine>
-            <CmdLine cmd="exit">➡ Quitte l'interface.</CmdLine>
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Configurer l'interface VLAN 99 (SVI) — Sur SW-Core :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"SW-Core(config)# interface vlan 99"}</p>
+              <p>{"SW-Core(config-if)# ip address 192.168.99.2 255.255.255.0"}</p>
+              <p>{"SW-Core(config-if)# no shutdown"}</p>
+              <p>{"SW-Core(config-if)# exit"}</p>
+            </div>
+            <div className="space-y-2 mt-3">
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"interface vlan 99"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Ouvre l'interface virtuelle (SVI) du VLAN 99. C'est cette interface qui donne une IP au switch pour qu'on puisse le gérer à distance."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"ip address 192.168.99.2 255.255.255.0"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Attribue l'adresse IP 192.168.99.2 au switch. C'est l'IP qu'on utilisera pour administrer SW-Core (SSH, ping, etc.)."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"no shutdown"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Active l'interface VLAN. Par défaut, les SVI sont éteintes. Le VLAN 99 ne sera pas pingable tant que cette commande n'est pas faite."}</p></div>
+            </div>
           </div>
-        </div>
 
-        <div className="bg-[#1a1035]/60 border border-white/20 rounded-lg p-4">
-          <h3 className="text-emerald-300 font-bold text-base mb-2">🔹 Configurer l'IP du PC Admin</h3>
-          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur le PC Admin (Packet Tracer)</p>
-          <p className="text-slate-300 text-sm mb-2">Desktop → IP Configuration :</p>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20">
-            <ul className="text-slate-300 text-sm space-y-1 list-disc pl-5">
-              <li><strong>IP :</strong> 192.168.99.10</li>
-              <li><strong>Masque :</strong> 255.255.255.0</li>
-              <li><strong>Gateway :</strong> vide (pas de routeur)</li>
-            </ul>
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW-Dist :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"SW-Dist(config)# interface vlan 99"}</p>
+              <p>{"SW-Dist(config-if)# ip address 192.168.99.3 255.255.255.0"}</p>
+              <p>{"SW-Dist(config-if)# no shutdown"}</p>
+              <p>{"SW-Dist(config-if)# exit"}</p>
+            </div>
+            <p className="text-slate-400 text-xs mt-2">{"Même logique, mais avec l'IP .3 pour distinguer les deux switches."}</p>
+          </div>
+
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Connecter le PC Admin au VLAN 99 (sur SW-Core) :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"SW-Core(config)# interface fastEthernet0/1"}</p>
+              <p>{"SW-Core(config-if)# switchport mode access"}</p>
+              <p>{"SW-Core(config-if)# switchport access vlan 99"}</p>
+              <p>{"SW-Core(config-if)# no shutdown"}</p>
+              <p>{"SW-Core(config-if)# exit"}</p>
+            </div>
+            <div className="space-y-2 mt-3">
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"interface fastEthernet0/1"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Sélectionne le port Fa0/1 où est branché le PC Admin."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"switchport mode access"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Définit le port comme port utilisateur (un seul VLAN). L'alternative est trunk (plusieurs VLANs)."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"switchport access vlan 99"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Place ce port dans le VLAN 99. Le PC Admin pourra ainsi communiquer avec les SVI des switches."}</p></div>
+            </div>
+          </div>
+
+          <div className="bg-black/30 rounded-lg p-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"IP du PC Admin (Packet Tracer) :"}</p>
+            <p className="text-slate-300 text-sm mb-2">{"Desktop → IP Configuration :"}</p>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-slate-300 border border-white/20 rounded-lg overflow-hidden">
+                <thead><tr className="bg-[#251845]/50"><th className="p-2 text-left">{"Champ"}</th><th className="p-2 text-left">{"Valeur"}</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-white/20"><td className="p-2 font-bold">{"IP"}</td><td className="p-2 font-mono text-emerald-400">{"192.168.99.10"}</td></tr>
+                  <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Masque"}</td><td className="p-2 font-mono">{"255.255.255.0"}</td></tr>
+                  <tr className="border-t border-white/20"><td className="p-2 font-bold">{"Gateway"}</td><td className="p-2 text-slate-500">{"vide (pas de routeur)"}</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ÉTAPE 2 — SÉCURISATION DU TRUNK */}
+      {/* ÉTAPE 2 — TRUNK */}
       <section id="lab2s2-etape2" className="scroll-mt-4">
-        <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-3">🔵 ÉTAPE 2 — SÉCURISATION DU TRUNK</h2>
-        
-        <div className="bg-[#1a1035]/60 border border-white/20 rounded-lg p-4 mb-4">
-          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core : port Fa0/2 (vers SW-Dist)</p>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 space-y-0 mb-4">
-            <CmdLine cmd="interface fastEthernet0/2">➡ Port trunk vers SW-Dist.</CmdLine>
-            <CmdLine cmd="switchport mode trunk">➡ Permet de transporter plusieurs VLAN sur un seul câble.</CmdLine>
-            <CmdLine cmd="switchport trunk native vlan 99">➡ Change le VLAN natif (évite VLAN 1 par défaut).</CmdLine>
-            <CmdLine cmd="switchport trunk allowed vlan 99">➡ Autorise uniquement le VLAN 99 à circuler (sécurité).</CmdLine>
-            <CmdLine cmd="switchport nonegotiate">➡ Désactive DTP (évite qu'un trunk se crée automatiquement).</CmdLine>
-            <CmdLine cmd="no shutdown">➡ Active le port.</CmdLine>
-            <CmdLine cmd="exit">➡ Quitte l'interface.</CmdLine>
-          </div>
-          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Dist : port Fa0/1 (vers SW-Core)</p>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 space-y-0">
-            <CmdLine cmd="interface fastEthernet0/1">➡ Port trunk vers SW-Core.</CmdLine>
-            <CmdLine cmd="switchport mode trunk">➡ Même config que SW-Core.</CmdLine>
-            <CmdLine cmd="switchport trunk native vlan 99">➡ VLAN natif = 99.</CmdLine>
-            <CmdLine cmd="switchport trunk allowed vlan 99">➡ VLAN 99 uniquement autorisé.</CmdLine>
-            <CmdLine cmd="switchport nonegotiate">➡ Désactive DTP.</CmdLine>
-            <CmdLine cmd="no shutdown">➡ Active le port.</CmdLine>
-            <CmdLine cmd="exit">➡ Quitte l'interface.</CmdLine>
-          </div>
-        </div>
+        <div className="bg-gradient-to-r from-cyan-900/20 to-purple-900/20 rounded-xl p-6 border border-cyan-500/30">
+          <h2 className="text-lg font-bold text-cyan-300 mb-3 flex items-center gap-2">{"🔗 Étape 2 — Sécurisation du trunk"}</h2>
+          <p className="text-slate-300 text-sm mb-4">{"Le trunk relie les deux switches et transporte le trafic du VLAN 99. On le sécurise en limitant les VLANs autorisés et en changeant le VLAN natif."}</p>
 
-        <div className="bg-[#1a1035]/60 border border-white/20 rounded-lg p-4">
-          <h3 className="text-emerald-300 font-bold text-base mb-2">🔹 Vérifier le trunk</h3>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 space-y-0">
-            <CmdLine cmd="show interfaces trunk">➡ SW-Core : trunk sur Fa0/2 — SW-Dist : trunk sur Fa0/1. Native VLAN = 99, Allowed = 99</CmdLine>
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW-Core — port Fa0/2 (vers SW-Dist) :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"SW-Core(config)# interface fastEthernet0/2"}</p>
+              <p>{"SW-Core(config-if)# switchport mode trunk"}</p>
+              <p>{"SW-Core(config-if)# switchport trunk native vlan 99"}</p>
+              <p>{"SW-Core(config-if)# switchport trunk allowed vlan 99"}</p>
+              <p>{"SW-Core(config-if)# switchport nonegotiate"}</p>
+              <p>{"SW-Core(config-if)# no shutdown"}</p>
+              <p>{"SW-Core(config-if)# exit"}</p>
+            </div>
+            <div className="space-y-2 mt-3">
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"switchport mode trunk"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Met le port en mode trunk : il peut transporter plusieurs VLANs sur un seul câble grâce aux tags 802.1Q."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"switchport trunk native vlan 99"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Change le VLAN natif de 1 à 99. Le VLAN natif est celui dont les trames ne sont pas taguées sur le trunk. Laisser le VLAN 1 est un risque de sécurité (VLAN hopping)."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"switchport trunk allowed vlan 99"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Limite les VLANs autorisés à circuler sur le trunk au seul VLAN 99. Tous les autres VLANs sont bloqués — principe du moindre privilège."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"switchport nonegotiate"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Désactive DTP (Dynamic Trunking Protocol). Empêche un attaquant de créer un trunk automatique avec son PC. Sécurité essentielle."}</p></div>
+            </div>
           </div>
-          <p className="text-amber-500/90 text-xs mt-2">⚠️ Si rien ne s'affiche : vérifier câble (SW-Core Fa0/2 ↔ SW-Dist Fa0/1), <code>no shutdown</code> sur les ports trunk</p>
+
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW-Dist — port Fa0/1 (vers SW-Core) :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"SW-Dist(config)# interface fastEthernet0/1"}</p>
+              <p>{"SW-Dist(config-if)# switchport mode trunk"}</p>
+              <p>{"SW-Dist(config-if)# switchport trunk native vlan 99"}</p>
+              <p>{"SW-Dist(config-if)# switchport trunk allowed vlan 99"}</p>
+              <p>{"SW-Dist(config-if)# switchport nonegotiate"}</p>
+              <p>{"SW-Dist(config-if)# no shutdown"}</p>
+              <p>{"SW-Dist(config-if)# exit"}</p>
+            </div>
+            <p className="text-slate-400 text-xs mt-2">{"Configuration miroir de SW-Core. Les deux côtés du trunk doivent avoir le même VLAN natif et les mêmes VLANs autorisés."}</p>
+          </div>
+
+          <div className="bg-black/30 rounded-lg p-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Vérification :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"SW-Core# show interfaces trunk"}</p>
+            </div>
+            <p className="text-slate-400 text-xs mt-2">{"Tu dois voir : trunk sur Fa0/2, Native VLAN = 99, Allowed VLAN = 99. Même vérif sur SW-Dist (Fa0/1)."}</p>
+          </div>
+
+          <div className="bg-amber-900/20 rounded-lg p-4 border border-amber-500/20 mt-4">
+            <p className="text-amber-300 font-bold text-sm mb-1">{"⚠️ Si rien ne s'affiche"}</p>
+            <p className="text-slate-300 text-sm">{"Vérifie le câble (SW-Core Fa0/2 ↔ SW-Dist Fa0/1) et que no shutdown a bien été fait sur les deux ports trunk."}</p>
+          </div>
         </div>
       </section>
 
-      {/* ÉTAPE 3 — DÉSACTIVER LES PORTS INUTILISÉS */}
+      {/* ÉTAPE 3 — PORTS OFF */}
       <section id="lab2s2-etape3" className="scroll-mt-4">
-        <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-3">🔵 ÉTAPE 3 — DÉSACTIVER LES PORTS INUTILISÉS</h2>
-        <div className="bg-[#1a1035]/60 border border-white/20 rounded-lg p-4">
-          <p className="text-amber-500/90 text-xs mb-2">⚠️ Ne pas toucher : SW-Core Fa0/1 (PC), Fa0/2 (trunk) — SW-Dist Fa0/1 (trunk)</p>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 mb-4">
-            <p className="text-slate-300 text-sm mb-2 font-semibold">Sur SW-Core :</p>
-            <CmdLine cmd="interface range fastEthernet0/3 - 24">➡ Ports inutilisés (pas Fa0/1 ni Fa0/2).</CmdLine>
-            <CmdLine cmd="shutdown">➡ Désactive les ports pour éviter les connexions non autorisées.</CmdLine>
-            <CmdLine cmd="exit">➡ Quitte l'interface.</CmdLine>
+        <div className="bg-gradient-to-r from-red-900/20 to-purple-900/20 rounded-xl p-6 border border-red-500/30">
+          <h2 className="text-lg font-bold text-red-300 mb-3 flex items-center gap-2">{"🔒 Étape 3 — Désactiver les ports inutilisés"}</h2>
+          <p className="text-slate-300 text-sm mb-4">{"Bonne pratique de sécurité : tout port non utilisé doit être éteint. On ne touche pas aux ports actifs (PC et trunk)."}</p>
+
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW-Core (garder Fa0/1 et Fa0/2) :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"SW-Core(config)# interface range fastEthernet0/3 - 24"}</p>
+              <p>{"SW-Core(config-if-range)# shutdown"}</p>
+              <p>{"SW-Core(config-if-range)# exit"}</p>
+            </div>
+            <div className="space-y-2 mt-3">
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"interface range fastEthernet0/3 - 24"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Sélectionne les ports 3 à 24 d'un coup. On ne touche pas à Fa0/1 (PC Admin) ni Fa0/2 (trunk)."}</p></div>
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"shutdown"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Désactive les ports. Empêche toute connexion non autorisée. En show ip interface brief, ces ports apparaîtront « administratively down »."}</p></div>
+            </div>
           </div>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20">
-            <p className="text-slate-300 text-sm mb-2 font-semibold">Sur SW-Dist :</p>
-            <CmdLine cmd="interface range fastEthernet0/2 - 24">➡ Ports inutilisés (pas Fa0/1 trunk).</CmdLine>
-            <CmdLine cmd="shutdown">➡ Désactive les ports.</CmdLine>
-            <CmdLine cmd="exit">➡ Quitte l'interface.</CmdLine>
+
+          <div className="bg-black/30 rounded-lg p-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW-Dist (garder Fa0/1 trunk) :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"SW-Dist(config)# interface range fastEthernet0/2 - 24"}</p>
+              <p>{"SW-Dist(config-if-range)# shutdown"}</p>
+              <p>{"SW-Dist(config-if-range)# exit"}</p>
+            </div>
+            <p className="text-slate-400 text-xs mt-2">{"SW-Dist n'a qu'un seul port actif : Fa0/1 (trunk vers SW-Core). Tout le reste est éteint."}</p>
           </div>
         </div>
       </section>
 
-      {/* ÉTAPE 4 — VÉRIFICATIONS FINALES */}
+      {/* ÉTAPE 4 — VÉRIFICATIONS */}
       <section id="lab2s2-etape4" className="scroll-mt-4">
-        <h2 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-3">🔵 ÉTAPE 4 — VÉRIFICATIONS FINALES</h2>
-        
-        <div className="bg-[#1a1035]/60 border border-white/20 rounded-lg p-4 mb-4">
-          <h3 className="text-purple-300 font-bold text-base mb-2">🔹 Vérifier VLAN</h3>
-          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core et SW-Dist</p>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 space-y-0">
-            <CmdLine cmd="show vlan brief">➡ VLAN 99 doit contenir Fa0/1 (PC). Fa0/2 en trunk peut rester affiché dans VLAN 1, c'est normal.</CmdLine>
-          </div>
-        </div>
+        <div className="bg-gradient-to-r from-emerald-900/20 to-purple-900/20 rounded-xl p-6 border border-emerald-500/30">
+          <h2 className="text-lg font-bold text-emerald-300 mb-3 flex items-center gap-2">{"🔍 Étape 4 — Vérifications finales"}</h2>
+          <p className="text-slate-300 text-sm mb-4">{"Quatre vérifications à faire pour valider que tout fonctionne."}</p>
 
-        <div className="bg-[#1a1035]/60 border border-white/20 rounded-lg p-4 mb-4">
-          <h3 className="text-purple-300 font-bold text-base mb-2">🔹 Vérifier le trunk</h3>
-          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core et SW-Dist</p>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 space-y-0">
-            <CmdLine cmd="show interfaces trunk">➡ Vérifie que : Native VLAN = 99, Allowed VLAN = 99</CmdLine>
-          </div>
-        </div>
-
-        <div className="bg-[#1a1035]/60 border border-white/20 rounded-lg p-4 mb-4">
-          <h3 className="text-purple-300 font-bold text-base mb-2">🔹 Tester le ping</h3>
-          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur le PC Admin</p>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 space-y-2">
-            <div>
-              <p className="text-slate-300 text-sm mb-1 font-semibold">Ping SW-Core :</p>
-              <CmdLine cmd="ping 192.168.99.2">➡ Teste la connectivité vers SW-Core</CmdLine>
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"1. Vérifier les VLANs (sur SW-Core et SW-Dist) :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"SW-Core# show vlan brief"}</p>
             </div>
-            <div>
-              <p className="text-slate-300 text-sm mb-1 font-semibold">Ping SW-Dist :</p>
-              <CmdLine cmd="ping 192.168.99.3">➡ Teste la connectivité vers SW-Dist</CmdLine>
+            <div className="space-y-2 mt-3">
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"show vlan brief"}</code><p className="text-slate-400 text-xs leading-relaxed">{"VLAN 99 (Management) doit contenir Fa0/1 (le port du PC). Le port trunk Fa0/2 peut apparaître dans le VLAN 1, c'est normal — les trunks ne s'affichent pas dans show vlan brief."}</p></div>
             </div>
           </div>
-          <p className="text-slate-400 text-xs mt-2 italic">➡ Si ça répond = VLAN management fonctionne.</p>
-        </div>
 
-        <div className="bg-[#1a1035]/60 border border-white/20 rounded-lg p-4">
-          <h3 className="text-purple-300 font-bold text-base mb-2">🔹 Vérifier que ports inutilisés sont down</h3>
-          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core et SW-Dist</p>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 space-y-0">
-            <CmdLine cmd="show ip interface brief">➡ Les ports inutilisés doivent être "administratively down".</CmdLine>
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"2. Vérifier le trunk (sur SW-Core et SW-Dist) :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"SW-Core# show interfaces trunk"}</p>
+            </div>
+            <div className="space-y-2 mt-3">
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"show interfaces trunk"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Vérifie que : Native VLAN = 99 et Allowed VLAN = 99. Si les deux côtés ne correspondent pas, le trunk ne fonctionnera pas."}</p></div>
+            </div>
+          </div>
+
+          <div className="bg-black/30 rounded-lg p-4 mb-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"3. Tester le ping (depuis le PC Admin) :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"C:\\> ping 192.168.99.2"}</p>
+              <p>{"C:\\> ping 192.168.99.3"}</p>
+            </div>
+            <div className="space-y-3 mt-3">
+              <div className="bg-emerald-900/20 rounded-lg p-3 border border-emerald-500/20 flex items-start gap-3">
+                <span className="text-emerald-400 font-bold">{"✅"}</span>
+                <div><p className="text-slate-400 text-xs"><code className="text-emerald-400 font-mono">{"ping 192.168.99.2"}</code>{" → Réponse OK = connectivité vers SW-Core."}</p></div>
+              </div>
+              <div className="bg-emerald-900/20 rounded-lg p-3 border border-emerald-500/20 flex items-start gap-3">
+                <span className="text-emerald-400 font-bold">{"✅"}</span>
+                <div><p className="text-slate-400 text-xs"><code className="text-emerald-400 font-mono">{"ping 192.168.99.3"}</code>{" → Réponse OK = le trunk fonctionne, SW-Dist est joignable à travers SW-Core."}</p></div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-black/30 rounded-lg p-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"4. Vérifier les ports désactivés (sur SW-Core et SW-Dist) :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"SW-Core# show ip interface brief"}</p>
+            </div>
+            <div className="space-y-2 mt-3">
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"show ip interface brief"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Les ports Fa0/3 à Fa0/24 doivent être « administratively down ». Les ports Fa0/1 et Fa0/2 doivent être « up »."}</p></div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* SAUVEGARDE */}
+      {/* ÉTAPE 5 — SAUVEGARDE */}
       <section id="lab2s2-etape5" className="scroll-mt-4">
-        <h2 className="text-sm font-bold text-amber-400 uppercase tracking-wider mb-3">🔵 SAUVEGARDE</h2>
-        <div className="bg-[#1a1035]/60 border border-white/20 rounded-lg p-4">
-          <p className="text-amber-300 text-sm mb-2 font-semibold">🖥️ Sur SW-Core et SW-Dist</p>
-          <div className="bg-[#1a1035]/50 rounded-lg p-3 border border-white/20 space-y-0">
-            <CmdLine cmd="copy running-config startup-config">➡ Sauvegarde permanente.</CmdLine>
+        <div className="bg-gradient-to-r from-amber-900/20 to-yellow-900/20 rounded-xl p-6 border border-amber-500/30">
+          <h2 className="text-lg font-bold text-amber-300 mb-3 flex items-center gap-2">{"💾 Étape 5 — Sauvegarde"}</h2>
+          <p className="text-slate-300 text-sm mb-4">{"À faire sur les deux switches pour ne pas perdre la config au prochain redémarrage."}</p>
+
+          <div className="bg-black/30 rounded-lg p-4">
+            <p className="text-purple-300 font-bold text-sm mb-2">{"Sur SW-Core et SW-Dist :"}</p>
+            <div className="font-mono text-sm bg-black/50 rounded-xl px-5 py-3 text-emerald-300 space-y-1">
+              <p>{"SW-Core# copy running-config startup-config"}</p>
+            </div>
+            <div className="space-y-2 mt-3">
+              <div className="bg-black/20 rounded-lg p-3 flex gap-4 items-start"><code className="text-purple-300 font-mono font-bold text-xs whitespace-nowrap shrink-0 min-w-[14rem]">{"copy running-config startup-config"}</code><p className="text-slate-400 text-xs leading-relaxed">{"Copie la configuration active (RAM) vers la config de démarrage (NVRAM). Sans cette commande, tout est perdu au prochain reboot. Raccourci : wr."}</p></div>
+            </div>
           </div>
         </div>
       </section>
     </div>
 
-    <div className="bg-purple-900/20 border-t border-purple-500/30 p-4">
-      <p className="text-purple-300 text-sm font-medium flex items-center gap-2"><CheckCircle className="w-5 h-5" /> Résultat final : Câblage PC sur SW-Core Fa0/1, trunk SW-Core Fa0/2 ↔ SW-Dist Fa0/1 ; VLAN 99 (Management) ; IP gestion 192.168.99.2 / 192.168.99.3 ; PC Admin 192.168.99.10 ; Trunk sécurisé (native 99, allowed 99, nonegotiate) ; Ports inutilisés désactivés (SW-Core Fa0/3-24, SW-Dist Fa0/2-24). Vérif : show vlan brief, show interfaces trunk, show ip interface brief, ping 192.168.99.2 et 192.168.99.3.</p>
+    <div className="bg-purple-900/20 border-t border-purple-500/30 p-4 rounded-b-xl">
+      <p className="text-purple-300 text-sm font-medium flex items-center gap-2"><CheckCircle className="w-5 h-5" /> Lab complété : VLAN 99 Management, IP gestion .2/.3, trunk sécurisé (native 99, allowed 99, nonegotiate), ports inutilisés désactivés, ping OK.</p>
     </div>
   </div>
 );
