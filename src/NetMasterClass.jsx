@@ -3186,11 +3186,11 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
         type: 'interactive_quiz',
         title: "Quiz Interactif : Teste tes Connaissances",
         questions: [
-          { q: "Quel prompt indique le mode privilégié ?", options: [">", "#", "(config)#"], a: 1 },
-          { q: "Quelle est la différence entre running-config et startup-config ?", options: ["Aucune différence", "running-config est en RAM (actuelle), startup-config est en NVRAM (sauvegardée)", "running-config est sauvegardée, startup-config est temporaire"], a: 1 },
-          { q: "Que fait la commande 'copy running-config startup-config' ?", options: ["Redémarre le routeur", "Sauvegarde la config active dans la NVRAM", "Efface la configuration"], a: 1 },
+          { q: "Quel prompt indique le mode privilégié ?", options: ["(config)#", ">", "#"], a: 2 },
+          { q: "Quelle est la différence entre running-config et startup-config ?", options: ["running-config est en RAM (actuelle), startup-config est en NVRAM (sauvegardée)", "Aucune différence", "running-config est sauvegardée, startup-config est temporaire"], a: 0 },
+          { q: "Que fait la commande 'copy running-config startup-config' ?", options: ["Redémarre le routeur", "Efface la configuration", "Sauvegarde la config active dans la NVRAM"], a: 2 },
           { q: "Pourquoi utiliser 'enable secret' plutôt que 'enable password' ?", options: ["enable secret est plus rapide", "enable secret est chiffré (hashé MD5), donc plus sécurisé", "enable password ne fonctionne pas"], a: 1 },
-          { q: "Que se passe-t-il si on oublie de faire 'copy running-config startup-config' après modification ?", options: ["Rien, c'est automatique", "Toutes les modifications seront perdues au redémarrage", "Le routeur plante"], a: 1 }
+          { q: "Que se passe-t-il si on oublie de faire 'copy running-config startup-config' après modification ?", options: ["Rien, c'est automatique", "Le routeur plante", "Toutes les modifications seront perdues au redémarrage"], a: 2 }
         ]
       },
       {
@@ -5096,15 +5096,15 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
         type: 'interactive_quiz',
         title: "Quiz Interactif : VLAN",
         questions: [
-          { q: "À quoi sert un VLAN sur un switch ?", options: ["À augmenter la vitesse", "À séparer logiquement les équipes / le trafic sur un même switch", "À remplacer le routeur"], a: 1 },
-          { q: "Quelle commande crée le VLAN 10 ?", options: ["create vlan 10", "vlan 10", "switchport vlan 10"], a: 1 },
-          { q: "Pour attribuer un port au VLAN 10, on utilise :", options: ["vlan 10 access", "switchport access vlan 10", "port vlan 10"], a: 1 },
-          { q: "Comment donner une IP de management à un switch ?", options: ["Sur une interface physique", "Sur interface vlan 1 avec ip address et no shutdown", "Impossible"], a: 1 },
+          { q: "À quoi sert un VLAN sur un switch ?", options: ["À séparer logiquement les équipes / le trafic sur un même switch", "À augmenter la vitesse", "À remplacer le routeur"], a: 0 },
+          { q: "Quelle commande crée le VLAN 10 ?", options: ["create vlan 10", "switchport vlan 10", "vlan 10"], a: 2 },
+          { q: "Pour attribuer un port au VLAN 10, on utilise :", options: ["vlan 10 access", "port vlan 10", "switchport access vlan 10"], a: 2 },
+          { q: "Comment donner une IP de management à un switch ?", options: ["Sur interface vlan 1 avec ip address et no shutdown", "Sur une interface physique", "Impossible"], a: 0 },
           { q: "Entre deux PC de VLANs différents (sans routage), le ping :", options: ["Fonctionne", "Ne fonctionne pas (isolation VLAN)", "Fonctionne si même switch"], a: 1 },
-          { q: "Quelle commande active le mode trunk sur un port ?", options: ["trunk on", "switchport mode trunk", "port trunk"], a: 1 },
-          { q: "Que fait switchport trunk allowed vlan 10,20 ?", options: ["Autorise tous les VLANs", "Autorise uniquement les VLAN 10 et 20 sur le trunk", "Désactive le trunk"], a: 1 },
-          { q: "Sur un trunk, le VLAN natif est le VLAN dont les trames circulent :", options: ["Avec un tag 802.1Q", "Sans étiquette (sans tag)", "Uniquement en ISL"], a: 1 },
-          { q: "Quel protocole utilise un TAG de 4 octets pour identifier le VLAN dans la trame ?", options: ["ISL", "802.1Q (dot1q)", "CDP"], a: 1 }
+          { q: "Quelle commande active le mode trunk sur un port ?", options: ["port trunk", "trunk on", "switchport mode trunk"], a: 2 },
+          { q: "Que fait switchport trunk allowed vlan 10,20 ?", options: ["Désactive le trunk", "Autorise uniquement les VLAN 10 et 20 sur le trunk", "Autorise tous les VLANs"], a: 1 },
+          { q: "Sur un trunk, le VLAN natif est le VLAN dont les trames circulent :", options: ["Sans étiquette (sans tag)", "Avec un tag 802.1Q", "Uniquement en ISL"], a: 0 },
+          { q: "Quel protocole utilise un TAG de 4 octets pour identifier le VLAN dans la trame ?", options: ["ISL", "CDP", "802.1Q (dot1q)"], a: 2 }
         ]
       },
       {
@@ -5552,11 +5552,11 @@ Si vous connaissez les bons mots, il fera tout ce que vous voulez. Sinon, il ne 
         type: 'interactive_quiz',
         title: "Quiz Interactif : Trunk et Inter-VLAN",
         questions: [
-          { q: "À quoi sert un port trunk entre deux switches ?", options: ["À augmenter la vitesse", "À transporter plusieurs VLANs (étiquetés) entre les switches", "À remplacer le routeur"], a: 1 },
-          { q: "Quelle commande active le mode trunk sur un port ?", options: ["trunk on", "switchport mode trunk", "port trunk"], a: 1 },
+          { q: "À quoi sert un port trunk entre deux switches ?", options: ["À transporter plusieurs VLANs (étiquetés) entre les switches", "À augmenter la vitesse", "À remplacer le routeur"], a: 0 },
+          { q: "Quelle commande active le mode trunk sur un port ?", options: ["trunk on", "port trunk", "switchport mode trunk"], a: 2 },
           { q: "Que fait 'switchport trunk allowed vlan 10,20' ?", options: ["Autorise tous les VLANs", "Autorise uniquement les VLAN 10 et 20 sur le trunk", "Désactive le trunk"], a: 1 },
-          { q: "Qu'est-ce que le Router-on-a-Stick ?", options: ["Un routeur physique dédié", "Un routeur avec des sous-interfaces (une par VLAN) pour faire le routage inter-VLAN", "Un switch"], a: 1 },
-          { q: "Pour une sous-interface VLAN 10 sur le routeur, on utilise :", options: ["interface g0/0", "interface g0/0.10 + encapsulation dot1Q 10", "vlan 10"], a: 1 }
+          { q: "Qu'est-ce que le Router-on-a-Stick ?", options: ["Un routeur physique dédié", "Un switch", "Un routeur avec des sous-interfaces (une par VLAN) pour faire le routage inter-VLAN"], a: 2 },
+          { q: "Pour une sous-interface VLAN 10 sur le routeur, on utilise :", options: ["interface g0/0.10 + encapsulation dot1Q 10", "interface g0/0", "vlan 10"], a: 0 }
         ]
       },
       {
